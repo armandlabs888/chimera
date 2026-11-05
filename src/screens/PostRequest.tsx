@@ -1,6 +1,8 @@
+'use client'
+
 import { Check } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button, Field, SectionHeader, TextArea, TextInput } from '../components/ui'
 import { useBeam } from '../context/BeamContext'
 import { CATEGORIES, WHEN_OPTIONS, getCategory } from '../data/categories'
@@ -9,8 +11,8 @@ import type { CategoryId, WhenOption } from '../types'
 
 export function PostRequest() {
   const { createRequest, currentUser } = useBeam()
-  const navigate = useNavigate()
-  const [params] = useSearchParams()
+  const router = useRouter()
+  const params = useSearchParams()
   const initialCategory = (params.get('category') as CategoryId) || 'moving'
 
   const [step, setStep] = useState(0)
@@ -53,7 +55,7 @@ export function PostRequest() {
       when,
       budget,
     })
-    navigate(`/requests/${request.id}`)
+    router.push(`/requests/${request.id}`)
   }
 
   return (

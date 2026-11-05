@@ -1,5 +1,7 @@
+'use client'
+
 import { useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { PersonCard } from '../components/PersonCard'
 import { RequestCard } from '../components/RequestCard'
 import { EmptyState, SectionHeader } from '../components/ui'
@@ -9,11 +11,18 @@ import { distanceMiles } from '../data/neighborhoods'
 
 export function Browse() {
   const { state, currentUser } = useBeam()
-  const [params, setParams] = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+  const params = useSearchParams()
   const tab = params.get('tab') === 'people' ? 'people' : 'requests'
   const category = params.get('category') ?? 'all'
   const q = (params.get('q') ?? '').toLowerCase().trim()
   const freeOnly = params.get('free') === '1'
+
+  function replaceQuery(nextParams: URLSearchParams) {
+    const qs = nextParams.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname)
+  }
 
   const openRequests = useMemo(() => {
     return state.requests
@@ -55,17 +64,17 @@ export function Browse() {
   }, [state.people, category, q, freeOnly, currentUser.neighborhood])
 
   function setTab(next: 'requests' | 'people') {
-    const nextParams = new URLSearchParams(params)
+    const nextParams = new URLSearchParams(params.toString())
     if (next === 'people') nextParams.set('tab', 'people')
     else nextParams.delete('tab')
-    setParams(nextParams)
+    replaceQuery(nextParams)
   }
 
   function setCategory(id: string) {
-    const nextParams = new URLSearchParams(params)
+    const nextParams = new URLSearchParams(params.toString())
     if (id === 'all') nextParams.delete('category')
     else nextParams.set('category', id)
-    setParams(nextParams)
+    replaceQuery(nextParams)
   }
 
   return (

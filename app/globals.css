@@ -11,8 +11,8 @@
   --color-beam-amber: #e8a54b;
   --color-beam-amber-deep: #c4842f;
   --color-beam-amber-soft: rgba(232, 165, 75, 0.14);
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'Outfit', system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-body: var(--font-outfit), system-ui, sans-serif;
 }
 
 @layer base {
@@ -35,10 +35,6 @@
     color: var(--color-beam-cream);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-  }
-
-  #root {
-    min-height: 100dvh;
   }
 
   button,

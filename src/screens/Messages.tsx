@@ -1,12 +1,21 @@
+'use client'
+
 import { ArrowLeft, Send } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import { EmptyState, ButtonLink, TextInput } from '../components/ui'
 import { useBeam } from '../context/BeamContext'
 import { relativeTime } from '../lib/matching'
 
+function paramId(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? ''
+  return value ?? ''
+}
+
 export function Messages() {
-  const { threadId } = useParams()
+  const params = useParams()
+  const threadId = paramId(params.threadId)
   const { state, currentUser, sendMessage, getPerson, getRequest } = useBeam()
   const [body, setBody] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -34,7 +43,7 @@ export function Messages() {
         <EmptyState
           title="Thread not found"
           body="Open a conversation from a request or your You tab."
-          action={<ButtonLink to="/you">Back to You</ButtonLink>}
+          action={<ButtonLink href="/you">Back to You</ButtonLink>}
         />
       </div>
     )
@@ -51,7 +60,7 @@ export function Messages() {
     <div className="flex min-h-dvh flex-col bg-beam-base">
       <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-beam-line bg-beam-base/95 px-3 py-3 backdrop-blur">
         <Link
-          to={`/requests/${request.id}`}
+          href={`/requests/${request.id}`}
           className="touch-target inline-flex items-center justify-center rounded-xl text-beam-cream"
           aria-label="Back"
         >

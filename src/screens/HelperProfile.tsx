@@ -1,5 +1,7 @@
+'use client'
+
 import { MapPin, Star } from 'lucide-react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'next/navigation'
 import { RequestCard } from '../components/RequestCard'
 import { Badge, ButtonLink, EmptyState, SectionHeader } from '../components/ui'
 import { useBeam } from '../context/BeamContext'
@@ -14,10 +16,16 @@ const AVAIL_LABELS: Record<string, string> = {
   weekends: 'Weekends',
 }
 
+function paramId(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? ''
+  return value ?? ''
+}
+
 export function HelperProfile() {
-  const { id } = useParams()
+  const params = useParams()
+  const id = paramId(params.id)
   const { getPerson, state, currentUser } = useBeam()
-  const person = getPerson(id ?? '')
+  const person = getPerson(id)
 
   if (!person) {
     return (
@@ -25,7 +33,7 @@ export function HelperProfile() {
         <EmptyState
           title="Person not found"
           body="They may not be in this demo seed."
-          action={<ButtonLink to="/browse?tab=people">Browse people</ButtonLink>}
+          action={<ButtonLink href="/browse?tab=people">Browse people</ButtonLink>}
         />
       </div>
     )
@@ -83,7 +91,7 @@ export function HelperProfile() {
           </div>
           <p className="mt-4 text-sm text-beam-muted">{person.jobsCompleted} jobs completed on Beam</p>
           {isYou ? (
-            <ButtonLink to="/you" variant="secondary" className="mt-4">
+            <ButtonLink href="/you" variant="secondary" className="mt-4">
               Edit your profile
             </ButtonLink>
           ) : null}

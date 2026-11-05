@@ -1,6 +1,9 @@
+'use client'
+
 import { ArrowRight, Search } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { PersonCard } from '../components/PersonCard'
 import { RequestCard } from '../components/RequestCard'
 import { ButtonLink, SectionHeader, TextInput } from '../components/ui'
@@ -12,7 +15,7 @@ import { relativeTime } from '../lib/matching'
 
 export function Home() {
   const { state, currentUser } = useBeam()
-  const navigate = useNavigate()
+  const router = useRouter()
   const [query, setQuery] = useState('')
 
   const openRequests = useMemo(
@@ -37,7 +40,7 @@ export function Home() {
   function onSearch(e: FormEvent) {
     e.preventDefault()
     const q = query.trim()
-    navigate(q ? `/browse?q=${encodeURIComponent(q)}` : '/browse')
+    router.push(q ? `/browse?q=${encodeURIComponent(q)}` : '/browse')
   }
 
   return (
@@ -84,10 +87,10 @@ export function Home() {
           </form>
 
           <div className="mt-5 flex flex-wrap gap-3">
-            <ButtonLink to="/browse?tab=people" className="min-w-[10rem]">
+            <ButtonLink href="/browse?tab=people" className="min-w-[10rem]">
               Find nearby help
             </ButtonLink>
-            <ButtonLink to="/browse?tab=people&free=1" variant="secondary" className="min-w-[10rem]">
+            <ButtonLink href="/browse?tab=people&free=1" variant="secondary" className="min-w-[10rem]">
               See who&apos;s free
             </ButtonLink>
           </div>
@@ -101,7 +104,7 @@ export function Home() {
               {pulse.map((r) => (
                 <li key={r.id}>
                   <Link
-                    to={`/requests/${r.id}`}
+                    href={`/requests/${r.id}`}
                     className="flex items-center justify-between gap-3 rounded-xl px-2 py-2 transition hover:bg-white/5"
                   >
                     <div className="min-w-0">
@@ -125,7 +128,7 @@ export function Home() {
           {CATEGORIES.map((cat) => (
             <Link
               key={cat.id}
-              to={`/browse?category=${cat.id}`}
+              href={`/browse?category=${cat.id}`}
               className="group relative h-36 w-44 shrink-0 overflow-hidden rounded-2xl"
             >
               <img
@@ -149,7 +152,7 @@ export function Home() {
           title="Open nearby"
           subtitle="Requests stay visible until they’re filled."
           action={
-            <Link to="/browse" className="text-sm font-medium text-beam-amber">
+            <Link href="/browse" className="text-sm font-medium text-beam-amber">
               See all
             </Link>
           }
@@ -166,7 +169,7 @@ export function Home() {
           title="People available now"
           subtitle="Ranked locally once you open a request."
           action={
-            <Link to="/browse?tab=people" className="text-sm font-medium text-beam-amber">
+            <Link href="/browse?tab=people" className="text-sm font-medium text-beam-amber">
               Browse people
             </Link>
           }

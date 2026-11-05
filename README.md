@@ -10,15 +10,14 @@ This repository hosts the **Beam** MVP (hyper-local same-day help marketplace de
 
 Beam is a hyper-local, same-day help marketplace. People post practical jobs nearby; neighbors respond with a time and a price. Structured matching — not a feed, not classifieds, not social chatter.
 
-This MVP is a **client-side-only** React app. All data lives in `localStorage` with a seeded Austin demo (East Austin, Hyde Park, Mueller, Zilker, South Congress, Travis Heights, Clarksville, The Domain).
+This MVP is a **client-side-only** Next.js App Router app. All demo data lives in `localStorage` with a seeded Austin demo (East Austin, Hyde Park, Mueller, Zilker, South Congress, Travis Heights, Clarksville, The Domain).
 
 ## Stack
 
-- Vite + React 19 + TypeScript
-- React Router
+- Next.js (App Router) + React 19 + TypeScript
 - Tailwind CSS v4
 - Lucide icons
-- Fraunces + Outfit (Google Fonts)
+- Fraunces + Outfit (`next/font`)
 
 ## Run locally
 
@@ -30,11 +29,14 @@ npm run dev
 Open the printed local URL (default [http://127.0.0.1:43123](http://127.0.0.1:43123)).
 
 ```bash
-npm run build    # production build
-npm run preview  # serve the build
+npm run build       # production build
+npm run start       # serve the production build
+npm run test:smoke  # route + localStorage smoke checks against a running server
 ```
 
-No backend, auth, or payments. Use **You → Reset demo** to restore the Austin seed.
+Copy `.env.example` to `.env.local` if you add public client env vars later. No backend, auth, payments, or Supabase integration in this MVP — never commit service-role secrets.
+
+Use **You → Reset demo** to restore the Austin seed.
 
 ## What you can do in the demo
 
