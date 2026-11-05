@@ -4,8 +4,10 @@ import { LandingSection } from '@/components/flat'
 export function LandingFinalCta() {
   return (
     <LandingSection
+      id="get-started"
       tone="ink"
-      className="border-t border-beam-line px-4 py-12 sm:px-6 sm:py-16"
+      fullPage
+      className="border-t border-beam-line px-4 sm:px-6"
     >
       <div className="mx-auto max-w-2xl rounded-[12px] border border-beam-line bg-beam-base px-6 py-10 text-center sm:px-10">
         <h2 className="type-h2 text-beam-cream">Ready when you are</h2>
