@@ -30,6 +30,7 @@ import {
   BeamBackendError,
 } from '@/lib/beam/liveRepository'
 import { createClient } from '@/lib/supabase/client'
+import { profileSeedFromUser } from '@/lib/auth/profileSeed'
 import type {
   AppState,
   AvailabilitySlot,
@@ -51,7 +52,14 @@ interface BeamContextValue {
   currentUser: Person
   refresh: () => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string, name: string) => Promise<void>
+  signUp: (
+    email: string,
+    password: string,
+    name: string,
+    options?: { neighborhood?: NeighborhoodId; emailRedirectTo?: string },
+  ) => Promise<{ needsEmailConfirmation: boolean }>
+  signInWithGoogle: (redirectTo: string) => Promise<void>
+  resendSignupConfirmation: (email: string) => Promise<void>
   signOut: () => Promise<void>
   clearBackendError: () => void
   resetDemo: () => void
@@ -176,11 +184,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
           return
         }
 
-        await ensureProfile(
-          client,
-          session.user.id,
-          session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Neighbor',
-        )
+        await ensureProfile(client, session.user.id, profileSeedFromUser(session.user))
         const next = await loadLiveState(client, session.user.id)
         if (!cancelled) setState(next)
       } catch (err) {
@@ -208,11 +212,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
           setState(null)
           return
         }
-        await ensureProfile(
-          client,
-          session.user.id,
-          session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Neighbor',
-        )
+        await ensureProfile(client, session.user.id, profileSeedFromUser(session.user))
         const next = await loadLiveState(client, session.user.id)
         setState(next)
         setBackendError(null)
@@ -247,17 +247,54 @@ export function BeamProvider({ children }: { children: ReactNode }) {
   }, [reportError])
 
   const signUp = useCallback(
-    async (email: string, password: string, name: string) => {
+    async (
+      email: string,
+      password: string,
+      name: string,
+      options?: { neighborhood?: NeighborhoodId; emailRedirectTo?: string },
+    ) => {
       const client = createClient()
+      const neighborhood = options?.neighborhood ?? 'east-austin'
       const { data, error } = await client.auth.signUp({
         email,
         password,
-        options: { data: { name } },
+        options: {
+          data: { name, neighborhood },
+          emailRedirectTo: options?.emailRedirectTo,
+        },
       })
       if (error) reportError(error, 'Sign up failed')
-      if (data.user) {
-        await ensureProfile(client, data.user.id, name)
+      // Without autoconfirm, session is null — calling ensureProfile would fail RLS (auth.uid() null).
+      // The DB trigger creates the profile; client ensureProfile only when a session exists.
+      if (data.session?.user) {
+        await ensureProfile(
+          client,
+          data.session.user.id,
+          profileSeedFromUser(data.session.user, { name, neighborhood }),
+        )
       }
+      return { needsEmailConfirmation: !data.session }
+    },
+    [reportError],
+  )
+
+  const signInWithGoogle = useCallback(
+    async (redirectTo: string) => {
+      const client = createClient()
+      const { error } = await client.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo },
+      })
+      if (error) reportError(error, 'Google sign-in failed')
+    },
+    [reportError],
+  )
+
+  const resendSignupConfirmation = useCallback(
+    async (email: string) => {
+      const client = createClient()
+      const { error } = await client.auth.resend({ type: 'signup', email })
+      if (error) reportError(error, 'Could not resend confirmation email')
     },
     [reportError],
   )
@@ -720,6 +757,8 @@ export function BeamProvider({ children }: { children: ReactNode }) {
           refresh: async () => undefined,
           signIn,
           signUp,
+          signInWithGoogle,
+          resendSignupConfirmation,
           signOut,
           clearBackendError: () => setBackendError(null),
           resetDemo,
@@ -767,6 +806,8 @@ export function BeamProvider({ children }: { children: ReactNode }) {
     },
     signIn,
     signUp,
+    signInWithGoogle,
+    resendSignupConfirmation,
     signOut,
     clearBackendError: () => setBackendError(null),
     resetDemo,

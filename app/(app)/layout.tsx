@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Suspense } from 'react'
 import { BeamProvider } from '@/context/BeamContext'
 import { AppShell } from '@/components/Layout'
 import { AuthGate } from '@/components/AuthGate'
@@ -6,9 +7,19 @@ import { AuthGate } from '@/components/AuthGate'
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <BeamProvider>
-      <AuthGate>
-        <AppShell>{children}</AppShell>
-      </AuthGate>
+      <Suspense
+        fallback={
+          <div className="flex min-h-dvh items-center justify-center bg-beam-base text-beam-cream">
+            <p className="text-[22px] font-semibold tracking-tight text-beam-charcoal" aria-busy="true">
+              Beam
+            </p>
+          </div>
+        }
+      >
+        <AuthGate>
+          <AppShell>{children}</AppShell>
+        </AuthGate>
+      </Suspense>
     </BeamProvider>
   )
 }
