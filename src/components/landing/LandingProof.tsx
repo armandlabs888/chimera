@@ -1,4 +1,4 @@
-import { StackSection, MetaLabel, FlatSurface } from '@/components/flat'
+import { LandingSection, MetaLabel, FlatSurface } from '@/components/flat'
 import { EXAMPLE_LABEL, EXAMPLE_OFFER, EXAMPLE_REQUEST, EXAMPLE_THREAD } from './examples'
 
 function ExampleBadge() {
@@ -85,10 +85,8 @@ function ThreadPanel() {
 
 export function LandingProof() {
   return (
-    <StackSection
+    <LandingSection
       id="how-it-works"
-      stick
-      zIndex={2}
       tone="ink"
       className="scroll-mt-16 border-t border-beam-line px-4 py-12 sm:px-6 sm:py-14"
     >
@@ -105,6 +103,6 @@ export function LandingProof() {
         <OfferPanel />
         <ThreadPanel />
       </div>
-    </StackSection>
+    </LandingSection>
   )
 }

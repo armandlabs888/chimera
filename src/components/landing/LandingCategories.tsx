@@ -1,18 +1,15 @@
 import { ArrowRight } from 'lucide-react'
 import { CATEGORIES } from '@/data/categories'
-import { StackSection, MetaLabel, FlatBento } from '@/components/flat'
+import { LandingSection, MetaLabel, FlatBento } from '@/components/flat'
 
 const NOTES: Record<string, string> = {
   handyman: 'Light fixes only — not licensed trades',
 }
 
-/** Tall grid — not sticky. */
 export function LandingCategories() {
   return (
-    <StackSection
+    <LandingSection
       id="categories"
-      stick={false}
-      zIndex={3}
       tone="base"
       className="scroll-mt-16 border-t border-beam-line px-4 py-12 sm:px-6 sm:py-14"
     >
@@ -46,6 +43,6 @@ export function LandingCategories() {
           ))}
         </div>
       </div>
-    </StackSection>
+    </LandingSection>
   )
 }

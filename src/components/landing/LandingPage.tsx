@@ -11,7 +11,7 @@ export function LandingPage() {
   return (
     <div className="landing-root relative min-h-dvh bg-beam-base text-beam-cream">
       <LandingNav />
-      <main className="beam-stack">
+      <main>
         <LandingHero />
         <LandingProof />
         <LandingCategories />

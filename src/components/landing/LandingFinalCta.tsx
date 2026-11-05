@@ -1,11 +1,9 @@
 import Link from 'next/link'
-import { StackSection } from '@/components/flat'
+import { LandingSection } from '@/components/flat'
 
 export function LandingFinalCta() {
   return (
-    <StackSection
-      stick
-      zIndex={6}
+    <LandingSection
       tone="ink"
       className="border-t border-beam-line px-4 py-12 sm:px-6 sm:py-16"
     >
@@ -29,6 +27,6 @@ export function LandingFinalCta() {
           </Link>
         </div>
       </div>
-    </StackSection>
+    </LandingSection>
   )
 }

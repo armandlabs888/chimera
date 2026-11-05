@@ -1,9 +1,9 @@
 import Link from 'next/link'
-import { StackSection } from '@/components/flat'
+import { LandingSection } from '@/components/flat'
 
 export function LandingHero() {
   return (
-    <StackSection stick zIndex={1} tone="base" className="px-4 py-12 sm:px-6 sm:py-16 md:py-20">
+    <LandingSection tone="base" className="px-4 py-12 sm:px-6 sm:py-16 md:py-20">
       <div className="mx-auto max-w-3xl text-center">
         <p className="landing-meta type-meta text-beam-amber">Austin · same-day help nearby</p>
 
@@ -33,6 +33,6 @@ export function LandingHero() {
           Post · priced offers · in-thread messaging
         </p>
       </div>
-    </StackSection>
+    </LandingSection>
   )
 }

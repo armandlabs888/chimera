@@ -1,12 +1,10 @@
 import Link from 'next/link'
-import { StackSection, MetaLabel, FlatSurface } from '@/components/flat'
+import { LandingSection, MetaLabel, FlatSurface } from '@/components/flat'
 
 export function LandingPaths() {
   return (
-    <StackSection
+    <LandingSection
       id="paths"
-      stick
-      zIndex={4}
       tone="ink"
       className="scroll-mt-16 border-t border-beam-line px-4 py-12 sm:px-6 sm:py-14"
     >
@@ -43,6 +41,6 @@ export function LandingPaths() {
           </Link>
         </FlatSurface>
       </div>
-    </StackSection>
+    </LandingSection>
   )
 }
