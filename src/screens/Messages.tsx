@@ -16,7 +16,7 @@ function paramId(value: string | string[] | undefined): string {
 export function Messages() {
   const params = useParams()
   const threadId = paramId(params.threadId)
-  const { state, currentUser, sendMessage, getPerson, getRequest } = useBeam()
+  const { state, currentUser, sendMessage, getPerson, getRequest, mode } = useBeam()
   const [body, setBody] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -49,11 +49,12 @@ export function Messages() {
     )
   }
 
-  function onSend(e: FormEvent) {
+  async function onSend(e: FormEvent) {
     e.preventDefault()
     if (!body.trim() || !threadId) return
-    sendMessage(threadId, body, { simulateReply: true })
+    const outgoing = body
     setBody('')
+    await sendMessage(threadId, outgoing, { simulateReply: mode === 'demo' })
   }
 
   return (

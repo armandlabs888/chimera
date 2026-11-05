@@ -86,33 +86,37 @@ export function RequestDetail() {
 
   const activeRequest = request
 
-  function submitOffer(e: FormEvent) {
+  async function submitOffer(e: FormEvent) {
     e.preventDefault()
     if (offerPrice < 5) {
       setOfferError('Name a real price before you show up.')
       return
     }
-    createOffer({
-      requestId: activeRequest.id,
-      price: offerPrice,
-      note: offerNote || 'Happy to help — message me to coordinate.',
-      eta: offerEta,
-    })
-    ensureThread(activeRequest.id, activeRequest.requesterId)
-    setShowOfferForm(false)
-    setOfferError('')
+    try {
+      await createOffer({
+        requestId: activeRequest.id,
+        price: offerPrice,
+        note: offerNote || 'Happy to help — message me to coordinate.',
+        eta: offerEta,
+      })
+      await ensureThread(activeRequest.id, activeRequest.requesterId)
+      setShowOfferForm(false)
+      setOfferError('')
+    } catch (err) {
+      setOfferError(err instanceof Error ? err.message : 'Could not send offer')
+    }
   }
 
-  function openThreadWith(otherId: string) {
-    const threadId = ensureThread(activeRequest.id, otherId)
+  async function openThreadWith(otherId: string) {
+    const threadId = await ensureThread(activeRequest.id, otherId)
     router.push(`/messages/${threadId}`)
   }
 
-  function submitReview(e: FormEvent) {
+  async function submitReview(e: FormEvent) {
     e.preventDefault()
     if (!activeRequest.helperId && !isOwner) return
     const toId = isOwner ? activeRequest.helperId! : activeRequest.requesterId
-    addReview({
+    await addReview({
       requestId: activeRequest.id,
       toId,
       rating: reviewRating,
