@@ -1,0 +1,153 @@
+import { useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { PersonCard } from '../components/PersonCard'
+import { RequestCard } from '../components/RequestCard'
+import { EmptyState, SectionHeader } from '../components/ui'
+import { useBeam } from '../context/BeamContext'
+import { CATEGORIES } from '../data/categories'
+import { distanceMiles } from '../data/neighborhoods'
+
+export function Browse() {
+  const { state, currentUser } = useBeam()
+  const [params, setParams] = useSearchParams()
+  const tab = params.get('tab') === 'people' ? 'people' : 'requests'
+  const category = params.get('category') ?? 'all'
+  const q = (params.get('q') ?? '').toLowerCase().trim()
+  const freeOnly = params.get('free') === '1'
+
+  const openRequests = useMemo(() => {
+    return state.requests
+      .filter((r) => r.status === 'open')
+      .filter((r) => (category === 'all' ? true : r.category === category))
+      .filter((r) => {
+        if (!q) return true
+        return (
+          r.title.toLowerCase().includes(q) ||
+          r.details.toLowerCase().includes(q) ||
+          r.category.includes(q)
+        )
+      })
+      .sort((a, b) => {
+        const da = distanceMiles(currentUser.neighborhood, a.neighborhood)
+        const db = distanceMiles(currentUser.neighborhood, b.neighborhood)
+        return da - db || +new Date(b.createdAt) - +new Date(a.createdAt)
+      })
+  }, [state.requests, category, q, currentUser.neighborhood])
+
+  const people = useMemo(() => {
+    return state.people
+      .filter((p) => !p.isCurrentUser)
+      .filter((p) => (category === 'all' ? true : p.skills.includes(category as never)))
+      .filter((p) => {
+        if (!q) return true
+        return (
+          p.name.toLowerCase().includes(q) ||
+          p.bio.toLowerCase().includes(q) ||
+          p.skills.some((s) => s.includes(q))
+        )
+      })
+      .filter((p) => (freeOnly ? p.availability.includes('afternoons') || p.availability.includes('evenings') : true))
+      .sort(
+        (a, b) =>
+          distanceMiles(currentUser.neighborhood, a.neighborhood) -
+            distanceMiles(currentUser.neighborhood, b.neighborhood) || b.rating - a.rating,
+      )
+  }, [state.people, category, q, freeOnly, currentUser.neighborhood])
+
+  function setTab(next: 'requests' | 'people') {
+    const nextParams = new URLSearchParams(params)
+    if (next === 'people') nextParams.set('tab', 'people')
+    else nextParams.delete('tab')
+    setParams(nextParams)
+  }
+
+  function setCategory(id: string) {
+    const nextParams = new URLSearchParams(params)
+    if (id === 'all') nextParams.delete('category')
+    else nextParams.set('category', id)
+    setParams(nextParams)
+  }
+
+  return (
+    <div className="px-4 py-6">
+      <SectionHeader
+        title="Browse"
+        subtitle="Open requests stay listed. People are nearby neighbors with skills."
+      />
+
+      <div className="mb-5 flex rounded-2xl border border-beam-line bg-beam-raised p-1">
+        {(['requests', 'people'] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={`touch-target flex-1 rounded-xl px-3 py-2.5 text-sm font-semibold capitalize transition ${
+              tab === t ? 'bg-beam-amber text-beam-base' : 'text-beam-muted hover:text-beam-cream'
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      <div className="hide-scrollbar mb-6 flex gap-2 overflow-x-auto pb-1">
+        <FilterChip active={category === 'all'} onClick={() => setCategory('all')} label="All" />
+        {CATEGORIES.map((c) => (
+          <FilterChip
+            key={c.id}
+            active={category === c.id}
+            onClick={() => setCategory(c.id)}
+            label={c.shortLabel}
+          />
+        ))}
+      </div>
+
+      {tab === 'requests' ? (
+        openRequests.length ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {openRequests.map((request) => (
+              <RequestCard key={request.id} request={request} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title="No open requests"
+            body="Try another category, or post what you need done today."
+          />
+        )
+      ) : people.length ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {people.map((person) => (
+            <PersonCard key={person.id} person={person} />
+          ))}
+        </div>
+      ) : (
+        <EmptyState title="No people match" body="Widen the category filter or clear search." />
+      )}
+    </div>
+  )
+}
+
+function FilterChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`touch-target shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
+        active
+          ? 'bg-beam-amber text-beam-base'
+          : 'border border-beam-line bg-beam-raised text-beam-cream-dim hover:border-beam-amber/40'
+      }`}
+    >
+      {label}
+    </button>
+  )
+}
