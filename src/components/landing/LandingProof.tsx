@@ -1,4 +1,4 @@
-import { MetaLabel, FlatSurface } from '@/components/flat'
+import { LandingSection, MetaLabel, FlatSurface } from '@/components/flat'
 import { EXAMPLE_LABEL, EXAMPLE_OFFER, EXAMPLE_REQUEST, EXAMPLE_THREAD } from './examples'
 
 function ExampleBadge() {
@@ -83,10 +83,13 @@ function ThreadPanel() {
   )
 }
 
-/** Product evidence panel (request → offer → message). Used in stack + horizontal stage. */
-export function LandingProofContent({ className = '' }: { className?: string }) {
+export function LandingProof() {
   return (
-    <div className={`landing-proof-content mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 sm:py-12 ${className}`}>
+    <LandingSection
+      id="how-it-works"
+      tone="ink"
+      className="scroll-mt-16 border-t border-beam-line px-4 py-12 sm:px-6 sm:py-14"
+    >
       <div className="mx-auto mb-8 max-w-2xl text-center">
         <MetaLabel className="text-beam-amber">How it works</MetaLabel>
         <h2 className="mt-2 type-h2 text-beam-cream">Request → priced offer → coordinate</h2>
@@ -95,22 +98,11 @@ export function LandingProofContent({ className = '' }: { className?: string }) 
         </p>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="mx-auto grid max-w-5xl gap-3 md:grid-cols-3">
         <RequestPanel />
         <OfferPanel />
         <ThreadPanel />
       </div>
-    </div>
-  )
-}
-
-export function LandingProof() {
-  return (
-    <section
-      id="how-it-works"
-      className="scroll-mt-16 border-t border-beam-line bg-beam-ink"
-    >
-      <LandingProofContent />
-    </section>
+    </LandingSection>
   )
 }

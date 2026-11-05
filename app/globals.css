@@ -24,10 +24,6 @@
   --beam-radius-sm: 8px;
   --beam-radius-md: 12px;
   --beam-content: 72rem; /* ~1152px */
-  --hero-navy: #02060f;
-  --hero-navy-mid: #07101f;
-  --hero-cyan: #6ef0ff;
-  --hero-blue: #2f8fff;
 }
 
 @layer base {
@@ -252,7 +248,6 @@
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     color: var(--color-beam-cream);
-    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
   }
 
   .landing-nav-inner {
@@ -277,10 +272,6 @@
     color: var(--color-beam-cream);
   }
 
-  .landing-nav-divider {
-    background: var(--color-beam-line);
-  }
-
   .landing-nav-signin {
     color: var(--color-beam-muted);
   }
@@ -296,56 +287,6 @@
 
   .landing-nav-cta:hover {
     background: var(--color-beam-amber-deep);
-  }
-
-  /* Dark nav over navy hero (set via documentElement dataset from HeroProofStage) */
-  html[data-landing-nav='dark'] .landing-nav {
-    background: transparent;
-    border-bottom-color: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    color: #ffffff;
-  }
-
-  html[data-landing-nav='dark'] .landing-nav-brand {
-    color: #ffffff;
-  }
-
-  html[data-landing-nav='dark'] .landing-nav-mark {
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
-  }
-
-  html[data-landing-nav='dark'] .landing-nav-link {
-    color: rgba(255, 255, 255, 0.72);
-  }
-
-  html[data-landing-nav='dark'] .landing-nav-link:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #ffffff;
-  }
-
-  html[data-landing-nav='dark'] .landing-nav-divider {
-    background: rgba(255, 255, 255, 0.28);
-  }
-
-  html[data-landing-nav='dark'] .landing-nav-signin {
-    color: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-  }
-
-  html[data-landing-nav='dark'] .landing-nav-signin:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.08);
-  }
-
-  html[data-landing-nav='dark'] .landing-nav-cta {
-    background: #ffffff;
-    color: #0c0c0e;
-  }
-
-  html[data-landing-nav='dark'] .landing-nav-cta:hover {
-    background: rgba(255, 255, 255, 0.9);
   }
 
   .landing-glass {
@@ -366,75 +307,10 @@
     letter-spacing: 0.06em;
   }
 
-  .landing-hero {
-    /* Content-fit fallback: grow if CTAs would otherwise clip on short viewports */
-    min-height: max(100svh, max-content);
-  }
-
-  .hero-beam-art {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  /* Horizontal stage — desktop + motion only (class toggled by JS; CSS contains geometry) */
-  .hero-stage--horizontal {
-    position: relative;
-    height: 200vh;
-    overflow: visible;
-  }
-
-  .hero-stage-pin {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-    width: 100%;
-  }
-
-  .hero-stage-track {
-    display: flex;
-    flex-direction: row;
-    width: 200%;
-    height: 100%;
-    will-change: transform;
-    transform: translate3d(0, 0, 0);
-  }
-
-  .hero-stage-panel {
-    position: relative;
-    flex: 0 0 50%;
-    width: 50%;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .hero-stage-panel[data-panel='hero'] .landing-hero {
-    min-height: 100%;
-    height: 100%;
-  }
-
-  .hero-stage-panel[data-panel='proof'] {
-    background: var(--color-beam-ink);
-    border-left: 1px solid var(--color-beam-line);
-  }
-
-  .hero-stage--stack .landing-hero {
-    min-height: max(100svh, max-content);
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .landing-nav {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
-    }
-
-    .hero-stage-track {
-      will-change: auto;
-      transition: none;
     }
   }
 }
