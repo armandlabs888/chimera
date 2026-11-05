@@ -35,7 +35,7 @@ Set `NEXT_PUBLIC_BEAM_DEMO_MODE=1` (or open with `?demo=1`) for the original Aus
 - Supabase Auth + Postgres RLS (`@supabase/ssr`)
 - Tailwind CSS v4
 - Lucide icons
-- Fraunces + Outfit (`next/font`)
+- Geist Sans (`next/font/google`)
 
 ## Database migration
 
@@ -58,7 +58,7 @@ npm run test:live           # live auth + persistence + negative authz (needs en
 
 ## UI system
 
-Flat cinematic dark surfaces + landing sticky section stacking: see [`docs/flat-ui.md`](docs/flat-ui.md).
+Presentable light marketplace UI (Airbnb clarity + Linear type discipline) + refined sticky stacking: see [`docs/flat-ui.md`](docs/flat-ui.md).
 
 ## What you can do
 

@@ -95,20 +95,20 @@ export function PostRequest() {
                 type="button"
                 onClick={() => setCategory(c.id)}
                 className={`flat-bento overflow-hidden text-left transition ring-1 ${
-                  category === c.id ? 'ring-beam-amber' : 'ring-transparent hover:bg-white/[0.03]'
+                  category === c.id ? 'ring-beam-amber' : 'ring-transparent hover:bg-beam-ink'
                 }`}
               >
                 <div className="relative h-28">
                   <img src={c.image} alt="" className="h-full w-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-beam-base via-transparent to-transparent" />
                   {category === c.id ? (
-                    <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-beam-amber text-beam-base">
+                    <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-beam-amber text-beam-charcoal">
                       <Check className="h-4 w-4" />
                     </span>
                   ) : null}
                 </div>
                 <div className="px-3 py-3">
-                  <p className="font-display text-lg text-beam-cream">{c.label}</p>
+                  <p className="text-[17px] font-semibold text-beam-cream">{c.label}</p>
                   <p className="text-xs text-beam-muted">{c.description}</p>
                 </div>
               </button>
@@ -116,14 +116,14 @@ export function PostRequest() {
           </div>
 
           <div>
-            <h3 className="mb-3 font-display text-xl text-beam-cream">Quick-start templates</h3>
+            <h3 className="mb-3 type-h3 text-beam-cream">Quick-start templates</h3>
             <div className="space-y-2">
               {cat.templates.map((t, i) => (
                 <button
                   key={t.title}
                   type="button"
                   onClick={() => applyTemplate(i)}
-                  className="flat-row w-full rounded-xl px-3 py-3 text-left transition hover:bg-white/[0.04]"
+                  className="flat-row w-full rounded-xl px-3 py-3 text-left transition hover:bg-beam-ink"
                 >
                   <p className="font-medium text-beam-cream">{t.title}</p>
                   <p className="mt-1 line-clamp-2 text-sm text-beam-muted">{t.details}</p>
@@ -193,7 +193,7 @@ export function PostRequest() {
                   className={`rounded-xl px-4 py-3 text-left ring-1 transition ${
                     when === w.id
                       ? 'bg-beam-amber-soft ring-beam-amber'
-                      : 'bg-beam-ink/80 ring-transparent hover:bg-white/[0.03]'
+                      : 'bg-beam-ink/80 ring-transparent hover:bg-beam-ink'
                   }`}
                 >
                   <p className="font-semibold text-beam-cream">{w.label}</p>

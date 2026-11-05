@@ -105,7 +105,7 @@ export function Home() {
                 <li key={r.id}>
                   <Link
                     href={`/requests/${r.id}`}
-                    className="flex items-center justify-between gap-3 rounded-xl px-2 py-2 transition hover:bg-white/5"
+                    className="flex items-center justify-between gap-3 rounded-xl px-2 py-2 transition hover:bg-beam-ink"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-beam-cream">{r.title}</p>
@@ -139,7 +139,7 @@ export function Home() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-3">
-                <p className="font-display text-lg text-beam-cream">{cat.shortLabel}</p>
+                <p className="text-[17px] font-semibold text-beam-cream">{cat.shortLabel}</p>
                 <p className="text-[11px] text-beam-cream-dim">{cat.description}</p>
               </div>
             </Link>

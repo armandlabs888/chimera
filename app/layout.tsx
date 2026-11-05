@@ -1,20 +1,12 @@
 import type { Metadata, Viewport } from 'next'
-import { Fraunces, Outfit } from 'next/font/google'
+import { Geist } from 'next/font/google'
 import type { ReactNode } from 'react'
 import './globals.css'
 
-const fraunces = Fraunces({
+const geist = Geist({
   subsets: ['latin'],
-  variable: '--font-fraunces',
+  variable: '--font-geist',
   display: 'swap',
-  weight: ['500', '600', '700'],
-})
-
-const outfit = Outfit({
-  subsets: ['latin'],
-  variable: '--font-outfit',
-  display: 'swap',
-  weight: ['300', '400', '500', '600', '700'],
 })
 
 export const metadata: Metadata = {
@@ -30,13 +22,13 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#0c0c0e',
+  themeColor: '#ffffff',
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${outfit.variable}`}>
-      <body>{children}</body>
+    <html lang="en" className={geist.variable}>
+      <body className="font-body antialiased">{children}</body>
     </html>
   )
 }

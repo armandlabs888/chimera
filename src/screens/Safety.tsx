@@ -32,39 +32,39 @@ const tips = [
 
 export function Safety() {
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-5 sm:py-6">
       <SectionHeader
         title="Safety"
         subtitle="Hyper-local help works when expectations are clear and the job stays narrow."
       />
 
-      <div className="relative mb-10 overflow-hidden rounded-2xl">
+      <div className="relative mb-8 overflow-hidden rounded-[12px]">
         <img
           src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1400&q=80"
           alt="Neighbors outdoors"
-          className="h-48 w-full object-cover md:h-56"
+          className="h-44 w-full object-cover md:h-52"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-beam-base via-beam-base/55 to-transparent" />
-        <p className="absolute bottom-4 left-4 right-4 font-display text-2xl text-beam-cream md:text-3xl">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+        <p className="absolute bottom-3 left-4 right-4 text-[22px] font-semibold tracking-tight text-white md:text-[24px]">
           Clear price. Clear timing. Local trust.
         </p>
       </div>
 
-      <MetaLabel className="mb-4">Basics</MetaLabel>
-      <ul className="divide-y divide-white/[0.06]">
+      <MetaLabel className="mb-2 text-beam-amber">Basics</MetaLabel>
+      <ul className="divide-y divide-beam-line">
         {tips.map(({ icon: Icon, title, body }) => (
-          <li key={title} className="flex gap-4 py-5">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-beam-amber-soft text-beam-amber">
-              <Icon className="h-5 w-5" />
+          <li key={title} className="flex gap-3 py-4">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-beam-amber-soft text-beam-amber-deep">
+              <Icon className="h-4 w-4" />
             </span>
             <div>
-              <h2 className="font-display text-xl text-beam-cream">{title}</h2>
-              <p className="mt-1 text-sm leading-relaxed text-beam-cream-dim">{body}</p>
+              <h2 className="text-[17px] font-semibold text-beam-cream">{title}</h2>
+              <p className="mt-1 type-sec text-beam-muted">{body}</p>
             </div>
           </li>
         ))}
       </ul>
-      <FlatDivider className="mt-2" />
+      <FlatDivider className="mt-1" />
     </div>
   )
 }

@@ -11,7 +11,7 @@ const toneClass: Record<Tone, string> = {
   ink: 'bg-beam-ink',
 }
 
-/** Tracked sans metadata / eyebrow. */
+/** Compact metadata / eyebrow. */
 export function MetaLabel({
   children,
   className = '',
@@ -19,32 +19,32 @@ export function MetaLabel({
   children: ReactNode
   className?: string
 }) {
-  return (
-    <p className={`flat-meta text-[11px] font-medium uppercase text-beam-amber ${className}`}>
-      {children}
-    </p>
-  )
+  return <p className={`flat-meta text-beam-muted ${className}`}>{children}</p>
 }
 
-/** Borderless flat surface — hierarchy via tone + whitespace, not card chrome. */
+/** Light surface with subtle 1px border. */
 export function FlatSurface({
   tone = 'raised',
   className = '',
   children,
   as: Tag = 'div',
+  bordered = true,
 }: {
   tone?: Tone
   className?: string
   children: ReactNode
   as?: 'div' | 'article' | 'section' | 'li'
+  bordered?: boolean
 }) {
-  return <Tag className={`flat-surface ${toneClass[tone]} ${className}`}>{children}</Tag>
+  return (
+    <Tag
+      className={`rounded-[12px] ${toneClass[tone]} ${bordered ? 'border border-beam-line' : ''} ${className}`}
+    >
+      {children}
+    </Tag>
+  )
 }
 
-/**
- * Horizontal interactive row — hover tint + optional arrow, no elevation.
- * Keep focus rings; soft selected state via `active`.
- */
 export function FlatRow({
   href,
   children,
@@ -61,14 +61,14 @@ export function FlatRow({
   return (
     <Link
       href={href}
-      className={`flat-row group touch-target flex items-center gap-3 rounded-xl px-3 py-3 transition ${
-        active ? 'bg-beam-amber-soft text-beam-amber' : 'hover:bg-white/[0.04]'
+      className={`flat-row group flex min-h-11 items-center gap-3 rounded-[12px] px-3 py-2.5 transition ${
+        active ? 'bg-beam-amber-soft text-beam-amber-deep' : 'hover:bg-beam-ink'
       } ${className}`}
     >
       <div className="min-w-0 flex-1">{children}</div>
       {arrow ? (
         <ArrowRight
-          className="h-4 w-4 shrink-0 text-beam-muted transition group-hover:translate-x-0.5 group-hover:text-beam-amber"
+          className="h-4 w-4 shrink-0 text-beam-muted transition duration-150 group-hover:translate-x-0.5 group-hover:text-beam-amber"
           aria-hidden
         />
       ) : null}
@@ -76,7 +76,6 @@ export function FlatRow({
   )
 }
 
-/** Asymmetric flat bento cell — soft edge highlight only, no shadow elevation. */
 export function FlatBento({
   children,
   className = '',
@@ -86,10 +85,10 @@ export function FlatBento({
   className?: string
   href?: string
 }) {
-  const classes = `flat-bento relative overflow-hidden rounded-2xl ${className}`
+  const classes = `flat-bento relative overflow-hidden ${className}`
   if (href) {
     return (
-      <Link href={href} className={`${classes} flat-row group block transition hover:bg-white/[0.03]`}>
+      <Link href={href} className={`${classes} flat-row group block transition hover:bg-beam-ink`}>
         {children}
       </Link>
     )
@@ -97,10 +96,6 @@ export function FlatBento({
   return <div className={classes}>{children}</div>
 }
 
-/**
- * Native sticky stack section for marketing surfaces.
- * Use `stick` only when content is viewport-safe (see docs/flat-ui.md).
- */
 export function StackSection({
   id,
   children,
@@ -128,7 +123,6 @@ export function StackSection({
   )
 }
 
-/** Segmented control — keeps a discernible boundary for selection (protected chrome). */
 export function SegmentedControl({
   options,
   value,
@@ -142,7 +136,7 @@ export function SegmentedControl({
 }) {
   return (
     <div
-      className={`flex rounded-xl border border-beam-line/80 bg-beam-ink/80 p-1 ${className}`}
+      className={`flex rounded-[10px] border border-beam-line bg-beam-ink p-0.5 ${className}`}
       role="tablist"
     >
       {options.map((opt) => {
@@ -154,8 +148,10 @@ export function SegmentedControl({
             role="tab"
             aria-selected={selected}
             onClick={() => onChange(opt.id)}
-            className={`touch-target flex-1 rounded-lg px-3 py-2.5 text-sm font-semibold capitalize transition ${
-              selected ? 'bg-beam-amber text-beam-base' : 'text-beam-muted hover:text-beam-cream'
+            className={`btn-compact flex-1 rounded-[8px] px-3 text-[13px] font-medium capitalize transition ${
+              selected
+                ? 'bg-beam-base text-beam-cream shadow-sm'
+                : 'text-beam-muted hover:text-beam-cream'
             }`}
           >
             {opt.label}
@@ -166,7 +162,6 @@ export function SegmentedControl({
   )
 }
 
-/** Filter chip — selected uses amber fill; idle keeps hairline for affordance. */
 export function FilterChip({
   label,
   active,
@@ -180,10 +175,10 @@ export function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`touch-target shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
+      className={`btn-compact shrink-0 rounded-full px-3.5 text-[13px] font-medium transition ${
         active
-          ? 'bg-beam-amber text-beam-base'
-          : 'border border-beam-line/70 text-beam-cream-dim hover:border-beam-amber/40 hover:text-beam-cream'
+          ? 'bg-beam-charcoal text-white'
+          : 'border border-beam-line text-beam-cream-dim hover:border-beam-cream/40 hover:text-beam-cream'
       }`}
     >
       {label}
@@ -192,7 +187,7 @@ export function FilterChip({
 }
 
 export function FlatDivider({ className = '' }: { className?: string }) {
-  return <hr className={`border-0 border-t border-white/[0.06] ${className}`} />
+  return <hr className={`border-0 border-t border-beam-line ${className}`} />
 }
 
 export type FlatLinkProps = ComponentProps<typeof Link>

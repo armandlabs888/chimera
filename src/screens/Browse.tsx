@@ -56,7 +56,9 @@ export function Browse() {
           p.skills.some((s) => s.includes(q))
         )
       })
-      .filter((p) => (freeOnly ? p.availability.includes('afternoons') || p.availability.includes('evenings') : true))
+      .filter((p) =>
+        freeOnly ? p.availability.includes('afternoons') || p.availability.includes('evenings') : true,
+      )
       .sort(
         (a, b) =>
           distanceMiles(currentUser.neighborhood, a.neighborhood) -
@@ -79,14 +81,14 @@ export function Browse() {
   }
 
   return (
-    <div className="relative px-4 py-6">
+    <div className="px-4 py-5 sm:py-6">
       <SectionHeader
         title="Browse"
         subtitle="Open requests stay listed. People are nearby neighbors with skills."
       />
 
       <SegmentedControl
-        className="mb-5"
+        className="mb-4 max-w-sm"
         value={tab}
         onChange={setTab}
         options={[
@@ -95,7 +97,7 @@ export function Browse() {
         ]}
       />
 
-      <div className="hide-scrollbar mb-5 flex gap-2 overflow-x-auto pb-1">
+      <div className="hide-scrollbar mb-4 flex gap-2 overflow-x-auto pb-1">
         <FilterChip active={category === 'all'} onClick={() => setCategory('all')} label="All" />
         {CATEGORIES.map((c) => (
           <FilterChip
@@ -107,11 +109,11 @@ export function Browse() {
         ))}
       </div>
 
-      <FlatDivider className="mb-6" />
+      <FlatDivider className="mb-5" />
 
       {tab === 'requests' ? (
         openRequests.length ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {openRequests.map((request) => (
               <RequestCard key={request.id} request={request} />
             ))}
@@ -123,7 +125,7 @@ export function Browse() {
           />
         )
       ) : people.length ? (
-        <div className="divide-y divide-white/[0.06] sm:grid sm:grid-cols-2 sm:gap-2 sm:divide-y-0">
+        <div className="grid gap-3 sm:grid-cols-2">
           {people.map((person) => (
             <PersonCard key={person.id} person={person} />
           ))}

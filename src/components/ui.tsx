@@ -9,23 +9,31 @@ import type {
 
 export function Button({
   variant = 'primary',
+  size = 'md',
   className = '',
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
+  size?: 'sm' | 'md' | 'lg'
 }) {
   const styles = {
     primary:
-      'bg-beam-amber text-beam-base hover:bg-beam-amber-deep disabled:opacity-40',
+      'bg-beam-amber text-beam-charcoal hover:bg-beam-amber-deep disabled:opacity-40',
     secondary:
-      'bg-beam-ink text-beam-cream border border-beam-line/80 hover:border-beam-amber/50 disabled:opacity-40',
-    ghost: 'bg-transparent text-beam-cream hover:bg-white/[0.04] disabled:opacity-40',
-    danger: 'bg-red-500/15 text-red-300 border border-red-500/30 hover:bg-red-500/25',
+      'bg-beam-base text-beam-cream border border-beam-line hover:border-beam-amber/60 disabled:opacity-40',
+    ghost: 'bg-transparent text-beam-cream-dim hover:bg-beam-ink hover:text-beam-cream disabled:opacity-40',
+    danger: 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100',
   }[variant]
+
+  const sizes = {
+    sm: 'btn-compact rounded-[8px] px-3.5 py-1.5 text-[13px] font-medium',
+    md: 'touch-target rounded-[10px] px-4 py-2 text-[15px] font-medium',
+    lg: 'touch-target rounded-[12px] px-5 py-2.5 text-[15px] font-semibold',
+  }[size]
 
   return (
     <button
-      className={`touch-target inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${styles} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 transition ${sizes} ${styles} ${className}`}
       {...props}
     />
   )
@@ -33,19 +41,28 @@ export function Button({
 
 export function ButtonLink({
   variant = 'primary',
+  size = 'md',
   className = '',
   ...props
-}: ComponentProps<typeof Link> & { variant?: 'primary' | 'secondary' | 'ghost' }) {
+}: ComponentProps<typeof Link> & {
+  variant?: 'primary' | 'secondary' | 'ghost'
+  size?: 'sm' | 'md' | 'lg'
+}) {
   const styles = {
-    primary: 'bg-beam-amber text-beam-base hover:bg-beam-amber-deep',
-    secondary:
-      'bg-beam-ink text-beam-cream border border-beam-line/80 hover:border-beam-amber/50',
-    ghost: 'bg-transparent text-beam-cream hover:bg-white/[0.04]',
+    primary: 'bg-beam-amber text-beam-charcoal hover:bg-beam-amber-deep',
+    secondary: 'bg-beam-base text-beam-cream border border-beam-line hover:border-beam-amber/60',
+    ghost: 'bg-transparent text-beam-cream-dim hover:bg-beam-ink hover:text-beam-cream',
   }[variant]
+
+  const sizes = {
+    sm: 'btn-compact rounded-[8px] px-3.5 py-1.5 text-[13px] font-medium',
+    md: 'touch-target rounded-[10px] px-4 py-2 text-[15px] font-medium',
+    lg: 'touch-target rounded-[12px] px-5 py-2.5 text-[15px] font-semibold',
+  }[size]
 
   return (
     <Link
-      className={`touch-target inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${styles} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 transition ${sizes} ${styles} ${className}`}
       {...props}
     />
   )
@@ -61,10 +78,10 @@ export function Field({
   hint?: string
 }) {
   return (
-    <label className="block space-y-2">
-      <span className="text-xs font-medium uppercase tracking-[0.14em] text-beam-cream-dim">{label}</span>
+    <label className="block space-y-1.5">
+      <span className="type-meta text-beam-muted">{label}</span>
       {children}
-      {hint ? <span className="block text-xs text-beam-muted">{hint}</span> : null}
+      {hint ? <span className="block type-sec text-beam-muted">{hint}</span> : null}
     </label>
   )
 }
@@ -72,7 +89,7 @@ export function Field({
 export function TextInput({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={`touch-target w-full rounded-xl border border-beam-line/80 bg-beam-ink px-4 py-3 text-beam-cream placeholder:text-beam-muted focus:border-beam-amber focus:outline-none ${className}`}
+      className={`touch-target w-full rounded-[10px] border border-beam-line bg-beam-base px-3.5 py-2 text-[15px] text-beam-cream placeholder:text-beam-muted focus:border-beam-amber focus:outline-none ${className}`}
       {...props}
     />
   )
@@ -81,7 +98,7 @@ export function TextInput({ className = '', ...props }: InputHTMLAttributes<HTML
 export function TextArea({ className = '', ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
-      className={`min-h-28 w-full rounded-xl border border-beam-line/80 bg-beam-ink px-4 py-3 text-beam-cream placeholder:text-beam-muted focus:border-beam-amber focus:outline-none ${className}`}
+      className={`min-h-24 w-full rounded-[10px] border border-beam-line bg-beam-base px-3.5 py-2.5 text-[15px] text-beam-cream placeholder:text-beam-muted focus:border-beam-amber focus:outline-none ${className}`}
       {...props}
     />
   )
@@ -97,12 +114,10 @@ export function SectionHeader({
   action?: ReactNode
 }) {
   return (
-    <div className="mb-6 flex items-end justify-between gap-3">
+    <div className="mb-5 flex items-end justify-between gap-3">
       <div>
-        <h2 className="font-display text-2xl font-semibold tracking-tight text-beam-cream sm:text-3xl">
-          {title}
-        </h2>
-        {subtitle ? <p className="mt-1.5 text-sm text-beam-muted">{subtitle}</p> : null}
+        <h2 className="type-h2 text-beam-cream">{title}</h2>
+        {subtitle ? <p className="mt-1 type-sec text-beam-muted">{subtitle}</p> : null}
       </div>
       {action}
     </div>
@@ -119,23 +134,29 @@ export function EmptyState({
   action?: ReactNode
 }) {
   return (
-    <div className="px-2 py-12 text-center">
-      <h3 className="font-display text-xl text-beam-cream">{title}</h3>
-      <p className="mx-auto mt-2 max-w-sm text-sm text-beam-muted">{body}</p>
-      {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
+    <div className="px-2 py-10 text-center">
+      <h3 className="type-h3 text-beam-cream">{title}</h3>
+      <p className="mx-auto mt-2 max-w-sm type-sec text-beam-muted">{body}</p>
+      {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
     </div>
   )
 }
 
-export function Badge({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'neutral' | 'amber' | 'live' }) {
+export function Badge({
+  children,
+  tone = 'neutral',
+}: {
+  children: ReactNode
+  tone?: 'neutral' | 'amber' | 'live'
+}) {
   const toneClass =
     tone === 'amber'
-      ? 'bg-beam-amber-soft text-beam-amber'
+      ? 'bg-beam-amber-soft text-beam-amber-deep'
       : tone === 'live'
-        ? 'bg-emerald-500/15 text-emerald-300'
-        : 'bg-white/5 text-beam-cream-dim'
+        ? 'bg-emerald-50 text-emerald-700'
+        : 'bg-beam-ink text-beam-cream-dim'
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${toneClass}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 type-meta ${toneClass}`}>
       {children}
     </span>
   )

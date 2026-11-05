@@ -128,13 +128,13 @@ export function RequestDetail() {
     <div>
       <div className="relative h-56 overflow-hidden md:h-72">
         <img src={request.image} alt="" className="h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-beam-base via-beam-base/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-5">
           <div className="mb-2 flex flex-wrap gap-2">
             <Badge tone="amber">{category.label}</Badge>
             <Badge tone={request.status === 'open' ? 'live' : 'neutral'}>{request.status}</Badge>
           </div>
-          <h1 className="max-w-3xl font-display text-3xl font-semibold text-beam-cream md:text-4xl">
+          <h1 className="max-w-3xl text-[28px] font-semibold tracking-tight text-white md:text-[32px]">
             {request.title}
           </h1>
         </div>
@@ -159,7 +159,7 @@ export function RequestDetail() {
             {request.details}
           </p>
 
-          <Link href={`/people/${requester.id}`} className="flat-row flex items-center gap-3 rounded-xl px-2 py-3 transition hover:bg-white/[0.04]">
+          <Link href={`/people/${requester.id}`} className="flat-row flex items-center gap-3 rounded-xl px-2 py-3 transition hover:bg-beam-ink">
             <img src={requester.avatar} alt="" className="h-12 w-12 rounded-xl object-cover" />
             <div>
               <p className="font-medium text-beam-cream">
@@ -173,7 +173,7 @@ export function RequestDetail() {
           </Link>
 
           <section>
-            <h2 className="mb-3 font-display text-2xl text-beam-cream">Offers</h2>
+            <h2 className="mb-3 type-h2 text-beam-cream">Offers</h2>
             {offers.length === 0 ? (
               <EmptyState
                 title="No offers yet"
@@ -256,7 +256,7 @@ export function RequestDetail() {
 
           {!isOwner && request.status === 'open' ? (
             <section className="rounded-xl bg-beam-ink/80 p-4 ring-1 ring-white/[0.06]">
-              <h2 className="font-display text-2xl text-beam-cream">
+              <h2 className="type-h2 text-beam-cream">
                 {myOffer ? 'Update your offer' : 'Send an offer'}
               </h2>
               <p className="mt-1 text-sm text-beam-muted">
@@ -317,7 +317,7 @@ export function RequestDetail() {
           {request.status === 'accepted' &&
           (isOwner || request.helperId === currentUser.id) ? (
             <section className="rounded-xl bg-beam-amber-soft p-4 ring-1 ring-beam-amber/35">
-              <h2 className="font-display text-xl text-beam-cream">Job in progress</h2>
+              <h2 className="type-h3 text-beam-cream">Job in progress</h2>
               <p className="mt-1 text-sm text-beam-cream-dim">
                 Accepted at {acceptedOffer ? formatMoney(acceptedOffer.price) : '—'}. Message to
                 coordinate, then mark complete when done.
@@ -343,7 +343,7 @@ export function RequestDetail() {
 
           {request.status === 'completed' ? (
             <section className="rounded-xl bg-beam-ink/80 p-4">
-              <h2 className="font-display text-xl text-beam-cream">Leave a review</h2>
+              <h2 className="type-h3 text-beam-cream">Leave a review</h2>
               {existingReview ? (
                 <p className="mt-2 text-sm text-beam-cream-dim">
                   You rated {existingReview.rating}/5 — “{existingReview.comment}”
@@ -383,7 +383,7 @@ export function RequestDetail() {
 
         <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
           <div>
-            <h2 className="mb-1 font-display text-2xl text-beam-cream">Nearby matches</h2>
+            <h2 className="mb-1 type-h2 text-beam-cream">Nearby matches</h2>
             <p className="mb-4 text-sm text-beam-muted">
               Ranked by skill + distance + availability for this request.
             </p>
