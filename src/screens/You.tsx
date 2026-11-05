@@ -86,15 +86,15 @@ export function You() {
         }
       />
 
-      <div className="mb-5 flex items-center gap-3 rounded-xl bg-beam-ink/80 px-2 py-3">
+      <div className="mb-5 flex items-center gap-3 rounded-[12px] border border-beam-line bg-beam-base px-3 py-3">
         <img
           src={currentUser.avatar}
           alt=""
-          className="h-14 w-14 rounded-xl object-cover"
+          className="h-12 w-12 rounded-[10px] object-cover"
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-xl text-beam-cream">{currentUser.name}</p>
-          <p className="text-sm text-beam-muted">
+          <p className="truncate text-[17px] font-semibold text-beam-cream">{currentUser.name}</p>
+          <p className="type-sec text-beam-muted">
             {getNeighborhood(currentUser.neighborhood).shortName} · {formatMoney(currentUser.hourlyRate)}
             /hr
           </p>
@@ -142,7 +142,7 @@ export function You() {
             onClick={() => setTab(id)}
             className={`touch-target shrink-0 rounded-full px-4 py-2 text-sm font-medium ${
               tab === id
-                ? 'bg-beam-amber text-beam-base'
+                ? 'bg-beam-amber text-beam-charcoal'
                 : 'border border-beam-line/70 text-beam-cream-dim hover:border-beam-amber/40'
             }`}
           >
@@ -177,11 +177,11 @@ export function You() {
                 <li key={offer.id}>
                   <Link
                     href={`/requests/${request.id}`}
-                    className="flat-row group block rounded-xl px-3 py-4 transition hover:bg-white/[0.04]"
+                    className="flat-row group block rounded-xl px-3 py-4 transition hover:bg-beam-ink"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-display text-lg text-beam-cream">{request.title}</p>
+                        <p className="text-[17px] font-semibold text-beam-cream">{request.title}</p>
                         <p className="mt-1 text-sm text-beam-muted">
                           Your offer {formatMoney(offer.price)} · {offer.eta}
                         </p>
@@ -218,7 +218,7 @@ export function You() {
                 <li key={thread.id}>
                   <Link
                     href={`/messages/${thread.id}`}
-                    className="flat-row group flex items-center gap-3 rounded-xl px-2 py-3 transition hover:bg-white/[0.04]"
+                    className="flat-row group flex items-center gap-3 rounded-xl px-2 py-3 transition hover:bg-beam-ink"
                   >
                     <img
                       src={other?.avatar}
@@ -309,7 +309,7 @@ export function You() {
                       onClick={() => toggleSkill(c.id)}
                       className={`rounded-full px-3 py-2 text-sm ${
                         skills.includes(c.id)
-                          ? 'bg-beam-amber text-beam-base'
+                          ? 'bg-beam-amber text-beam-charcoal'
                           : 'border border-beam-line text-beam-muted'
                       }`}
                     >
@@ -328,7 +328,7 @@ export function You() {
                       onClick={() => toggleSlot(slot)}
                       className={`rounded-full px-3 py-2 text-sm capitalize ${
                         availability.includes(slot)
-                          ? 'bg-beam-amber text-beam-base'
+                          ? 'bg-beam-amber text-beam-charcoal'
                           : 'border border-beam-line text-beam-muted'
                       }`}
                     >

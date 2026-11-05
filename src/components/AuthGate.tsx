@@ -32,14 +32,14 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-10 text-beam-cream">
-      <p className="font-display text-4xl font-semibold text-beam-amber">Beam</p>
-      <h1 className="mt-3 font-display text-2xl">Sign in to help nearby</h1>
-      <p className="mt-2 text-sm text-beam-muted">
+      <p className="text-[28px] font-semibold tracking-tight text-beam-charcoal">Beam</p>
+      <h1 className="mt-2 type-h2">Sign in to help nearby</h1>
+      <p className="mt-2 type-sec text-beam-muted">
         Live mode uses Supabase email/password auth. Your requests, offers, and messages stay under
         your account with row-level security.
       </p>
 
-      <div className="mt-6 flex rounded-xl border border-beam-line/80 bg-beam-ink p-1" role="tablist">
+      <div className="mt-5 flex rounded-[10px] border border-beam-line bg-beam-ink p-0.5" role="tablist">
         {(['signin', 'signup'] as const).map((t) => (
           <button
             key={t}
@@ -47,8 +47,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
             role="tab"
             aria-selected={tab === t}
             onClick={() => setTab(t)}
-            className={`touch-target flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${
-              tab === t ? 'bg-beam-amber text-beam-base' : 'text-beam-muted hover:text-beam-cream'
+            className={`btn-compact flex-1 rounded-[8px] px-3 text-[13px] font-medium ${
+              tab === t
+                ? 'bg-beam-base text-beam-cream shadow-sm'
+                : 'text-beam-muted hover:text-beam-cream'
             }`}
           >
             {t === 'signin' ? 'Sign in' : 'Create account'}

@@ -3,7 +3,7 @@ import { EXAMPLE_LABEL, EXAMPLE_OFFER, EXAMPLE_REQUEST, EXAMPLE_THREAD } from '.
 
 function ExampleBadge() {
   return (
-    <span className="inline-flex rounded-full border border-beam-amber/30 bg-beam-amber-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-beam-amber">
+    <span className="inline-flex rounded-full border border-beam-amber/30 bg-beam-amber-soft px-2 py-0.5 type-meta text-beam-amber-deep">
       {EXAMPLE_LABEL}
     </span>
   )
@@ -11,29 +11,29 @@ function ExampleBadge() {
 
 function RequestPanel() {
   return (
-    <FlatSurface tone="ink" className="p-5 sm:p-6" as="article">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <MetaLabel className="text-beam-muted">Request</MetaLabel>
+    <FlatSurface className="p-4" as="article">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <MetaLabel>Request</MetaLabel>
         <ExampleBadge />
       </div>
-      <h3 className="font-display text-2xl font-semibold text-beam-cream">{EXAMPLE_REQUEST.title}</h3>
-      <p className="mt-2 text-sm text-beam-cream-dim">{EXAMPLE_REQUEST.details}</p>
-      <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
+      <h3 className="type-h3 text-beam-cream">{EXAMPLE_REQUEST.title}</h3>
+      <p className="mt-1.5 type-sec text-beam-muted">{EXAMPLE_REQUEST.details}</p>
+      <dl className="mt-4 grid grid-cols-2 gap-3 type-sec">
         <div>
-          <dt className="flat-meta text-[10px] uppercase text-beam-muted">Where</dt>
-          <dd className="mt-1 text-beam-cream">{EXAMPLE_REQUEST.neighborhood}</dd>
+          <dt className="type-meta text-beam-muted">Where</dt>
+          <dd className="mt-0.5 font-medium text-beam-cream">{EXAMPLE_REQUEST.neighborhood}</dd>
         </div>
         <div>
-          <dt className="flat-meta text-[10px] uppercase text-beam-muted">When</dt>
-          <dd className="mt-1 text-beam-cream">{EXAMPLE_REQUEST.when}</dd>
+          <dt className="type-meta text-beam-muted">When</dt>
+          <dd className="mt-0.5 font-medium text-beam-cream">{EXAMPLE_REQUEST.when}</dd>
         </div>
         <div>
-          <dt className="flat-meta text-[10px] uppercase text-beam-muted">Budget</dt>
-          <dd className="mt-1 font-semibold text-beam-amber">{EXAMPLE_REQUEST.budget}</dd>
+          <dt className="type-meta text-beam-muted">Budget</dt>
+          <dd className="mt-0.5 font-semibold text-beam-cream">{EXAMPLE_REQUEST.budget}</dd>
         </div>
         <div>
-          <dt className="flat-meta text-[10px] uppercase text-beam-muted">Category</dt>
-          <dd className="mt-1 text-beam-cream">{EXAMPLE_REQUEST.category}</dd>
+          <dt className="type-meta text-beam-muted">Category</dt>
+          <dd className="mt-0.5 font-medium text-beam-cream">{EXAMPLE_REQUEST.category}</dd>
         </div>
       </dl>
     </FlatSurface>
@@ -42,46 +42,47 @@ function RequestPanel() {
 
 function OfferPanel() {
   return (
-    <FlatSurface tone="ink" className="p-5 sm:p-6 md:-translate-y-2" as="article">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <MetaLabel className="text-beam-muted">Offer</MetaLabel>
+    <FlatSurface className="p-4" as="article">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <MetaLabel>Offer</MetaLabel>
         <ExampleBadge />
       </div>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="font-display text-xl font-semibold text-beam-cream">{EXAMPLE_OFFER.helper}</h3>
-          <p className="mt-1 text-sm text-beam-muted">{EXAMPLE_OFFER.eta}</p>
+          <h3 className="text-[17px] font-semibold text-beam-cream">{EXAMPLE_OFFER.helper}</h3>
+          <p className="mt-0.5 type-sec text-beam-muted">{EXAMPLE_OFFER.eta}</p>
         </div>
-        <p className="font-display text-3xl font-semibold text-beam-amber">{EXAMPLE_OFFER.price}</p>
+        <p className="text-[24px] font-semibold tracking-tight text-beam-cream">{EXAMPLE_OFFER.price}</p>
       </div>
-      <p className="mt-4 rounded-xl bg-black/25 px-4 py-3 text-sm text-beam-cream-dim">{EXAMPLE_OFFER.note}</p>
+      <p className="mt-3 rounded-[10px] bg-beam-ink px-3 py-2.5 type-sec text-beam-cream-dim">
+        {EXAMPLE_OFFER.note}
+      </p>
     </FlatSurface>
   )
 }
 
 function ThreadPanel() {
   return (
-    <FlatSurface tone="ink" className="p-5 sm:p-6" as="article">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <MetaLabel className="text-beam-muted">Message · complete</MetaLabel>
+    <FlatSurface className="p-4" as="article">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <MetaLabel>Message · complete</MetaLabel>
         <ExampleBadge />
       </div>
-      <div className="space-y-3">
-        <p className="max-w-[90%] rounded-2xl rounded-bl-md bg-beam-raised px-4 py-3 text-sm text-beam-cream">
+      <div className="space-y-2">
+        <p className="max-w-[90%] rounded-[12px] rounded-bl-md bg-beam-ink px-3 py-2 type-sec text-beam-cream">
           {EXAMPLE_THREAD.opener}
         </p>
-        <p className="ml-auto max-w-[90%] rounded-2xl rounded-br-md bg-beam-amber px-4 py-3 text-sm font-medium text-beam-base">
+        <p className="ml-auto max-w-[90%] rounded-[12px] rounded-br-md bg-beam-amber px-3 py-2 type-sec font-medium text-beam-charcoal">
           {EXAMPLE_THREAD.reply}
         </p>
       </div>
-      <p className="mt-4 text-xs text-beam-muted">
-        After the job, mark complete and leave a review — both stay on the request thread.
+      <p className="mt-3 type-meta text-beam-muted">
+        After the job, mark complete and leave a review on the thread.
       </p>
     </FlatSurface>
   )
 }
 
-/** Sticky stack section (viewport-safe). Panels are static flat examples — not live data. */
 export function LandingProof() {
   return (
     <StackSection
@@ -89,20 +90,17 @@ export function LandingProof() {
       stick
       zIndex={2}
       tone="ink"
-      className="scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20"
+      className="scroll-mt-16 border-t border-beam-line px-4 py-12 sm:px-6 sm:py-14"
     >
-      <div className="mx-auto mb-10 max-w-3xl text-center md:mb-12">
-        <MetaLabel>How it works</MetaLabel>
-        <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-beam-cream sm:text-4xl">
-          Request → priced offer → coordinate
-        </h2>
-        <p className="mt-3 text-base text-beam-cream-dim">
-          The same flow you use in Beam. Panels below are fixed examples for illustration — not live
-          marketplace data.
+      <div className="mx-auto mb-8 max-w-2xl text-center">
+        <MetaLabel className="text-beam-amber">How it works</MetaLabel>
+        <h2 className="mt-2 type-h2 text-beam-cream">Request → priced offer → coordinate</h2>
+        <p className="mt-2 type-sec text-beam-muted">
+          Fixed examples for illustration — not live marketplace data.
         </p>
       </div>
 
-      <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-3">
+      <div className="mx-auto grid max-w-5xl gap-3 md:grid-cols-3">
         <RequestPanel />
         <OfferPanel />
         <ThreadPanel />

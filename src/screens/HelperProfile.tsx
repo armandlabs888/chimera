@@ -57,7 +57,7 @@ export function HelperProfile() {
           />
           <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="font-display text-3xl text-beam-cream">
+              <h1 className="type-h1 text-beam-cream">
                 {person.name}
                 {isYou ? ' · You' : ''}
               </h1>

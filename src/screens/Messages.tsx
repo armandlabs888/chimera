@@ -62,35 +62,35 @@ export function Messages() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-beam-base">
-      <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-white/[0.06] bg-beam-base/95 px-3 py-3 backdrop-blur">
+      <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-beam-line bg-beam-base/95 px-3 py-2.5 backdrop-blur-sm">
         <Link
           href={`/requests/${request.id}`}
-          className="touch-target inline-flex items-center justify-center rounded-xl text-beam-cream"
+          className="touch-target inline-flex items-center justify-center rounded-[8px] text-beam-cream"
           aria-label="Back"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <img src={other.avatar} alt="" className="h-10 w-10 rounded-xl object-cover" />
+        <img src={other.avatar} alt="" className="h-9 w-9 rounded-[8px] object-cover" />
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium text-beam-cream">{other.name}</p>
-          <p className="truncate text-xs text-beam-muted">{request.title}</p>
+          <p className="truncate text-[15px] font-semibold text-beam-cream">{other.name}</p>
+          <p className="truncate type-meta text-beam-muted">{request.title}</p>
         </div>
       </header>
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+      <div className="flex-1 space-y-2.5 overflow-y-auto px-4 py-4">
         {messages.map((message) => {
           const mine = message.senderId === currentUser.id
           return (
             <div key={message.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                className={`max-w-[85%] rounded-[12px] px-3.5 py-2.5 type-sec leading-relaxed ${
                   mine
-                    ? 'rounded-br-md bg-beam-amber text-beam-base'
-                    : 'rounded-bl-md bg-beam-ink text-beam-cream'
+                    ? 'rounded-br-md bg-beam-amber text-beam-charcoal'
+                    : 'rounded-bl-md border border-beam-line bg-beam-ink text-beam-cream'
                 }`}
               >
                 <p>{message.body}</p>
-                <p className={`mt-1 text-[10px] ${mine ? 'text-beam-base/70' : 'text-beam-muted'}`}>
+                <p className={`mt-1 type-meta ${mine ? 'text-beam-charcoal/70' : 'text-beam-muted'}`}>
                   {relativeTime(message.createdAt)}
                   {message.isSimulated ? ' · reply' : ''}
                 </p>
@@ -103,7 +103,7 @@ export function Messages() {
 
       <form
         onSubmit={onSend}
-        className="safe-bottom sticky bottom-0 border-t border-white/[0.06] bg-beam-base/95 px-3 pt-3 backdrop-blur"
+        className="safe-bottom sticky bottom-0 border-t border-beam-line bg-beam-base/95 px-3 pt-2.5 backdrop-blur-sm"
       >
         <div className="mx-auto flex max-w-3xl items-center gap-2">
           <TextInput
@@ -114,7 +114,7 @@ export function Messages() {
           />
           <button
             type="submit"
-            className="touch-target inline-flex items-center justify-center rounded-xl bg-beam-amber px-4 text-beam-base disabled:opacity-40"
+            className="touch-target inline-flex items-center justify-center rounded-[10px] bg-beam-amber px-3.5 text-beam-charcoal disabled:opacity-40"
             disabled={!body.trim()}
             aria-label="Send"
           >

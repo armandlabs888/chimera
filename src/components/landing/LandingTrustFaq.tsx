@@ -20,7 +20,6 @@ const faqs = [
   },
 ]
 
-/** FAQ can expand tall — static (not sticky). */
 export function LandingTrustFaq() {
   return (
     <StackSection
@@ -28,36 +27,34 @@ export function LandingTrustFaq() {
       stick={false}
       zIndex={5}
       tone="base"
-      className="scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20"
+      className="scroll-mt-16 border-t border-beam-line px-4 py-12 sm:px-6 sm:py-14"
     >
-      <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+      <div className="mx-auto grid max-w-[72rem] gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div>
-          <MetaLabel>Clear expectations</MetaLabel>
-          <h2 className="mt-3 font-display text-3xl font-semibold text-beam-cream sm:text-4xl">
-            Only what Beam actually does
-          </h2>
-          <p className="mt-3 text-base text-beam-cream-dim">
+          <MetaLabel className="text-beam-amber">Clear expectations</MetaLabel>
+          <h2 className="mt-2 type-h2 text-beam-cream">Only what Beam actually does</h2>
+          <p className="mt-2 type-sec text-beam-muted">
             Agree on price in the offer, keep scope in the thread, and prefer daytime or public
-            meetups when it’s a first job. Read the safety notes for practical habits.
+            meetups for a first job.
           </p>
           <Link
             href="/safety"
-            className="touch-target mt-6 inline-flex items-center justify-center rounded-xl border border-white/12 px-5 py-3 text-sm font-semibold text-beam-cream hover:border-beam-amber/40"
+            className="btn-compact mt-5 inline-flex items-center justify-center rounded-[8px] border border-beam-line px-4 text-[13px] font-semibold text-beam-cream hover:border-beam-cream/30"
           >
             Safety basics
           </Link>
         </div>
 
-        <div className="divide-y divide-white/[0.06]">
+        <div className="divide-y divide-beam-line rounded-[12px] border border-beam-line bg-beam-base px-4">
           {faqs.map((item) => (
-            <details key={item.q} className="group py-4 open:pb-5">
-              <summary className="cursor-pointer list-none font-medium text-beam-cream marker:content-none [&::-webkit-details-marker]:hidden">
+            <details key={item.q} className="group py-3.5">
+              <summary className="cursor-pointer list-none text-[15px] font-medium text-beam-cream marker:content-none [&::-webkit-details-marker]:hidden">
                 <span className="flex items-start justify-between gap-3">
                   {item.q}
                   <span className="text-beam-amber transition group-open:rotate-45">+</span>
                 </span>
               </summary>
-              <p className="mt-3 text-sm leading-relaxed text-beam-cream-dim">{item.a}</p>
+              <p className="mt-2 type-sec text-beam-muted">{item.a}</p>
             </details>
           ))}
         </div>

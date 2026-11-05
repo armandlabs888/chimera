@@ -6,10 +6,7 @@ const NOTES: Record<string, string> = {
   handyman: 'Light fixes only — not licensed trades',
 }
 
-/**
- * Tall category grid — intentionally NOT sticky (content taller than viewport).
- * See docs/flat-ui.md exceptions.
- */
+/** Tall grid — not sticky. */
 export function LandingCategories() {
   return (
     <StackSection
@@ -17,39 +14,32 @@ export function LandingCategories() {
       stick={false}
       zIndex={3}
       tone="base"
-      className="relative scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20"
+      className="scroll-mt-16 border-t border-beam-line px-4 py-12 sm:px-6 sm:py-14"
     >
-      <div className="pointer-events-none absolute inset-x-0 top-1/4 h-64 landing-glow-soft" aria-hidden />
-      <div className="relative mx-auto max-w-6xl">
-        <div className="max-w-2xl">
-          <MetaLabel>Categories</MetaLabel>
-          <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-beam-cream sm:text-4xl">
-            Practical jobs, on purpose
-          </h2>
-          <p className="mt-3 text-base text-beam-cream-dim">
-            Six focused categories. Each opens Beam browse with that filter applied.
+      <div className="mx-auto max-w-[72rem]">
+        <div className="max-w-xl">
+          <MetaLabel className="text-beam-amber">Categories</MetaLabel>
+          <h2 className="mt-2 type-h2 text-beam-cream">Practical jobs, on purpose</h2>
+          <p className="mt-2 type-sec text-beam-muted">
+            Six focused categories. Each opens browse with that filter.
           </p>
         </div>
 
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {CATEGORIES.map((cat, index) => (
-            <FlatBento
-              key={cat.id}
-              href={`/browse?category=${cat.id}`}
-              className={`p-5 ${index % 3 === 1 ? 'lg:mt-6' : index % 3 === 2 ? 'lg:mt-3' : ''}`}
-            >
-              <div className="absolute inset-0 opacity-35 transition duration-500 group-hover:opacity-50">
-                <img src={cat.image} alt="" className="h-full w-full object-cover" loading="lazy" />
-                <div className="absolute inset-0 bg-gradient-to-t from-beam-base via-beam-base/85 to-beam-base/45" />
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {CATEGORIES.map((cat) => (
+            <FlatBento key={cat.id} href={`/browse?category=${cat.id}`} className="p-4">
+              <div className="absolute inset-0">
+                <img src={cat.image} alt="" className="h-full w-full object-cover opacity-90" loading="lazy" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/15" />
               </div>
-              <div className="relative">
-                <MetaLabel className="text-[10px]">Browse</MetaLabel>
-                <h3 className="mt-2 font-display text-2xl font-semibold text-beam-cream">{cat.label}</h3>
-                <p className="mt-2 text-sm text-beam-cream-dim">{cat.description}</p>
-                {NOTES[cat.id] ? <p className="mt-3 text-xs text-beam-muted">{NOTES[cat.id]}</p> : null}
-                <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-beam-amber transition group-hover:gap-2">
+              <div className="relative min-h-[9.5rem] text-white">
+                <MetaLabel className="text-white/80">Browse</MetaLabel>
+                <h3 className="mt-1.5 text-[20px] font-semibold tracking-tight">{cat.label}</h3>
+                <p className="mt-1 type-sec text-white/85">{cat.description}</p>
+                {NOTES[cat.id] ? <p className="mt-2 type-meta text-white/70">{NOTES[cat.id]}</p> : null}
+                <span className="mt-3 inline-flex items-center gap-1 type-sec font-medium text-beam-amber transition duration-150 group-hover:gap-1.5">
                   Open filter
-                  <ArrowRight className="h-4 w-4" aria-hidden />
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
                 </span>
               </div>
             </FlatBento>

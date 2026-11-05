@@ -74,13 +74,61 @@ async function checkLandingBrowser() {
     await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('a[href="/post"]')
     const headline = await page.locator('h1').innerText()
-    assert.match(headline, /Help nearby/i)
+    assert.match(headline, /Help nearby\. Done today\./i)
+    // Single visible headline string (no sr-only duplication in accessible name)
+    assert.equal(headline.trim().split('\n').filter(Boolean).length, 1, 'single h1 line')
+
+    const themeAndScale = await page.evaluate(() => {
+      const body = getComputedStyle(document.body)
+      const h1 = document.querySelector('h1')
+      const h1Cs = h1 ? getComputedStyle(h1) : null
+      const heroCta = document.querySelector('.landing-cta-row a[href="/post"]')
+      const heroRect = heroCta?.getBoundingClientRect()
+      const navCta = document.querySelector('.landing-nav a[href="/post"]')
+      const navRect = navCta?.getBoundingClientRect()
+      const proof = document.querySelector('#how-it-works')
+      return {
+        bg: body.backgroundColor,
+        color: body.color,
+        font: body.fontFamily,
+        h1Px: h1Cs ? parseFloat(h1Cs.fontSize) : 0,
+        heroCtaH: heroRect ? Math.round(heroRect.height) : 0,
+        navCtaH: navRect ? Math.round(navRect.height) : 0,
+        proofH: proof ? Math.round(proof.getBoundingClientRect().height) : 0,
+        proofMinH: proof ? getComputedStyle(proof).minHeight : '',
+      }
+    })
+    assert.match(themeAndScale.bg, /rgb\(255,\s*255,\s*255\)/, 'light canvas')
+    assert.match(themeAndScale.color, /rgb\(34,\s*34,\s*34\)/, 'dark primary text')
+    assert.match(themeAndScale.font, /Geist|geist/i, 'Geist family loaded')
+    assert.ok(themeAndScale.h1Px >= 34 && themeAndScale.h1Px <= 58, `hero size ${themeAndScale.h1Px}`)
+    assert.ok(themeAndScale.heroCtaH >= 36 && themeAndScale.heroCtaH <= 52, `hero CTA h ${themeAndScale.heroCtaH}`)
+    assert.ok(themeAndScale.navCtaH >= 36 && themeAndScale.navCtaH <= 48, `nav CTA h ${themeAndScale.navCtaH}`)
+    assert.ok(themeAndScale.proofH < 700, `proof section not forced tall (${themeAndScale.proofH})`)
+    assert.ok(
+      themeAndScale.proofMinH === '0px' || themeAndScale.proofMinH === 'auto',
+      'no forced sticky min-height',
+    )
 
     // CTAs usable without waiting on auth/boot gate
     const postVisible = await page.locator('a[href="/post"]').first().isVisible()
     const browseVisible = await page.locator('a[href="/browse"]').first().isVisible()
     assert.equal(postVisible, true, 'post CTA visible')
     assert.equal(browseVisible, true, 'browse CTA visible')
+
+    // First viewport: both CTAs in desktop viewport
+    const inView = await page.evaluate(() => {
+      const post = document.querySelector('.landing-cta-row a[href="/post"]')
+      const browse = document.querySelector('.landing-cta-row a[href="/browse"]')
+      const vh = window.innerHeight
+      const ok = (el) => {
+        if (!el) return false
+        const r = el.getBoundingClientRect()
+        return r.top >= 0 && r.bottom <= vh
+      }
+      return ok(post) && ok(browse)
+    })
+    assert.equal(inView, true, 'hero CTAs in first desktop viewport')
 
     // No horizontal overflow on desktop
     const overflowX = await page.evaluate(() => {
@@ -145,8 +193,8 @@ async function checkLandingBrowser() {
     const browseBody = await page.locator('body').innerText()
     assert.match(browseBody, /Browse|Sign in to help nearby/i, 'browse runtime reachable')
 
-    // Mobile: stacking falls back to static
-    await page.setViewportSize({ width: 390, height: 844 })
+    // Mobile: stacking falls back to static; CTAs in first screen
+    await page.setViewportSize({ width: 375, height: 812 })
     await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('a[href="/post"]')
     const mobileOverflow = await page.evaluate(() => {
@@ -159,6 +207,19 @@ async function checkLandingBrowser() {
       return el ? getComputedStyle(el).position : null
     })
     assert.equal(mobilePos, 'relative', 'mobile proof not sticky')
+    const mobileCtas = await page.evaluate(() => {
+      const post = document.querySelector('.landing-cta-row a[href="/post"]')
+      const browse = document.querySelector('.landing-cta-row a[href="/browse"]')
+      const vh = window.innerHeight
+      const ok = (el) => {
+        if (!el) return false
+        const r = el.getBoundingClientRect()
+        return r.top >= 0 && r.bottom <= vh + 8
+      }
+      return { inView: ok(post) && ok(browse), h1: parseFloat(getComputedStyle(document.querySelector('h1')).fontSize) }
+    })
+    assert.equal(mobileCtas.inView, true, 'mobile hero CTAs in first viewport')
+    assert.ok(mobileCtas.h1 >= 34 && mobileCtas.h1 <= 48, `mobile hero size ${mobileCtas.h1}`)
 
     // Reduced motion: static + readable examples
     await page.emulateMedia({ reducedMotion: 'reduce' })

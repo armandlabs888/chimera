@@ -9,12 +9,11 @@ import { BottomNav } from './BottomNav'
 const desktopLinks = [
   { href: '/', label: 'Home' },
   { href: '/browse', label: 'Browse' },
-  { href: '/post', label: 'Post request' },
+  { href: '/post', label: 'Post' },
   { href: '/you', label: 'You' },
   { href: '/safety', label: 'Safety' },
 ]
 
-/** App chrome belongs on product routes; `/` is the public marketing landing. */
 function shouldHideAppChrome(pathname: string) {
   return pathname === '/' || pathname.startsWith('/messages/')
 }
@@ -25,18 +24,16 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="relative min-h-dvh bg-beam-base text-beam-cream">
-      <div className="pointer-events-none fixed inset-0 beam-ambient opacity-80" aria-hidden />
-      <div className="pointer-events-none fixed inset-0 grain opacity-25" aria-hidden />
       {!hideChrome ? (
-        <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-beam-base/92 backdrop-blur-md">
-          <div className="relative mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-            <Link href="/" className="flex items-center gap-2 touch-target">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-beam-amber/15 text-beam-amber">
-                <Zap className="h-5 w-5" fill="currentColor" />
+        <header className="sticky top-0 z-30 border-b border-beam-line bg-beam-base/95 backdrop-blur-sm">
+          <div className="mx-auto flex h-14 max-w-[72rem] items-center justify-between px-4">
+            <Link href="/" className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-beam-amber/15 text-beam-amber">
+                <Zap className="h-4 w-4" fill="currentColor" />
               </span>
-              <span className="font-display text-xl font-semibold tracking-tight">Beam</span>
+              <span className="text-[17px] font-semibold tracking-tight text-beam-charcoal">Beam</span>
             </Link>
-            <nav className="hidden items-center gap-1 md:flex" aria-label="Desktop">
+            <nav className="hidden items-center gap-0.5 md:flex" aria-label="Desktop">
               {desktopLinks.map((link) => {
                 const active =
                   link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)
@@ -44,8 +41,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
-                      active ? 'bg-beam-amber-soft text-beam-amber' : 'text-beam-muted hover:text-beam-cream'
+                    className={`btn-compact inline-flex items-center rounded-[8px] px-3 text-[13px] font-medium transition ${
+                      active
+                        ? 'bg-beam-amber-soft text-beam-amber-deep'
+                        : 'text-beam-muted hover:bg-beam-ink hover:text-beam-cream'
                     }`}
                   >
                     {link.label}
@@ -53,11 +52,17 @@ export function AppShell({ children }: { children: ReactNode }) {
                 )
               })}
             </nav>
+            <Link
+              href="/post"
+              className="btn-compact hidden items-center rounded-[8px] bg-beam-amber px-3.5 text-[13px] font-semibold text-beam-charcoal hover:bg-beam-amber-deep sm:inline-flex"
+            >
+              Post a request
+            </Link>
           </div>
         </header>
       ) : null}
 
-      <main className={`relative mx-auto w-full max-w-6xl ${hideChrome ? '' : 'pb-24 md:pb-10'}`}>
+      <main className={`relative mx-auto w-full max-w-[72rem] ${hideChrome ? '' : 'pb-20 md:pb-8'}`}>
         {children}
       </main>
 

@@ -1,91 +1,70 @@
-# Beam flat UI & sticky section stacking
+# Beam UI system — presentable marketplace polish
 
-Concise migration guide for the cinematic flat dark system (post-landing PR #4).
+Short comparison + migration notes after the Airbnb/Linear-directed light redesign.
 
-## Design tokens (`app/globals.css`)
+## Reference roles (facts vs proposed)
 
-| Token / class | Role |
+| Source | Role | Measured / observed (HTML/CSS research) | Beam adaptation |
+| --- | --- | --- | --- |
+| [Airbnb](https://www.airbnb.com) | **Primary** — local marketplace clarity, human-scale actions | Proprietary **Airbnb Cereal VF** (do **not** copy); restrained accent; radius ladder ~4–24; gray text/subtle borders | Marketplace info hierarchy (title dominant, meta secondary, compact CTAs). Light canvas. Own Beam amber accent. |
+| [Linear](https://linear.app) | **Secondary** — type/control discipline only | **Inter Variable**; UI sizes ~12/13/14/15/17; titles ~17/20/24/36 | Inspired **proposed** Beam scale (below). Not a dashboard layout clone. |
+| [Notion](https://www.notion.com) | Principle only | Named centralized typography tokens (exact values not extracted) | Central tokens in `app/globals.css` + `.type-*` utilities |
+| Refero | Unavailable | `NO_SUBSCRIPTION` | Not used; no claimed screen audits |
+
+**Proposed Beam type scale (not claimed as Airbnb/Linear measurements):** meta 12/16 · secondary 13/18 · body 15/22 · intro 17/26 · h3 20/28 · h2 24/32 · app h1 32/40 · landing hero ~36–56 (`clamp`).
+
+**Buttons (proposed):** compact ~36 desktop visual (`btn-compact`), standard ≥44 hit area (`touch-target`), primary hero ≤48. Radius 8–12. Content max ~1152px (`72rem`).
+
+## Font
+
+- **Geist Sans** via `next/font/google` → `--font-geist` (weights via variable font).
+- Replaces Fraunces + Outfit. Single family for UI + headings.
+
+## Semantic color tokens (`app/globals.css`)
+
+| Token | Role |
 | --- | --- |
-| `--color-beam-base` `#0c0c0e` | Canvas |
-| `--color-beam-ink` `#101014` | Opaque section / list surface (occludes under-stack content) |
-| `--color-beam-raised` / `--color-beam-panel` | Subtle elevation steps via tone, not card chrome |
-| `--color-beam-amber` `#e8a54b` | CTA, focus, selected |
-| `--beam-nav-offset` | Sticky section top clearance under landing nav |
-| `--beam-section-depth` | Soft **section** shadow only (not card elevation) |
-| `.beam-ambient` | Decorative radial glows |
-| `.flat-meta` / `MetaLabel` | Tracked uppercase sans metadata |
-| `.flat-surface` / `FlatSurface` | Borderless panel |
-| `.flat-bento` / `FlatBento` | Soft inset highlight, no elevation |
-| `.flat-row` / `FlatRow` | Interactive row — hover tint + arrow, no lift |
-| `.beam-stack` | Sticky ancestor (must not use `overflow: hidden` / sticky-breaking transforms) |
-| `.beam-stack-section` + `--stick` | Native `position: sticky` stack layer |
+| `beam-base` / `beam-raised` | White main surfaces |
+| `beam-ink` / `beam-panel` | Soft gray panels (`#f7f7f7`) |
+| `beam-line` | Subtle border `#dddddd` |
+| `beam-cream` | Primary text `#222` (legacy name kept for churn) |
+| `beam-cream-dim` / `beam-muted` | Secondary / meta text |
+| `beam-charcoal` `#0c0c0e` | Wordmark / footer band |
+| `beam-amber` `#e8a54b` | CTA / focus / selected |
 
-Fonts remain **Fraunces** (display) + **Outfit** (UI).
+Light theme is intentional (Airbnb-directed clarity). No dark cinematic gradients as the main canvas.
 
 ## Primitives
 
-Module: [`src/components/flat/`](../src/components/flat/)
+[`src/components/flat/`](../src/components/flat/) — `MetaLabel`, `FlatSurface`, `FlatRow`, `FlatBento`, `StackSection`, `SegmentedControl`, `FilterChip`, `FlatDivider`.
 
-- `MetaLabel`, `FlatSurface`, `FlatRow`, `FlatBento`
-- `StackSection` — marketing sticky layers
-- `SegmentedControl`, `FilterChip`, `FlatDivider` — selection chrome with **kept** boundaries
+[`src/components/ui.tsx`](../src/components/ui.tsx) — `Button`/`ButtonLink` sizes `sm|md|lg`, fields, badges, section headers.
 
-Import:
+## Sticky stacking (refined)
 
-```ts
-import { StackSection, FlatRow, MetaLabel, SegmentedControl } from '@/components/flat'
-```
+Kept for marketing desktop + motion-ok sections (`hero`, `how-it-works`, `paths`, final CTA).
 
-Shared form/actions stay in [`src/components/ui.tsx`](../src/components/ui.tsx) (`Button`, `Field`, `TextInput`, …). Inputs, focus rings, selected chips, and segmented controls **keep** discernible edges.
+**Change vs prior:** removed forced `min-height: ~100dvh` that made sections look empty. Sticky is content-sized with a light section depth shadow.
 
-## Compose landing stacks
+Still **not** sticky: categories, FAQ, app routes, mobile, `prefers-reduced-motion`.
 
-```tsx
-<main className="beam-stack">
-  <StackSection stick zIndex={1} tone="base">…hero…</StackSection>
-  <StackSection stick zIndex={2} tone="ink">…proof…</StackSection>
-  <StackSection stick={false} zIndex={3}>…tall grid…</StackSection>
-</main>
-```
+## DOM investigation notes
 
-Later sections use higher `zIndex` and opaque `tone` so they **occlude** earlier layers while scrolling.
+- “Doubled” headline in HTML extraction was **`sr-only` + visible text**, not a visual duplicate. Landing h1 is now a single visible string.
+- Tall empty-feeling sections were largely **sticky min-height**, not missing content — addressed above.
 
-## Intentional sticky exceptions
+## Protected chrome
 
-| Surface | Sticky? | Why |
-| --- | --- | --- |
-| Landing hero, how-it-works, paths, final CTA | Yes (desktop, motion-ok) | Viewport-safe marketing layers |
-| Landing categories, trust/FAQ, footer | No | Tall / expandable — sticky would trap or clip |
-| Mobile (`<768px`) | No | Viewport-safe fallback is static flow |
-| `prefers-reduced-motion` | No | Static readable stack |
-| Browse / Post / You / messages / forms / long lists | No | Transactional ordinary scroll |
-
-Do **not** pin every card. App chrome sticky nav/header is separate and stays above content (`z-30`/`z-40`).
-
-**Gotcha:** do not put Tailwind `relative` on the same node as `StackSection` with `stick` — utility `position` can override sticky. Put positioning wrappers inside the section.
-
-## Migrate a heavy card
-
-1. Drop `border-beam-line` + `shadow-*` + gray boxed chrome.
-2. Prefer `FlatRow` / divide-y lists or `FlatBento` for media tiles.
-3. Use typography + spacing for hierarchy; amber only for CTA/active/focus.
-4. Keep borders on **inputs**, **selected** states, **dialogs**, and **segmented** controls.
-
-## Accessibility
-
-- Preserve `:focus-visible` amber rings (global + `.flat-row`).
-- Touch targets ≥ 44px (`.touch-target`).
-- Contrast over ambient glows: opaque `ink`/`base` section fills.
-- Reduced motion disables sticky + landing blur animations.
+Keep discernible borders on inputs, selected chips, segmented controls, focus rings. Do not strip those for “flatness.”
 
 ## Test commands
 
 ```bash
 npm run lint
 npm run build
-npm run start   # then:
+npm run start
 npm run test:smoke
-npm run test:live   # when Supabase env + seeded users available
+npm run test:live   # when env + seeded users available
 ```
 
-Smoke asserts landing sticky computed styles (desktop), static mobile/reduced-motion, CTA/category links, and no horizontal overflow — **no screenshots**.
+Smoke checks light theme, control sizing bounds, sticky without huge min-heights, reduced-motion, overflow, category links — **no screenshots**.
