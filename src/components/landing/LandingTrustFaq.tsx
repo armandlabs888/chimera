@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { StackSection, MetaLabel } from '@/components/flat'
 
 const faqs = [
   {
@@ -19,14 +20,19 @@ const faqs = [
   },
 ]
 
+/** FAQ can expand tall — static (not sticky). */
 export function LandingTrustFaq() {
   return (
-    <section id="trust" className="relative scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20">
+    <StackSection
+      id="trust"
+      stick={false}
+      zIndex={5}
+      tone="base"
+      className="scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20"
+    >
       <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div>
-          <p className="landing-meta text-[11px] font-medium uppercase tracking-[0.22em] text-beam-amber">
-            Clear expectations
-          </p>
+          <MetaLabel>Clear expectations</MetaLabel>
           <h2 className="mt-3 font-display text-3xl font-semibold text-beam-cream sm:text-4xl">
             Only what Beam actually does
           </h2>
@@ -36,18 +42,15 @@ export function LandingTrustFaq() {
           </p>
           <Link
             href="/safety"
-            className="touch-target mt-6 inline-flex items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm font-semibold text-beam-cream hover:border-beam-amber/40"
+            className="touch-target mt-6 inline-flex items-center justify-center rounded-xl border border-white/12 px-5 py-3 text-sm font-semibold text-beam-cream hover:border-beam-amber/40"
           >
             Safety basics
           </Link>
         </div>
 
-        <div className="space-y-3">
+        <div className="divide-y divide-white/[0.06]">
           {faqs.map((item) => (
-            <details
-              key={item.q}
-              className="landing-glass group rounded-2xl px-5 py-4 open:border-beam-amber/25"
-            >
+            <details key={item.q} className="group py-4 open:pb-5">
               <summary className="cursor-pointer list-none font-medium text-beam-cream marker:content-none [&::-webkit-details-marker]:hidden">
                 <span className="flex items-start justify-between gap-3">
                   {item.q}
@@ -59,6 +62,6 @@ export function LandingTrustFaq() {
           ))}
         </div>
       </div>
-    </section>
+    </StackSection>
   )
 }

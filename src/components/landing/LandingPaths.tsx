@@ -1,13 +1,18 @@
 import Link from 'next/link'
+import { StackSection, MetaLabel, FlatSurface } from '@/components/flat'
 
 export function LandingPaths() {
   return (
-    <section id="paths" className="relative scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20">
+    <StackSection
+      id="paths"
+      stick
+      zIndex={4}
+      tone="ink"
+      className="scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20"
+    >
       <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2">
-        <article className="landing-glass landing-bento p-6 sm:p-8">
-          <p className="landing-meta text-[11px] uppercase tracking-[0.2em] text-beam-amber">
-            If you need help
-          </p>
+        <FlatSurface tone="panel" className="p-6 sm:p-8" as="article">
+          <MetaLabel>If you need help</MetaLabel>
           <h2 className="mt-3 font-display text-3xl font-semibold text-beam-cream">Post once. Compare offers.</h2>
           <ul className="mt-5 space-y-3 text-sm leading-relaxed text-beam-cream-dim">
             <li>Describe the job with a category, neighborhood, when, and budget.</li>
@@ -20,12 +25,10 @@ export function LandingPaths() {
           >
             Post a request
           </Link>
-        </article>
+        </FlatSurface>
 
-        <article className="landing-glass landing-bento p-6 sm:p-8 lg:translate-y-8">
-          <p className="landing-meta text-[11px] uppercase tracking-[0.2em] text-beam-amber">
-            If you can help
-          </p>
+        <FlatSurface tone="panel" className="p-6 sm:p-8 lg:mt-8" as="article">
+          <MetaLabel>If you can help</MetaLabel>
           <h2 className="mt-3 font-display text-3xl font-semibold text-beam-cream">Browse nearby. Name a price.</h2>
           <ul className="mt-5 space-y-3 text-sm leading-relaxed text-beam-cream-dim">
             <li>Open requests stay listed until filled — filter by category.</li>
@@ -34,12 +37,12 @@ export function LandingPaths() {
           </ul>
           <Link
             href="/browse"
-            className="touch-target mt-7 inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-beam-cream hover:border-beam-amber/40"
+            className="touch-target mt-7 inline-flex items-center justify-center rounded-xl border border-white/12 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-beam-cream hover:border-beam-amber/40"
           >
             Browse open requests
           </Link>
-        </article>
+        </FlatSurface>
       </div>
-    </section>
+    </StackSection>
   )
 }

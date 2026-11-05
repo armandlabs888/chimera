@@ -70,6 +70,7 @@ async function checkLandingBrowser() {
   const browser = await chromium.launch({ headless: true })
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
   try {
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('a[href="/post"]')
     const headline = await page.locator('h1').innerText()
@@ -88,12 +89,63 @@ async function checkLandingBrowser() {
     })
     assert.equal(overflowX, false, 'no horizontal overflow desktop')
 
+    // Native sticky stacking geometry (desktop, motion-ok)
+    const stickyGeom = await page.evaluate(() => {
+      const stickies = [...document.querySelectorAll('.beam-stack-section--stick')]
+      const proof = document.querySelector('#how-it-works')
+      const cats = document.querySelector('#categories')
+      const stack = document.querySelector('.beam-stack')
+      if (!stickies.length || !proof || !cats || !stack) return null
+      const proofCs = getComputedStyle(proof)
+      const catsCs = getComputedStyle(cats)
+      const stickyPositions = stickies.map((el) => getComputedStyle(el).position)
+      const ancestorsOk = (() => {
+        let el = stack.parentElement
+        while (el && el !== document.body) {
+          const cs = getComputedStyle(el)
+          if (cs.overflow === 'hidden' || cs.overflowX === 'hidden' || cs.overflowY === 'hidden') {
+            return false
+          }
+          el = el.parentElement
+        }
+        return true
+      })()
+      return {
+        stickyPositions,
+        proofPosition: proofCs.position,
+        catsPosition: catsCs.position,
+        proofZ: Number(proofCs.zIndex) || 0,
+        catsZ: Number(catsCs.zIndex) || 0,
+        ancestorsOk,
+      }
+    })
+    assert.ok(stickyGeom, 'stack sections present')
+    assert.ok(
+      stickyGeom.stickyPositions.every((p) => p === 'sticky'),
+      'all stick-marked sections are sticky on desktop',
+    )
+    assert.equal(stickyGeom.proofPosition, 'sticky', 'proof sticky on desktop')
+    assert.equal(stickyGeom.catsPosition, 'relative', 'tall categories stay relative')
+    assert.ok(stickyGeom.proofZ >= 2, 'proof z-index layered')
+    assert.equal(stickyGeom.ancestorsOk, true, 'no overflow:hidden ancestors blocking sticky')
+
+    // Scroll changes sticky offsetTop relationship without hijack
+    const before = await page.evaluate(() => window.scrollY)
+    await page.evaluate(() => window.scrollBy(0, 600))
+    const after = await page.evaluate(() => window.scrollY)
+    assert.ok(after > before, 'native scroll advances')
+
     // Category navigation reaches browse with filter
     await page.locator('a[href="/browse?category=cleaning"]').first().click()
     await page.waitForURL(/\/browse\?category=cleaning/)
     console.log('ok landing category navigation')
 
-    // Mobile viewport: CTAs remain visible, no overflow
+    // App browse chrome present (runtime, may be auth gate in live mode)
+    await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
+    const browseBody = await page.locator('body').innerText()
+    assert.match(browseBody, /Browse|Sign in to help nearby/i, 'browse runtime reachable')
+
+    // Mobile: stacking falls back to static
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('a[href="/post"]')
@@ -102,14 +154,31 @@ async function checkLandingBrowser() {
       return doc.scrollWidth > doc.clientWidth + 1
     })
     assert.equal(mobileOverflow, false, 'no horizontal overflow mobile')
+    const mobilePos = await page.evaluate(() => {
+      const el = document.querySelector('#how-it-works')
+      return el ? getComputedStyle(el).position : null
+    })
+    assert.equal(mobilePos, 'relative', 'mobile proof not sticky')
 
-    // Reduced motion: proof stack stays in DOM / readable
+    // Reduced motion: static + readable examples
     await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.setViewportSize({ width: 1280, height: 800 })
     await page.reload({ waitUntil: 'domcontentloaded' })
+    const reducedPos = await page.evaluate(() => {
+      const el = document.querySelector('#how-it-works')
+      return el ? getComputedStyle(el).position : null
+    })
+    assert.equal(reducedPos, 'relative', 'reduced-motion disables sticky')
     const stackText = await page.locator('#how-it-works').innerText()
     assert.match(stackText, /Example/i, 'reduced-motion proof examples visible')
     assert.match(stackText, /Help move a couch/i, 'reduced-motion request example')
-    console.log('ok landing browser DOM')
+
+    // Keyboard focus path (Tab → focus-visible)
+    await page.locator('body').click({ position: { x: 2, y: 2 } })
+    await page.keyboard.press('Tab')
+    const focusedTag = await page.evaluate(() => document.activeElement?.tagName ?? '')
+    assert.ok(focusedTag === 'A' || focusedTag === 'BUTTON', 'tab reaches interactive control')
+    console.log('ok landing browser DOM + sticky geometry')
   } finally {
     await browser.close()
   }

@@ -39,14 +39,16 @@ export function AuthGate({ children }: { children: ReactNode }) {
         your account with row-level security.
       </p>
 
-      <div className="mt-6 flex rounded-2xl border border-beam-line bg-beam-raised p-1">
+      <div className="mt-6 flex rounded-xl border border-beam-line/80 bg-beam-ink p-1" role="tablist">
         {(['signin', 'signup'] as const).map((t) => (
           <button
             key={t}
             type="button"
+            role="tab"
+            aria-selected={tab === t}
             onClick={() => setTab(t)}
-            className={`flex-1 rounded-xl px-3 py-2 text-sm font-semibold ${
-              tab === t ? 'bg-beam-amber text-beam-base' : 'text-beam-muted'
+            className={`touch-target flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${
+              tab === t ? 'bg-beam-amber text-beam-base' : 'text-beam-muted hover:text-beam-cream'
             }`}
           >
             {t === 'signin' ? 'Sign in' : 'Create account'}

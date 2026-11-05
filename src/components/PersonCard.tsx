@@ -1,4 +1,4 @@
-import { MapPin, Star } from 'lucide-react'
+import { ArrowRight, MapPin, Star } from 'lucide-react'
 import Link from 'next/link'
 import { getCategory } from '../data/categories'
 import { getNeighborhood } from '../data/neighborhoods'
@@ -18,7 +18,7 @@ export function PersonCard({
   return (
     <Link
       href={`/people/${person.id}`}
-      className="flex gap-3 rounded-2xl border border-beam-line bg-beam-raised p-3 transition hover:border-beam-amber/40"
+      className="flat-row group flex gap-3 rounded-xl px-2 py-3 transition hover:bg-white/[0.04]"
     >
       <img
         src={person.avatar}
@@ -30,18 +30,24 @@ export function PersonCard({
         <div className="flex items-start justify-between gap-2">
           <div>
             <h3 className="truncate font-display text-lg text-beam-cream">{person.name}</h3>
-            <p className="mt-0.5 flex items-center gap-1 text-xs text-beam-muted">
+            <p className="mt-0.5 flex items-center gap-1 text-xs tracking-wide text-beam-muted">
               <MapPin className="h-3.5 w-3.5 text-beam-amber" />
               {neighborhood.shortName}
               {match ? ` · ${match.distanceMiles.toFixed(1)} mi` : null}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-sm font-semibold text-beam-amber">{formatMoney(person.hourlyRate)}/hr</p>
-            <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-beam-cream-dim">
-              <Star className="h-3 w-3 fill-beam-amber text-beam-amber" />
-              {person.rating.toFixed(1)}
-            </p>
+          <div className="flex items-start gap-2 text-right">
+            <div>
+              <p className="text-sm font-semibold text-beam-amber">{formatMoney(person.hourlyRate)}/hr</p>
+              <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-beam-cream-dim">
+                <Star className="h-3 w-3 fill-beam-amber text-beam-amber" />
+                {person.rating.toFixed(1)}
+              </p>
+            </div>
+            <ArrowRight
+              className="mt-1 h-4 w-4 shrink-0 text-beam-muted transition group-hover:translate-x-0.5 group-hover:text-beam-amber"
+              aria-hidden
+            />
           </div>
         </div>
         <div className="mt-2 flex flex-wrap gap-1.5">

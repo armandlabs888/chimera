@@ -79,10 +79,14 @@ export function You() {
     <div className="px-4 py-6">
       <SectionHeader
         title="You"
-        subtitle="Your requests, offers, threads, and helper profile — stored on this device."
+        subtitle={
+          mode === 'live'
+            ? 'Your requests, offers, threads, and helper profile — under your account.'
+            : 'Your requests, offers, threads, and helper profile — demo data on this device.'
+        }
       />
 
-      <div className="mb-5 flex items-center gap-3 rounded-2xl border border-beam-line bg-beam-raised p-3">
+      <div className="mb-5 flex items-center gap-3 rounded-xl bg-beam-ink/80 px-2 py-3">
         <img
           src={currentUser.avatar}
           alt=""
@@ -139,7 +143,7 @@ export function You() {
             className={`touch-target shrink-0 rounded-full px-4 py-2 text-sm font-medium ${
               tab === id
                 ? 'bg-beam-amber text-beam-base'
-                : 'border border-beam-line text-beam-cream-dim'
+                : 'border border-beam-line/70 text-beam-cream-dim hover:border-beam-amber/40'
             }`}
           >
             {label}
@@ -173,7 +177,7 @@ export function You() {
                 <li key={offer.id}>
                   <Link
                     href={`/requests/${request.id}`}
-                    className="block rounded-2xl border border-beam-line bg-beam-raised p-4 transition hover:border-beam-amber/40"
+                    className="flat-row group block rounded-xl px-3 py-4 transition hover:bg-white/[0.04]"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -214,7 +218,7 @@ export function You() {
                 <li key={thread.id}>
                   <Link
                     href={`/messages/${thread.id}`}
-                    className="flex items-center gap-3 rounded-2xl border border-beam-line bg-beam-raised p-3 transition hover:border-beam-amber/40"
+                    className="flat-row group flex items-center gap-3 rounded-xl px-2 py-3 transition hover:bg-white/[0.04]"
                   >
                     <img
                       src={other?.avatar}
@@ -246,7 +250,7 @@ export function You() {
       ) : null}
 
       {tab === 'profile' ? (
-        <div className="rounded-2xl border border-beam-line bg-beam-raised p-4">
+        <div className="rounded-xl bg-beam-ink/60 p-4">
           {!editing ? (
             <div className="space-y-4">
               <p className="text-beam-cream-dim">{currentUser.bio}</p>
@@ -278,7 +282,7 @@ export function You() {
                 <select
                   value={neighborhood}
                   onChange={(e) => setNeighborhood(e.target.value as typeof neighborhood)}
-                  className="touch-target w-full rounded-xl border border-beam-line bg-beam-base px-4 py-3"
+                  className="touch-target w-full rounded-xl border border-beam-line/80 bg-beam-ink px-4 py-3"
                 >
                   {NEIGHBORHOODS.map((n) => (
                     <option key={n.id} value={n.id}>

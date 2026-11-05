@@ -78,7 +78,7 @@ export function PostRequest() {
             className={`touch-target flex-1 rounded-xl border px-2 py-2 text-xs font-semibold sm:text-sm ${
               step === i
                 ? 'border-beam-amber bg-beam-amber-soft text-beam-amber'
-                : 'border-beam-line text-beam-muted'
+                : 'border-beam-line/70 text-beam-muted'
             }`}
           >
             {label}
@@ -94,8 +94,8 @@ export function PostRequest() {
                 key={c.id}
                 type="button"
                 onClick={() => setCategory(c.id)}
-                className={`overflow-hidden rounded-2xl border text-left transition ${
-                  category === c.id ? 'border-beam-amber' : 'border-beam-line'
+                className={`flat-bento overflow-hidden text-left transition ring-1 ${
+                  category === c.id ? 'ring-beam-amber' : 'ring-transparent hover:bg-white/[0.03]'
                 }`}
               >
                 <div className="relative h-28">
@@ -107,7 +107,7 @@ export function PostRequest() {
                     </span>
                   ) : null}
                 </div>
-                <div className="bg-beam-raised px-3 py-3">
+                <div className="px-3 py-3">
                   <p className="font-display text-lg text-beam-cream">{c.label}</p>
                   <p className="text-xs text-beam-muted">{c.description}</p>
                 </div>
@@ -123,7 +123,7 @@ export function PostRequest() {
                   key={t.title}
                   type="button"
                   onClick={() => applyTemplate(i)}
-                  className="w-full rounded-2xl border border-beam-line bg-beam-raised px-4 py-3 text-left transition hover:border-beam-amber/40"
+                  className="flat-row w-full rounded-xl px-3 py-3 text-left transition hover:bg-white/[0.04]"
                 >
                   <p className="font-medium text-beam-cream">{t.title}</p>
                   <p className="mt-1 line-clamp-2 text-sm text-beam-muted">{t.details}</p>
@@ -166,7 +166,7 @@ export function PostRequest() {
             <select
               value={neighborhood}
               onChange={(e) => setNeighborhood(e.target.value as typeof neighborhood)}
-              className="touch-target w-full rounded-xl border border-beam-line bg-beam-raised px-4 py-3 text-beam-cream"
+              className="touch-target w-full rounded-xl border border-beam-line/80 bg-beam-ink px-4 py-3 text-beam-cream"
             >
               {NEIGHBORHOODS.map((n) => (
                 <option key={n.id} value={n.id}>
@@ -190,10 +190,10 @@ export function PostRequest() {
                   key={w.id}
                   type="button"
                   onClick={() => setWhen(w.id)}
-                  className={`rounded-xl border px-4 py-3 text-left ${
+                  className={`rounded-xl px-4 py-3 text-left ring-1 transition ${
                     when === w.id
-                      ? 'border-beam-amber bg-beam-amber-soft'
-                      : 'border-beam-line bg-beam-raised'
+                      ? 'bg-beam-amber-soft ring-beam-amber'
+                      : 'bg-beam-ink/80 ring-transparent hover:bg-white/[0.03]'
                   }`}
                 >
                   <p className="font-semibold text-beam-cream">{w.label}</p>

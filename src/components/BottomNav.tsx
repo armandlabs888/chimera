@@ -17,7 +17,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-beam-line/80 bg-beam-base/95 backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.06] bg-beam-base/95 backdrop-blur-md md:hidden"
       aria-label="Primary"
     >
       <ul className="safe-bottom mx-auto grid max-w-lg grid-cols-5 px-1 pt-1">

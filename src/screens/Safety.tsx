@@ -1,4 +1,5 @@
 import { Eye, Handshake, MapPinned, MessageSquareWarning, ShieldCheck } from 'lucide-react'
+import { FlatDivider, MetaLabel } from '../components/flat'
 import { SectionHeader } from '../components/ui'
 
 const tips = [
@@ -24,8 +25,8 @@ const tips = [
   },
   {
     icon: ShieldCheck,
-    title: 'Demo note',
-    body: 'This MVP stores everything in your browser. There is no real identity verification or payments yet.',
+    title: 'Payments & accounts',
+    body: 'Beam does not hold payments yet. Live accounts persist in Supabase with RLS; explicit demo mode stays in your browser only.',
   },
 ]
 
@@ -37,21 +38,22 @@ export function Safety() {
         subtitle="Hyper-local help works when expectations are clear and the job stays narrow."
       />
 
-      <div className="relative mb-8 overflow-hidden rounded-3xl border border-beam-line">
+      <div className="relative mb-10 overflow-hidden rounded-2xl">
         <img
           src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1400&q=80"
           alt="Neighbors outdoors"
           className="h-48 w-full object-cover md:h-56"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-beam-base via-beam-base/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-beam-base via-beam-base/55 to-transparent" />
         <p className="absolute bottom-4 left-4 right-4 font-display text-2xl text-beam-cream md:text-3xl">
           Clear price. Clear timing. Local trust.
         </p>
       </div>
 
-      <ul className="space-y-4">
+      <MetaLabel className="mb-4">Basics</MetaLabel>
+      <ul className="divide-y divide-white/[0.06]">
         {tips.map(({ icon: Icon, title, body }) => (
-          <li key={title} className="flex gap-4 rounded-2xl border border-beam-line bg-beam-raised p-4">
+          <li key={title} className="flex gap-4 py-5">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-beam-amber-soft text-beam-amber">
               <Icon className="h-5 w-5" />
             </span>
@@ -62,6 +64,7 @@ export function Safety() {
           </li>
         ))}
       </ul>
+      <FlatDivider className="mt-2" />
     </div>
   )
 }

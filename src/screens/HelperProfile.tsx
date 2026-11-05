@@ -47,13 +47,13 @@ export function HelperProfile() {
 
   return (
     <div className="px-4 py-6">
-      <div className="overflow-hidden rounded-3xl border border-beam-line bg-beam-raised">
-        <div className="h-28 bg-gradient-to-br from-beam-amber/30 via-beam-panel to-beam-base" />
-        <div className="px-4 pb-5">
+      <div className="overflow-hidden rounded-2xl">
+        <div className="h-28 bg-gradient-to-br from-beam-amber/25 via-beam-panel to-beam-base" />
+        <div className="px-1 pb-5 pt-0 sm:px-2">
           <img
             src={person.avatar}
             alt=""
-            className="-mt-12 h-24 w-24 rounded-2xl border-4 border-beam-raised object-cover"
+            className="-mt-12 h-24 w-24 rounded-2xl ring-4 ring-beam-base object-cover"
           />
           <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -105,7 +105,7 @@ export function HelperProfile() {
             {reviews.map((review) => {
               const from = getPerson(review.fromId)
               return (
-                <li key={review.id} className="rounded-2xl border border-beam-line bg-beam-raised p-4">
+                <li key={review.id} className="rounded-xl bg-beam-ink/60 px-1 py-4 sm:px-3">
                   <div className="flex items-center gap-2 text-sm">
                     <Star className="h-4 w-4 fill-beam-amber text-beam-amber" />
                     <span className="font-semibold text-beam-cream">{review.rating}/5</span>

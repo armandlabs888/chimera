@@ -2,6 +2,7 @@
 
 @theme {
   --color-beam-base: #0c0c0e;
+  --color-beam-ink: #101014;
   --color-beam-raised: #141417;
   --color-beam-panel: #1a1a1f;
   --color-beam-line: #2a2a32;
@@ -13,6 +14,8 @@
   --color-beam-amber-soft: rgba(232, 165, 75, 0.14);
   --font-display: var(--font-fraunces), Georgia, serif;
   --font-body: var(--font-outfit), system-ui, sans-serif;
+  --beam-nav-offset: 3.5rem;
+  --beam-section-depth: 0 -18px 48px rgba(0, 0, 0, 0.45);
 }
 
 @layer base {
@@ -24,7 +27,8 @@
 
   html {
     color-scheme: dark;
-    scroll-behavior: smooth;
+    /* Native scroll only — no forced smooth hijack */
+    scroll-behavior: auto;
   }
 
   body {
@@ -116,15 +120,6 @@
     }
   }
 
-  @keyframes shimmer-line {
-    0% {
-      background-position: 200% 0;
-    }
-    100% {
-      background-position: -200% 0;
-    }
-  }
-
   .animate-fade-up {
     animation: fade-up 0.55s ease-out both;
   }
@@ -138,30 +133,95 @@
   }
 }
 
-/* Landing — editorial glass / ambient glow / progressive motion */
+/* Shared flat UI + sticky section stack */
 @layer components {
+  .flat-meta {
+    letter-spacing: 0.18em;
+  }
+
+  .flat-surface {
+    border-radius: 1rem;
+  }
+
+  .flat-bento {
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.035), transparent 42%),
+      var(--color-beam-ink);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .flat-row:focus-visible {
+    outline: 2px solid var(--color-beam-amber);
+    outline-offset: 2px;
+  }
+
+  .beam-ambient {
+    background:
+      radial-gradient(ellipse 50% 40% at 15% 10%, rgba(232, 165, 75, 0.14), transparent 65%),
+      radial-gradient(ellipse 40% 35% at 85% 20%, rgba(243, 235, 224, 0.05), transparent 60%),
+      radial-gradient(ellipse 55% 40% at 50% 100%, rgba(232, 165, 75, 0.08), transparent 70%);
+  }
+
+  .beam-stack {
+    /* Ancestors must not use overflow:hidden / transform that breaks sticky */
+    position: relative;
+    isolation: isolate;
+  }
+
+  .beam-stack-section {
+    position: relative;
+    z-index: var(--stack-z, 1);
+  }
+
+  /*
+   * Desktop sticky stacking: later sections slide over earlier ones.
+   * Only apply --stick when content is viewport-safe (see docs/flat-ui.md).
+   * top offset clears the landing nav so content is not obscured.
+   */
+  @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+    .beam-stack-section.beam-stack-section--stick {
+      /* Beat utility `relative` if accidentally composed on the same node */
+      position: sticky !important;
+      top: var(--beam-nav-offset, 3.5rem);
+      min-height: calc(100dvh - var(--beam-nav-offset, 3.5rem));
+      box-shadow: var(--beam-section-depth);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .beam-stack-section--stick {
+      position: relative !important;
+      top: auto !important;
+      min-height: 0 !important;
+      box-shadow: none !important;
+    }
+  }
+
+  /* Landing */
   .landing-root {
-    --landing-glow: rgba(232, 165, 75, 0.18);
+    --landing-glow: rgba(232, 165, 75, 0.16);
   }
 
   .landing-nav {
-    padding: 0.75rem 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    padding: 0.65rem 1rem 0;
+    background: linear-gradient(180deg, rgba(12, 12, 14, 0.96), rgba(12, 12, 14, 0.78));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .landing-nav-inner {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
   .landing-glass {
-    border: 1px solid rgba(243, 235, 224, 0.1);
-    background: linear-gradient(
-      155deg,
-      rgba(255, 255, 255, 0.07) 0%,
-      rgba(20, 20, 23, 0.72) 48%,
-      rgba(12, 12, 14, 0.82) 100%
-    );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 18px 48px rgba(0, 0, 0, 0.28);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-radius: 1.25rem;
+    /* Flatter than prior floating glass cards */
+    border: 0;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.04), transparent 45%),
+      var(--color-beam-ink);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    border-radius: 1.15rem;
   }
 
   .landing-bento {
@@ -170,13 +230,13 @@
 
   .landing-ambient {
     background:
-      radial-gradient(ellipse 55% 40% at 18% 18%, rgba(232, 165, 75, 0.22), transparent 70%),
-      radial-gradient(ellipse 45% 35% at 82% 12%, rgba(243, 235, 224, 0.08), transparent 65%),
-      radial-gradient(ellipse 50% 45% at 50% 88%, rgba(232, 165, 75, 0.1), transparent 70%);
+      radial-gradient(ellipse 55% 40% at 18% 18%, rgba(232, 165, 75, 0.18), transparent 70%),
+      radial-gradient(ellipse 45% 35% at 82% 12%, rgba(243, 235, 224, 0.06), transparent 65%),
+      radial-gradient(ellipse 50% 45% at 50% 88%, rgba(232, 165, 75, 0.08), transparent 70%);
   }
 
   .landing-glow-soft {
-    background: radial-gradient(ellipse at center, rgba(232, 165, 75, 0.14), transparent 70%);
+    background: radial-gradient(ellipse at center, rgba(232, 165, 75, 0.12), transparent 70%);
   }
 
   .landing-meta {
@@ -235,32 +295,7 @@
     }
   }
 
-  .landing-proof-pin {
-    display: none;
-  }
-
-  @media (max-width: 767px) {
-    .landing-glass {
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-  }
-
-  @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
-    .landing-proof-stack {
-      display: none;
-    }
-
-    .landing-proof-pin {
-      display: block;
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
-
     .landing-word,
     .landing-meta,
     .landing-hero-copy,
@@ -271,19 +306,9 @@
       transform: none !important;
     }
 
-    .landing-glass {
+    .landing-nav {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
     }
-
-    .landing-proof-pin {
-      display: none !important;
-    }
-
-    .landing-proof-stack {
-      display: grid !important;
-    }
   }
 }
-
-
