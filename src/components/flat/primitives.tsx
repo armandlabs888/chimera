@@ -102,15 +102,21 @@ export function LandingSection({
   children,
   className = '',
   tone = 'base',
+  fullPage = false,
 }: {
   id?: string
   children: ReactNode
   className?: string
   tone?: Tone
+  /** Full viewport min-height under sticky nav; grows with content (never clips). */
+  fullPage?: boolean
 }) {
   return (
-    <section id={id} className={`${toneClass[tone]} ${className}`}>
-      {children}
+    <section
+      id={id}
+      className={`${toneClass[tone]} ${fullPage ? 'landing-section-full' : ''} ${className}`}
+    >
+      {fullPage ? <div className="landing-section-full-inner w-full">{children}</div> : children}
     </section>
   )
 }

@@ -11,7 +11,8 @@ export function LandingCategories() {
     <LandingSection
       id="categories"
       tone="base"
-      className="scroll-mt-16 border-t border-beam-line px-4 py-12 sm:px-6 sm:py-14"
+      fullPage
+      className="border-t border-beam-line px-4 sm:px-6"
     >
       <div className="mx-auto max-w-[72rem]">
         <div className="max-w-xl">

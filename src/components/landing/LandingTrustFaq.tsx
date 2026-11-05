@@ -25,7 +25,8 @@ export function LandingTrustFaq() {
     <LandingSection
       id="trust"
       tone="base"
-      className="scroll-mt-16 border-t border-beam-line px-4 py-12 sm:px-6 sm:py-14"
+      fullPage
+      className="border-t border-beam-line px-4 sm:px-6"
     >
       <div className="mx-auto grid max-w-[72rem] gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div>

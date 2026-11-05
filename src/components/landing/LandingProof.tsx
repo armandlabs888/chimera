@@ -88,7 +88,8 @@ export function LandingProof() {
     <LandingSection
       id="how-it-works"
       tone="ink"
-      className="scroll-mt-16 border-t border-beam-line px-4 py-12 sm:px-6 sm:py-14"
+      fullPage
+      className="border-t border-beam-line px-4 sm:px-6"
     >
       <div className="mx-auto mb-8 max-w-2xl text-center">
         <MetaLabel className="text-beam-amber">How it works</MetaLabel>

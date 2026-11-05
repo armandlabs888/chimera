@@ -307,6 +307,25 @@
     letter-spacing: 0.06em;
   }
 
+  /* Full-page landing sections: min-height under sticky nav; grow, never clip */
+  .landing-section-full {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: calc(100svh - var(--beam-nav-offset));
+    scroll-margin-top: var(--beam-nav-offset);
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .landing-section-full-inner {
+    flex: 0 1 auto;
+  }
+
+  .landing-hero-media img {
+    display: block;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .landing-nav {
       backdrop-filter: none;

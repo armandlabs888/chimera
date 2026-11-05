@@ -40,19 +40,19 @@ Short comparison + migration notes after the Airbnb/Linear-directed light redesi
 
 ## Landing layout (conventional SaaS)
 
-Public marketing is a **normal light SaaS page** with ordinary **vertical document scroll** on all breakpoints and reduced motion:
+Public marketing is a **normal light SaaS page** with ordinary **vertical document scroll** on all breakpoints and reduced motion.
+
+Main content sections use `LandingSection` with `fullPage` (`.landing-section-full`): `min-height: calc(100svh - nav)` + flex vertical centering. Height is a **minimum** so mobile, short viewports, and open FAQ grow without clipping. No sticky content pinning, horizontal tracks, or scroll-snap.
 
 1. Sticky light header (Beam, section anchors, Sign in, Post)
-2. Modest centered hero — “Help nearby. Done today.” + Post / Browse
+2. Full-viewport hero — two-column on desktop: copy + CTAs + category pills | gig-work photo `public/images/beam-hero-gig-work.jpg` (Next `<Image>` priority; caption marked Example)
 3. How it works — labeled **Example** request → offer → message
 4. Categories grid → real `/browse?category=` links
 5. Requester / helper paths
 6. Trust / FAQ + Safety link
-7. Final CTA + light footer
+7. Final CTA + compact light footer after the full-page sections
 
-No full-viewport forced sections, horizontal tracks, sticky content pinning, scroll hijack/snap, dramatic beam artwork, dark hero/footer bands, or overlapping stacks. Former `HeroProofStage` / `HeroBeamArt` / `.beam-stack*` experiments are removed.
-
-`LandingSection` is a plain `<section>`. Anchors use `scroll-mt-*` under the sticky nav. Interior app routes keep the same light marketplace chrome.
+Former horizontal-stage / dark-hero experiments stay removed. Interior app routes keep the same light marketplace chrome.
 
 ## Protected chrome
 
@@ -68,4 +68,4 @@ npm run test:smoke
 npm run test:live   # when env + seeded users available
 ```
 
-Smoke checks light theme throughout, control sizing, **non-sticky vertical scroll** (down/up), no page x-overflow, mobile CTA fit, reduced motion, category links — **DOM/computed-style only, no screenshots**.
+Smoke checks light theme, hero image load (`naturalWidth` / HTTP 200), full-page section min-heights vs viewport, **non-sticky vertical scroll** (down/up), no page x-overflow, mobile CTA fit, reduced motion, category links — **DOM/computed-style only, no screenshots**.

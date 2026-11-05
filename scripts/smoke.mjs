@@ -54,12 +54,16 @@ async function checkLandingMarkup() {
   assert.match(text, /href="\/browse\?category=moving"/, 'moving category browse link')
   assert.match(text, /href="\/browse\?category=handyman"/, 'handyman category browse link')
   assert.match(text, /Example/, 'example badges present')
+  assert.match(text, /beam-hero-gig-work/, 'hero gig-work image referenced')
+  assert.match(text, /landing-section-full/, 'full-page section class present')
   assert.doesNotMatch(text, /hero-stage|HeroProofStage|hero-beam-art|beam-stack/i, 'no experimental stage markup')
   assert.doesNotMatch(
     text,
     /Y Combinator|backed by|guaranteed same-day|try free for 14 days|payius/i,
     'no invented claims / brand clone',
   )
+  const imgRes = await fetch(`${BASE_URL}/images/beam-hero-gig-work.jpg`)
+  assert.equal(imgRes.status, 200, 'hero image asset HTTP 200')
   console.log('ok landing markup')
 }
 
@@ -137,6 +141,60 @@ async function checkLandingBrowser() {
     assert.ok(
       themeAndScale.transforms.every((t) => t === 'none'),
       'no section transforms',
+    )
+
+    // Hero image loaded (no screenshots — DOM/network only)
+    await page.waitForSelector('.landing-hero-media img')
+    await page.waitForFunction(
+      () => {
+        const img = document.querySelector('.landing-hero-media img')
+        return !!img && img.complete && img.naturalWidth > 0
+      },
+      undefined,
+      { timeout: 10000 },
+    )
+    const heroImg = await page.evaluate(() => {
+      const img = document.querySelector('.landing-hero-media img')
+      if (!img) return null
+      return {
+        src: img.currentSrc || img.getAttribute('src') || '',
+        complete: img.complete,
+        naturalWidth: img.naturalWidth,
+        alt: img.getAttribute('alt') || '',
+      }
+    })
+    assert.ok(heroImg, 'hero img present')
+    assert.match(heroImg.src, /beam-hero-gig-work/, `hero src ${heroImg.src}`)
+    assert.ok(heroImg.naturalWidth > 0, `hero naturalWidth ${heroImg.naturalWidth}`)
+    assert.match(heroImg.alt, /bookshelf|armchair|neighbor|living room/i, 'meaningful alt')
+
+    // Full-page section heights ≥ viewport − header − tolerance
+    const fullPageGeo = await page.evaluate(() => {
+      const nav = document.querySelector('.landing-nav')
+      const navH = nav ? nav.getBoundingClientRect().height : 56
+      const vh = window.innerHeight
+      const minExpected = vh - navH - 12
+      const sections = [...document.querySelectorAll('main > section.landing-section-full')]
+      return {
+        navH,
+        vh,
+        minExpected,
+        count: sections.length,
+        heights: sections.map((el) => Math.round(el.getBoundingClientRect().height)),
+        positions: sections.map((el) => getComputedStyle(el).position),
+        ids: sections.map((el) => el.id || el.getAttribute('aria-label') || ''),
+      }
+    })
+    assert.ok(fullPageGeo.count >= 6, `full-page sections ${fullPageGeo.count}`)
+    for (const h of fullPageGeo.heights) {
+      assert.ok(
+        h >= fullPageGeo.minExpected,
+        `section height ${h} < min ${fullPageGeo.minExpected} (vh=${fullPageGeo.vh} nav=${fullPageGeo.navH})`,
+      )
+    }
+    assert.ok(
+      fullPageGeo.positions.every((p) => p === 'static' || p === 'relative'),
+      'full-page sections non-sticky',
     )
 
     const postVisible = await page.locator('a[href="/post"]').first().isVisible()
@@ -235,21 +293,39 @@ async function checkLandingBrowser() {
     const browseBody = await page.locator('body').innerText()
     assert.match(browseBody, /Browse|Sign in to help nearby/i, 'browse runtime reachable')
 
-    for (const width of [375, 768, 1024, 1440]) {
-      await page.setViewportSize({ width, height: width === 375 ? 812 : 800 })
+    for (const { width, height } of [
+      { width: 375, height: 812 },
+      { width: 768, height: 1024 },
+      { width: 1280, height: 800 },
+      { width: 1440, height: 900 },
+    ]) {
+      await page.setViewportSize({ width, height })
       await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
       await page.waitForSelector('a[href="/post"]')
+      await page.waitForSelector('.landing-hero-media img')
+      await page.waitForFunction(
+        () => {
+          const img = document.querySelector('.landing-hero-media img')
+          return !!img && img.complete && img.naturalWidth > 0
+        },
+        undefined,
+        { timeout: 10000 },
+      )
       const geo = await page.evaluate(() => {
         const doc = document.documentElement
-        const sections = [...document.querySelectorAll('main > section')]
+        const nav = document.querySelector('.landing-nav')
+        const navH = nav ? nav.getBoundingClientRect().height : 56
+        const vh = window.innerHeight
+        const minExpected = vh - navH - 12
+        const sections = [...document.querySelectorAll('main > section.landing-section-full')]
         const post = document.querySelector('.landing-cta-row a[href="/post"]')
         const browse = document.querySelector('.landing-cta-row a[href="/browse"]')
-        const vh = window.innerHeight
         const ok = (el) => {
           if (!el) return false
           const r = el.getBoundingClientRect()
           return r.top >= 0 && r.bottom <= vh + 8
         }
+        const img = document.querySelector('.landing-hero-media img')
         const surfaces = [
           document.querySelector('.landing-root'),
           document.querySelector('#how-it-works'),
@@ -259,22 +335,28 @@ async function checkLandingBrowser() {
           overflowX: doc.scrollWidth > doc.clientWidth + 1,
           positions: sections.map((el) => getComputedStyle(el).position),
           transforms: sections.map((el) => getComputedStyle(el).transform),
+          heights: sections.map((el) => Math.round(el.getBoundingClientRect().height)),
+          minExpected,
           ctasInView: ok(post) && ok(browse),
           surfaces,
-          footerBottom: document.querySelector('footer')?.getBoundingClientRect().bottom ?? 0,
+          imgW: img?.naturalWidth ?? 0,
         }
       })
-      assert.equal(geo.overflowX, false, `no horizontal overflow @${width}`)
+      assert.equal(geo.overflowX, false, `no horizontal overflow @${width}x${height}`)
       assert.ok(
         geo.positions.every((p) => p === 'static' || p === 'relative'),
         `non-sticky sections @${width}`,
       )
       assert.ok(geo.transforms.every((t) => t === 'none'), `no transforms @${width}`)
       assert.ok(geo.surfaces.every(isLightRgb), `light surfaces @${width}: ${geo.surfaces.join(' | ')}`)
-      if (width === 375 || width === 1280 || width === 1440) {
+      assert.ok(geo.imgW > 0, `hero image loaded @${width}`)
+      for (const h of geo.heights) {
+        assert.ok(h >= geo.minExpected, `full-page h ${h} < ${geo.minExpected} @${width}x${height}`)
+      }
+      if (width === 375 || width >= 1280) {
         assert.equal(geo.ctasInView, true, `hero CTAs in first viewport @${width}`)
       }
-      // Short viewport: still reachable by scroll
+      // Short viewport: content grows; footer still reachable by scroll
       await page.setViewportSize({ width, height: 500 })
       const short = await page.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight)
