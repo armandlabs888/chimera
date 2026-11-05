@@ -40,11 +40,26 @@ Short comparison + migration notes after the Airbnb/Linear-directed light redesi
 
 ## Scroll / landing layout
 
-Marketing content uses **standard document flow** (normal up/down scroll). There is **no** section sticky stacking, slide-over overlap, scroll hijack, snap, or forced viewport spacers.
+Most marketing content uses **standard document flow** (normal up/down scroll). There is **no** old vertical sticky stacking / slide-over overlap between content sections, and **no** wheel/touch scroll hijack or snap.
 
-- `LandingSection` is a plain `<section>` with tone + padding classes.
-- Conventional sticky **nav** (landing header / app shell / message chrome) remains so anchors use `scroll-mt-*` and are not obscured.
-- Former `StackSection` / `.beam-stack*` / section-depth shadow CSS were removed.
+### Bounded hero → proof horizontal handoff
+
+Desktop (`min-width: 1024px`) + `prefers-reduced-motion: no-preference` only:
+
+- `HeroProofStage` uses a **native vertical scroll range** (~200vh) with a sticky pin and a 2-panel track.
+- Scroll position sets `--hero-progress` / `translate3d` so the proof panel **enters from the right** while the navy hero exits left. Scrolling up reverses.
+- After the stage, remaining sections (`#categories` onward) are ordinary vertical flow.
+- **No document horizontal scrollbar**; overflow contained on the pin.
+- `#how-it-works` / focus inside a panel scrolls the stage so that panel is revealed.
+- If the proof panel is taller than the viewport, the stage **falls back to a vertical stack** (no clipping).
+
+Mobile, tablet width &lt; 1024, reduced-motion, and no-JS: **vertical hero + proof stack** (full `100svh`/`dvh` hero with content-fit fallback). No scroll-linked transforms.
+
+Hero artwork is original SVG (`HeroBeamArt`) — navy canvas, luminous blue/cyan sweep, orbits/nodes — not a screenshot background. Navy palette is **hero-bounded**; the rest of the app stays light.
+
+- `LandingSection` remains a plain `<section>` for later marketing blocks.
+- Conventional sticky **nav** (dark over hero, light afterward) uses `scroll-mt-*` so anchors are not obscured.
+- Former `StackSection` / `.beam-stack*` vertical overlap CSS stay removed.
 
 ## Protected chrome
 
@@ -60,4 +75,4 @@ npm run test:smoke
 npm run test:live   # when env + seeded users available
 ```
 
-Smoke checks light theme, control sizing, **non-overlapping standard scroll** (down/up), reduced-motion, overflow, category links — **no screenshots**.
+Smoke checks light theme (post-hero), control sizing, **bounded horizontal hero→proof geometry** on desktop (down/up, no page x-overflow), vertical stack on mobile/reduced-motion, anchors/focus, category links — **DOM/computed-style only, no screenshots**.
