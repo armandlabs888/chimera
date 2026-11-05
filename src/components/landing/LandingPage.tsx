@@ -9,10 +9,11 @@ import { LandingFooter } from './LandingFooter'
 
 export function LandingPage() {
   return (
-    <div className="landing-root relative min-h-dvh overflow-x-hidden bg-beam-base text-beam-cream">
-      <div className="pointer-events-none fixed inset-0 grain opacity-30" aria-hidden />
+    <div className="landing-root relative min-h-dvh bg-beam-base text-beam-cream">
+      <div className="pointer-events-none fixed inset-0 grain opacity-25" aria-hidden />
       <LandingNav />
-      <main>
+      {/* beam-stack ancestors must stay overflow:visible so position:sticky works */}
+      <main className="beam-stack">
         <LandingHero />
         <LandingProof />
         <LandingCategories />

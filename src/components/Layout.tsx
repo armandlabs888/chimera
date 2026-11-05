@@ -24,11 +24,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const hideChrome = shouldHideAppChrome(pathname)
 
   return (
-    <div className="min-h-dvh bg-beam-base text-beam-cream">
-      <div className="pointer-events-none fixed inset-0 grain opacity-40" aria-hidden />
+    <div className="relative min-h-dvh bg-beam-base text-beam-cream">
+      <div className="pointer-events-none fixed inset-0 beam-ambient opacity-80" aria-hidden />
+      <div className="pointer-events-none fixed inset-0 grain opacity-25" aria-hidden />
       {!hideChrome ? (
-        <header className="sticky top-0 z-30 border-b border-beam-line/60 bg-beam-base/90 backdrop-blur-md">
-          <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+        <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-beam-base/92 backdrop-blur-md">
+          <div className="relative mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
             <Link href="/" className="flex items-center gap-2 touch-target">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-beam-amber/15 text-beam-amber">
                 <Zap className="h-5 w-5" fill="currentColor" />

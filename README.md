@@ -56,6 +56,10 @@ npm run test:smoke          # route smoke (demo-safe)
 npm run test:live           # live auth + persistence + negative authz (needs env)
 ```
 
+## UI system
+
+Flat cinematic dark surfaces + landing sticky section stacking: see [`docs/flat-ui.md`](docs/flat-ui.md).
+
 ## What you can do
 
 1. Sign up / sign in (live) or use demo mode.

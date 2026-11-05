@@ -34,7 +34,10 @@ export function Messages() {
   )
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const reduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    bottomRef.current?.scrollIntoView({ behavior: reduced ? 'instant' : 'smooth' })
   }, [messages.length])
 
   if (!thread || !other || !request) {
@@ -59,7 +62,7 @@ export function Messages() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-beam-base">
-      <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-beam-line bg-beam-base/95 px-3 py-3 backdrop-blur">
+      <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-white/[0.06] bg-beam-base/95 px-3 py-3 backdrop-blur">
         <Link
           href={`/requests/${request.id}`}
           className="touch-target inline-flex items-center justify-center rounded-xl text-beam-cream"
@@ -83,7 +86,7 @@ export function Messages() {
                 className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                   mine
                     ? 'rounded-br-md bg-beam-amber text-beam-base'
-                    : 'rounded-bl-md border border-beam-line bg-beam-raised text-beam-cream'
+                    : 'rounded-bl-md bg-beam-ink text-beam-cream'
                 }`}
               >
                 <p>{message.body}</p>
@@ -100,7 +103,7 @@ export function Messages() {
 
       <form
         onSubmit={onSend}
-        className="safe-bottom sticky bottom-0 border-t border-beam-line bg-beam-base/95 px-3 pt-3 backdrop-blur"
+        className="safe-bottom sticky bottom-0 border-t border-white/[0.06] bg-beam-base/95 px-3 pt-3 backdrop-blur"
       >
         <div className="mx-auto flex max-w-3xl items-center gap-2">
           <TextInput

@@ -11,8 +11,8 @@ const links = [
 
 export function LandingNav() {
   return (
-    <header className="landing-nav sticky top-0 z-40">
-      <div className="landing-glass mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+    <header className="landing-nav">
+      <div className="landing-nav-inner landing-glass mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
         <Link href="/" className="touch-target flex items-center gap-2 rounded-xl">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-beam-amber/15 text-beam-amber">
             <Zap className="h-5 w-5" fill="currentColor" aria-hidden />

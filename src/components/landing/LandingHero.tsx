@@ -1,13 +1,15 @@
 import Link from 'next/link'
+import { StackSection } from '@/components/flat'
 
 const HEADLINE = ['Help', 'nearby.', 'Done', 'today.'] as const
 
 export function LandingHero() {
   return (
-    <section className="relative overflow-hidden px-4 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-16 md:pb-24 md:pt-20">
+    <StackSection stick zIndex={1} tone="base" className="overflow-hidden px-4 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-16">
+      <div className="relative">
       <div className="pointer-events-none absolute inset-0 landing-ambient" aria-hidden />
 
-      <div className="relative mx-auto max-w-4xl text-center">
+      <div className="relative mx-auto flex max-w-4xl flex-col justify-center text-center md:min-h-[calc(100dvh-8rem)]">
         <p className="landing-meta mb-5 text-[11px] font-medium uppercase tracking-[0.22em] text-beam-amber sm:mb-6">
           Austin · same-day help nearby
         </p>
@@ -37,7 +39,7 @@ export function LandingHero() {
           </Link>
           <Link
             href="/browse"
-            className="touch-target inline-flex min-h-11 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-beam-cream backdrop-blur-sm transition hover:border-beam-amber/40 hover:bg-white/10"
+            className="touch-target inline-flex min-h-11 items-center justify-center rounded-xl border border-white/12 bg-white/[0.04] px-6 py-3 text-sm font-semibold text-beam-cream transition hover:border-beam-amber/40"
           >
             Browse requests
           </Link>
@@ -47,6 +49,7 @@ export function LandingHero() {
           Austin neighbors · post, priced offers, in-thread messaging
         </p>
       </div>
-    </section>
+      </div>
+    </StackSection>
   )
 }

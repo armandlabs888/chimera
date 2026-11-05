@@ -18,8 +18,8 @@ export function Button({
     primary:
       'bg-beam-amber text-beam-base hover:bg-beam-amber-deep disabled:opacity-40',
     secondary:
-      'bg-beam-panel text-beam-cream border border-beam-line hover:border-beam-amber/50 disabled:opacity-40',
-    ghost: 'bg-transparent text-beam-cream hover:bg-white/5 disabled:opacity-40',
+      'bg-beam-ink text-beam-cream border border-beam-line/80 hover:border-beam-amber/50 disabled:opacity-40',
+    ghost: 'bg-transparent text-beam-cream hover:bg-white/[0.04] disabled:opacity-40',
     danger: 'bg-red-500/15 text-red-300 border border-red-500/30 hover:bg-red-500/25',
   }[variant]
 
@@ -39,8 +39,8 @@ export function ButtonLink({
   const styles = {
     primary: 'bg-beam-amber text-beam-base hover:bg-beam-amber-deep',
     secondary:
-      'bg-beam-panel text-beam-cream border border-beam-line hover:border-beam-amber/50',
-    ghost: 'bg-transparent text-beam-cream hover:bg-white/5',
+      'bg-beam-ink text-beam-cream border border-beam-line/80 hover:border-beam-amber/50',
+    ghost: 'bg-transparent text-beam-cream hover:bg-white/[0.04]',
   }[variant]
 
   return (
@@ -62,7 +62,7 @@ export function Field({
 }) {
   return (
     <label className="block space-y-2">
-      <span className="text-sm font-medium text-beam-cream-dim">{label}</span>
+      <span className="text-xs font-medium uppercase tracking-[0.14em] text-beam-cream-dim">{label}</span>
       {children}
       {hint ? <span className="block text-xs text-beam-muted">{hint}</span> : null}
     </label>
@@ -72,7 +72,7 @@ export function Field({
 export function TextInput({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={`touch-target w-full rounded-xl border border-beam-line bg-beam-raised px-4 py-3 text-beam-cream placeholder:text-beam-muted focus:border-beam-amber ${className}`}
+      className={`touch-target w-full rounded-xl border border-beam-line/80 bg-beam-ink px-4 py-3 text-beam-cream placeholder:text-beam-muted focus:border-beam-amber focus:outline-none ${className}`}
       {...props}
     />
   )
@@ -81,7 +81,7 @@ export function TextInput({ className = '', ...props }: InputHTMLAttributes<HTML
 export function TextArea({ className = '', ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
-      className={`min-h-28 w-full rounded-xl border border-beam-line bg-beam-raised px-4 py-3 text-beam-cream placeholder:text-beam-muted focus:border-beam-amber ${className}`}
+      className={`min-h-28 w-full rounded-xl border border-beam-line/80 bg-beam-ink px-4 py-3 text-beam-cream placeholder:text-beam-muted focus:border-beam-amber focus:outline-none ${className}`}
       {...props}
     />
   )
@@ -97,10 +97,12 @@ export function SectionHeader({
   action?: ReactNode
 }) {
   return (
-    <div className="mb-4 flex items-end justify-between gap-3">
+    <div className="mb-6 flex items-end justify-between gap-3">
       <div>
-        <h2 className="font-display text-2xl font-semibold tracking-tight text-beam-cream">{title}</h2>
-        {subtitle ? <p className="mt-1 text-sm text-beam-muted">{subtitle}</p> : null}
+        <h2 className="font-display text-2xl font-semibold tracking-tight text-beam-cream sm:text-3xl">
+          {title}
+        </h2>
+        {subtitle ? <p className="mt-1.5 text-sm text-beam-muted">{subtitle}</p> : null}
       </div>
       {action}
     </div>
@@ -117,7 +119,7 @@ export function EmptyState({
   action?: ReactNode
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-beam-line bg-beam-raised/60 px-5 py-10 text-center">
+    <div className="px-2 py-12 text-center">
       <h3 className="font-display text-xl text-beam-cream">{title}</h3>
       <p className="mx-auto mt-2 max-w-sm text-sm text-beam-muted">{body}</p>
       {action ? <div className="mt-5 flex justify-center">{action}</div> : null}

@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { FilterChip, SegmentedControl, FlatDivider } from '../components/flat'
 import { PersonCard } from '../components/PersonCard'
 import { RequestCard } from '../components/RequestCard'
 import { EmptyState, SectionHeader } from '../components/ui'
@@ -63,7 +64,7 @@ export function Browse() {
       )
   }, [state.people, category, q, freeOnly, currentUser.neighborhood])
 
-  function setTab(next: 'requests' | 'people') {
+  function setTab(next: string) {
     const nextParams = new URLSearchParams(params.toString())
     if (next === 'people') nextParams.set('tab', 'people')
     else nextParams.delete('tab')
@@ -78,28 +79,23 @@ export function Browse() {
   }
 
   return (
-    <div className="px-4 py-6">
+    <div className="relative px-4 py-6">
       <SectionHeader
         title="Browse"
         subtitle="Open requests stay listed. People are nearby neighbors with skills."
       />
 
-      <div className="mb-5 flex rounded-2xl border border-beam-line bg-beam-raised p-1">
-        {(['requests', 'people'] as const).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={`touch-target flex-1 rounded-xl px-3 py-2.5 text-sm font-semibold capitalize transition ${
-              tab === t ? 'bg-beam-amber text-beam-base' : 'text-beam-muted hover:text-beam-cream'
-            }`}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        className="mb-5"
+        value={tab}
+        onChange={setTab}
+        options={[
+          { id: 'requests', label: 'requests' },
+          { id: 'people', label: 'people' },
+        ]}
+      />
 
-      <div className="hide-scrollbar mb-6 flex gap-2 overflow-x-auto pb-1">
+      <div className="hide-scrollbar mb-5 flex gap-2 overflow-x-auto pb-1">
         <FilterChip active={category === 'all'} onClick={() => setCategory('all')} label="All" />
         {CATEGORIES.map((c) => (
           <FilterChip
@@ -111,9 +107,11 @@ export function Browse() {
         ))}
       </div>
 
+      <FlatDivider className="mb-6" />
+
       {tab === 'requests' ? (
         openRequests.length ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {openRequests.map((request) => (
               <RequestCard key={request.id} request={request} />
             ))}
@@ -125,7 +123,7 @@ export function Browse() {
           />
         )
       ) : people.length ? (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="divide-y divide-white/[0.06] sm:grid sm:grid-cols-2 sm:gap-2 sm:divide-y-0">
           {people.map((person) => (
             <PersonCard key={person.id} person={person} />
           ))}
@@ -134,29 +132,5 @@ export function Browse() {
         <EmptyState title="No people match" body="Widen the category filter or clear search." />
       )}
     </div>
-  )
-}
-
-function FilterChip({
-  label,
-  active,
-  onClick,
-}: {
-  label: string
-  active: boolean
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`touch-target shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
-        active
-          ? 'bg-beam-amber text-beam-base'
-          : 'border border-beam-line bg-beam-raised text-beam-cream-dim hover:border-beam-amber/40'
-      }`}
-    >
-      {label}
-    </button>
   )
 }

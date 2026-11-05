@@ -159,7 +159,7 @@ export function RequestDetail() {
             {request.details}
           </p>
 
-          <Link href={`/people/${requester.id}`} className="flex items-center gap-3 rounded-2xl border border-beam-line bg-beam-raised p-3">
+          <Link href={`/people/${requester.id}`} className="flat-row flex items-center gap-3 rounded-xl px-2 py-3 transition hover:bg-white/[0.04]">
             <img src={requester.avatar} alt="" className="h-12 w-12 rounded-xl object-cover" />
             <div>
               <p className="font-medium text-beam-cream">
@@ -191,7 +191,7 @@ export function RequestDetail() {
                   return (
                     <li
                       key={offer.id}
-                      className="rounded-2xl border border-beam-line bg-beam-raised p-4"
+                      className="rounded-xl bg-beam-ink/70 p-4"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <Link href={`/people/${helper.id}`} className="flex items-center gap-3">
@@ -255,7 +255,7 @@ export function RequestDetail() {
           </section>
 
           {!isOwner && request.status === 'open' ? (
-            <section className="rounded-2xl border border-beam-line bg-beam-panel/60 p-4">
+            <section className="rounded-xl bg-beam-ink/80 p-4 ring-1 ring-white/[0.06]">
               <h2 className="font-display text-2xl text-beam-cream">
                 {myOffer ? 'Update your offer' : 'Send an offer'}
               </h2>
@@ -316,7 +316,7 @@ export function RequestDetail() {
 
           {request.status === 'accepted' &&
           (isOwner || request.helperId === currentUser.id) ? (
-            <section className="rounded-2xl border border-beam-amber/30 bg-beam-amber-soft p-4">
+            <section className="rounded-xl bg-beam-amber-soft p-4 ring-1 ring-beam-amber/35">
               <h2 className="font-display text-xl text-beam-cream">Job in progress</h2>
               <p className="mt-1 text-sm text-beam-cream-dim">
                 Accepted at {acceptedOffer ? formatMoney(acceptedOffer.price) : '—'}. Message to
@@ -342,7 +342,7 @@ export function RequestDetail() {
           ) : null}
 
           {request.status === 'completed' ? (
-            <section className="rounded-2xl border border-beam-line bg-beam-raised p-4">
+            <section className="rounded-xl bg-beam-ink/80 p-4">
               <h2 className="font-display text-xl text-beam-cream">Leave a review</h2>
               {existingReview ? (
                 <p className="mt-2 text-sm text-beam-cream-dim">
