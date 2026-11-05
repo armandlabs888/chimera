@@ -1,6 +1,8 @@
+'use client'
+
 import { MessageCircle, RotateCcw } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { RequestCard } from '../components/RequestCard'
 import {
   Badge,
@@ -141,7 +143,7 @@ export function You() {
           <EmptyState
             title="No requests yet"
             body="Post something you need done nearby — neighbors reply with a time and price."
-            action={<ButtonLink to="/post">Post a request</ButtonLink>}
+            action={<ButtonLink href="/post">Post a request</ButtonLink>}
           />
         )
       ) : null}
@@ -155,7 +157,7 @@ export function You() {
               return (
                 <li key={offer.id}>
                   <Link
-                    to={`/requests/${request.id}`}
+                    href={`/requests/${request.id}`}
                     className="block rounded-2xl border border-beam-line bg-beam-raised p-4 transition hover:border-beam-amber/40"
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -178,7 +180,7 @@ export function You() {
           <EmptyState
             title="No offers yet"
             body="Browse open requests and name a price when you can help."
-            action={<ButtonLink to="/browse">Browse requests</ButtonLink>}
+            action={<ButtonLink href="/browse">Browse requests</ButtonLink>}
           />
         )
       ) : null}
@@ -196,7 +198,7 @@ export function You() {
               return (
                 <li key={thread.id}>
                   <Link
-                    to={`/messages/${thread.id}`}
+                    href={`/messages/${thread.id}`}
                     className="flex items-center gap-3 rounded-2xl border border-beam-line bg-beam-raised p-3 transition hover:border-beam-amber/40"
                   >
                     <img

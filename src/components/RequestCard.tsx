@@ -1,5 +1,5 @@
 import { Clock3, MapPin } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { getCategory } from '../data/categories'
 import { getNeighborhood } from '../data/neighborhoods'
 import { formatMoney, relativeTime } from '../lib/matching'
@@ -18,7 +18,7 @@ export function RequestCard({
 
   return (
     <Link
-      to={`/requests/${request.id}`}
+      href={`/requests/${request.id}`}
       className="group block overflow-hidden rounded-2xl border border-beam-line/80 bg-beam-raised transition hover:border-beam-amber/40 focus-visible:border-beam-amber"
     >
       <div className={`relative overflow-hidden ${compact ? 'h-28' : 'h-40'}`}>

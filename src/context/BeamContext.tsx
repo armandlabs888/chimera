@@ -1,3 +1,5 @@
+'use client'
+
 import {
   createContext,
   useCallback,
@@ -6,7 +8,9 @@ import {
   useMemo,
   useRef,
   useState,
+  type Dispatch,
   type ReactNode,
+  type SetStateAction,
 } from 'react'
 import { getCategory, whenLabel } from '../data/categories'
 import { loadState, resetState, saveState, uid } from '../data/storage'
@@ -25,6 +29,7 @@ import type {
 interface BeamContextValue {
   state: AppState
   currentUser: Person
+  ready: boolean
   resetDemo: () => void
   updateProfile: (patch: Partial<Person>) => void
   createRequest: (input: {
@@ -58,6 +63,13 @@ interface BeamContextValue {
 
 const BeamContext = createContext<BeamContextValue | null>(null)
 
+function withState(
+  setState: Dispatch<SetStateAction<AppState | null>>,
+  updater: (prev: AppState) => AppState,
+) {
+  setState((prev) => (prev ? updater(prev) : prev))
+}
+
 const HELPER_REPLIES = [
   'Sounds good — I can make that work.',
   'Got it. I’ll confirm once I’m headed over.',
@@ -67,26 +79,34 @@ const HELPER_REPLIES = [
 ]
 
 export function BeamProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AppState>(() => loadState())
-  const stateRef = useRef(state)
+  // null until mount so SSR and the first client paint match (seed uses Date.now()).
+  const [state, setState] = useState<AppState | null>(null)
+  const stateRef = useRef<AppState | null>(null)
   stateRef.current = state
+  const ready = state !== null
 
   useEffect(() => {
+    setState(loadState())
+  }, [])
+
+  useEffect(() => {
+    if (!state) return
     saveState(state)
   }, [state])
 
   const currentUser = useMemo(() => {
+    if (!state) return null
     const user = state.people.find((p) => p.id === state.currentUserId)
     if (!user) throw new Error('Current user missing')
     return user
-  }, [state.people, state.currentUserId])
+  }, [state])
 
   const resetDemo = useCallback(() => {
     setState(resetState())
   }, [])
 
   const updateProfile = useCallback((patch: Partial<Person>) => {
-    setState((prev) => ({
+    withState(setState, (prev) => ({
       ...prev,
       people: prev.people.map((p) =>
         p.id === prev.currentUserId ? { ...p, ...patch, id: p.id, isCurrentUser: true } : p,
@@ -96,7 +116,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
 
   const createRequest = useCallback<BeamContextValue['createRequest']>((input) => {
     let created!: HelpRequest
-    setState((prev) => {
+    withState(setState, (prev) => {
       created = {
         id: uid('req'),
         title: input.title.trim(),
@@ -128,7 +148,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString(),
     }
 
-    setState((prev) => {
+    withState(setState, (prev) => {
       const full = { ...offer, helperId: prev.currentUserId }
       const withoutMine = prev.offers.filter(
         (o) => !(o.requestId === input.requestId && o.helperId === prev.currentUserId),
@@ -140,7 +160,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const acceptOffer = useCallback((offerId: string) => {
-    setState((prev) => {
+    withState(setState, (prev) => {
       const offer = prev.offers.find((o) => o.id === offerId)
       if (!offer) return prev
 
@@ -163,7 +183,6 @@ export function BeamProvider({ children }: { children: ReactNode }) {
           : r,
       )
 
-      // Ensure a message thread exists
       const participants = [prev.requests.find((r) => r.id === offer.requestId)!.requesterId, offer.helperId] as [
         string,
         string,
@@ -207,7 +226,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const markComplete = useCallback((requestId: string) => {
-    setState((prev) => ({
+    withState(setState, (prev) => ({
       ...prev,
       requests: prev.requests.map((r) =>
         r.id === requestId ? { ...r, status: 'completed' as const } : r,
@@ -226,7 +245,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString(),
     }
 
-    setState((prev) => {
+    withState(setState, (prev) => {
       const full = { ...review, fromId: prev.currentUserId }
       const people = prev.people.map((p) => {
         if (p.id !== input.toId) return p
@@ -247,6 +266,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
 
   const ensureThread = useCallback((requestId: string, otherUserId: string) => {
     const prev = stateRef.current
+    if (!prev) return uid('th')
     const existing = prev.threads.find(
       (t) =>
         t.requestId === requestId &&
@@ -256,7 +276,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
     if (existing) return existing.id
 
     const id = uid('th')
-    setState((current) => {
+    withState(setState, (current) => {
       const live = current.threads.find(
         (t) =>
           t.requestId === requestId &&
@@ -285,7 +305,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
       const trimmed = body.trim()
       if (!trimmed) return
 
-      setState((prev) => {
+      withState(setState, (prev) => {
         const thread = prev.threads.find((t) => t.id === threadId)
         if (!thread) return prev
         const msg = {
@@ -307,7 +327,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
 
       if (opts?.simulateReply) {
         window.setTimeout(() => {
-          setState((prev) => {
+          withState(setState, (prev) => {
             const thread = prev.threads.find((t) => t.id === threadId)
             if (!thread) return prev
             const otherId = thread.participantIds.find((id) => id !== prev.currentUserId)
@@ -336,18 +356,30 @@ export function BeamProvider({ children }: { children: ReactNode }) {
   )
 
   const getPerson = useCallback(
-    (id: string) => state.people.find((p) => p.id === id),
-    [state.people],
+    (id: string) => state?.people.find((p) => p.id === id),
+    [state?.people],
   )
 
   const getRequest = useCallback(
-    (id: string) => state.requests.find((r) => r.id === id),
-    [state.requests],
+    (id: string) => state?.requests.find((r) => r.id === id),
+    [state?.requests],
   )
+
+  if (!state || !currentUser) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-beam-base text-beam-cream">
+        <div className="pointer-events-none fixed inset-0 grain opacity-40" aria-hidden />
+        <p className="relative font-display text-2xl font-semibold text-beam-amber" aria-busy="true">
+          Beam
+        </p>
+      </div>
+    )
+  }
 
   const value: BeamContextValue = {
     state,
     currentUser,
+    ready,
     resetDemo,
     updateProfile,
     createRequest,

@@ -1,3 +1,5 @@
+'use client'
+
 import {
   CheckCircle2,
   Clock3,
@@ -7,7 +9,8 @@ import {
   Star,
 } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import Link from 'next/link'
+import { useRouter, useParams } from 'next/navigation'
 import { PersonCard } from '../components/PersonCard'
 import { Badge, Button, ButtonLink, EmptyState, Field, TextArea, TextInput } from '../components/ui'
 import { useBeam } from '../context/BeamContext'
@@ -15,9 +18,15 @@ import { getCategory } from '../data/categories'
 import { distanceMiles, formatDistance, getNeighborhood } from '../data/neighborhoods'
 import { formatMoney, rankMatches, relativeTime } from '../lib/matching'
 
+function paramId(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? ''
+  return value ?? ''
+}
+
 export function RequestDetail() {
-  const { id } = useParams()
-  const navigate = useNavigate()
+  const params = useParams()
+  const id = paramId(params.id)
+  const router = useRouter()
   const {
     state,
     currentUser,
@@ -30,7 +39,7 @@ export function RequestDetail() {
     ensureThread,
   } = useBeam()
 
-  const request = getRequest(id ?? '')
+  const request = getRequest(id)
   const [offerPrice, setOfferPrice] = useState(request?.budget ?? 40)
   const [offerNote, setOfferNote] = useState('')
   const [offerEta, setOfferEta] = useState('Within 1 hour')
@@ -69,7 +78,7 @@ export function RequestDetail() {
         <EmptyState
           title="Request not found"
           body="It may have been cleared with demo reset."
-          action={<ButtonLink to="/browse">Back to browse</ButtonLink>}
+          action={<ButtonLink href="/browse">Back to browse</ButtonLink>}
         />
       </div>
     )
@@ -96,7 +105,7 @@ export function RequestDetail() {
 
   function openThreadWith(otherId: string) {
     const threadId = ensureThread(activeRequest.id, otherId)
-    navigate(`/messages/${threadId}`)
+    router.push(`/messages/${threadId}`)
   }
 
   function submitReview(e: FormEvent) {
@@ -146,7 +155,7 @@ export function RequestDetail() {
             {request.details}
           </p>
 
-          <Link to={`/people/${requester.id}`} className="flex items-center gap-3 rounded-2xl border border-beam-line bg-beam-raised p-3">
+          <Link href={`/people/${requester.id}`} className="flex items-center gap-3 rounded-2xl border border-beam-line bg-beam-raised p-3">
             <img src={requester.avatar} alt="" className="h-12 w-12 rounded-xl object-cover" />
             <div>
               <p className="font-medium text-beam-cream">
@@ -181,7 +190,7 @@ export function RequestDetail() {
                       className="rounded-2xl border border-beam-line bg-beam-raised p-4"
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <Link to={`/people/${helper.id}`} className="flex items-center gap-3">
+                        <Link href={`/people/${helper.id}`} className="flex items-center gap-3">
                           <img
                             src={helper.avatar}
                             alt=""
@@ -391,7 +400,7 @@ export function RequestDetail() {
             </div>
           </div>
           {isOwner ? (
-            <ButtonLink to="/post" variant="secondary" className="w-full">
+            <ButtonLink href="/post" variant="secondary" className="w-full">
               Post another request
             </ButtonLink>
           ) : null}

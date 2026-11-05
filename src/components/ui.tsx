@@ -1,5 +1,11 @@
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react'
-import { Link, type LinkProps } from 'react-router-dom'
+import Link from 'next/link'
+import type {
+  ButtonHTMLAttributes,
+  ComponentProps,
+  InputHTMLAttributes,
+  ReactNode,
+  TextareaHTMLAttributes,
+} from 'react'
 
 export function Button({
   variant = 'primary',
@@ -29,7 +35,7 @@ export function ButtonLink({
   variant = 'primary',
   className = '',
   ...props
-}: LinkProps & { variant?: 'primary' | 'secondary' | 'ghost' }) {
+}: ComponentProps<typeof Link> & { variant?: 'primary' | 'secondary' | 'ghost' }) {
   const styles = {
     primary: 'bg-beam-amber text-beam-base hover:bg-beam-amber-deep',
     secondary:

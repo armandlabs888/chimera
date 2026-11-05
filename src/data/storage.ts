@@ -1,9 +1,17 @@
 import type { AppState } from '../types'
 import { createSeedState } from './seed'
 
-const STORAGE_KEY = 'beam-demo-v1'
+export const STORAGE_KEY = 'beam-demo-v1'
+
+function canUseStorage(): boolean {
+  return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+}
 
 export function loadState(): AppState {
+  if (!canUseStorage()) {
+    return createSeedState()
+  }
+
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) {
@@ -26,6 +34,7 @@ export function loadState(): AppState {
 }
 
 export function saveState(state: AppState): void {
+  if (!canUseStorage()) return
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
 }
 

@@ -1,5 +1,5 @@
 import { MapPin, Star } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { getCategory } from '../data/categories'
 import { getNeighborhood } from '../data/neighborhoods'
 import { formatMoney } from '../lib/matching'
@@ -17,7 +17,7 @@ export function PersonCard({
 
   return (
     <Link
-      to={`/people/${person.id}`}
+      href={`/people/${person.id}`}
       className="flex gap-3 rounded-2xl border border-beam-line bg-beam-raised p-3 transition hover:border-beam-amber/40"
     >
       <img

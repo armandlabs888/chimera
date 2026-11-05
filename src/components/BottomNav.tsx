@@ -1,37 +1,42 @@
+'use client'
+
 import { Compass, Home, PlusCircle, Shield, UserRound } from 'lucide-react'
-import { NavLink } from 'react-router-dom'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 const tabs = [
-  { to: '/', label: 'Home', icon: Home, end: true },
-  { to: '/browse', label: 'Browse', icon: Compass },
-  { to: '/post', label: 'Post', icon: PlusCircle },
-  { to: '/you', label: 'You', icon: UserRound },
-  { to: '/safety', label: 'Safety', icon: Shield },
+  { href: '/', label: 'Home', icon: Home, end: true },
+  { href: '/browse', label: 'Browse', icon: Compass },
+  { href: '/post', label: 'Post', icon: PlusCircle },
+  { href: '/you', label: 'You', icon: UserRound },
+  { href: '/safety', label: 'Safety', icon: Shield },
 ]
 
 export function BottomNav() {
+  const pathname = usePathname()
+
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 border-t border-beam-line/80 bg-beam-base/95 backdrop-blur-md md:hidden"
       aria-label="Primary"
     >
       <ul className="safe-bottom mx-auto grid max-w-lg grid-cols-5 px-1 pt-1">
-        {tabs.map(({ to, label, icon: Icon, end }) => (
-          <li key={to}>
-            <NavLink
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                `flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl text-[11px] font-medium transition ${
+        {tabs.map(({ href, label, icon: Icon, end }) => {
+          const isActive = end ? pathname === href : pathname.startsWith(href)
+          return (
+            <li key={href}>
+              <Link
+                href={href}
+                className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl text-[11px] font-medium transition ${
                   isActive ? 'text-beam-amber' : 'text-beam-muted hover:text-beam-cream'
-                }`
-              }
-            >
-              <Icon className="h-5 w-5" strokeWidth={1.75} />
-              {label}
-            </NavLink>
-          </li>
-        ))}
+                }`}
+              >
+                <Icon className="h-5 w-5" strokeWidth={1.75} />
+                {label}
+              </Link>
+            </li>
+          )
+        })}
       </ul>
     </nav>
   )
