@@ -58,7 +58,7 @@ npm run test:live           # live auth + persistence + negative authz (needs en
 
 ## UI system
 
-Presentable light marketplace UI (Airbnb clarity + Linear type discipline) + refined sticky stacking: see [`docs/flat-ui.md`](docs/flat-ui.md).
+Presentable light marketplace UI (Airbnb clarity + Linear type discipline) with standard document scroll: see [`docs/flat-ui.md`](docs/flat-ui.md).
 
 ## What you can do
 

@@ -3,7 +3,7 @@ export {
   FlatSurface,
   FlatRow,
   FlatBento,
-  StackSection,
+  LandingSection,
   SegmentedControl,
   FilterChip,
   FlatDivider,

@@ -21,7 +21,6 @@
   --font-display: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --beam-nav-offset: 3.5rem;
-  --beam-section-depth: 0 -1px 0 rgba(0, 0, 0, 0.06), 0 -12px 28px rgba(0, 0, 0, 0.06);
   --beam-radius-sm: 8px;
   --beam-radius-md: 12px;
   --beam-content: 72rem; /* ~1152px */
@@ -233,33 +232,6 @@
   .flat-row:focus-visible {
     outline: 2px solid var(--color-beam-amber);
     outline-offset: 2px;
-  }
-
-  .beam-stack {
-    position: relative;
-    isolation: isolate;
-  }
-
-  .beam-stack-section {
-    position: relative;
-    z-index: var(--stack-z, 1);
-  }
-
-  /* Refined sticky: content-sized, no forced full-viewport emptiness */
-  @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
-    .beam-stack-section.beam-stack-section--stick {
-      position: sticky !important;
-      top: var(--beam-nav-offset, 3.5rem);
-      box-shadow: var(--beam-section-depth);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .beam-stack-section--stick {
-      position: relative !important;
-      top: auto !important;
-      box-shadow: none !important;
-    }
   }
 
   .landing-root {

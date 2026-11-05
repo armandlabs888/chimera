@@ -32,30 +32,23 @@ Short comparison + migration notes after the Airbnb/Linear-directed light redesi
 | `beam-charcoal` `#0c0c0e` | Wordmark / footer band |
 | `beam-amber` `#e8a54b` | CTA / focus / selected |
 
-Light theme is intentional (Airbnb-directed clarity). No dark cinematic gradients as the main canvas.
-
 ## Primitives
 
-[`src/components/flat/`](../src/components/flat/) — `MetaLabel`, `FlatSurface`, `FlatRow`, `FlatBento`, `StackSection`, `SegmentedControl`, `FilterChip`, `FlatDivider`.
+[`src/components/flat/`](../src/components/flat/) — `MetaLabel`, `FlatSurface`, `FlatRow`, `FlatBento`, `LandingSection`, `SegmentedControl`, `FilterChip`, `FlatDivider`.
 
 [`src/components/ui.tsx`](../src/components/ui.tsx) — `Button`/`ButtonLink` sizes `sm|md|lg`, fields, badges, section headers.
 
-## Sticky stacking (refined)
+## Scroll / landing layout
 
-Kept for marketing desktop + motion-ok sections (`hero`, `how-it-works`, `paths`, final CTA).
+Marketing content uses **standard document flow** (normal up/down scroll). There is **no** section sticky stacking, slide-over overlap, scroll hijack, snap, or forced viewport spacers.
 
-**Change vs prior:** removed forced `min-height: ~100dvh` that made sections look empty. Sticky is content-sized with a light section depth shadow.
-
-Still **not** sticky: categories, FAQ, app routes, mobile, `prefers-reduced-motion`.
-
-## DOM investigation notes
-
-- “Doubled” headline in HTML extraction was **`sr-only` + visible text**, not a visual duplicate. Landing h1 is now a single visible string.
-- Tall empty-feeling sections were largely **sticky min-height**, not missing content — addressed above.
+- `LandingSection` is a plain `<section>` with tone + padding classes.
+- Conventional sticky **nav** (landing header / app shell / message chrome) remains so anchors use `scroll-mt-*` and are not obscured.
+- Former `StackSection` / `.beam-stack*` / section-depth shadow CSS were removed.
 
 ## Protected chrome
 
-Keep discernible borders on inputs, selected chips, segmented controls, focus rings. Do not strip those for “flatness.”
+Keep discernible borders on inputs, selected chips, segmented controls, focus rings.
 
 ## Test commands
 
@@ -67,4 +60,4 @@ npm run test:smoke
 npm run test:live   # when env + seeded users available
 ```
 
-Smoke checks light theme, control sizing bounds, sticky without huge min-heights, reduced-motion, overflow, category links — **no screenshots**.
+Smoke checks light theme, control sizing, **non-overlapping standard scroll** (down/up), reduced-motion, overflow, category links — **no screenshots**.

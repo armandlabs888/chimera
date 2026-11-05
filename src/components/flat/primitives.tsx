@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import type { ComponentProps, CSSProperties, ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { ArrowRight } from 'lucide-react'
 
 type Tone = 'base' | 'raised' | 'panel' | 'ink'
@@ -96,28 +96,20 @@ export function FlatBento({
   return <div className={classes}>{children}</div>
 }
 
-export function StackSection({
+/** Marketing page section — normal document flow (no sticky stacking). */
+export function LandingSection({
   id,
   children,
   className = '',
-  stick = false,
-  zIndex = 1,
   tone = 'base',
 }: {
   id?: string
   children: ReactNode
   className?: string
-  stick?: boolean
-  zIndex?: number
   tone?: Tone
 }) {
-  const style = { ['--stack-z' as string]: zIndex } as CSSProperties
   return (
-    <section
-      id={id}
-      style={style}
-      className={`beam-stack-section ${toneClass[tone]} ${stick ? 'beam-stack-section--stick' : ''} ${className}`}
-    >
+    <section id={id} className={`${toneClass[tone]} ${className}`}>
       {children}
     </section>
   )

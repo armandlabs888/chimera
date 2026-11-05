@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { StackSection, MetaLabel } from '@/components/flat'
+import { LandingSection, MetaLabel } from '@/components/flat'
 
 const faqs = [
   {
@@ -22,10 +22,8 @@ const faqs = [
 
 export function LandingTrustFaq() {
   return (
-    <StackSection
+    <LandingSection
       id="trust"
-      stick={false}
-      zIndex={5}
       tone="base"
       className="scroll-mt-16 border-t border-beam-line px-4 py-12 sm:px-6 sm:py-14"
     >
@@ -59,6 +57,6 @@ export function LandingTrustFaq() {
           ))}
         </div>
       </div>
-    </StackSection>
+    </LandingSection>
   )
 }

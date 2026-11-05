@@ -105,10 +105,6 @@ async function checkLandingBrowser() {
     assert.ok(themeAndScale.heroCtaH >= 36 && themeAndScale.heroCtaH <= 52, `hero CTA h ${themeAndScale.heroCtaH}`)
     assert.ok(themeAndScale.navCtaH >= 36 && themeAndScale.navCtaH <= 48, `nav CTA h ${themeAndScale.navCtaH}`)
     assert.ok(themeAndScale.proofH < 700, `proof section not forced tall (${themeAndScale.proofH})`)
-    assert.ok(
-      themeAndScale.proofMinH === '0px' || themeAndScale.proofMinH === 'auto',
-      'no forced sticky min-height',
-    )
 
     // CTAs usable without waiting on auth/boot gate
     const postVisible = await page.locator('a[href="/post"]').first().isVisible()
@@ -137,51 +133,67 @@ async function checkLandingBrowser() {
     })
     assert.equal(overflowX, false, 'no horizontal overflow desktop')
 
-    // Native sticky stacking geometry (desktop, motion-ok)
-    const stickyGeom = await page.evaluate(() => {
-      const stickies = [...document.querySelectorAll('.beam-stack-section--stick')]
+    // Standard document flow: no marketing section sticky stacking / overlap
+    const flow = await page.evaluate(() => {
+      const sections = [...document.querySelectorAll('main > section')]
+      const positions = sections.map((el) => getComputedStyle(el).position)
+      const stickMarked = document.querySelectorAll('.beam-stack-section--stick, .beam-stack').length
+      const tops = sections.map((el) => el.getBoundingClientRect().top + window.scrollY)
+      const sorted = [...tops].sort((a, b) => a - b)
+      const ordered = tops.every((t, i) => t === sorted[i])
+      // After scrolling mid-page, no two content sections share the same sticky pin overlap
+      return { positions, stickMarked, ordered, count: sections.length }
+    })
+    assert.ok(flow.count >= 4, 'landing sections present')
+    assert.equal(flow.stickMarked, 0, 'no stack sticky markers in DOM')
+    assert.ok(
+      flow.positions.every((p) => p === 'static' || p === 'relative'),
+      'marketing sections are non-sticky flow',
+    )
+    assert.equal(flow.ordered, true, 'sections in document order')
+
+    // Scroll down then up: sections move with the document (no pin/overlap)
+    const scrollProbe = await page.evaluate(async () => {
       const proof = document.querySelector('#how-it-works')
       const cats = document.querySelector('#categories')
-      const stack = document.querySelector('.beam-stack')
-      if (!stickies.length || !proof || !cats || !stack) return null
-      const proofCs = getComputedStyle(proof)
-      const catsCs = getComputedStyle(cats)
-      const stickyPositions = stickies.map((el) => getComputedStyle(el).position)
-      const ancestorsOk = (() => {
-        let el = stack.parentElement
-        while (el && el !== document.body) {
-          const cs = getComputedStyle(el)
-          if (cs.overflow === 'hidden' || cs.overflowX === 'hidden' || cs.overflowY === 'hidden') {
-            return false
-          }
-          el = el.parentElement
-        }
-        return true
-      })()
-      return {
-        stickyPositions,
-        proofPosition: proofCs.position,
-        catsPosition: catsCs.position,
-        proofZ: Number(proofCs.zIndex) || 0,
-        catsZ: Number(catsCs.zIndex) || 0,
-        ancestorsOk,
+      if (!proof || !cats) return null
+      const before = {
+        scrollY: window.scrollY,
+        proofTop: proof.getBoundingClientRect().top,
+        catsTop: cats.getBoundingClientRect().top,
       }
+      window.scrollBy(0, 500)
+      const mid = {
+        scrollY: window.scrollY,
+        proofTop: proof.getBoundingClientRect().top,
+        catsTop: cats.getBoundingClientRect().top,
+      }
+      window.scrollBy(0, -500)
+      const after = {
+        scrollY: window.scrollY,
+        proofTop: proof.getBoundingClientRect().top,
+        catsTop: cats.getBoundingClientRect().top,
+      }
+      const overlapMid =
+        mid.proofTop < mid.catsTop &&
+        mid.proofTop + proof.getBoundingClientRect().height > mid.catsTop + 2
+      return { before, mid, after, overlapMid }
     })
-    assert.ok(stickyGeom, 'stack sections present')
+    assert.ok(scrollProbe, 'scroll probe sections found')
+    assert.ok(scrollProbe.mid.scrollY > scrollProbe.before.scrollY, 'scroll down advances')
     assert.ok(
-      stickyGeom.stickyPositions.every((p) => p === 'sticky'),
-      'all stick-marked sections are sticky on desktop',
+      scrollProbe.mid.proofTop < scrollProbe.before.proofTop - 100,
+      'proof moves up with scroll (not pinned)',
     )
-    assert.equal(stickyGeom.proofPosition, 'sticky', 'proof sticky on desktop')
-    assert.equal(stickyGeom.catsPosition, 'relative', 'tall categories stay relative')
-    assert.ok(stickyGeom.proofZ >= 2, 'proof z-index layered')
-    assert.equal(stickyGeom.ancestorsOk, true, 'no overflow:hidden ancestors blocking sticky')
-
-    // Scroll changes sticky offsetTop relationship without hijack
-    const before = await page.evaluate(() => window.scrollY)
-    await page.evaluate(() => window.scrollBy(0, 600))
-    const after = await page.evaluate(() => window.scrollY)
-    assert.ok(after > before, 'native scroll advances')
+    assert.ok(
+      scrollProbe.mid.catsTop < scrollProbe.before.catsTop - 100,
+      'categories move up with scroll (not pinned)',
+    )
+    assert.equal(scrollProbe.overlapMid, false, 'no section overlap while scrolling')
+    assert.ok(
+      Math.abs(scrollProbe.after.proofTop - scrollProbe.before.proofTop) < 8,
+      'scroll up restores position',
+    )
 
     // Category navigation reaches browse with filter
     await page.locator('a[href="/browse?category=cleaning"]').first().click()
@@ -193,20 +205,28 @@ async function checkLandingBrowser() {
     const browseBody = await page.locator('body').innerText()
     assert.match(browseBody, /Browse|Sign in to help nearby/i, 'browse runtime reachable')
 
-    // Mobile: stacking falls back to static; CTAs in first screen
+    // Mobile + tablet: same non-sticky flow
+    for (const width of [375, 768]) {
+      await page.setViewportSize({ width, height: 812 })
+      await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
+      await page.waitForSelector('a[href="/post"]')
+      const mobileOverflow = await page.evaluate(() => {
+        const doc = document.documentElement
+        return doc.scrollWidth > doc.clientWidth + 1
+      })
+      assert.equal(mobileOverflow, false, `no horizontal overflow @${width}`)
+      const pos = await page.evaluate(() => {
+        const els = [...document.querySelectorAll('main > section')]
+        return els.map((el) => getComputedStyle(el).position)
+      })
+      assert.ok(
+        pos.every((p) => p === 'static' || p === 'relative'),
+        `non-sticky sections @${width}`,
+      )
+    }
+
     await page.setViewportSize({ width: 375, height: 812 })
     await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
-    await page.waitForSelector('a[href="/post"]')
-    const mobileOverflow = await page.evaluate(() => {
-      const doc = document.documentElement
-      return doc.scrollWidth > doc.clientWidth + 1
-    })
-    assert.equal(mobileOverflow, false, 'no horizontal overflow mobile')
-    const mobilePos = await page.evaluate(() => {
-      const el = document.querySelector('#how-it-works')
-      return el ? getComputedStyle(el).position : null
-    })
-    assert.equal(mobilePos, 'relative', 'mobile proof not sticky')
     const mobileCtas = await page.evaluate(() => {
       const post = document.querySelector('.landing-cta-row a[href="/post"]')
       const browse = document.querySelector('.landing-cta-row a[href="/browse"]')
@@ -216,12 +236,15 @@ async function checkLandingBrowser() {
         const r = el.getBoundingClientRect()
         return r.top >= 0 && r.bottom <= vh + 8
       }
-      return { inView: ok(post) && ok(browse), h1: parseFloat(getComputedStyle(document.querySelector('h1')).fontSize) }
+      return {
+        inView: ok(post) && ok(browse),
+        h1: parseFloat(getComputedStyle(document.querySelector('h1')).fontSize),
+      }
     })
     assert.equal(mobileCtas.inView, true, 'mobile hero CTAs in first viewport')
     assert.ok(mobileCtas.h1 >= 34 && mobileCtas.h1 <= 48, `mobile hero size ${mobileCtas.h1}`)
 
-    // Reduced motion: static + readable examples
+    // Reduced motion: still normal flow + readable examples
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.setViewportSize({ width: 1280, height: 800 })
     await page.reload({ waitUntil: 'domcontentloaded' })
@@ -229,7 +252,7 @@ async function checkLandingBrowser() {
       const el = document.querySelector('#how-it-works')
       return el ? getComputedStyle(el).position : null
     })
-    assert.equal(reducedPos, 'relative', 'reduced-motion disables sticky')
+    assert.ok(reducedPos === 'relative' || reducedPos === 'static', 'reduced-motion normal flow')
     const stackText = await page.locator('#how-it-works').innerText()
     assert.match(stackText, /Example/i, 'reduced-motion proof examples visible')
     assert.match(stackText, /Help move a couch/i, 'reduced-motion request example')
@@ -239,7 +262,7 @@ async function checkLandingBrowser() {
     await page.keyboard.press('Tab')
     const focusedTag = await page.evaluate(() => document.activeElement?.tagName ?? '')
     assert.ok(focusedTag === 'A' || focusedTag === 'BUTTON', 'tab reaches interactive control')
-    console.log('ok landing browser DOM + sticky geometry')
+    console.log('ok landing browser DOM + standard scroll flow')
   } finally {
     await browser.close()
   }
