@@ -25,8 +25,11 @@ export function LandingFooter() {
           <Link href="/safety" className="hover:text-beam-cream">
             Safety
           </Link>
-          <Link href="/you" className="hover:text-beam-cream">
+          <Link href="/auth?mode=signin" className="hover:text-beam-cream">
             Sign in
+          </Link>
+          <Link href="/auth?mode=signup" className="hover:text-beam-cream">
+            Create account
           </Link>
         </nav>
       </div>

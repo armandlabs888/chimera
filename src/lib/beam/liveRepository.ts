@@ -61,23 +61,58 @@ export async function loadLiveState(client: Client, userId: string): Promise<App
   }
 }
 
+export type EnsureProfileSeed = {
+  name?: string
+  avatarUrl?: string
+  neighborhood?: string
+}
+
+/**
+ * Ensure a profiles row exists for the signed-in user.
+ * Never clobbers a non-empty name or avatar; only fills blanks from seed/OAuth metadata.
+ * Requires an authenticated session (auth.uid()) — do not call without data.session.
+ */
 export async function ensureProfile(
   client: Client,
   userId: string,
-  fallbackName: string,
+  seed: EnsureProfileSeed | string = {},
 ): Promise<Person> {
+  const normalized: EnsureProfileSeed =
+    typeof seed === 'string' ? { name: seed } : seed
+  const fallbackName = (normalized.name?.trim() || 'Neighbor').slice(0, 80)
+  const fallbackAvatar = normalized.avatarUrl?.trim() || ''
+  const fallbackNeighborhood = normalized.neighborhood?.trim() || 'east-austin'
+
   const existing = await client.from('profiles').select('*').eq('id', userId).maybeSingle()
   throwOnError(existing.error, 'Load profile')
-  if (existing.data) return mapProfile(existing.data, userId)
+
+  if (existing.data) {
+    const patch: Record<string, unknown> = {}
+    const currentName = String(existing.data.name ?? '').trim()
+    const currentAvatar = String(existing.data.avatar_url ?? '').trim()
+    if (!currentName && fallbackName) patch.name = fallbackName
+    if (!currentAvatar && fallbackAvatar) patch.avatar_url = fallbackAvatar
+    if (Object.keys(patch).length > 0) {
+      const updated = await client
+        .from('profiles')
+        .update(patch)
+        .eq('id', userId)
+        .select('*')
+        .single()
+      throwOnError(updated.error, 'Update profile blanks')
+      return mapProfile(updated.data, userId)
+    }
+    return mapProfile(existing.data, userId)
+  }
 
   const inserted = await client
     .from('profiles')
     .insert({
       id: userId,
-      name: fallbackName || 'Neighbor',
-      avatar_url: '',
+      name: fallbackName,
+      avatar_url: fallbackAvatar,
       bio: '',
-      neighborhood: 'east-austin',
+      neighborhood: fallbackNeighborhood,
       skills: [],
       hourly_rate: 35,
       availability: ['afternoons', 'evenings'],

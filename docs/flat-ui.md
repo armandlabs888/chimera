@@ -54,6 +54,10 @@ Main content sections use `LandingSection` with `fullPage` (`.landing-section-fu
 
 Former horizontal-stage / dark-hero experiments stay removed. Interior app routes keep the same light marketplace chrome.
 
+## Auth (`/auth`)
+
+Dedicated light auth experience (Sign in / Create account) with **Continue with Google**, email + password, signup name + Austin neighborhood, Show/Hide password, and email-confirmation messaging when autoconfirm is off. Shared `AuthExperience` powers `/auth` and the live `AuthGate`. PKCE callback: `/auth/callback`; email OTP: `/auth/confirm`. `next` query params are sanitized (relative paths only).
+
 ## Protected chrome
 
 Keep discernible borders on inputs, selected chips, segmented controls, focus rings.

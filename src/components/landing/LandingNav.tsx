@@ -32,7 +32,7 @@ export function LandingNav() {
 
         <div className="flex items-center gap-2">
           <Link
-            href="/you"
+            href="/auth?mode=signin"
             className="landing-nav-signin btn-compact hidden items-center rounded-[8px] px-3 text-[13px] font-medium sm:inline-flex"
           >
             Sign in

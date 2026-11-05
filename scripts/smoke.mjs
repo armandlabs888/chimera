@@ -10,6 +10,9 @@ const STORAGE_KEY = 'beam-demo-v1'
 
 const routes = [
   '/',
+  '/auth',
+  '/auth?mode=signin',
+  '/auth?mode=signup',
   '/browse',
   '/browse?tab=people',
   '/post',
@@ -20,6 +23,15 @@ const routes = [
   '/messages/missing-thread',
   '/does-not-exist',
 ]
+
+function sanitizeNextLocal(raw, fallback = '/browse') {
+  if (!raw) return fallback
+  const value = String(raw).trim()
+  if (!value.startsWith('/')) return fallback
+  if (value.startsWith('//')) return fallback
+  if (value.includes('\\')) return fallback
+  return value
+}
 
 async function fetchText(pathName) {
   const res = await fetch(`${BASE_URL}${pathName}`, {
@@ -53,6 +65,7 @@ async function checkLandingMarkup() {
   assert.match(text, /href="\/browse"/, 'browse route wired')
   assert.match(text, /href="\/browse\?category=moving"/, 'moving category browse link')
   assert.match(text, /href="\/browse\?category=handyman"/, 'handyman category browse link')
+  assert.match(text, /href="\/auth\?mode=signin"/, 'landing sign-in links to /auth')
   assert.match(text, /Example/, 'example badges present')
   assert.match(text, /beam-hero-gig-work/, 'hero gig-work image referenced')
   assert.match(text, /landing-section-full/, 'full-page section class present')
@@ -65,6 +78,107 @@ async function checkLandingMarkup() {
   const imgRes = await fetch(`${BASE_URL}/images/beam-hero-gig-work.jpg`)
   assert.equal(imgRes.status, 200, 'hero image asset HTTP 200')
   console.log('ok landing markup')
+}
+
+async function checkAuthMarkupAndRedirects() {
+  assert.equal(sanitizeNextLocal('/browse'), '/browse')
+  assert.equal(sanitizeNextLocal('//evil.example'), '/browse')
+  assert.equal(sanitizeNextLocal('/you'), '/you')
+  assert.equal(sanitizeNextLocal('https://evil.example'), '/browse')
+
+  const { res, text } = await fetchText('/auth?mode=signup')
+  assert.equal(res.status, 200, 'auth page status')
+  // Auth UI is client-rendered after BeamProvider ready; SSR shell should still be Beam auth layout.
+  assert.match(text, /Beam|auth/, 'auth route shell present')
+  assert.doesNotMatch(text, /text-red-300|Live mode uses Supabase email\/password auth/i, 'no legacy developer auth copy')
+
+  // Open-redirect rejection on callback (no code → auth error page with sanitized next)
+  const evil = await fetch(`${BASE_URL}/auth/callback?next=${encodeURIComponent('//evil.example')}`, {
+    redirect: 'manual',
+  })
+  assert.ok([302, 307, 308].includes(evil.status), `callback redirect status ${evil.status}`)
+  const loc = evil.headers.get('location') || ''
+  assert.ok(loc.includes('/auth'), `callback should land on /auth, got ${loc}`)
+  assert.doesNotMatch(loc, /\/\/evil\.example/, 'callback rejects protocol-relative next')
+  assert.match(loc, /next=%2Fbrowse|next=\/browse/, `sanitized next in Location: ${loc}`)
+
+  const okNext = await fetch(`${BASE_URL}/auth/callback?next=${encodeURIComponent('/you')}`, {
+    redirect: 'manual',
+  })
+  const okLoc = okNext.headers.get('location') || ''
+  assert.ok(okLoc.includes('/auth'), `missing-code callback → auth, got ${okLoc}`)
+  assert.match(okLoc, /next=%2Fyou|next=\/you/, `preserves safe next: ${okLoc}`)
+  console.log('ok auth markup + callback redirect sanitization')
+}
+
+async function checkAuthBrowser() {
+  let chromium
+  try {
+    ;({ chromium } = await import('playwright'))
+  } catch {
+    console.log('skip auth browser (playwright not installed)')
+    return
+  }
+
+  const browser = await chromium.launch({ headless: true })
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+  try {
+    await page.goto(`${BASE_URL}/auth?mode=signin`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('body')
+
+    const bodyText = await page.locator('body').innerText()
+    if (/demo mode|needs configuration/i.test(bodyText)) {
+      console.log('skip auth browser interactions (demo / unconfigured)')
+      return
+    }
+
+    await page.waitForSelector('button:has-text("Continue with Google")')
+    const googleBtn = page.locator('button:has-text("Continue with Google")')
+    assert.equal(await googleBtn.isVisible(), true, 'Google button visible')
+    const googleSvg = await page.locator('button:has-text("Continue with Google") svg').count()
+    assert.ok(googleSvg >= 1, 'Google SVG mark present')
+
+    // Theme surfaces stay light
+    const surfaces = await page.evaluate(() => {
+      const card = document.querySelector('form')?.closest('div')
+      return {
+        body: getComputedStyle(document.body).backgroundColor,
+        card: card ? getComputedStyle(card).backgroundColor : '',
+      }
+    })
+    assert.match(surfaces.body, /rgb\(255,\s*255,\s*255\)/, 'auth body light')
+
+    // Switch to Create account — neighborhood + show password
+    await page.getByRole('tab', { name: 'Create account' }).click()
+    await page.waitForSelector('text=Full name')
+    assert.equal(await page.locator('select').count(), 1, 'neighborhood select on signup')
+    const options = await page.locator('select option').count()
+    assert.ok(options >= 8, `neighborhood options ${options}`)
+
+    await page.locator('input[type="password"], input[type="text"]').last().fill('secret12')
+    const showBtn = page.getByRole('button', { name: /Show|Hide/ })
+    assert.equal(await showBtn.isVisible(), true, 'password show/hide toggle')
+    await showBtn.click()
+    const revealed = await page.evaluate(() => {
+      const inputs = [...document.querySelectorAll('input')]
+      return inputs.some((i) => i.type === 'text' && i.value === 'secret12')
+    })
+    assert.equal(revealed, true, 'password revealed after Show')
+
+    // Switch back to Sign in clears signup-only fields from tab UX
+    await page.getByRole('tab', { name: 'Sign in' }).click()
+    assert.equal(await page.locator('text=Full name').count(), 0, 'name field hidden on sign-in')
+    assert.equal(await page.locator('select').count(), 0, 'neighborhood hidden on sign-in')
+
+    // Signup deep link
+    await page.goto(`${BASE_URL}/auth?mode=signup`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('text=Full name')
+    assert.equal(await page.getByRole('tab', { name: 'Create account' }).getAttribute('aria-selected'), 'true')
+
+    console.log('ok auth browser Google + signup fields + password toggle')
+  } finally {
+    await browser.close()
+  }
 }
 
 function isLightRgb(css) {
@@ -290,8 +404,14 @@ async function checkLandingBrowser() {
     console.log('ok landing category navigation')
 
     await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('body')
     const browseBody = await page.locator('body').innerText()
-    assert.match(browseBody, /Browse|Sign in to help nearby/i, 'browse runtime reachable')
+    // Live mode gates behind AuthExperience; demo shows Browse. Either is healthy.
+    assert.match(
+      browseBody,
+      /Browse|Welcome back|Continue with Google|Sign in to help nearby/i,
+      'browse runtime reachable',
+    )
 
     for (const { width, height } of [
       { width: 375, height: 812 },
@@ -486,7 +606,9 @@ async function main() {
   checkStorageHelpers()
   await checkRoutes()
   await checkLandingMarkup()
+  await checkAuthMarkupAndRedirects()
   await checkLandingBrowser()
+  await checkAuthBrowser()
   await checkBrowserPersistence()
   console.log('smoke passed')
 }
