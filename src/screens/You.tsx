@@ -23,7 +23,8 @@ import type { AvailabilitySlot, CategoryId } from '../types'
 const SLOTS: AvailabilitySlot[] = ['mornings', 'afternoons', 'evenings', 'weekends']
 
 export function You() {
-  const { state, currentUser, updateProfile, resetDemo, getPerson, getRequest } = useBeam()
+  const { state, currentUser, updateProfile, resetDemo, getPerson, getRequest, mode, signOut } =
+    useBeam()
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(currentUser.name)
   const [bio, setBio] = useState(currentUser.bio)
@@ -94,18 +95,32 @@ export function You() {
             /hr
           </p>
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          className="text-beam-muted"
-          onClick={() => {
-            if (confirm('Reset all demo data to the Austin seed?')) resetDemo()
-          }}
-          title="Reset demo data"
-        >
-          <RotateCcw className="h-4 w-4" />
-          <span className="hidden sm:inline">Reset demo</span>
-        </Button>
+        {mode === 'demo' ? (
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-beam-muted"
+            onClick={() => {
+              if (confirm('Reset all demo data to the Austin seed?')) resetDemo()
+            }}
+            title="Reset demo data"
+          >
+            <RotateCcw className="h-4 w-4" />
+            <span className="hidden sm:inline">Reset demo</span>
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-beam-muted"
+            onClick={() => {
+              void signOut()
+            }}
+            title="Sign out"
+          >
+            <span className="sm:inline">Sign out</span>
+          </Button>
+        )}
       </div>
 
       <div className="hide-scrollbar mb-6 flex gap-2 overflow-x-auto">

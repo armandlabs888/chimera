@@ -3,6 +3,7 @@ import { Fraunces, Outfit } from 'next/font/google'
 import type { ReactNode } from 'react'
 import { BeamProvider } from '@/context/BeamContext'
 import { AppShell } from '@/components/Layout'
+import { AuthGate } from '@/components/AuthGate'
 import './globals.css'
 
 const fraunces = Fraunces({
@@ -39,7 +40,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={`${fraunces.variable} ${outfit.variable}`}>
       <body>
         <BeamProvider>
-          <AppShell>{children}</AppShell>
+          <AuthGate>
+            <AppShell>{children}</AppShell>
+          </AuthGate>
         </BeamProvider>
       </body>
     </html>

@@ -83,6 +83,11 @@ async function checkBrowserPersistence() {
   const page = await browser.newPage()
   try {
     await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle' })
+    const bodyText = await page.locator('body').innerText()
+    if (/Sign in to help nearby|Create account|Beam needs configuration/i.test(bodyText)) {
+      console.log('skip browser localStorage (live auth gate / unconfigured — covered by test:live)')
+      return
+    }
     await page.waitForFunction((key) => !!localStorage.getItem(key), STORAGE_KEY, {
       timeout: 15000,
     })

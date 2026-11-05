@@ -37,7 +37,7 @@ export function PostRequest() {
     setStep(1)
   }
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault()
     if (!title.trim() || !details.trim()) {
       setError('Add a title and a few details so helpers know what to expect.')
@@ -47,15 +47,19 @@ export function PostRequest() {
       setError('Budget should be at least $10.')
       return
     }
-    const request = createRequest({
-      title,
-      details,
-      category,
-      neighborhood,
-      when,
-      budget,
-    })
-    router.push(`/requests/${request.id}`)
+    try {
+      const request = await createRequest({
+        title,
+        details,
+        category,
+        neighborhood,
+        when,
+        budget,
+      })
+      router.push(`/requests/${request.id}`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not post request')
+    }
   }
 
   return (
