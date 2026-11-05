@@ -1,6 +1,5 @@
 import { LandingNav } from './LandingNav'
-import { LandingHero } from './LandingHero'
-import { LandingProof } from './LandingProof'
+import { HeroProofStage } from './HeroProofStage'
 import { LandingCategories } from './LandingCategories'
 import { LandingPaths } from './LandingPaths'
 import { LandingTrustFaq } from './LandingTrustFaq'
@@ -12,8 +11,7 @@ export function LandingPage() {
     <div className="landing-root relative min-h-dvh bg-beam-base text-beam-cream">
       <LandingNav />
       <main>
-        <LandingHero />
-        <LandingProof />
+        <HeroProofStage />
         <LandingCategories />
         <LandingPaths />
         <LandingTrustFaq />
