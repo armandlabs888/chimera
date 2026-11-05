@@ -43,6 +43,78 @@ async function checkRoutes() {
   }
 }
 
+async function checkLandingMarkup() {
+  const { res, text } = await fetchText('/')
+  assert.equal(res.status, 200, 'landing status')
+  assert.match(text, /Help nearby\. Done today\./, 'landing headline')
+  assert.match(text, /Post a request/, 'landing primary CTA')
+  assert.match(text, /Browse requests/, 'landing secondary CTA')
+  assert.match(text, /href="\/post"/, 'post route wired')
+  assert.match(text, /href="\/browse"/, 'browse route wired')
+  assert.match(text, /href="\/browse\?category=moving"/, 'moving category browse link')
+  assert.match(text, /href="\/browse\?category=handyman"/, 'handyman category browse link')
+  assert.match(text, /Example/, 'example badges present')
+  assert.doesNotMatch(text, /Y Combinator|backed by|guaranteed same-day/i, 'no invented claims')
+  console.log('ok landing markup')
+}
+
+async function checkLandingBrowser() {
+  let chromium
+  try {
+    ;({ chromium } = await import('playwright'))
+  } catch {
+    console.log('skip landing browser (playwright not installed)')
+    return
+  }
+
+  const browser = await chromium.launch({ headless: true })
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+  try {
+    await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('a[href="/post"]')
+    const headline = await page.locator('h1').innerText()
+    assert.match(headline, /Help nearby/i)
+
+    // CTAs usable without waiting on auth/boot gate
+    const postVisible = await page.locator('a[href="/post"]').first().isVisible()
+    const browseVisible = await page.locator('a[href="/browse"]').first().isVisible()
+    assert.equal(postVisible, true, 'post CTA visible')
+    assert.equal(browseVisible, true, 'browse CTA visible')
+
+    // No horizontal overflow on desktop
+    const overflowX = await page.evaluate(() => {
+      const doc = document.documentElement
+      return doc.scrollWidth > doc.clientWidth + 1
+    })
+    assert.equal(overflowX, false, 'no horizontal overflow desktop')
+
+    // Category navigation reaches browse with filter
+    await page.locator('a[href="/browse?category=cleaning"]').first().click()
+    await page.waitForURL(/\/browse\?category=cleaning/)
+    console.log('ok landing category navigation')
+
+    // Mobile viewport: CTAs remain visible, no overflow
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('a[href="/post"]')
+    const mobileOverflow = await page.evaluate(() => {
+      const doc = document.documentElement
+      return doc.scrollWidth > doc.clientWidth + 1
+    })
+    assert.equal(mobileOverflow, false, 'no horizontal overflow mobile')
+
+    // Reduced motion: proof stack stays in DOM / readable
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    const stackText = await page.locator('#how-it-works').innerText()
+    assert.match(stackText, /Example/i, 'reduced-motion proof examples visible')
+    assert.match(stackText, /Help move a couch/i, 'reduced-motion request example')
+    console.log('ok landing browser DOM')
+  } finally {
+    await browser.close()
+  }
+}
+
 function checkStorageHelpers() {
   assert.equal(STORAGE_KEY, 'beam-demo-v1')
 
@@ -82,7 +154,8 @@ async function checkBrowserPersistence() {
   const browser = await chromium.launch({ headless: true })
   const page = await browser.newPage()
   try {
-    await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle' })
+    // Marketing `/` is public and outside BeamProvider; boot demo state via an app route.
+    await page.goto(`${BASE_URL}/browse`, { waitUntil: 'networkidle' })
     const bodyText = await page.locator('body').innerText()
     if (/Sign in to help nearby|Create account|Beam needs configuration/i.test(bodyText)) {
       console.log('skip browser localStorage (live auth gate / unconfigured — covered by test:live)')
@@ -136,6 +209,8 @@ async function checkBrowserPersistence() {
 async function main() {
   checkStorageHelpers()
   await checkRoutes()
+  await checkLandingMarkup()
+  await checkLandingBrowser()
   await checkBrowserPersistence()
   console.log('smoke passed')
 }

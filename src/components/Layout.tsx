@@ -14,9 +14,14 @@ const desktopLinks = [
   { href: '/safety', label: 'Safety' },
 ]
 
+/** App chrome belongs on product routes; `/` is the public marketing landing. */
+function shouldHideAppChrome(pathname: string) {
+  return pathname === '/' || pathname.startsWith('/messages/')
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
-  const hideChrome = pathname.startsWith('/messages/')
+  const hideChrome = shouldHideAppChrome(pathname)
 
   return (
     <div className="min-h-dvh bg-beam-base text-beam-cream">
