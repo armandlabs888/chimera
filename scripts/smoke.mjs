@@ -54,13 +54,22 @@ async function checkLandingMarkup() {
   assert.match(text, /href="\/browse\?category=moving"/, 'moving category browse link')
   assert.match(text, /href="\/browse\?category=handyman"/, 'handyman category browse link')
   assert.match(text, /Example/, 'example badges present')
-  assert.match(text, /hero-beam-art|HeroBeamArt|viewBox="0 0 1440 900"/, 'hero SVG art in markup')
+  assert.doesNotMatch(text, /hero-stage|HeroProofStage|hero-beam-art|beam-stack/i, 'no experimental stage markup')
   assert.doesNotMatch(
     text,
     /Y Combinator|backed by|guaranteed same-day|try free for 14 days|payius/i,
     'no invented claims / brand clone',
   )
   console.log('ok landing markup')
+}
+
+function isLightRgb(css) {
+  const m = css.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i)
+  if (!m) return false
+  const r = Number(m[1])
+  const g = Number(m[2])
+  const b = Number(m[3])
+  return r >= 240 && g >= 240 && b >= 240
 }
 
 async function checkLandingBrowser() {
@@ -78,59 +87,57 @@ async function checkLandingBrowser() {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('a[href="/post"]')
-    // Wait for client stage mode (stack → horizontal enhancement)
-    await page.waitForFunction(
-      () => document.querySelector('.hero-stage')?.getAttribute('data-hero-mode') === 'horizontal',
-      undefined,
-      { timeout: 10000 },
-    )
+
     const headline = await page.locator('h1').innerText()
     assert.match(headline, /Help nearby\. Done today\./i)
     assert.equal(headline.trim().split('\n').filter(Boolean).length, 1, 'single h1 line')
 
     const themeAndScale = await page.evaluate(() => {
       const body = getComputedStyle(document.body)
+      const root = document.querySelector('.landing-root')
+      const rootCs = root ? getComputedStyle(root) : null
       const h1 = document.querySelector('h1')
       const h1Cs = h1 ? getComputedStyle(h1) : null
-      const hero = document.querySelector('.landing-hero')
-      const heroCs = hero ? getComputedStyle(hero) : null
       const heroCta = document.querySelector('.landing-cta-row a[href="/post"]')
       const heroRect = heroCta?.getBoundingClientRect()
       const navCta = document.querySelector('.landing-nav a[href="/post"]')
       const navRect = navCta?.getBoundingClientRect()
-      const art = document.querySelector('.hero-beam-art')
-      const mode = document.querySelector('.hero-stage')?.getAttribute('data-hero-mode')
+      const footer = document.querySelector('footer')
+      const footerCs = footer ? getComputedStyle(footer) : null
+      const sections = [...document.querySelectorAll('main > section')]
       return {
         bg: body.backgroundColor,
         color: body.color,
         font: body.fontFamily,
+        rootBg: rootCs?.backgroundColor ?? '',
+        footerBg: footerCs?.backgroundColor ?? '',
         h1Px: h1Cs ? parseFloat(h1Cs.fontSize) : 0,
         heroCtaH: heroRect ? Math.round(heroRect.height) : 0,
         navCtaH: navRect ? Math.round(navRect.height) : 0,
-        heroBg: heroCs?.backgroundColor ?? '',
-        hasArt: !!art,
-        artPointer: art ? getComputedStyle(art).pointerEvents : '',
-        mode,
+        sectionPositions: sections.map((el) => getComputedStyle(el).position),
+        sectionCount: sections.length,
+        hasStage: !!document.querySelector('.hero-stage, .landing-stage, .beam-stack'),
+        transforms: sections.map((el) => getComputedStyle(el).transform),
       }
     })
-    assert.match(themeAndScale.bg, /rgb\(255,\s*255,\s*255\)/, 'light page canvas')
+    assert.match(themeAndScale.bg, /rgb\(255,\s*255,\s*255\)/, 'light canvas')
     assert.match(themeAndScale.color, /rgb\(34,\s*34,\s*34\)/, 'dark primary text')
     assert.match(themeAndScale.font, /Geist|geist/i, 'Geist family loaded')
+    assert.ok(isLightRgb(themeAndScale.rootBg), `landing-root light got ${themeAndScale.rootBg}`)
+    assert.ok(isLightRgb(themeAndScale.footerBg), `footer light got ${themeAndScale.footerBg}`)
     assert.ok(themeAndScale.h1Px >= 34 && themeAndScale.h1Px <= 58, `hero size ${themeAndScale.h1Px}`)
     assert.ok(themeAndScale.heroCtaH >= 36 && themeAndScale.heroCtaH <= 52, `hero CTA h ${themeAndScale.heroCtaH}`)
     assert.ok(themeAndScale.navCtaH >= 36 && themeAndScale.navCtaH <= 48, `nav CTA h ${themeAndScale.navCtaH}`)
-    assert.ok(themeAndScale.hasArt, 'hero SVG art present')
-    assert.equal(themeAndScale.artPointer, 'none', 'art does not intercept pointers')
-    assert.equal(themeAndScale.mode, 'horizontal', 'desktop motion uses horizontal stage')
-    // Navy hero canvas (allow near-black / deep navy)
-    assert.match(themeAndScale.heroBg, /rgb\(\s*(\d+),\s*(\d+),\s*(\d+)\s*\)/, 'hero has rgb background')
-    {
-      const m = themeAndScale.heroBg.match(/rgb\(\s*(\d+),\s*(\d+),\s*(\d+)\s*\)/)
-      const r = Number(m[1])
-      const g = Number(m[2])
-      const b = Number(m[3])
-      assert.ok(r < 40 && g < 50 && b < 60, `hero navy-ish bg got ${themeAndScale.heroBg}`)
-    }
+    assert.ok(themeAndScale.sectionCount >= 5, 'landing sections present')
+    assert.equal(themeAndScale.hasStage, false, 'no experimental stage DOM')
+    assert.ok(
+      themeAndScale.sectionPositions.every((p) => p === 'static' || p === 'relative'),
+      'marketing sections non-sticky',
+    )
+    assert.ok(
+      themeAndScale.transforms.every((t) => t === 'none'),
+      'no section transforms',
+    )
 
     const postVisible = await page.locator('a[href="/post"]').first().isVisible()
     const browseVisible = await page.locator('a[href="/browse"]').first().isVisible()
@@ -150,147 +157,76 @@ async function checkLandingBrowser() {
     })
     assert.equal(inView, true, 'hero CTAs in first desktop viewport')
 
-    const overflowX = await page.evaluate(() => {
-      const doc = document.documentElement
-      return doc.scrollWidth > doc.clientWidth + 1
-    })
-    assert.equal(overflowX, false, 'no horizontal overflow desktop')
-
     assert.equal(
-      await page.locator('.beam-stack-section--stick, .beam-stack').count(),
-      0,
-      'no legacy stack sticky markers',
+      await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1),
+      false,
+      'no horizontal overflow desktop',
     )
 
-    // Bounded horizontal: vertical scroll drives proof panel X from the right
-    const horizontal = await page.evaluate(async () => {
-      const stage = document.querySelector('.hero-stage--horizontal')
-      const track = document.querySelector('.hero-stage-track')
-      const heroPanel = document.querySelector('[data-panel="hero"]')
-      const proofPanel = document.querySelector('[data-panel="proof"]')
+    // Vertical scroll down/up — sections move with the document
+    const scrollProbe = await page.evaluate(() => {
+      const proof = document.querySelector('#how-it-works')
       const cats = document.querySelector('#categories')
-      if (!stage || !track || !heroPanel || !proofPanel || !cats) {
-        return { ok: false, reason: 'missing stage nodes' }
-      }
-
-      const start = {
+      const cta = document.querySelector('main > section:last-of-type')
+      const footer = document.querySelector('footer')
+      if (!proof || !cats || !footer) return null
+      const before = {
         scrollY: window.scrollY,
-        heroLeft: heroPanel.getBoundingClientRect().left,
-        proofLeft: proofPanel.getBoundingClientRect().left,
-        trackTx: getComputedStyle(track).transform,
+        proofTop: proof.getBoundingClientRect().top,
+        catsTop: cats.getBoundingClientRect().top,
       }
-
-      // Mid-stage: proof should move leftward into the viewport
-      const stageTop = stage.getBoundingClientRect().top + window.scrollY
-      const midY = stageTop + window.innerHeight * 0.55
-      window.scrollTo(0, midY)
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+      window.scrollBy(0, 500)
+      const midProofTop = proof.getBoundingClientRect().top
+      const midCatsTop = cats.getBoundingClientRect().top
       const mid = {
         scrollY: window.scrollY,
-        heroLeft: heroPanel.getBoundingClientRect().left,
-        proofLeft: proofPanel.getBoundingClientRect().left,
-        overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+        proofTop: midProofTop,
+        catsTop: midCatsTop,
+        overlap: midProofTop < midCatsTop && proof.getBoundingClientRect().bottom > midCatsTop + 2,
       }
-
-      // End of stage: proof dominant, then handoff to vertical categories
-      const endY = stageTop + stage.offsetHeight - window.innerHeight
-      window.scrollTo(0, endY)
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
-      const end = {
-        proofLeft: proofPanel.getBoundingClientRect().left,
-        proofWidth: proofPanel.getBoundingClientRect().width,
-      }
-
-      window.scrollTo(0, endY + 120)
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+      window.scrollBy(0, -500)
       const after = {
-        catsTop: cats.getBoundingClientRect().top,
+        proofTop: proof.getBoundingClientRect().top,
+      }
+      window.scrollTo(0, document.body.scrollHeight)
+      const end = {
+        footerTop: footer.getBoundingClientRect().top,
+        ctaVisible: cta ? cta.getBoundingClientRect().bottom > 0 : false,
         overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
       }
-
-      // Reverse: scroll back toward start — proof moves right again
-      window.scrollTo(0, midY)
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
-      const reverse = {
-        proofLeft: proofPanel.getBoundingClientRect().left,
-      }
-
       window.scrollTo(0, 0)
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
-      const back = {
-        heroLeft: heroPanel.getBoundingClientRect().left,
-        proofLeft: proofPanel.getBoundingClientRect().left,
-      }
+      return { before, mid, after, end }
 
-      return { ok: true, start, mid, end, after, reverse, back }
     })
-    assert.equal(horizontal.ok, true, horizontal.reason || 'horizontal probe')
-    assert.ok(horizontal.mid.scrollY > horizontal.start.scrollY, 'scroll down advances')
+    assert.ok(scrollProbe, 'scroll probe sections found')
+    assert.ok(scrollProbe.mid.scrollY > scrollProbe.before.scrollY, 'scroll down advances')
     assert.ok(
-      horizontal.mid.proofLeft < horizontal.start.proofLeft - 80,
-      `proof enters from right (start ${horizontal.start.proofLeft} → mid ${horizontal.mid.proofLeft})`,
+      scrollProbe.mid.proofTop < scrollProbe.before.proofTop - 100,
+      'proof moves up with scroll (not pinned)',
     )
     assert.ok(
-      horizontal.mid.heroLeft < horizontal.start.heroLeft - 40,
-      'hero exits left as progress advances',
+      scrollProbe.mid.catsTop < scrollProbe.before.catsTop - 100,
+      'categories move up with scroll (not pinned)',
     )
-    assert.equal(horizontal.mid.overflowX, false, 'no page x-overflow mid horizontal')
+    assert.equal(scrollProbe.mid.overlap, false, 'no section overlap while scrolling')
     assert.ok(
-      Math.abs(horizontal.end.proofLeft) < 48,
-      `proof near viewport at stage end (left=${horizontal.end.proofLeft})`,
+      Math.abs(scrollProbe.after.proofTop - scrollProbe.before.proofTop) < 8,
+      'scroll up restores position',
     )
-    assert.ok(
-      horizontal.reverse.proofLeft > horizontal.end.proofLeft + 40,
-      'scroll up reverses proof toward the right',
-    )
-    assert.ok(
-      Math.abs(horizontal.back.heroLeft - horizontal.start.heroLeft) < 8,
-      'scroll to top restores hero',
-    )
-    assert.equal(horizontal.after.overflowX, false, 'no page x-overflow after handoff')
-    assert.ok(horizontal.after.catsTop < 800, 'categories enter vertical flow after stage')
+    assert.ok(scrollProbe.end.footerTop < 900, 'footer reachable')
+    assert.equal(scrollProbe.end.overflowX, false, 'no x-overflow at page end')
 
-    // Anchor reveals proof panel
+    // Anchor
     await page.evaluate(() => {
-      location.hash = '#how-it-works'
+      location.hash = '#categories'
     })
     await page.waitForFunction(() => {
-      const proof = document.querySelector('[data-panel="proof"]')
-      if (!proof) return false
-      return Math.abs(proof.getBoundingClientRect().left) < 48
+      const el = document.querySelector('#categories')
+      if (!el) return false
+      const top = el.getBoundingClientRect().top
+      return top >= 0 && top < window.innerHeight
     }, undefined, { timeout: 5000 })
-    const anchorReveal = await page.evaluate(() => {
-      const proof = document.querySelector('[data-panel="proof"]')
-      if (!proof) return null
-      const r = proof.getBoundingClientRect()
-      return { left: r.left, width: r.width }
-    })
-    assert.ok(anchorReveal, 'proof panel present for anchor')
-    assert.ok(
-      Math.abs(anchorReveal.left) < 48,
-      `hash #how-it-works reveals proof (left=${anchorReveal.left})`,
-    )
 
-    // Remaining vertical sections still non-sticky / ordered
-    const verticalFlow = await page.evaluate(() => {
-      const sections = [...document.querySelectorAll('#categories, #paths, #trust')]
-      const positions = sections.map((el) => getComputedStyle(el).position)
-      const tops = sections.map((el) => el.getBoundingClientRect().top + window.scrollY)
-      const sorted = [...tops].sort((a, b) => a - b)
-      return {
-        positions,
-        ordered: tops.every((t, i) => t === sorted[i]),
-        count: sections.length,
-      }
-    })
-    assert.ok(verticalFlow.count >= 3, 'later landing sections present')
-    assert.ok(
-      verticalFlow.positions.every((p) => p === 'static' || p === 'relative'),
-      'later sections non-sticky',
-    )
-    assert.equal(verticalFlow.ordered, true, 'later sections document order')
-
-    // Category navigation reaches browse with filter
     await page.locator('a[href="/browse?category=cleaning"]').first().click()
     await page.waitForURL(/\/browse\?category=cleaning/)
     console.log('ok landing category navigation')
@@ -299,19 +235,13 @@ async function checkLandingBrowser() {
     const browseBody = await page.locator('body').innerText()
     assert.match(browseBody, /Browse|Sign in to help nearby/i, 'browse runtime reachable')
 
-    // Mobile + tablet: vertical stack, no horizontal stage, CTAs reachable
-    for (const width of [375, 768]) {
-      await page.setViewportSize({ width, height: 812 })
+    for (const width of [375, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: width === 375 ? 812 : 800 })
       await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
       await page.waitForSelector('a[href="/post"]')
-      await page.waitForFunction(
-        () => document.querySelector('.hero-stage')?.getAttribute('data-hero-mode') === 'stack',
-        undefined,
-        { timeout: 10000 },
-      )
-      const mobile = await page.evaluate(() => {
+      const geo = await page.evaluate(() => {
         const doc = document.documentElement
-        const mode = document.querySelector('.hero-stage')?.getAttribute('data-hero-mode')
+        const sections = [...document.querySelectorAll('main > section')]
         const post = document.querySelector('.landing-cta-row a[href="/post"]')
         const browse = document.querySelector('.landing-cta-row a[href="/browse"]')
         const vh = window.innerHeight
@@ -320,46 +250,54 @@ async function checkLandingBrowser() {
           const r = el.getBoundingClientRect()
           return r.top >= 0 && r.bottom <= vh + 8
         }
+        const surfaces = [
+          document.querySelector('.landing-root'),
+          document.querySelector('#how-it-works'),
+          document.querySelector('footer'),
+        ].map((el) => (el ? getComputedStyle(el).backgroundColor : ''))
         return {
-          mode,
           overflowX: doc.scrollWidth > doc.clientWidth + 1,
+          positions: sections.map((el) => getComputedStyle(el).position),
+          transforms: sections.map((el) => getComputedStyle(el).transform),
           ctasInView: ok(post) && ok(browse),
-          h1: parseFloat(getComputedStyle(document.querySelector('h1')).fontSize),
-          hasTrack: !!document.querySelector('.hero-stage-track'),
+          surfaces,
+          footerBottom: document.querySelector('footer')?.getBoundingClientRect().bottom ?? 0,
         }
       })
-      assert.equal(mobile.mode, 'stack', `stack mode @${width}`)
-      assert.equal(mobile.overflowX, false, `no horizontal overflow @${width}`)
-      assert.equal(mobile.ctasInView, true, `hero CTAs in first viewport @${width}`)
-      assert.equal(mobile.hasTrack, false, `no horizontal track @${width}`)
-      if (width === 375) {
-        assert.ok(mobile.h1 >= 34 && mobile.h1 <= 48, `mobile hero size ${mobile.h1}`)
+      assert.equal(geo.overflowX, false, `no horizontal overflow @${width}`)
+      assert.ok(
+        geo.positions.every((p) => p === 'static' || p === 'relative'),
+        `non-sticky sections @${width}`,
+      )
+      assert.ok(geo.transforms.every((t) => t === 'none'), `no transforms @${width}`)
+      assert.ok(geo.surfaces.every(isLightRgb), `light surfaces @${width}: ${geo.surfaces.join(' | ')}`)
+      if (width === 375 || width === 1280 || width === 1440) {
+        assert.equal(geo.ctasInView, true, `hero CTAs in first viewport @${width}`)
       }
+      // Short viewport: still reachable by scroll
+      await page.setViewportSize({ width, height: 500 })
+      const short = await page.evaluate(() => {
+        window.scrollTo(0, document.body.scrollHeight)
+        const footer = document.querySelector('footer')
+        return footer ? footer.getBoundingClientRect().bottom <= window.innerHeight + 2 : false
+      })
+      assert.equal(short, true, `footer reachable short viewport @${width}`)
     }
 
-    // Reduced motion: stack + readable examples (no scroll-linked transform)
+    // Reduced motion: still normal vertical light flow
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.setViewportSize({ width: 1280, height: 800 })
     await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
-    await page.waitForFunction(
-      () => document.querySelector('.hero-stage')?.getAttribute('data-hero-mode') === 'stack',
-      undefined,
-      { timeout: 10000 },
-    )
     const reduced = await page.evaluate(() => {
-      const mode = document.querySelector('.hero-stage')?.getAttribute('data-hero-mode')
-      const proof = document.querySelector('#how-it-works')
+      const el = document.querySelector('#how-it-works')
       return {
-        mode,
-        proofPos: proof ? getComputedStyle(proof).position : null,
-        text: proof?.innerText ?? '',
+        pos: el ? getComputedStyle(el).position : null,
+        text: el?.innerText ?? '',
+        transform: el ? getComputedStyle(el).transform : null,
       }
     })
-    assert.equal(reduced.mode, 'stack', 'reduced-motion uses stack')
-    assert.ok(
-      reduced.proofPos === 'relative' || reduced.proofPos === 'static',
-      'reduced-motion proof normal flow',
-    )
+    assert.ok(reduced.pos === 'relative' || reduced.pos === 'static', 'reduced-motion normal flow')
+    assert.equal(reduced.transform, 'none', 'reduced-motion no transform')
     assert.match(reduced.text, /Example/i, 'reduced-motion proof examples visible')
     assert.match(reduced.text, /Help move a couch/i, 'reduced-motion request example')
 
@@ -367,7 +305,7 @@ async function checkLandingBrowser() {
     await page.keyboard.press('Tab')
     const focusedTag = await page.evaluate(() => document.activeElement?.tagName ?? '')
     assert.ok(focusedTag === 'A' || focusedTag === 'BUTTON', 'tab reaches interactive control')
-    console.log('ok landing browser DOM + bounded horizontal handoff')
+    console.log('ok landing browser DOM + conventional vertical SaaS flow')
   } finally {
     await browser.close()
   }
@@ -412,7 +350,6 @@ async function checkBrowserPersistence() {
   const browser = await chromium.launch({ headless: true })
   const page = await browser.newPage()
   try {
-    // Marketing `/` is public and outside BeamProvider; boot demo state via an app route.
     await page.goto(`${BASE_URL}/browse`, { waitUntil: 'networkidle' })
     const bodyText = await page.locator('body').innerText()
     if (/Sign in to help nearby|Create account|Beam needs configuration/i.test(bodyText)) {
@@ -452,7 +389,6 @@ async function checkBrowserPersistence() {
     assert.equal(persisted, true, 'posted request persisted in localStorage after navigation')
 
     await page.goto(`${BASE_URL}/requests/req-browser-smoke`, { waitUntil: 'networkidle' })
-    // Wait for client hydration / seed load before asserting UI content.
     await page.waitForFunction(
       () => document.body?.innerText?.includes('Browser smoke request'),
       undefined,

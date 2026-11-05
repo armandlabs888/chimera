@@ -29,7 +29,7 @@ Short comparison + migration notes after the Airbnb/Linear-directed light redesi
 | `beam-line` | Subtle border `#dddddd` |
 | `beam-cream` | Primary text `#222` (legacy name kept for churn) |
 | `beam-cream-dim` / `beam-muted` | Secondary / meta text |
-| `beam-charcoal` `#0c0c0e` | Wordmark / footer band |
+| `beam-charcoal` `#0c0c0e` | Wordmark emphasis |
 | `beam-amber` `#e8a54b` | CTA / focus / selected |
 
 ## Primitives
@@ -38,28 +38,21 @@ Short comparison + migration notes after the Airbnb/Linear-directed light redesi
 
 [`src/components/ui.tsx`](../src/components/ui.tsx) — `Button`/`ButtonLink` sizes `sm|md|lg`, fields, badges, section headers.
 
-## Scroll / landing layout
+## Landing layout (conventional SaaS)
 
-Most marketing content uses **standard document flow** (normal up/down scroll). There is **no** old vertical sticky stacking / slide-over overlap between content sections, and **no** wheel/touch scroll hijack or snap.
+Public marketing is a **normal light SaaS page** with ordinary **vertical document scroll** on all breakpoints and reduced motion:
 
-### Bounded hero → proof horizontal handoff
+1. Sticky light header (Beam, section anchors, Sign in, Post)
+2. Modest centered hero — “Help nearby. Done today.” + Post / Browse
+3. How it works — labeled **Example** request → offer → message
+4. Categories grid → real `/browse?category=` links
+5. Requester / helper paths
+6. Trust / FAQ + Safety link
+7. Final CTA + light footer
 
-Desktop (`min-width: 1024px`) + `prefers-reduced-motion: no-preference` only:
+No full-viewport forced sections, horizontal tracks, sticky content pinning, scroll hijack/snap, dramatic beam artwork, dark hero/footer bands, or overlapping stacks. Former `HeroProofStage` / `HeroBeamArt` / `.beam-stack*` experiments are removed.
 
-- `HeroProofStage` uses a **native vertical scroll range** (~200vh) with a sticky pin and a 2-panel track.
-- Scroll position sets `--hero-progress` / `translate3d` so the proof panel **enters from the right** while the navy hero exits left. Scrolling up reverses.
-- After the stage, remaining sections (`#categories` onward) are ordinary vertical flow.
-- **No document horizontal scrollbar**; overflow contained on the pin.
-- `#how-it-works` / focus inside a panel scrolls the stage so that panel is revealed.
-- If the proof panel is taller than the viewport, the stage **falls back to a vertical stack** (no clipping).
-
-Mobile, tablet width &lt; 1024, reduced-motion, and no-JS: **vertical hero + proof stack** (full `100svh`/`dvh` hero with content-fit fallback). No scroll-linked transforms.
-
-Hero artwork is original SVG (`HeroBeamArt`) — navy canvas, luminous blue/cyan sweep, orbits/nodes — not a screenshot background. Navy palette is **hero-bounded**; the rest of the app stays light.
-
-- `LandingSection` remains a plain `<section>` for later marketing blocks.
-- Conventional sticky **nav** (dark over hero, light afterward) uses `scroll-mt-*` so anchors are not obscured.
-- Former `StackSection` / `.beam-stack*` vertical overlap CSS stay removed.
+`LandingSection` is a plain `<section>`. Anchors use `scroll-mt-*` under the sticky nav. Interior app routes keep the same light marketplace chrome.
 
 ## Protected chrome
 
@@ -75,4 +68,4 @@ npm run test:smoke
 npm run test:live   # when env + seeded users available
 ```
 
-Smoke checks light theme (post-hero), control sizing, **bounded horizontal hero→proof geometry** on desktop (down/up, no page x-overflow), vertical stack on mobile/reduced-motion, anchors/focus, category links — **DOM/computed-style only, no screenshots**.
+Smoke checks light theme throughout, control sizing, **non-sticky vertical scroll** (down/up), no page x-overflow, mobile CTA fit, reduced motion, category links — **DOM/computed-style only, no screenshots**.

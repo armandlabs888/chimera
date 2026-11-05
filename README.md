@@ -58,7 +58,7 @@ npm run test:live           # live auth + persistence + negative authz (needs en
 
 ## UI system
 
-Presentable light marketplace UI (Airbnb clarity + Linear type discipline). Landing hero is a full-viewport navy SVG scene with a **bounded desktop horizontal handoff** into the how-it-works panel; elsewhere standard vertical scroll. See [`docs/flat-ui.md`](docs/flat-ui.md).
+Presentable light marketplace UI (Airbnb clarity + Linear type discipline). Public landing is a conventional SaaS page with ordinary vertical scroll. See [`docs/flat-ui.md`](docs/flat-ui.md).
 
 ## What you can do
 
