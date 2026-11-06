@@ -127,7 +127,34 @@ function emptyLiveState(userId: string): AppState {
   }
 }
 
-export function BeamProvider({ children }: { children: ReactNode }) {
+function guestStubPerson(): Person {
+  return {
+    id: 'anonymous',
+    name: 'Guest',
+    avatar: '',
+    bio: '',
+    neighborhood: 'east-austin',
+    skills: [],
+    hourlyRate: 0,
+    availability: [],
+    rating: 0,
+    reviewCount: 0,
+    jobsCompleted: 0,
+  }
+}
+
+function noopAsync() {
+  return Promise.resolve()
+}
+
+export function BeamProvider({
+  children,
+  nonBlocking = false,
+}: {
+  children: ReactNode
+  /** When true, render children during boot with a provisional guest context (marketing SSR). */
+  nonBlocking?: boolean
+}) {
   const [mode] = useState<BeamMode>(() => resolveBeamMode())
   const [state, setState] = useState<AppState | null>(null)
   const [authUser, setAuthUser] = useState<User | null>(null)
@@ -711,6 +738,35 @@ export function BeamProvider({ children }: { children: ReactNode }) {
   const ready = !booting
 
   if (booting) {
+    if (nonBlocking) {
+      const provisional: BeamContextValue = {
+        mode,
+        ready: false,
+        authUser: null,
+        backendError: null,
+        state: emptyLiveState('anonymous'),
+        currentUser: guestStubPerson(),
+        refresh: noopAsync,
+        signIn,
+        signUp,
+        signInWithGoogle,
+        resendSignupConfirmation,
+        signOut,
+        clearBackendError: () => setBackendError(null),
+        resetDemo,
+        updateProfile,
+        createRequest,
+        createOffer,
+        acceptOffer,
+        markComplete,
+        addReview,
+        ensureThread,
+        sendMessage,
+        getPerson,
+        getRequest,
+      }
+      return <BeamContext.Provider value={provisional}>{children}</BeamContext.Provider>
+    }
     return (
       <div className="flex min-h-dvh items-center justify-center bg-beam-base text-beam-cream">
         <p className="text-[22px] font-semibold tracking-tight text-[#071330]" aria-busy="true">
@@ -741,19 +797,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
           authUser,
           backendError,
           state: emptyLiveState('anonymous'),
-          currentUser: {
-            id: 'anonymous',
-            name: 'Guest',
-            avatar: '',
-            bio: '',
-            neighborhood: 'east-austin',
-            skills: [],
-            hourlyRate: 0,
-            availability: [],
-            rating: 0,
-            reviewCount: 0,
-            jobsCompleted: 0,
-          },
+          currentUser: guestStubPerson(),
           refresh: async () => undefined,
           signIn,
           signUp,

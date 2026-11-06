@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { MapPin, Star } from 'lucide-react'
+import { useBeam } from '@/context/BeamContext'
 import { getCategory } from '../data/categories'
 import { getNeighborhood } from '../data/neighborhoods'
 import { formatMoney } from '../lib/matching'
@@ -32,11 +33,13 @@ export function PersonCard({
   match?: MatchScore
   compact?: boolean
 }) {
+  const { authUser } = useBeam()
   const neighborhood = getNeighborhood(person.neighborhood)
   const skills = person.skills.slice(0, 3).map((s) => getCategory(s).shortLabel)
-  const locationLabel = match
-    ? `${match.distanceMiles.toFixed(1)} mi away`
-    : neighborhood.shortName
+  const locationLabel =
+    match && authUser
+      ? `${match.distanceMiles.toFixed(1)} mi away`
+      : neighborhood.shortName
 
   return (
     <Link

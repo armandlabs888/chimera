@@ -68,21 +68,42 @@ try {
       throw new Error(`Guest eyebrow missing location-neutral copy: "${eyebrow}"`)
     }
 
-    const trigger = page.getByTestId('hero-neighborhood-trigger')
+    if ((await page.getByTestId('hero-neighborhood-trigger').count()) > 0) {
+      throw new Error(`Guest hero still exposes Austin neighborhood trigger @ ${vp.name}`)
+    }
+    const trigger = page.getByTestId('hero-category-trigger')
     const triggerLabel = (await trigger.innerText()).trim()
     assertNoAustin(`guest search trigger @ ${vp.name}`, triggerLabel)
-    if (!/Select (neighborhood|area)/i.test(triggerLabel)) {
-      throw new Error(`Guest trigger expected Select neighborhood/area, got "${triggerLabel}"`)
+    if (!/All categories/i.test(triggerLabel)) {
+      throw new Error(`Guest trigger expected All categories, got "${triggerLabel}"`)
     }
 
     await trigger.click()
-    const listbox = page.getByTestId('hero-neighborhood-listbox')
+    const listbox = page.getByTestId('hero-category-listbox')
     await listbox.waitFor({ state: 'visible', timeout: 10000 })
+    const listText = await listbox.innerText()
+    for (const name of [
+      'East Austin',
+      'Hyde Park',
+      'Mueller',
+      'Zilker',
+      'South Congress',
+      'Travis Heights',
+      'Clarksville',
+      'The Domain',
+    ]) {
+      if (listText.includes(name)) {
+        throw new Error(`Guest hero category listbox includes Austin neighborhood "${name}" @ ${vp.name}`)
+      }
+    }
     const allOption = listbox.locator('button').first()
     const allText = (await allOption.innerText()).trim()
     assertNoAustin(`guest all-option @ ${vp.name}`, allText)
-    if (!/All neighborhoods/i.test(allText)) {
-      throw new Error(`Guest all-option expected "All neighborhoods", got "${allText}"`)
+    if (!/All categories/i.test(allText)) {
+      throw new Error(`Guest all-option expected "All categories", got "${allText}"`)
+    }
+    if (!/Moving & lifting/i.test(listText)) {
+      throw new Error(`Guest category listbox missing Moving & lifting @ ${vp.name}`)
     }
     await page.keyboard.press('Escape')
     await listbox.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
@@ -268,6 +289,49 @@ try {
         throw new Error(`Guest /browse header assumes Austin @ ${vp.name}: ${headerSlice}`)
       }
     }
+    if ((await page.getByTestId('browse-neighborhood-trigger').count()) > 0) {
+      throw new Error(`Guest /browse still shows Austin neighborhood trigger @ ${vp.name}`)
+    }
+    const whenTrigger = page.getByTestId('browse-when-trigger')
+    if ((await whenTrigger.count()) < 1) {
+      throw new Error(`Guest /browse missing timing trigger @ ${vp.name}`)
+    }
+    const whenLabel = (await whenTrigger.innerText()).trim()
+    if (!/Any timing/i.test(whenLabel)) {
+      throw new Error(`Guest timing default expected Any timing, got "${whenLabel}" @ ${vp.name}`)
+    }
+    await whenTrigger.click()
+    const whenList = page.getByTestId('browse-when-listbox')
+    await whenList.waitFor({ state: 'visible', timeout: 10000 })
+    const whenText = await whenList.innerText()
+    for (const name of [
+      'East Austin',
+      'Hyde Park',
+      'Mueller',
+      'Zilker',
+      'South Congress',
+      'Travis Heights',
+      'Clarksville',
+      'The Domain',
+    ]) {
+      if (whenText.includes(name)) {
+        throw new Error(`Guest timing listbox includes Austin neighborhood "${name}" @ ${vp.name}`)
+      }
+    }
+    await page.keyboard.press('Escape')
+
+    const sortTrigger = page.getByTestId('browse-sort-trigger')
+    await sortTrigger.click()
+    const sortList = page.getByTestId('browse-sort-listbox')
+    await sortList.waitFor({ state: 'visible', timeout: 10000 })
+    const sortText = await sortList.innerText()
+    if (/Nearest/i.test(sortText)) {
+      throw new Error(`Guest sort still offers Nearest @ ${vp.name}`)
+    }
+    if (!/Newest first/i.test(sortText)) {
+      throw new Error(`Guest sort missing Newest first @ ${vp.name}`)
+    }
+    await page.keyboard.press('Escape')
 
     const browseShot = join('/tmp', `guest-browse-${vp.name}.png`)
     await page.screenshot({ path: browseShot, fullPage: false })

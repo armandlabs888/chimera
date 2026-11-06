@@ -55,11 +55,10 @@ export function LandingCategories() {
           />
           <blockquote className="col-span-2 flex h-full min-h-0 flex-col justify-center overflow-hidden rounded-[26px] bg-[#F4F8FD] p-5 sm:p-7 lg:col-span-5 lg:p-8">
             <p className="font-display text-[clamp(1.15rem,1.6vw,1.5rem)] font-semibold leading-snug tracking-[-0.02em] text-[#071330]">
-              “Had two neighbors help carry a sectional up to my 3rd-floor walkup in South Congress
-              within 90 minutes.”
+              “Had two neighbors help carry a sectional up to my 3rd-floor walkup within 90 minutes.”
             </p>
             <footer className="mt-3 text-[13.5px] font-semibold text-[#1D5CE5] sm:mt-4 sm:text-[14px]">
-              — Elena R. · South Congress
+              — Elena R. · Verified neighbor
             </footer>
           </blockquote>
 

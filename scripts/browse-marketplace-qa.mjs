@@ -1,5 +1,5 @@
 /**
- * Browse marketplace daylight refactor visual QA.
+ * Browse marketplace guest location-neutral filter/sort visual QA.
  */
 import { chromium } from 'playwright'
 import { mkdirSync, copyFileSync, writeFileSync } from 'node:fs'
@@ -15,6 +15,17 @@ const VIEWPORTS = [
   { name: '1440x900', width: 1440, height: 900 },
   { name: '768x1024', width: 768, height: 1024 },
   { name: '390x844', width: 390, height: 844 },
+]
+
+const AUSTIN_NEIGHBORHOODS = [
+  'East Austin',
+  'Hyde Park',
+  'Mueller',
+  'Zilker',
+  'South Congress',
+  'Travis Heights',
+  'Clarksville',
+  'The Domain',
 ]
 
 function saveShot(src, name) {
@@ -61,14 +72,24 @@ async function measurePage(page) {
       broken: broken.map((i) => i.src),
       hasDebugFree: /free=1/.test(bodyText),
       hasDebugQ: /\bq:\s/.test(bodyText),
-      hasEastAustinChipWall: (bodyText.match(/East Austin/g) || []).length > 2,
       guestAustinHeader: /across Austin neighborhoods|Open requests and nearby helpers across Austin/i.test(
         bodyText.split('\n').slice(0, 20).join('\n'),
       ),
       unequalRows,
       h1: document.querySelector('h1')?.textContent?.replace(/\s+/g, ' ').trim() || '',
-      areaLabel:
-        document.querySelector('[data-testid="browse-neighborhood-trigger"]')?.textContent?.replace(
+      whenLabel:
+        document.querySelector('[data-testid="browse-when-trigger"]')?.textContent?.replace(
+          /\s+/g,
+          ' ',
+        ).trim() || '',
+      availLabel:
+        document
+          .querySelector('[data-testid="browse-availability-trigger"]')
+          ?.textContent?.replace(/\s+/g, ' ')
+          .trim() || '',
+      neighborhoodTrigger: !!document.querySelector('[data-testid="browse-neighborhood-trigger"]'),
+      sortLabel:
+        document.querySelector('[data-testid="browse-sort-trigger"]')?.textContent?.replace(
           /\s+/g,
           ' ',
         ).trim() || '',
@@ -76,9 +97,20 @@ async function measurePage(page) {
   })
 }
 
+async function assertNoAustinPickerInOpenListbox(page, listboxTestId) {
+  const text = await page.getByTestId(listboxTestId).innerText()
+  for (const name of AUSTIN_NEIGHBORHOODS) {
+    if (text.includes(name)) {
+      fail(`Guest listbox ${listboxTestId} includes Austin neighborhood "${name}"`)
+    }
+  }
+  if (/Nearest/i.test(text) && listboxTestId === 'browse-sort-listbox') {
+    fail('Guest sort listbox still offers Nearest')
+  }
+}
+
 const browser = await chromium.launch({ headless: true })
 try {
-  // Desktop requests + dropdown + filters
   {
     const vp = VIEWPORTS[0]
     const context = await browser.newContext({
@@ -96,41 +128,63 @@ try {
     if (metrics.broken.length) fail(`Broken images on /browse: ${metrics.broken.join(', ')}`)
     if (metrics.hasDebugFree || metrics.hasDebugQ) fail('Raw debug filter strings visible on /browse')
     if (metrics.guestAustinHeader) fail('Guest /browse header assumes Austin')
-    if (!/All neighborhoods/i.test(metrics.areaLabel)) {
-      fail(`Area default should be All neighborhoods, got "${metrics.areaLabel}"`)
+    if (metrics.neighborhoodTrigger) fail('Guest /browse still shows neighborhood trigger')
+    if (!/Any timing/i.test(metrics.whenLabel)) {
+      fail(`Guest timing default should be Any timing, got "${metrics.whenLabel}"`)
+    }
+    if (!/Newest first/i.test(metrics.sortLabel)) {
+      fail(`Guest default sort should be Newest first, got "${metrics.sortLabel}"`)
     }
     if (metrics.unequalRows.length) {
       fail(`Unequal card heights on /browse: ${JSON.stringify(metrics.unequalRows)}`)
     }
 
-    const reqShot = join('/tmp', 'browse-requests-1440x900.png')
+    const reqShot = join('/tmp', 'guest-browse-requests-1440x900.png')
     await page.screenshot({ path: reqShot, fullPage: false })
+    saveShot(reqShot, 'guest-browse-requests-1440x900.png')
+    // Keep legacy filename for continuity
     saveShot(reqShot, 'browse-requests-1440x900.png')
-    summary.checks.push({ name: 'browse-requests-1440x900', ok: true, metrics })
+    summary.checks.push({ name: 'guest-browse-requests-1440x900', ok: true, metrics })
 
-    // Open neighborhood dropdown
-    await page.getByTestId('browse-neighborhood-trigger').click()
-    await page.getByTestId('browse-neighborhood-listbox').waitFor({ state: 'visible' })
-    const dropShot = join('/tmp', 'browse-dropdown-1440x900.png')
-    await page.screenshot({ path: dropShot, fullPage: false })
-    saveShot(dropShot, 'browse-dropdown-1440x900.png')
-    summary.checks.push({ name: 'browse-dropdown-1440x900', ok: true })
+    // Timing dropdown
+    await page.getByTestId('browse-when-trigger').click()
+    await page.getByTestId('browse-when-listbox').waitFor({ state: 'visible' })
+    await assertNoAustinPickerInOpenListbox(page, 'browse-when-listbox')
+    const whenText = await page.getByTestId('browse-when-listbox').innerText()
+    if (!/ASAP|Today|Tomorrow|This week/i.test(whenText)) {
+      fail(`Timing listbox missing expected options: ${whenText}`)
+    }
+    const whenShot = join('/tmp', 'guest-browse-when-open-1440x900.png')
+    await page.screenshot({ path: whenShot, fullPage: false })
+    saveShot(whenShot, 'guest-browse-when-open-1440x900.png')
+    summary.checks.push({ name: 'guest-browse-when-open-1440x900', ok: true })
 
-    // Activate filters for human pills
-    await page.getByRole('option', { name: 'East Austin' }).click()
+    await page.getByRole('option', { name: 'ASAP' }).click()
     await page.getByRole('button', { name: /^Moving$/ }).click()
     await page.getByLabel('Search browse').fill('couch')
     await page.waitForTimeout(400)
     const filterText = await page.locator('body').innerText()
     if (/free=1|\bq:\s/.test(filterText)) fail('Debug filter pills still present after filtering')
     if (!/Search:\s*couch/i.test(filterText)) fail('Missing human Search filter pill')
-    if (!/East Austin/i.test(filterText) || !/Moving/i.test(filterText)) {
-      fail('Missing human neighborhood/category filter pills')
+    if (!/\bASAP\b/.test(filterText) || !/Moving/i.test(filterText)) {
+      fail('Missing human timing/category filter pills')
     }
+    // Card metadata may still name seed neighborhoods; command-bar picker is asserted above.
     const filterShot = join('/tmp', 'browse-filters-1440x900.png')
     await page.screenshot({ path: filterShot, fullPage: false })
     saveShot(filterShot, 'browse-filters-1440x900.png')
     summary.checks.push({ name: 'browse-filters-1440x900', ok: true })
+
+    // Guest sort — no Nearest
+    await page.getByTestId('browse-sort-trigger').click()
+    await page.getByTestId('browse-sort-listbox').waitFor({ state: 'visible' })
+    await assertNoAustinPickerInOpenListbox(page, 'browse-sort-listbox')
+    const sortText = await page.getByTestId('browse-sort-listbox').innerText()
+    if (!/Newest first/i.test(sortText) || !/Highest budget/i.test(sortText)) {
+      fail(`Guest request sort options unexpected: ${sortText}`)
+    }
+    if (/Nearest/i.test(sortText)) fail('Guest request sort still includes Nearest')
+    await page.keyboard.press('Escape')
 
     // Helpers tab desktop
     await page.goto(`${BASE}/browse?tab=people`, { waitUntil: 'networkidle', timeout: 60000 })
@@ -143,15 +197,44 @@ try {
     if (metrics.unequalRows.length) {
       fail(`Unequal helper card heights: ${JSON.stringify(metrics.unequalRows)}`)
     }
-    const helpersShot = join('/tmp', 'browse-helpers-1440x900.png')
+    if (metrics.neighborhoodTrigger) fail('Guest helpers still shows neighborhood trigger')
+    if (!/Any availability/i.test(metrics.availLabel)) {
+      fail(`Guest availability default should be Any availability, got "${metrics.availLabel}"`)
+    }
+    if (!/Top rated/i.test(metrics.sortLabel)) {
+      fail(`Guest helpers default sort should be Top rated, got "${metrics.sortLabel}"`)
+    }
+
+    await page.getByTestId('browse-availability-trigger').click()
+    await page.getByTestId('browse-availability-listbox').waitFor({ state: 'visible' })
+    await assertNoAustinPickerInOpenListbox(page, 'browse-availability-listbox')
+    const availText = await page.getByTestId('browse-availability-listbox').innerText()
+    if (!/Afternoons|Evenings|Mornings|Weekends/i.test(availText)) {
+      fail(`Availability listbox missing expected options: ${availText}`)
+    }
+    await page.getByRole('option', { name: 'Afternoons' }).click()
+    await page.waitForTimeout(200)
+    const helperFilterText = await page.locator('body').innerText()
+    if (!/Afternoons/i.test(helperFilterText)) fail('Missing Afternoons filter pill on helpers')
+
+    await page.getByTestId('browse-sort-trigger').click()
+    await page.getByTestId('browse-sort-listbox').waitFor({ state: 'visible' })
+    const helperSortText = await page.getByTestId('browse-sort-listbox').innerText()
+    if (!/Top rated/i.test(helperSortText) || !/Lowest rate/i.test(helperSortText)) {
+      fail(`Guest helper sort options unexpected: ${helperSortText}`)
+    }
+    if (/Nearest/i.test(helperSortText)) fail('Guest helper sort still includes Nearest')
+    await page.keyboard.press('Escape')
+
+    const helpersShot = join('/tmp', 'guest-browse-helpers-1440x900.png')
     await page.screenshot({ path: helpersShot, fullPage: false })
+    saveShot(helpersShot, 'guest-browse-helpers-1440x900.png')
     saveShot(helpersShot, 'browse-helpers-1440x900.png')
-    summary.checks.push({ name: 'browse-helpers-1440x900', ok: true, metrics })
+    summary.checks.push({ name: 'guest-browse-helpers-1440x900', ok: true, metrics })
 
     await context.close()
   }
 
-  // Remaining viewports smoke geometry
   for (const vp of VIEWPORTS.slice(1)) {
     const context = await browser.newContext({
       viewport: { width: vp.width, height: vp.height },
@@ -167,6 +250,7 @@ try {
     if (metrics.broken.length) fail(`Broken images /browse @ ${vp.name}`)
     if (metrics.hasDebugFree || metrics.hasDebugQ) fail(`Debug strings @ ${vp.name}`)
     if (metrics.guestAustinHeader) fail(`Austin header @ ${vp.name}`)
+    if (metrics.neighborhoodTrigger) fail(`Neighborhood trigger @ ${vp.name}`)
 
     await page.goto(`${BASE}/browse?tab=people`, { waitUntil: 'networkidle', timeout: 60000 })
     await page.waitForSelector('text=Local helpers', { timeout: 15000 })
@@ -176,12 +260,13 @@ try {
     }
 
     if (vp.name === '390x844') {
-      const mobileShot = join('/tmp', 'browse-mobile-390x844.png')
+      const mobileShot = join('/tmp', 'guest-browse-mobile-390x844.png')
       await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
       await page.waitForSelector('text=Browse tasks', { timeout: 15000 })
       await page.screenshot({ path: mobileShot, fullPage: false })
+      saveShot(mobileShot, 'guest-browse-mobile-390x844.png')
       saveShot(mobileShot, 'browse-mobile-390x844.png')
-      summary.checks.push({ name: 'browse-mobile-390x844', ok: true })
+      summary.checks.push({ name: 'guest-browse-mobile-390x844', ok: true })
     }
 
     summary.checks.push({ name: `browse-geometry-${vp.name}`, ok: true, metrics })

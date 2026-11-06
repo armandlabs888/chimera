@@ -209,7 +209,8 @@ async function checkLandingBrowser() {
     assert.ok(await page.getByText(/Trusted across local neighborhoods/i).count() >= 1)
     assert.equal(await page.getByPlaceholder('What help do you need?').count(), 1)
     assert.ok(await page.getByRole('link', { name: /Post a task/i }).count() >= 1)
-    assert.ok(await page.getByTestId('hero-neighborhood-trigger').count() >= 1)
+    assert.ok(await page.getByTestId('hero-category-trigger').count() >= 1)
+    assert.equal(await page.getByTestId('hero-neighborhood-trigger').count(), 0)
     assert.ok(await page.getByRole('link', { name: 'Log in' }).count() >= 1)
 
     const tight = await page.$$eval('h1,h2,h3', (els) =>
@@ -268,8 +269,11 @@ async function checkLandingBrowser() {
       browseSearch: [...document.querySelectorAll('input')].filter((i) =>
         /Search titles|Search requests|Search tasks/i.test(i.placeholder || ''),
       ).length,
-      areaDefault:
-        document.querySelector('[data-testid="browse-neighborhood-trigger"]')?.textContent || '',
+      neighborhoodTrigger: !!document.querySelector('[data-testid="browse-neighborhood-trigger"]'),
+      whenDefault:
+        document.querySelector('[data-testid="browse-when-trigger"]')?.textContent || '',
+      sortDefault:
+        document.querySelector('[data-testid="browse-sort-trigger"]')?.textContent || '',
       nativeSelects: document.querySelectorAll('select').length,
       // Chip wall = neighborhood pills as filter controls (not card metadata).
       neighborhoodChipButtons: [...document.querySelectorAll('button')].filter((b) =>
@@ -283,7 +287,9 @@ async function checkLandingBrowser() {
       assert.equal(browseChrome.guest, false, 'guest browse has no Guest label')
       assert.equal(browseChrome.commandSearch, false, 'guest browse has no command search')
       assert.ok(browseChrome.browseSearch <= 1, `guest browse search count ${browseChrome.browseSearch}`)
-      assert.match(browseChrome.areaDefault, /All neighborhoods/i, 'guest area default location-neutral')
+      assert.equal(browseChrome.neighborhoodTrigger, false, 'guest browse has no Austin neighborhood picker')
+      assert.match(browseChrome.whenDefault, /Any timing/i, 'guest timing default location-neutral')
+      assert.match(browseChrome.sortDefault, /Newest first/i, 'guest default sort is Newest first')
       assert.equal(browseChrome.nativeSelects, 0, 'browse has no native select')
       assert.equal(browseChrome.neighborhoodChipButtons, 0, 'no Austin neighborhood chip wall')
     }
@@ -293,6 +299,8 @@ async function checkLandingBrowser() {
     const safetyText = await page.locator('body').innerText()
     assert.match(safetyText, /Safety/i)
     assert.match(safetyText, /never holds your money|Beam never holds/i)
+    assert.match(safetyText, /How does local matching work\?/i)
+    assert.doesNotMatch(safetyText, /Is Beam available outside Austin\?/i)
     assert.ok(await page.locator('a[href="/browse"], a[href="/"]').count() >= 1, 'safety has nav escape')
     // /safety guest chrome may omit marketing nav; ensure escape links exist above.
     const safetyNav = await page.locator('[data-testid="landing-nav"]').count()

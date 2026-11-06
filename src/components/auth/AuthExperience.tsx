@@ -221,7 +221,7 @@ function AsidePanel() {
           Local help, made easy.
         </p>
         <p className="mt-3 text-[14px] text-white/85">
-          “Posted a couch move in South Congress — two neighbors showed up same afternoon.” — Elena R.
+          “Posted a couch move at 1pm — two neighbors showed up the same afternoon.” — Elena R.
         </p>
       </div>
     </aside>

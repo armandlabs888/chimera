@@ -30,6 +30,7 @@ export function RequestDetail() {
   const {
     state,
     currentUser,
+    authUser,
     getRequest,
     getPerson,
     createOffer,
@@ -203,10 +204,12 @@ export function RequestDetail() {
                           <div>
                             <p className="font-medium text-beam-cream">{helper.name}</p>
                             <p className="text-xs text-beam-muted">
-                              {formatDistance(
-                                distanceMiles(request.neighborhood, helper.neighborhood),
-                              )}{' '}
-                              · ETA {offer.eta} · {relativeTime(offer.createdAt)}
+                              {authUser
+                                ? `${formatDistance(
+                                    distanceMiles(request.neighborhood, helper.neighborhood),
+                                  )} · `
+                                : ''}
+                              ETA {offer.eta} · {relativeTime(offer.createdAt)}
                             </p>
                           </div>
                         </Link>
@@ -397,7 +400,9 @@ export function RequestDetail() {
                         {reason}
                       </Badge>
                     ))}
-                    <Badge>{formatDistance(match.distanceMiles)}</Badge>
+                    {authUser ? (
+                      <Badge>{formatDistance(match.distanceMiles)}</Badge>
+                    ) : null}
                   </div>
                 </div>
               ))}

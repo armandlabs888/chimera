@@ -46,8 +46,8 @@ const FAQ = [
     a: 'Beam never holds your money. After you accept an offer, you and the helper arrange payment peer-to-peer. The agreed price lives in the offer.',
   },
   {
-    q: 'Is Beam available outside Austin?',
-    a: 'Not yet. Beam launches in eight central Austin neighborhoods so same-day help stays dense and useful.',
+    q: 'How does local matching work?',
+    a: 'Beam connects neighbors within dense local areas so same-day help stays close by, practical, and fast.',
   },
   {
     q: 'What if something goes wrong?',
