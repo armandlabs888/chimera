@@ -501,7 +501,7 @@ export function Browse() {
 
       {/* Unified command bar — compact desktop width (aligned with category pills) */}
       <div className="relative z-30 mb-3" data-testid="browse-command-bar">
-        <div className="flex w-full flex-col gap-2 rounded-[24px] border border-[rgba(7,19,48,0.09)] bg-white p-2 shadow-[0_12px_32px_-12px_rgba(12,42,102,0.08)] lg:max-w-[45rem] lg:flex-row lg:items-center lg:rounded-full lg:gap-0">
+        <div className="flex w-full flex-col gap-2 rounded-xl border border-[rgba(7,19,48,0.09)] bg-white p-2 shadow-[0_12px_32px_-12px_rgba(12,42,102,0.08)] lg:max-w-[45rem] lg:flex-row lg:items-center lg:gap-0">
           <label className="relative flex min-w-0 flex-1 items-center gap-2.5 rounded-full px-3 py-2.5 sm:px-4 lg:flex-1">
             <Search className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
             <span className="sr-only">Search browse</span>
@@ -567,7 +567,7 @@ export function Browse() {
                     id={guestMiddleListboxId}
                     role="listbox"
                     data-testid={guestMiddleListboxId}
-                    className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-2xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-0 lg:right-auto lg:min-w-[17rem]"
+                    className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-0 lg:right-auto lg:min-w-[17rem]"
                     onKeyDown={(e) =>
                       onListboxKeyDown(
                         e,
@@ -643,7 +643,7 @@ export function Browse() {
                     id="browse-radius-listbox"
                     role="listbox"
                     data-testid="browse-radius-listbox"
-                    className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-2xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-0 lg:right-auto lg:min-w-[17rem]"
+                    className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-0 lg:right-auto lg:min-w-[17rem]"
                     onKeyDown={(e) =>
                       onListboxKeyDown(e, radiusOptionIds, radius, setRadius, () =>
                         setAreaOpen(false),
@@ -716,7 +716,7 @@ export function Browse() {
                 id="browse-sort-listbox"
                 role="listbox"
                 data-testid="browse-sort-listbox"
-                className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-y-auto rounded-2xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-auto lg:right-0 lg:min-w-[14rem]"
+                className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-y-auto rounded-xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-auto lg:right-0 lg:min-w-[14rem]"
                 onKeyDown={(e) =>
                   onListboxKeyDown(e, sortOptionIds, sort, setSort, () => setSortOpen(false))
                 }
@@ -814,7 +814,7 @@ export function Browse() {
 
       {showFreshMarketplace ? (
         <div
-          className="rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white px-6 py-14 text-center shadow-[0_12px_32px_-16px_rgba(12,42,102,0.1)] sm:px-10"
+          className="rounded-xl border border-[rgba(7,19,48,0.08)] bg-white px-6 py-14 text-center shadow-[0_12px_32px_-16px_rgba(12,42,102,0.1)] sm:px-10"
           data-testid="browse-fresh-empty"
         >
           <span className="inline-flex items-center rounded-full border border-[rgba(7,19,48,0.1)] bg-[#FFF8D6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#071330]">

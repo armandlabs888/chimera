@@ -122,7 +122,7 @@ export function InlineBanner({
           ? 'bg-[#FFF8D6] text-[#92400E] shadow-[0_0_0_1px_rgba(217,119,6,0.15)]'
           : 'bg-[#F4F8FD] text-[#475569] shadow-[0_0_0_1px_rgba(7,19,48,0.06)]'
   return (
-    <div className={`rounded-2xl px-3.5 py-2.5 type-sec ${styles}`} role="status" aria-live="polite">
+    <div className={`rounded-xl px-3.5 py-2.5 type-sec ${styles}`} role="status" aria-live="polite">
       {children}
     </div>
   )

@@ -204,7 +204,7 @@ export function HomeDashboard() {
       {actionItems.length ? (
         <section className="mt-10">
           <h2 className="font-display text-[22px] font-bold text-[#071330]">Action items</h2>
-          <ul className="mt-4 divide-y divide-[rgba(7,19,48,0.08)] overflow-hidden rounded-[22px] border border-[rgba(7,19,48,0.08)] bg-white">
+          <ul className="mt-4 divide-y divide-[rgba(7,19,48,0.08)] overflow-hidden rounded-xl border border-[rgba(7,19,48,0.08)] bg-white">
             {actionItems.map((row) => (
               <li key={row.id}>
                 <Link
@@ -241,7 +241,7 @@ export function HomeDashboard() {
               ))}
             </div>
           ) : (
-            <div className="rounded-[22px] border border-[rgba(7,19,48,0.08)] bg-white px-6 py-10 text-center">
+            <div className="rounded-xl border border-[rgba(7,19,48,0.08)] bg-white px-6 py-10 text-center">
               <p className="font-display text-[20px] font-bold text-[#071330]">
                 No strong matches yet
               </p>

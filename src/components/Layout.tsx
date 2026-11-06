@@ -154,17 +154,22 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   const locationText = ready ? formatLocationLabel(currentUser) : '…'
-  const showPostCta = pathname !== '/post' && !pathname.startsWith('/post/')
+  const isHelperOnboarding = pathname.startsWith('/onboarding/helper')
+  const showPostCta =
+    pathname !== '/post' &&
+    !pathname.startsWith('/post/') &&
+    !isHelperOnboarding
   const canSignOut = Boolean(authUser)
   const showHelperSetupBanner =
     ready &&
     !isLiveGuest &&
     currentUser.accountRole === 'helper' &&
     !currentUser.isHelper &&
-    !pathname.startsWith('/onboarding/helper')
+    !isHelperOnboarding
+  const shellBg = isHelperOnboarding ? 'bg-white' : 'bg-[#F4F8FD]'
 
   return (
-    <div className="app-shell relative flex min-h-dvh flex-col bg-[#F4F8FD] text-[#071330]">
+    <div className={`app-shell relative flex min-h-dvh flex-col ${shellBg} text-[#071330]`}>
       <div className="sticky top-0 z-40">
         {showHelperSetupBanner ? (
           <div
@@ -295,7 +300,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </button>
                 {notifOpen ? (
                   <div
-                    className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-1.5rem))] overflow-hidden rounded-[24px] border border-[rgba(7,19,48,0.1)] bg-white shadow-[0_20px_50px_-16px_rgba(15,41,92,0.2)]"
+                    className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-[rgba(7,19,48,0.1)] bg-white shadow-[0_20px_50px_-16px_rgba(15,41,92,0.2)]"
                     role="dialog"
                     aria-label="Notifications"
                   >
@@ -374,7 +379,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </button>
                 {accountOpen ? (
                   <div
-                    className="absolute right-0 top-12 z-50 w-[min(280px,calc(100vw-1.5rem))] overflow-hidden rounded-[22px] border border-[rgba(7,19,48,0.1)] bg-white shadow-[0_20px_50px_-16px_rgba(15,41,92,0.2)]"
+                    className="absolute right-0 top-12 z-50 w-[min(280px,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-[rgba(7,19,48,0.1)] bg-white shadow-[0_20px_50px_-16px_rgba(15,41,92,0.2)]"
                     role="menu"
                     aria-label="Account"
                     data-testid="account-menu"

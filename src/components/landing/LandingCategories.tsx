@@ -53,7 +53,7 @@ export function LandingCategories() {
             objectPosition="object-center"
             className="col-span-1 lg:col-span-4"
           />
-          <blockquote className="col-span-2 flex h-full min-h-0 flex-col justify-center overflow-hidden rounded-[26px] bg-[#F4F8FD] p-5 sm:p-7 lg:col-span-5 lg:p-8">
+          <blockquote className="col-span-2 flex h-full min-h-0 flex-col justify-center overflow-hidden rounded-xl bg-[#F4F8FD] p-5 sm:p-7 lg:col-span-5 lg:p-8">
             <p className="font-display text-[clamp(1.15rem,1.6vw,1.5rem)] font-semibold leading-snug tracking-[-0.02em] text-[#071330]">
               “Had two neighbors help carry a sectional up to my 3rd-floor walkup within 90 minutes.”
             </p>
@@ -115,7 +115,7 @@ function ServiceTile({
   return (
     <Link
       href={href}
-      className={`group relative block h-full min-h-0 w-full overflow-hidden rounded-[26px] bg-[#E8EEF7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1D5CE5] ${className}`}
+      className={`group relative block h-full min-h-0 w-full overflow-hidden rounded-xl bg-[#E8EEF7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1D5CE5] ${className}`}
     >
       <Image
         fill
