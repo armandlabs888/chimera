@@ -28,7 +28,7 @@ import {
 const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexible'] as const
 
 const cardClass =
-  'rounded-xl border border-[rgba(7,19,48,0.08)] bg-white shadow-[0_8px_24px_-14px_rgba(12,42,102,0.1)]'
+  'rounded-lg border border-[rgba(7,19,48,0.08)] bg-white shadow-[0_8px_24px_-14px_rgba(12,42,102,0.1)]'
 
 function paramId(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? ''
@@ -233,7 +233,7 @@ export function RequestDetail() {
           <article className={`overflow-hidden ${cardClass}`}>
             <div className="space-y-4 p-5 sm:p-6">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F8FD] px-3 py-1.5 text-[12.5px] font-semibold text-[#071330]">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-[#F4F8FD] px-3 py-1.5 text-[12.5px] font-semibold text-[#071330]">
                   {CategoryIcon ? (
                     <CategoryIcon
                       className="h-3.5 w-3.5 text-[#1D5CE5]"
@@ -244,7 +244,7 @@ export function RequestDetail() {
                   {category.shortLabel}
                 </span>
                 <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-1 text-[12px] font-semibold capitalize ${
+                  className={`inline-flex items-center rounded-md px-2.5 py-1 text-[12px] font-semibold capitalize ${
                     request.status === 'open'
                       ? 'bg-emerald-50 text-emerald-700'
                       : request.status === 'accepted'
@@ -283,7 +283,7 @@ export function RequestDetail() {
               </div>
 
               {request.image ? (
-                <div className="relative mt-1 aspect-[16/10] max-h-[380px] w-full overflow-hidden rounded-xl bg-[#F4F8FD]">
+                <div className="relative mt-1 aspect-[16/10] max-h-[380px] w-full overflow-hidden rounded-lg bg-[#F4F8FD]">
                   <Image
                     src={request.image}
                     alt=""
@@ -454,7 +454,7 @@ export function RequestDetail() {
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-[18px] font-bold text-[#071330]">Incoming offers</h2>
                 {offers.length > 0 ? (
-                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#EEF4FF] px-2 text-[12px] font-bold text-[#1D5CE5]">
+                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-[#EEF4FF] px-2 text-[12px] font-bold text-[#1D5CE5]">
                     {offers.length}
                   </span>
                 ) : null}
@@ -564,7 +564,7 @@ export function RequestDetail() {
                     >
                       Your offer
                     </label>
-                    <div className="relative flex h-12 items-center rounded-xl border border-[#E2E8F0] bg-white focus-within:border-[#1D5CE5] focus-within:ring-4 focus-within:ring-[#1D5CE5]/15">
+                    <div className="relative flex h-12 items-center rounded-lg border border-[#E2E8F0] bg-white focus-within:border-[#1D5CE5] focus-within:ring-4 focus-within:ring-[#1D5CE5]/15">
                       <span className="pl-3.5 text-[15px] font-semibold text-[#64748B]" aria-hidden>
                         $
                       </span>
@@ -624,7 +624,7 @@ export function RequestDetail() {
                       onChange={(e) => setOfferNote(e.target.value)}
                       rows={3}
                       placeholder="Experience, what you’ll bring, questions…"
-                      className="rounded-xl"
+                      className="rounded-lg"
                     />
                   </div>
 
@@ -638,7 +638,7 @@ export function RequestDetail() {
                     <Button
                       type="submit"
                       loading={offerPending}
-                      className="h-12 w-full rounded-full bg-[#1D5CE5] text-white shadow-none hover:bg-[#1649BD]"
+                      className="h-12 w-full rounded-lg bg-[#1D5CE5] text-white shadow-none hover:bg-[#1649BD]"
                     >
                       <Send className="h-4 w-4" />
                       {myOffer ? 'Update offer' : 'Submit offer'}
@@ -646,7 +646,7 @@ export function RequestDetail() {
                     <Button
                       type="button"
                       variant="secondary"
-                      className="h-11 w-full rounded-full"
+                      className="h-11 w-full rounded-lg"
                       onClick={() => void openThreadWith(request.requesterId)}
                     >
                       <MessageCircle className="h-4 w-4" />
@@ -768,7 +768,7 @@ export function RequestDetail() {
                         key={n}
                         type="button"
                         onClick={() => setReviewRating(n)}
-                        className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition ${
+                        className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border transition ${
                           reviewRating >= n
                             ? 'border-[#1D5CE5] bg-[#EEF4FF] text-[#1D5CE5]'
                             : 'border-[rgba(7,19,48,0.12)] bg-white text-[#94A3B8]'
@@ -791,7 +791,7 @@ export function RequestDetail() {
                       value={reviewComment}
                       onChange={(e) => setReviewComment(e.target.value)}
                       placeholder="How did it go?"
-                      className="rounded-xl"
+                      className="rounded-lg"
                     />
                   </div>
                   <Button type="submit" loading={reviewPending} className="w-full">

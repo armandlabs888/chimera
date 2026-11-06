@@ -60,7 +60,7 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
       <div
         data-testid="messages-workspace"
         className={[
-          'overflow-hidden rounded-xl border border-[rgba(7,19,48,0.08)] bg-white',
+          'overflow-hidden rounded-lg border border-[rgba(7,19,48,0.08)] bg-white',
           'shadow-[0_8px_24px_-14px_rgba(12,42,102,0.08)]',
           // Mobile thread route: lock height so composer sits above BottomNav
           hasExplicitThread ? 'flex h-[calc(100dvh-9.75rem)] min-h-[420px] flex-col' : '',

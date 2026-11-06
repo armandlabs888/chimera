@@ -49,25 +49,22 @@ const CHIP_LINKS: { label: string; category: string; icon: LucideIcon }[] = [
   { label: 'Tech & Tutoring', category: 'tutoring', icon: Laptop },
 ]
 
-const SHOWCASE_PHOTO =
-  'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80'
+const SHOWCASE_PHOTO = '/images/landing/why-beam-dresser.jpg'
 
 const LIVE_OFFERS = [
   {
-    name: 'Marcus T.',
+    name: 'Caleb R.',
     rating: '4.9★',
     arrival: 'Today · 2:30 PM',
     price: '$65',
-    avatar:
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=96&h=96&q=80',
+    avatar: '/images/landing/offer-caleb.jpg',
   },
   {
-    name: 'Sofia R.',
+    name: 'Hannah W.',
     rating: '5.0★',
     arrival: 'Today · 4:00 PM',
     price: '$75',
-    avatar:
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=96&h=96&q=80',
+    avatar: '/images/landing/offer-hannah.jpg',
   },
 ] as const
 
@@ -78,7 +75,7 @@ export function LandingWhyBeam() {
         <div className="grid items-stretch gap-10 lg:grid-cols-12 lg:gap-12">
           {/* Left: editorial hierarchy + trust pillars */}
           <div className="flex flex-col lg:col-span-6" data-testid="why-beam-copy">
-            <p className="inline-flex w-fit rounded-full border border-[rgba(7,19,48,0.1)] bg-[#FFF8D6] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#071330]">
+            <p className="inline-flex w-fit rounded-md border border-[rgba(7,19,48,0.1)] bg-[#FFF8D6] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#071330]">
               03 Why Beam
             </p>
             <h2 className="mt-4 max-w-[14ch] font-display text-[clamp(2rem,3.6vw,3.25rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330] text-balance">
@@ -94,7 +91,7 @@ export function LandingWhyBeam() {
                 return (
                   <li key={pillar.title} className="flex items-start gap-3.5 py-5">
                     <span
-                      className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+                      className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg"
                       style={{ background: pillar.tint, color: pillar.fg }}
                     >
                       <Icon className="h-5 w-5" strokeWidth={2} />
@@ -111,7 +108,7 @@ export function LandingWhyBeam() {
             <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
               <Link
                 href="/post"
-                className="inline-flex h-12 items-center rounded-full bg-[#1D5CE5] px-6 text-[15px] font-semibold text-white transition hover:bg-[#1649BD]"
+                className="inline-flex h-12 items-center rounded-lg bg-[#1D5CE5] px-6 text-[15px] font-semibold text-white transition hover:bg-[#1649BD]"
               >
                 Post a task →
               </Link>
@@ -126,12 +123,12 @@ export function LandingWhyBeam() {
 
           {/* Right: visual + live-offer showcase */}
           <div className="lg:col-span-6" data-testid="why-beam-showcase">
-            <div className="relative flex h-full min-h-[420px] flex-col overflow-hidden rounded-xl border border-[rgba(7,19,48,0.08)] bg-[#F4F8FD] sm:min-h-[480px]">
+            <div className="relative flex h-full min-h-[420px] flex-col overflow-hidden rounded-lg border border-[rgba(7,19,48,0.08)] bg-[#F4F8FD] sm:min-h-[480px]">
               <div className="relative min-h-[220px] flex-1 sm:min-h-[280px]">
                 <img
                   src={SHOWCASE_PHOTO}
-                  alt="Friendly helper assisting at home in a bright kitchen"
-                  className="absolute inset-0 h-full w-full object-cover"
+                  alt="Two neighbors carrying a wooden dresser up a sunlit staircase"
+                  className="absolute inset-0 h-full w-full object-cover object-[50%_22%]"
                   loading="eager"
                   decoding="async"
                   width={1200}
@@ -145,7 +142,7 @@ export function LandingWhyBeam() {
 
               <div className="relative z-10 -mt-16 px-4 pb-5 sm:-mt-20 sm:px-6 sm:pb-6">
                 <div
-                  className="rounded-xl border border-[rgba(7,19,48,0.08)] bg-white p-4 shadow-[0_20px_45px_-15px_rgba(12,42,102,0.22)] sm:p-5"
+                  className="rounded-lg border border-[rgba(7,19,48,0.08)] bg-white p-4 shadow-[0_20px_45px_-15px_rgba(12,42,102,0.22)] sm:p-5"
                   data-testid="why-beam-live-offers"
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -157,7 +154,7 @@ export function LandingWhyBeam() {
                         2 offers in 8 min
                       </p>
                     </div>
-                    <span className="shrink-0 rounded-full bg-[#EEF4FF] px-2.5 py-1 text-[11px] font-semibold text-[#1D5CE5]">
+                    <span className="shrink-0 rounded-md bg-[#EEF4FF] px-2.5 py-1 text-[11px] font-semibold text-[#1D5CE5]">
                       Live
                     </span>
                   </div>
@@ -166,7 +163,7 @@ export function LandingWhyBeam() {
                     {LIVE_OFFERS.map((offer) => (
                       <li
                         key={offer.name}
-                        className="flex items-center gap-3 rounded-xl border border-[rgba(7,19,48,0.06)] bg-[#F8FAFC] px-3 py-2.5"
+                        className="flex items-center gap-3 rounded-lg border border-[rgba(7,19,48,0.06)] bg-[#F8FAFC] px-3 py-2.5"
                       >
                         <img
                           src={offer.avatar}
@@ -186,7 +183,7 @@ export function LandingWhyBeam() {
                               {offer.rating}
                             </span>
                           </div>
-                          <span className="mt-1 inline-flex rounded-full bg-[#EEF4FF] px-2 py-0.5 text-[11px] font-semibold text-[#1D5CE5]">
+                          <span className="mt-1 inline-flex rounded-md bg-[#EEF4FF] px-2 py-0.5 text-[11px] font-semibold text-[#1D5CE5]">
                             {offer.arrival}
                           </span>
                         </div>
@@ -216,7 +213,7 @@ export function LandingWhyBeam() {
                 <Link
                   key={chip.label}
                   href={`/browse?category=${chip.category}`}
-                  className="inline-flex items-center gap-2 rounded-full border border-[rgba(7,19,48,0.08)] bg-white px-4 py-2.5 text-[13.5px] font-semibold text-[#071330] shadow-sm transition hover:border-[#1D5CE5]/35 hover:text-[#1D5CE5]"
+                  className="inline-flex items-center gap-2 rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-2.5 text-[13.5px] font-semibold text-[#071330] shadow-sm transition hover:border-[#1D5CE5]/35 hover:text-[#1D5CE5]"
                 >
                   <Icon className="h-4 w-4 text-[#1D5CE5]" strokeWidth={2} aria-hidden />
                   {chip.label}

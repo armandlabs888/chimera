@@ -265,7 +265,7 @@ export function Onboarding() {
                         }
                       }}
                       data-testid={`onboarding-role-${item.id}`}
-                      className={`flex items-center gap-3.5 rounded-xl border px-4 py-4 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
+                      className={`flex items-center gap-3.5 rounded-lg border px-4 py-4 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
                         selected
                           ? 'border-[#1D5CE5] bg-[#F5F9FF] ring-1 ring-[#1D5CE5]/20'
                           : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
@@ -321,7 +321,7 @@ export function Onboarding() {
                 aria-disabled={!canNext}
                 onClick={onStep1Continue}
                 data-testid="onboarding-next"
-                className={`h-[52px] w-full rounded-full px-7 text-[15px] shadow-none !transition-[background-color] disabled:opacity-100 ${
+                className={`h-[52px] w-full rounded-lg px-7 text-[15px] shadow-none !transition-[background-color] disabled:opacity-100 ${
                   canNext
                     ? 'bg-[#1D5CE5] text-white hover:bg-[#1649BD]'
                     : 'bg-[#E2E8F0] text-[#64748B] hover:bg-[#CBD5E1]'
@@ -355,7 +355,7 @@ export function Onboarding() {
             </p>
 
             <div
-              className="mt-8 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-5 py-5"
+              className="mt-8 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-5 py-5"
               data-testid="onboarding-safety-callout"
             >
               <p className="text-[16px] font-bold leading-[1.4] text-[#071330]">
@@ -382,7 +382,7 @@ export function Onboarding() {
             {error ? (
               <div
                 role="alert"
-                className="mt-6 rounded-xl border border-red-500/25 bg-red-50 px-4 py-3 text-[14px] text-red-700"
+                className="mt-6 rounded-lg border border-red-500/25 bg-red-50 px-4 py-3 text-[14px] text-red-700"
                 data-testid="onboarding-error"
               >
                 {error}
@@ -394,7 +394,7 @@ export function Onboarding() {
                 type="button"
                 variant="secondary"
                 size="lg"
-                className="h-[52px] rounded-full px-5 shadow-none"
+                className="h-[52px] rounded-lg px-5 shadow-none"
                 onClick={() => {
                   setError('')
                   setStep(1)
@@ -408,7 +408,7 @@ export function Onboarding() {
               <Button
                 type="button"
                 size="lg"
-                className="h-[52px] rounded-full bg-[#1D5CE5] px-7 text-white shadow-none hover:bg-[#1649BD]"
+                className="h-[52px] rounded-lg bg-[#1D5CE5] px-7 text-white shadow-none hover:bg-[#1649BD]"
                 loading={pending}
                 onClick={() => void onComplete()}
                 data-testid="onboarding-complete"

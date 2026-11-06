@@ -96,8 +96,8 @@ export function LandingHero() {
           className="animate-fade-up-delay relative z-40 mt-8 w-full max-w-[760px]"
           data-testid="hero-search-pill"
         >
-          <div className="flex flex-col gap-2 rounded-xl bg-white p-2 shadow-[0_20px_50px_rgba(12,42,102,0.18)] sm:flex-row sm:items-center sm:rounded-full sm:gap-0">
-            <label className="flex min-w-0 flex-1 items-center gap-2.5 rounded-full px-4 py-3 sm:py-2.5">
+          <div className="flex flex-col gap-2 rounded-lg bg-white p-2 shadow-[0_20px_50px_rgba(12,42,102,0.18)] sm:flex-row sm:items-center sm:rounded-lg sm:gap-0">
+            <label className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-4 py-3 sm:py-2.5">
               <Search className="h-5 w-5 shrink-0 text-[#1D5CE5]" aria-hidden />
               <span className="sr-only">What help do you need?</span>
               <input
@@ -116,7 +116,7 @@ export function LandingHero() {
                 <>
                   <button
                     type="button"
-                    className="flex w-full items-center gap-2.5 rounded-full px-4 py-3 text-left sm:py-2.5"
+                    className="flex w-full items-center gap-2.5 rounded-lg px-4 py-3 text-left sm:py-2.5"
                     aria-expanded={locOpen}
                     aria-haspopup="listbox"
                     aria-controls="hero-category-listbox"
@@ -142,7 +142,7 @@ export function LandingHero() {
                       id="hero-category-listbox"
                       role="listbox"
                       data-testid="hero-category-listbox"
-                      className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(16rem,45vh)] overflow-y-auto overscroll-contain rounded-xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] sm:left-0 sm:right-auto sm:min-w-[16rem]"
+                      className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(16rem,45vh)] overflow-y-auto overscroll-contain rounded-lg border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] sm:left-0 sm:right-auto sm:min-w-[16rem]"
                     >
                       <li>
                         <button
@@ -201,7 +201,7 @@ export function LandingHero() {
                 <>
                   <button
                     type="button"
-                    className="flex w-full items-center gap-2.5 rounded-full px-4 py-3 text-left sm:py-2.5"
+                    className="flex w-full items-center gap-2.5 rounded-lg px-4 py-3 text-left sm:py-2.5"
                     aria-expanded={locOpen}
                     aria-haspopup="listbox"
                     aria-controls="hero-neighborhood-listbox"
@@ -227,7 +227,7 @@ export function LandingHero() {
                       id="hero-neighborhood-listbox"
                       role="listbox"
                       data-testid="hero-neighborhood-listbox"
-                      className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(16rem,45vh)] overflow-y-auto overscroll-contain rounded-xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] sm:left-0 sm:right-auto sm:min-w-[16rem]"
+                      className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(16rem,45vh)] overflow-y-auto overscroll-contain rounded-lg border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] sm:left-0 sm:right-auto sm:min-w-[16rem]"
                     >
                       <li>
                         <button
@@ -275,7 +275,7 @@ export function LandingHero() {
 
             <button
               type="submit"
-              className="h-12 shrink-0 rounded-full bg-[#1D5CE5] px-7 text-[15px] font-semibold text-white transition hover:bg-[#1649BD] sm:ml-1"
+              className="h-12 shrink-0 rounded-lg bg-[#1D5CE5] px-7 text-[15px] font-semibold text-white transition hover:bg-[#1649BD] sm:ml-1"
             >
               Find help
             </button>
@@ -300,7 +300,7 @@ export function LandingHero() {
                   style={{ transform: `rotate(${helper.rotate}deg)` }}
                 >
                   <div
-                    className={`overflow-hidden rounded-xl border-4 border-white shadow-[0_20px_40px_-12px_rgba(15,41,92,0.28)] ${
+                    className={`overflow-hidden rounded-lg border-4 border-white shadow-[0_20px_40px_-12px_rgba(15,41,92,0.28)] ${
                       helper.hero
                         ? 'h-[220px] w-[150px] sm:h-[280px] sm:w-[190px]'
                         : 'h-[190px] w-[130px] sm:h-[240px] sm:w-[164px]'
@@ -314,7 +314,7 @@ export function LandingHero() {
                       decoding="async"
                     />
                   </div>
-                  <span className="pointer-events-none absolute bottom-3 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-[#071330] shadow-sm sm:inline-flex">
+                  <span className="pointer-events-none absolute bottom-3 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-[#071330] shadow-sm sm:inline-flex">
                     {helper.name} · {helper.specialty}
                   </span>
                 </div>

@@ -109,7 +109,7 @@ function firstName(name: string): string {
 }
 
 function cardClass(extra = '') {
-  return `rounded-xl border border-[rgba(7,19,48,0.08)] bg-white p-5 sm:p-6 ${extra}`
+  return `rounded-lg border border-[rgba(7,19,48,0.08)] bg-white p-5 sm:p-6 ${extra}`
 }
 
 export function PostRequest() {
@@ -443,7 +443,7 @@ export function PostRequest() {
           <form className="space-y-5" onSubmit={onSubmit}>
             {preferredHelper ? (
               <div
-                className="flex items-center gap-3 rounded-xl border border-[rgba(7,19,48,0.08)] px-4 py-3.5"
+                className="flex items-center gap-3 rounded-lg border border-[rgba(7,19,48,0.08)] px-4 py-3.5"
                 style={{ backgroundColor: BUTTER }}
               >
                 <Avatar src={preferredHelper.avatar} name={preferredHelper.name} size={44} />
@@ -462,7 +462,7 @@ export function PostRequest() {
             <section className={cardClass()}>
               <div className="mb-3 flex items-center gap-2">
                 <span
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg"
                   style={{ backgroundColor: '#EEF4FF', color: CTA }}
                 >
                   <Sparkles className="h-4 w-4" aria-hidden />
@@ -507,7 +507,7 @@ export function PostRequest() {
                   <button
                     type="button"
                     onClick={() => setPhotoUrl('')}
-                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-medium"
+                    className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[13px] font-medium"
                     style={{ color: MUTED }}
                   >
                     <X className="h-3.5 w-3.5" aria-hidden />
@@ -528,7 +528,7 @@ export function PostRequest() {
               </div>
 
               {photoUrl ? (
-                <div className="mt-3 overflow-hidden rounded-xl border border-[rgba(7,19,48,0.08)]">
+                <div className="mt-3 overflow-hidden rounded-lg border border-[rgba(7,19,48,0.08)]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={photoUrl} alt="" className="h-36 w-full object-cover" />
                 </div>
@@ -562,7 +562,7 @@ export function PostRequest() {
                       key={c.id}
                       type="button"
                       onClick={() => setCategory(c.id)}
-                      className={`relative flex flex-col items-start gap-2 rounded-xl border px-3 py-3 text-left transition ${
+                      className={`relative flex flex-col items-start gap-2 rounded-lg border px-3 py-3 text-left transition ${
                         selected
                           ? 'border-[#1D5CE5] bg-[#EEF4FF] ring-2 ring-[#1D5CE5]/30'
                           : 'border-[rgba(7,19,48,0.08)] bg-[#F8FAFC] hover:bg-white'
@@ -577,7 +577,7 @@ export function PostRequest() {
                         </span>
                       ) : null}
                       <span
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-full"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg"
                         style={{ backgroundColor: c.tintBg, color: c.tintFg }}
                       >
                         <Icon className="h-4 w-4" aria-hidden />
@@ -642,7 +642,7 @@ export function PostRequest() {
                         key={t.title}
                         type="button"
                         onClick={() => applyTemplate(i)}
-                        className="rounded-full border border-[rgba(7,19,48,0.1)] bg-[#F4F8FD] px-3 py-1.5 text-[13px] font-medium transition hover:border-[#1D5CE5]/40 hover:bg-white"
+                        className="rounded-md border border-[rgba(7,19,48,0.1)] bg-[#F4F8FD] px-3 py-1.5 text-[13px] font-medium transition hover:border-[#1D5CE5]/40 hover:bg-white"
                         style={{ color: INK }}
                       >
                         {t.title}
@@ -698,7 +698,7 @@ export function PostRequest() {
                 </Field>
 
                 {showSuggestions && suggestions.length > 0 ? (
-                  <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-[rgba(7,19,48,0.1)] bg-white py-1 shadow-[0_12px_28px_-10px_rgba(12,42,102,0.18)]">
+                  <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-[rgba(7,19,48,0.1)] bg-white py-1 shadow-[0_12px_28px_-10px_rgba(12,42,102,0.18)]">
                     {suggestions.map((s) => (
                       <li key={`${s.label}-${s.lat}-${s.lng}`}>
                         <button
@@ -728,7 +728,7 @@ export function PostRequest() {
                         key={r}
                         type="button"
                         onClick={() => setRadiusMiles(r)}
-                        className={`rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition ${
+                        className={`rounded-md px-3.5 py-1.5 text-[13px] font-semibold transition ${
                           selected
                             ? 'bg-[#1D5CE5] text-white'
                             : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330] hover:bg-[#F4F8FD]'
@@ -787,7 +787,7 @@ export function PostRequest() {
                       key={chip.id}
                       type="button"
                       onClick={() => selectWhenChip(chip.id)}
-                      className={`rounded-full px-3.5 py-2 text-[13px] font-semibold transition ${
+                      className={`rounded-md px-3.5 py-2 text-[13px] font-semibold transition ${
                         selected
                           ? 'bg-[#1D5CE5] text-white'
                           : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330] hover:bg-[#F4F8FD]'
@@ -800,7 +800,7 @@ export function PostRequest() {
               </div>
 
               {pickingSchedule || when === 'scheduled' ? (
-                <div className="mt-4 space-y-3 rounded-xl bg-[#F4F8FD] p-4">
+                <div className="mt-4 space-y-3 rounded-lg bg-[#F4F8FD] p-4">
                   <Field label="Date">
                     <TextInput
                       type="date"
@@ -827,7 +827,7 @@ export function PostRequest() {
                             setCustomWhenLabel(undefined)
                             setWhen('scheduled')
                           }}
-                          className={`rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition ${
+                          className={`rounded-md px-3.5 py-1.5 text-[13px] font-semibold transition ${
                             timeWindow === w
                               ? 'bg-[#1D5CE5] text-white'
                               : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330]'
@@ -856,7 +856,7 @@ export function PostRequest() {
                 <button
                   type="button"
                   onClick={() => setBudgetType('fixed')}
-                  className={`rounded-full px-3.5 py-2 text-[13px] font-semibold transition ${
+                  className={`rounded-md px-3.5 py-2 text-[13px] font-semibold transition ${
                     budgetType === 'fixed'
                       ? 'bg-[#1D5CE5] text-white'
                       : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330] hover:bg-[#F4F8FD]'
@@ -870,7 +870,7 @@ export function PostRequest() {
                     setBudgetType('open')
                     setBudget(0)
                   }}
-                  className={`rounded-full px-3.5 py-2 text-[13px] font-semibold transition ${
+                  className={`rounded-md px-3.5 py-2 text-[13px] font-semibold transition ${
                     budgetType === 'open'
                       ? 'bg-[#1D5CE5] text-white'
                       : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330] hover:bg-[#F4F8FD]'
@@ -907,7 +907,7 @@ export function PostRequest() {
                         key={p}
                         type="button"
                         onClick={() => setBudget(p)}
-                        className={`rounded-full px-3 py-1.5 text-[13px] font-semibold transition ${
+                        className={`rounded-md px-3 py-1.5 text-[13px] font-semibold transition ${
                           budget === p
                             ? 'bg-[#EEF4FF] text-[#1D5CE5] ring-1 ring-[#1D5CE5]/40'
                             : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330]'
@@ -927,7 +927,7 @@ export function PostRequest() {
 
             {error ? (
               <p
-                className="rounded-xl px-4 py-3 text-[14px]"
+                className="rounded-lg px-4 py-3 text-[14px]"
                 style={{ backgroundColor: '#FEF2F2', color: '#B91C1C' }}
                 role="alert"
               >
@@ -948,7 +948,7 @@ export function PostRequest() {
               <RequestCard request={draft} />
             </div>
             <div
-              className="mt-4 rounded-xl border border-[rgba(7,19,48,0.08)] bg-white px-4 py-3.5"
+              className="mt-4 rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-3.5"
             >
               <p className="text-[14px] font-semibold" style={{ color: INK }}>
                 {matchCount} helper{matchCount === 1 ? '' : 's'} nearby

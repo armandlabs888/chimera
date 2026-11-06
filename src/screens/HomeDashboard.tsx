@@ -173,7 +173,7 @@ export function HomeDashboard() {
         </div>
 
         {isHelper ? (
-          <div className="flex items-center gap-3 rounded-full border border-[rgba(7,19,48,0.08)] bg-white px-4 py-2.5 shadow-[0_8px_20px_-12px_rgba(12,42,102,0.12)]">
+          <div className="flex items-center gap-3 rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-2.5 shadow-[0_8px_20px_-12px_rgba(12,42,102,0.12)]">
             <div>
               <p className="text-[13px] font-semibold text-[#071330]">Available now</p>
               <p className="text-[11px] text-[#64748B]">Boost same-day matches</p>
@@ -204,7 +204,7 @@ export function HomeDashboard() {
       {actionItems.length ? (
         <section className="mt-10">
           <h2 className="font-display text-[22px] font-bold text-[#071330]">Action items</h2>
-          <ul className="mt-4 divide-y divide-[rgba(7,19,48,0.08)] overflow-hidden rounded-xl border border-[rgba(7,19,48,0.08)] bg-white">
+          <ul className="mt-4 divide-y divide-[rgba(7,19,48,0.08)] overflow-hidden rounded-lg border border-[rgba(7,19,48,0.08)] bg-white">
             {actionItems.map((row) => (
               <li key={row.id}>
                 <Link
@@ -241,7 +241,7 @@ export function HomeDashboard() {
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border border-[rgba(7,19,48,0.08)] bg-white px-6 py-10 text-center">
+            <div className="rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-6 py-10 text-center">
               <p className="font-display text-[20px] font-bold text-[#071330]">
                 No strong matches yet
               </p>
@@ -268,7 +268,7 @@ export function HomeDashboard() {
               <Link
                 key={c.id}
                 href={`/post?category=${c.id}`}
-                className="rounded-[20px] border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4 text-left transition hover:border-[rgba(29,92,229,0.28)] hover:shadow-[0_12px_28px_-16px_rgba(12,42,102,0.14)]"
+                className="rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4 text-left transition hover:border-[rgba(29,92,229,0.28)] hover:shadow-[0_12px_28px_-16px_rgba(12,42,102,0.14)]"
               >
                 <p className="text-[15px] font-bold text-[#071330]">{c.shortLabel}</p>
                 <p className="mt-1 text-[12.5px] text-[#64748B]">{c.typicalRange}</p>

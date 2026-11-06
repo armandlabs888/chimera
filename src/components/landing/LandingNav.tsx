@@ -153,7 +153,7 @@ export function LandingNav({
 
       {mobileOpen ? (
         <div
-          className="relative z-50 mx-4 mb-3 overflow-hidden rounded-xl border border-[rgba(7,19,48,0.12)] bg-white shadow-[0_18px_40px_-12px_rgba(12,42,102,0.28)] lg:hidden"
+          className="relative z-50 mx-4 mb-3 overflow-hidden rounded-lg border border-[rgba(7,19,48,0.12)] bg-white shadow-[0_18px_40px_-12px_rgba(12,42,102,0.28)] lg:hidden"
           data-testid="landing-mobile-menu"
         >
           <div className="flex flex-col py-2">

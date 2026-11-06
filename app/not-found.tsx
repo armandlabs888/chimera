@@ -11,19 +11,19 @@ export default function NotFound() {
       <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
         <Link
           href="/home"
-          className="touch-target inline-flex items-center rounded-full bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white hover:bg-[#1649BD]"
+          className="touch-target inline-flex items-center rounded-lg bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white hover:bg-[#1649BD]"
         >
           App home
         </Link>
         <Link
           href="/browse"
-          className="touch-target inline-flex items-center rounded-full border border-beam-line bg-white px-5 text-[14px] font-semibold text-beam-cream"
+          className="touch-target inline-flex items-center rounded-lg border border-beam-line bg-white px-5 text-[14px] font-semibold text-beam-cream"
         >
           Browse
         </Link>
         <Link
           href="/post"
-          className="touch-target inline-flex items-center rounded-full border border-[#1D5CE5]/30 px-5 text-[14px] font-semibold text-[#1D5CE5]"
+          className="touch-target inline-flex items-center rounded-lg border border-[#1D5CE5]/30 px-5 text-[14px] font-semibold text-[#1D5CE5]"
         >
           Post a request
         </Link>

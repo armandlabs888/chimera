@@ -245,7 +245,7 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
               type="button"
               onClick={() => void snapToCurrentLocation()}
               disabled={disabled || locating || !ready}
-              className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[12.5px] font-semibold text-[#1D5CE5] transition hover:bg-[#EEF4FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[12.5px] font-semibold text-[#1D5CE5] transition hover:bg-[#EEF4FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/30 disabled:cursor-not-allowed disabled:opacity-50"
               data-testid="onboarding-use-location"
             >
               {locating ? (
@@ -258,7 +258,7 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
 
         {value ? (
           <div
-            className="flex items-center gap-3 rounded-xl border border-[#E2E8F0] bg-white px-4 py-3.5"
+            className="flex items-center gap-3 rounded-lg border border-[#E2E8F0] bg-white px-4 py-3.5"
             data-testid="onboarding-city-verified"
           >
             <div className="min-w-0 flex-1">
@@ -307,7 +307,7 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
               onBlur={onBlur}
               onKeyDown={onKeyDown}
               data-testid="onboarding-city-input"
-              className={`h-[52px] w-full rounded-xl border bg-white py-3 pl-11 pr-11 text-[15px] text-[#071330] outline-none transition placeholder:text-[#94A3B8] focus-visible:ring-4 disabled:opacity-60 ${
+              className={`h-[52px] w-full rounded-lg border bg-white py-3 pl-11 pr-11 text-[15px] text-[#071330] outline-none transition placeholder:text-[#94A3B8] focus-visible:ring-4 disabled:opacity-60 ${
                 inputInvalid
                   ? 'border-red-400 focus-visible:border-red-500 focus-visible:ring-red-500/15'
                   : 'border-[#E2E8F0] focus-visible:border-[#1D5CE5] focus-visible:ring-[#1D5CE5]/15'
@@ -322,7 +322,7 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
                   setOpen(true)
                   inputRef.current?.focus()
                 }}
-                className="absolute right-3 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-[#94A3B8] transition hover:bg-[#F4F8FD] hover:text-[#071330]"
+                className="absolute right-3 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-[#94A3B8] transition hover:bg-[#F4F8FD] hover:text-[#071330]"
                 aria-label="Clear city search"
               >
                 <X className="h-4 w-4" aria-hidden />
@@ -336,7 +336,7 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
             id={listboxId}
             role="listbox"
             aria-label="US cities"
-            className="absolute z-50 mt-2 max-h-[280px] w-full overflow-auto overscroll-contain rounded-xl border border-[#E2E8F0] bg-white p-1.5 shadow-[0_16px_40px_-18px_rgba(12,42,102,0.28)]"
+            className="absolute z-50 mt-2 max-h-[280px] w-full overflow-auto overscroll-contain rounded-lg border border-[#E2E8F0] bg-white p-1.5 shadow-[0_16px_40px_-18px_rgba(12,42,102,0.28)]"
             data-testid="onboarding-city-listbox"
           >
             {options.length === 0 ? (
@@ -354,7 +354,7 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
                     onMouseEnter={() => setActiveIndex(index)}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => selectCity(city)}
-                    className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 ${
+                    className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 ${
                       active ? 'bg-[#EEF4FF]' : 'hover:bg-[#F4F8FD]'
                     }`}
                   >

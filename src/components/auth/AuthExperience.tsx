@@ -160,7 +160,7 @@ export function AuthExperience({
           <Link href="/">
             <BeamWordmark markWidth={26} markHeight={26} wordClassName="text-[24px]" tone="ink" />
           </Link>
-          <div className="relative mt-5 h-[180px] overflow-hidden rounded-xl bg-gradient-to-br from-[#1D5CE5] to-[#7CC9FA]">
+          <div className="relative mt-5 h-[180px] overflow-hidden rounded-lg bg-gradient-to-br from-[#1D5CE5] to-[#7CC9FA]">
             <Image
               src={LIFESTYLE.authShowcase}
               alt=""
@@ -192,7 +192,7 @@ function AsidePanel() {
         <BeamWordmark markWidth={28} markHeight={28} tone="white" />
       </Link>
       <div className="absolute inset-x-10 top-[28%] z-10">
-        <div className="relative mx-auto h-[280px] w-[200px] overflow-hidden rounded-xl border-4 border-white shadow-[0_24px_50px_-12px_rgba(12,42,102,0.35)]">
+        <div className="relative mx-auto h-[280px] w-[200px] overflow-hidden rounded-lg border-4 border-white shadow-[0_24px_50px_-12px_rgba(12,42,102,0.35)]">
           <Image
             src={LIFESTYLE.authShowcase}
             alt="Local helper ready to help"
@@ -306,7 +306,7 @@ function FormColumn(props: {
         <h1 className="font-display text-[36px] font-bold leading-[1.15] text-[#071330]">
           Check your inbox
         </h1>
-        <div className="mt-5 rounded-xl border border-[#FDE68A] bg-[#FFF8D6] px-4 py-3 text-[14px] text-[#92400E]">
+        <div className="mt-5 rounded-lg border border-[#FDE68A] bg-[#FFF8D6] px-4 py-3 text-[14px] text-[#92400E]">
           We sent a confirmation link to <strong className="text-[#071330]">{email}</strong>.
         </div>
         {info ? <p className="mt-3 text-[14px] text-[#64748B]">{info}</p> : null}
@@ -346,7 +346,7 @@ function FormColumn(props: {
         type="button"
         onClick={onGoogle}
         disabled={pending || googlePending}
-        className="mt-8 inline-flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full border border-[rgba(7,19,48,0.12)] bg-white text-[16px] font-semibold text-[#071330] transition hover:bg-[#F4F8FD] disabled:opacity-50"
+        className="mt-8 inline-flex h-[52px] w-full items-center justify-center gap-2.5 rounded-lg border border-[rgba(7,19,48,0.12)] bg-white text-[16px] font-semibold text-[#071330] transition hover:bg-[#F4F8FD] disabled:opacity-50"
       >
         <GoogleMark />
         {googlePending ? 'Redirecting…' : 'Continue with Google'}
@@ -387,7 +387,7 @@ function FormColumn(props: {
               maxLength={80}
               autoComplete="name"
               placeholder="Alex Rivera"
-              className="h-[52px] rounded-xl"
+              className="h-[52px] rounded-lg"
             />
           </Field>
         ) : null}
@@ -399,7 +399,7 @@ function FormColumn(props: {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
-            className="h-[52px] rounded-xl"
+            className="h-[52px] rounded-lg"
           />
         </Field>
 
@@ -412,7 +412,7 @@ function FormColumn(props: {
               required
               minLength={6}
               autoComplete={tab === 'signin' ? 'current-password' : 'new-password'}
-              className="h-[52px] rounded-xl pr-16"
+              className="h-[52px] rounded-lg pr-16"
             />
             <button
               type="button"
@@ -427,12 +427,12 @@ function FormColumn(props: {
 
         {alertError ? <ErrorBanner message={alertError} /> : null}
         {info ? (
-          <div className="rounded-xl border border-emerald-500/25 bg-emerald-50 px-4 py-3 text-[14px] text-emerald-700">
+          <div className="rounded-lg border border-emerald-500/25 bg-emerald-50 px-4 py-3 text-[14px] text-emerald-700">
             {info}
           </div>
         ) : null}
 
-        <Button type="submit" className="h-[52px] w-full rounded-full" disabled={pending || googlePending}>
+        <Button type="submit" className="h-[52px] w-full rounded-lg" disabled={pending || googlePending}>
           {pending ? 'Working…' : tab === 'signin' ? 'Sign in' : 'Create account'}
         </Button>
       </form>
@@ -470,7 +470,7 @@ function ErrorBanner({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="rounded-xl border border-red-500/25 bg-red-50 px-4 py-3 text-[14px] text-red-700"
+      className="rounded-lg border border-red-500/25 bg-red-50 px-4 py-3 text-[14px] text-red-700"
     >
       {message}
     </div>

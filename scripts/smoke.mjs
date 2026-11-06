@@ -468,6 +468,76 @@ async function checkLandingBrowser() {
     await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('a[href="/post"]')
 
+    // Scroll the full landing page so lazy images enter the viewport and finish loading.
+    await page.evaluate(async () => {
+      const step = Math.max(320, Math.floor(window.innerHeight * 0.7))
+      const max = Math.max(
+        document.documentElement.scrollHeight,
+        document.body.scrollHeight,
+      )
+      for (let y = 0; y < max; y += step) {
+        window.scrollTo(0, y)
+        await new Promise((r) => setTimeout(r, 80))
+      }
+      window.scrollTo(0, max)
+      await new Promise((r) => setTimeout(r, 120))
+      window.scrollTo(0, 0)
+    })
+    await page.waitForFunction(
+      () => {
+        const imgs = [...document.querySelectorAll('img')]
+        return imgs.length >= 23 && imgs.every((img) => img.complete)
+      },
+      null,
+      { timeout: 20000 },
+    )
+
+    const landingImages = await page.evaluate(() => {
+      function normalizeSrc(raw) {
+        if (!raw) return ''
+        try {
+          const url = new URL(raw, window.location.origin)
+          if (url.pathname === '/_next/image') {
+            const nested = url.searchParams.get('url')
+            if (nested) return decodeURIComponent(nested)
+          }
+          return url.pathname
+        } catch {
+          return raw
+        }
+      }
+      const imgs = [...document.querySelectorAll('img')]
+      const paths = imgs.map((img) => normalizeSrc(img.getAttribute('src') || img.currentSrc || ''))
+      const uniquePaths = new Set(paths)
+      return {
+        count: imgs.length,
+        paths,
+        uniqueCount: uniquePaths.size,
+        allComplete: imgs.every((img) => img.complete),
+        minNaturalWidth: Math.min(...imgs.map((img) => img.naturalWidth || 0)),
+        broken: imgs.filter((img) => !img.complete || img.naturalWidth < 400).map((img, i) => ({
+          i,
+          src: paths[i],
+          complete: img.complete,
+          naturalWidth: img.naturalWidth,
+        })),
+        unsplash: paths.filter((p) => /images\.unsplash\.com/i.test(p) || /unsplash/i.test(p)),
+      }
+    })
+    assert.equal(landingImages.count, 23, `landing should render 23 <img> elements, got ${landingImages.count}`)
+    assert.equal(landingImages.allComplete, true, 'every landing <img> must be complete')
+    assert.ok(
+      landingImages.minNaturalWidth >= 400,
+      `every landing <img> naturalWidth >= 400 (min=${landingImages.minNaturalWidth}); broken=${JSON.stringify(landingImages.broken)}`,
+    )
+    assert.equal(
+      landingImages.uniqueCount,
+      landingImages.paths.length,
+      `zero duplicate image paths on / (unique=${landingImages.uniqueCount}, total=${landingImages.paths.length}): ${JSON.stringify(landingImages.paths)}`,
+    )
+    assert.deepEqual(landingImages.unsplash, [], `zero Unsplash URLs on /: ${JSON.stringify(landingImages.unsplash)}`)
+    console.log('ok landing unique local images (23/23, no unsplash)')
+
     const headline = await page.locator('h1').innerText()
     assert.match(headline, /Local help, made easy/i)
     assert.ok(await page.getByText(/Trusted across local neighborhoods/i).count() >= 1)
@@ -799,8 +869,8 @@ async function checkLandingBrowser() {
           `3-col x-order filters(${col.filtersX}) < feed(${col.feedX}) < trending(${col.trendingX})`,
         )
         assert.ok(
-          col.maxCardRadius > 0 && col.maxCardRadius <= 14,
-          `browse card radius <= 14px (got ${col.maxCardRadius})`,
+          col.maxCardRadius > 0 && col.maxCardRadius <= 10,
+          `browse card radius <= 10px (got ${col.maxCardRadius})`,
         )
 
         // Locked-viewport desktop /browse: outer document does not scroll;
@@ -1558,7 +1628,7 @@ async function checkMarketplaceFlows() {
       })
     })
     for (const c of cardRadii) {
-      assert.ok(c.px > 0 && c.px <= 14, `request card radius subtle (<=14px), got ${c.raw} on ${c.tag}`)
+      assert.ok(c.px > 0 && c.px <= 10, `request card radius subtle (<=10px), got ${c.raw} on ${c.tag}`)
     }
 
     // Open-budget request must not prefill literal "0" in offer price.
@@ -1579,7 +1649,7 @@ async function checkMarketplaceFlows() {
     })
     assert.ok(browseRadii.length > 0, 'browse request cards present')
     for (const px of browseRadii) {
-      assert.ok(px > 0 && px <= 14, `browse card radius subtle (<=14px), got ${px}`)
+      assert.ok(px > 0 && px <= 10, `browse card radius subtle (<=10px), got ${px}`)
     }
 
     // Messages marketplace workspace — 2-pane split, missing thread, subtle radii
@@ -1649,8 +1719,8 @@ async function checkMarketplaceFlows() {
       `inbox rail compact (280–380px, got ${messagesProbe.inboxWidth})`,
     )
     assert.ok(
-      messagesProbe.radius > 0 && messagesProbe.radius <= 12,
-      `messages workspace radius <=12px, got ${messagesProbe.radius}`,
+      messagesProbe.radius > 0 && messagesProbe.radius <= 10,
+      `messages workspace radius <=10px, got ${messagesProbe.radius}`,
     )
 
     // Seeded requester thread — incoming offer + chat stream
@@ -1675,6 +1745,188 @@ async function checkMarketplaceFlows() {
   }
 }
 
+async function checkSubtleRadii() {
+  let chromium
+  try {
+    ;({ chromium } = await import('playwright'))
+  } catch {
+    console.log('skip subtle radii (playwright not installed)')
+    return
+  }
+
+  const browser = await chromium.launch({ headless: true })
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+  try {
+    const paths = ['/', '/browse', '/browse?tab=people', '/auth', '/safety', '/post', '/messages']
+    for (const pathName of paths) {
+      await page.goto(`${BASE_URL}${pathName}`, { waitUntil: 'domcontentloaded' })
+      await page.waitForSelector('body')
+      await page
+        .waitForFunction(
+          () =>
+            document.body.innerText.length > 40 &&
+            !/^Beam\s*$/m.test(document.body.innerText.trim()),
+          null,
+          { timeout: 15000 },
+        )
+        .catch(() => {})
+
+      if (pathName === '/browse?tab=people') {
+        // Demo seed has helpers; clear helper flags so EmptyState + Become a helper render.
+        await page.evaluate((key) => {
+          const raw = localStorage.getItem(key)
+          if (!raw) return
+          const state = JSON.parse(raw)
+          state.people = (state.people || []).map((p) => ({
+            ...p,
+            isHelper: false,
+            skills: [],
+          }))
+          localStorage.setItem(key, JSON.stringify(state))
+        }, STORAGE_KEY)
+        await page.reload({ waitUntil: 'domcontentloaded' })
+        await page.waitForSelector('text=No helpers nearby yet', { timeout: 15000 })
+      }
+
+      const probe = await page.evaluate(() => {
+        function radiusPx(el) {
+          return parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0
+        }
+        function isAllowedCircle(el) {
+          if (el.getAttribute('role') === 'switch' || el.getAttribute('role') === 'radio') return true
+          const w = el.getBoundingClientRect().width
+          const h = el.getBoundingClientRect().height
+          // Tiny dots / progress segments
+          if (w <= 14 && h <= 14) return true
+          // Progress bar segments
+          if (h <= 6 && w <= 64) return true
+          // Circular avatars / portraits (near-square)
+          if (
+            Math.abs(w - h) <= 2 &&
+            w >= 20 &&
+            w <= 140 &&
+            (el.tagName === 'IMG' ||
+              el.className?.toString?.().includes('rounded-full') ||
+              el.querySelector?.('img'))
+          ) {
+            return true
+          }
+          // Switch tracks
+          if (el.getAttribute('role') === 'switch') return true
+          if (w >= 40 && w <= 56 && h >= 24 && h <= 32 && /rounded-full/.test(String(el.className))) {
+            return true
+          }
+          return false
+        }
+
+        const cardSelectors = [
+          '[data-testid="browse-filters-sidebar"] > div',
+          '[data-testid="browse-trending-helpers"]',
+          '[data-testid="browse-command-bar"] > div',
+          '[data-testid="hero-search-pill"] > div',
+          '[data-testid="messages-workspace"]',
+          '[data-testid="categories-bento"] a',
+          '[data-testid="why-beam-live-offers"]',
+          '[data-testid="why-beam-showcase"] > div',
+        ]
+        const cards = []
+        for (const sel of cardSelectors) {
+          for (const el of document.querySelectorAll(sel)) cards.push(el)
+        }
+        // EmptyState wrappers (white bordered boxes with centered text)
+        for (const el of document.querySelectorAll('div')) {
+          const t = (el.textContent || '').trim()
+          if (/No helpers nearby yet|No (open )?requests|No messages yet/i.test(t) && el.children.length <= 6) {
+            const r = el.getBoundingClientRect()
+            if (r.width > 180 && r.height > 80) cards.push(el)
+          }
+        }
+
+        const cardOffenders = cards
+          .map((el) => ({
+            tag: el.getAttribute('data-testid') || el.tagName,
+            px: radiusPx(el),
+            text: (el.textContent || '').trim().slice(0, 40),
+          }))
+          .filter((c) => c.px > 10)
+
+        const controls = [
+          ...document.querySelectorAll('button, a.inline-flex, a[class*="rounded"]'),
+        ].filter((el) => {
+          if (isAllowedCircle(el)) return false
+          const r = el.getBoundingClientRect()
+          return r.width > 24 && r.height > 20
+        })
+        const controlOffenders = controls
+          .map((el) => ({
+            tag: el.tagName,
+            role: el.getAttribute('role'),
+            testid: el.getAttribute('data-testid'),
+            text: (el.textContent || '').trim().slice(0, 36),
+            px: radiusPx(el),
+          }))
+          .filter((c) => c.px > 10)
+
+        // Explicit people-tab empty state + Become a helper CTA
+        let peopleEmpty = null
+        let becomeHelper = null
+        if (location.search.includes('tab=people') || /No helpers nearby yet/i.test(document.body.innerText)) {
+          const emptyTitle = [...document.querySelectorAll('h3')].find((el) =>
+            /No helpers nearby yet/i.test(el.textContent || ''),
+          )
+          let emptyBox = emptyTitle?.parentElement || null
+          // Walk up to the bordered EmptyState wrapper.
+          while (emptyBox && emptyBox !== document.body) {
+            const cls = String(emptyBox.className || '')
+            if (/rounded-lg/.test(cls) && /border/.test(cls) && /bg-white/.test(cls)) break
+            emptyBox = emptyBox.parentElement
+          }
+          peopleEmpty = emptyBox
+            ? { px: radiusPx(emptyBox), text: (emptyBox.textContent || '').trim().slice(0, 48) }
+            : null
+          const cta = [...document.querySelectorAll('a,button')].find((el) =>
+            /^Become a helper$/i.test((el.textContent || '').trim()),
+          )
+          becomeHelper = cta ? { px: radiusPx(cta), text: (cta.textContent || '').trim() } : null
+        }
+
+        return {
+          cardOffenders: cardOffenders.slice(0, 12),
+          controlOffenders: controlOffenders.slice(0, 12),
+          peopleEmpty,
+          becomeHelper,
+        }
+      })
+
+      assert.deepEqual(
+        probe.cardOffenders,
+        [],
+        `${pathName} card/panel radius >10px: ${JSON.stringify(probe.cardOffenders)}`,
+      )
+      assert.deepEqual(
+        probe.controlOffenders,
+        [],
+        `${pathName} button/CTA radius >10px: ${JSON.stringify(probe.controlOffenders)}`,
+      )
+      if (pathName === '/browse?tab=people') {
+        assert.ok(probe.peopleEmpty, 'people tab EmptyState found')
+        assert.ok(
+          probe.peopleEmpty.px > 0 && probe.peopleEmpty.px <= 10,
+          `EmptyState radius <=10 (got ${probe.peopleEmpty.px})`,
+        )
+        assert.ok(probe.becomeHelper, 'Become a helper CTA found')
+        assert.ok(
+          probe.becomeHelper.px > 0 && probe.becomeHelper.px <= 10,
+          `Become a helper radius <=10 (got ${probe.becomeHelper.px})`,
+        )
+      }
+      console.log(`ok subtle radii ${pathName}`)
+    }
+  } finally {
+    await browser.close()
+  }
+}
+
 async function main() {
   checkStorageHelpers()
   await checkRoutes()
@@ -1685,6 +1937,7 @@ async function main() {
   await checkOnboardingFlow()
   await checkBrowserPersistence()
   await checkMarketplaceFlows()
+  await checkSubtleRadii()
   console.log('smoke passed')
 }
 

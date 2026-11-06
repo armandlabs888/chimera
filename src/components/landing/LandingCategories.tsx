@@ -28,7 +28,7 @@ export function LandingCategories() {
           </div>
           <Link
             href="/browse"
-            className="inline-flex h-11 items-center rounded-full border border-[#1D5CE5]/30 px-5 text-[14.5px] font-semibold text-[#1D5CE5] transition hover:bg-[#F4F8FD]"
+            className="inline-flex h-11 items-center rounded-lg border border-[#1D5CE5]/30 px-5 text-[14.5px] font-semibold text-[#1D5CE5] transition hover:bg-[#F4F8FD]"
           >
             View all requests →
           </Link>
@@ -43,17 +43,19 @@ export function LandingCategories() {
             href={`/browse?category=${cleaning.id}`}
             image={cleaning.image}
             label={`${cleaning.shortLabel} · ${cleaning.typicalRange}`}
-            objectPosition="object-[50%_28%]"
+            alt="Local helper wiping a sunlit kitchen counter"
+            objectPosition="object-[50%_22%]"
             className="col-span-1 lg:col-span-3 lg:row-span-2"
           />
           <ServiceTile
             href={`/browse?category=${moving.id}`}
             image={moving.image}
             label={`${moving.shortLabel} · ${moving.typicalRange}`}
-            objectPosition="object-center"
+            alt="Neighbors carrying moving boxes at an apartment entry"
+            objectPosition="object-[50%_35%]"
             className="col-span-1 lg:col-span-4"
           />
-          <blockquote className="col-span-2 flex h-full min-h-0 flex-col justify-center overflow-hidden rounded-xl bg-[#F4F8FD] p-5 sm:p-7 lg:col-span-5 lg:p-8">
+          <blockquote className="col-span-2 flex h-full min-h-0 flex-col justify-center overflow-hidden rounded-lg bg-[#F4F8FD] p-5 sm:p-7 lg:col-span-5 lg:p-8">
             <p className="font-display text-[clamp(1.15rem,1.6vw,1.5rem)] font-semibold leading-snug tracking-[-0.02em] text-[#071330]">
               “Had two neighbors help carry a sectional up to my 3rd-floor walkup within 90 minutes.”
             </p>
@@ -67,14 +69,16 @@ export function LandingCategories() {
             href={`/browse?category=${handyman.id}`}
             image={handyman.image}
             label={`${handyman.shortLabel} · ${handyman.typicalRange}`}
-            objectPosition="object-center"
+            alt="Neighbor assembling a bookshelf in a bright living room"
+            objectPosition="object-[50%_40%]"
             className="col-span-1 lg:col-span-5"
           />
           <ServiceTile
             href={`/browse?category=${petcare.id}`}
             image={petcare.image}
             label={`${petcare.shortLabel} · ${petcare.typicalRange}`}
-            objectPosition="object-[50%_40%]"
+            alt="Neighbor walking a dog on a sunny neighborhood sidewalk"
+            objectPosition="object-[58%_8%]"
             className="col-span-1 lg:col-span-4"
           />
 
@@ -83,14 +87,16 @@ export function LandingCategories() {
             href={`/browse?category=${tutoring.id}`}
             image={tutoring.image}
             label={`${tutoring.shortLabel} · ${tutoring.typicalRange}`}
-            objectPosition="object-center"
+            alt="Adult tutoring session with laptop and notebook at a table"
+            objectPosition="object-[50%_30%]"
             className="col-span-1 lg:col-span-5"
           />
           <ServiceTile
             href={`/browse?category=${events.id}`}
             image={events.image}
             label={`${events.shortLabel} · ${events.typicalRange}`}
-            objectPosition="object-[50%_45%]"
+            alt="Local helper setting up outdoor event tables and chairs"
+            objectPosition="object-[50%_40%]"
             className="col-span-1 lg:col-span-7"
           />
         </div>
@@ -103,28 +109,31 @@ function ServiceTile({
   href,
   image,
   label,
+  alt,
   className = '',
   objectPosition = 'object-center',
 }: {
   href: string
   image: string
   label: string
+  alt: string
   className?: string
   objectPosition?: string
 }) {
   return (
     <Link
       href={href}
-      className={`group relative block h-full min-h-0 w-full overflow-hidden rounded-xl bg-[#E8EEF7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1D5CE5] ${className}`}
+      aria-label={label}
+      className={`group relative block h-full min-h-0 w-full overflow-hidden rounded-lg bg-[#E8EEF7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1D5CE5] ${className}`}
     >
       <Image
         fill
         src={image}
-        alt=""
-        sizes="(min-width:1024px) 360px, 50vw"
+        alt={alt}
+        sizes="(min-width:1024px) 640px, 90vw"
         className={`object-cover transition-transform duration-500 group-hover:scale-[1.04] ${objectPosition}`}
       />
-      <span className="absolute bottom-3 left-3 rounded-full bg-white px-3 py-1.5 text-[12.5px] font-semibold text-[#071330] shadow-sm sm:bottom-4 sm:left-4 sm:text-[13px]">
+      <span className="absolute bottom-3 left-3 rounded-md bg-white px-3 py-1.5 text-[12.5px] font-semibold text-[#071330] shadow-sm sm:bottom-4 sm:left-4 sm:text-[13px]">
         {label}
       </span>
     </Link>

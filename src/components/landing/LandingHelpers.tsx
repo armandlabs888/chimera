@@ -6,42 +6,42 @@ const HELPERS = [
     trackRecord: '38 tasks completed',
     specialty: 'Moving & Assembly',
     rating: '4.9',
-    src: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=320&q=80',
+    src: '/images/landing/helper-marcus.jpg',
   },
   {
     name: 'Sofia R.',
     trackRecord: '54 tasks completed',
     specialty: 'Home Cleaning',
     rating: '5.0',
-    src: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=320&q=80',
+    src: '/images/landing/helper-sofia.jpg',
   },
   {
     name: 'Jordan P.',
     trackRecord: '42 tasks completed',
     specialty: 'Handyman',
     rating: '4.8',
-    src: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=320&q=80',
+    src: '/images/landing/helper-jordan.jpg',
   },
   {
     name: 'Aisha K.',
     trackRecord: '29 tasks completed',
     specialty: 'Tutoring & Tech',
     rating: '4.9',
-    src: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=320&q=80',
+    src: '/images/landing/helper-aisha.jpg',
   },
   {
     name: 'Noah L.',
     trackRecord: '31 tasks completed',
     specialty: 'Pet Care',
     rating: '4.9',
-    src: 'https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?auto=format&fit=crop&w=320&q=80',
+    src: '/images/landing/helper-noah.jpg',
   },
   {
     name: 'Priya M.',
     trackRecord: '26 tasks completed',
     specialty: 'Events & Photo',
     rating: '5.0',
-    src: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=320&q=80',
+    src: '/images/landing/helper-priya.jpg',
   },
 ]
 
@@ -50,7 +50,7 @@ export function LandingHelpers() {
     <section className="bg-white py-16 sm:py-20">
       <div className="beam-container">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="inline-flex rounded-full bg-[#FFEDD5] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#C2410C]">
+          <p className="inline-flex rounded-md bg-[#FFEDD5] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#C2410C]">
             04 People First
           </p>
           <h2 className="mt-4 font-display text-[clamp(2rem,3.6vw,3.25rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
@@ -87,7 +87,7 @@ export function LandingHelpers() {
         <div className="mt-10 flex justify-center">
           <Link
             href="/browse?tab=people"
-            className="inline-flex h-11 items-center rounded-full border border-[#1D5CE5]/30 px-5 text-[14.5px] font-semibold text-[#1D5CE5] transition hover:bg-[#F4F8FD]"
+            className="inline-flex h-11 items-center rounded-lg border border-[#1D5CE5]/30 px-5 text-[14.5px] font-semibold text-[#1D5CE5] transition hover:bg-[#F4F8FD]"
           >
             Browse helpers nearby →
           </Link>

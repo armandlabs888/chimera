@@ -331,7 +331,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </button>
                 {notifOpen ? (
                   <div
-                    className="absolute right-0 top-11 z-50 w-[min(340px,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)]"
+                    className="absolute right-0 top-11 z-50 w-[min(340px,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)]"
                     role="dialog"
                     aria-label="Notifications"
                   >
@@ -400,7 +400,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   {ready ? (
                     <Avatar src={currentUser.avatar} name={currentUser.name} size={26} />
                   ) : (
-                    <span className="inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-[#EEF4FF] text-[#1D5CE5]">
+                    <span className="inline-flex h-[26px] w-[26px] items-center justify-center rounded-lg bg-[#EEF4FF] text-[#1D5CE5]">
                       <UserRound className="h-3.5 w-3.5" />
                     </span>
                   )}
@@ -411,7 +411,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </button>
                 {accountOpen ? (
                   <div
-                    className="absolute right-0 top-11 z-50 w-[min(280px,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)]"
+                    className="absolute right-0 top-11 z-50 w-[min(280px,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)]"
                     role="menu"
                     aria-label="Account"
                     data-testid="account-menu"
