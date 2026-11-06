@@ -2,16 +2,16 @@ import Link from 'next/link'
 import type { ComponentProps, ReactNode } from 'react'
 import { ArrowRight } from 'lucide-react'
 
-type Tone = 'base' | 'raised' | 'panel' | 'ink'
+type Tone = 'base' | 'raised' | 'panel' | 'ink' | 'canvas'
 
 const toneClass: Record<Tone, string> = {
-  base: 'bg-beam-base',
-  raised: 'bg-beam-raised',
-  panel: 'bg-beam-panel',
-  ink: 'bg-beam-ink',
+  base: 'bg-white',
+  raised: 'bg-white',
+  panel: 'bg-beam-canvas',
+  ink: 'bg-beam-canvas',
+  canvas: 'bg-beam-canvas',
 }
 
-/** Compact metadata / eyebrow. */
 export function MetaLabel({
   children,
   className = '',
@@ -22,7 +22,7 @@ export function MetaLabel({
   return <p className={`flat-meta text-beam-muted ${className}`}>{children}</p>
 }
 
-/** Light surface with subtle 1px border. */
+/** Raised white surface with elevation physics. */
 export function FlatSurface({
   tone = 'raised',
   className = '',
@@ -38,7 +38,7 @@ export function FlatSurface({
 }) {
   return (
     <Tag
-      className={`rounded-[12px] ${toneClass[tone]} ${bordered ? 'border border-beam-line' : ''} ${className}`}
+      className={`${bordered ? 'elevated' : ''} ${toneClass[tone]} ${className}`}
     >
       {children}
     </Tag>
@@ -62,7 +62,7 @@ export function FlatRow({
     <Link
       href={href}
       className={`flat-row group flex min-h-11 items-center gap-3 rounded-[12px] px-3 py-2.5 transition ${
-        active ? 'bg-beam-amber-soft text-beam-amber-deep' : 'hover:bg-beam-ink'
+        active ? 'bg-beam-amber-soft text-beam-amber-deep' : 'hover:bg-beam-surface-3'
       } ${className}`}
     >
       <div className="min-w-0 flex-1">{children}</div>
@@ -85,10 +85,10 @@ export function FlatBento({
   className?: string
   href?: string
 }) {
-  const classes = `flat-bento relative overflow-hidden ${className}`
+  const classes = `elevated elevated-hover relative overflow-hidden ${className}`
   if (href) {
     return (
-      <Link href={href} className={`${classes} flat-row group block transition hover:bg-beam-ink`}>
+      <Link href={href} className={`${classes} flat-row group block`}>
         {children}
       </Link>
     )
@@ -96,7 +96,6 @@ export function FlatBento({
   return <div className={classes}>{children}</div>
 }
 
-/** Marketing page section — dense enterprise rhythm (no sparse full-viewport slabs). */
 export function LandingSection({
   id,
   children,
@@ -108,7 +107,6 @@ export function LandingSection({
   children: ReactNode
   className?: string
   tone?: Tone
-  /** Soft surface-2 band */
   band?: boolean
 }) {
   return (
@@ -121,6 +119,7 @@ export function LandingSection({
   )
 }
 
+/** Recessed track + floating white active pill. */
 export function SegmentedControl({
   options,
   value,
@@ -134,7 +133,7 @@ export function SegmentedControl({
 }) {
   return (
     <div
-      className={`flex rounded-[10px] border border-beam-line bg-beam-ink p-0.5 ${className}`}
+      className={`flex rounded-[12px] bg-[#eef0f4] p-1 shadow-[inset_0_1px_2px_rgba(15,23,42,0.06)] ${className}`}
       role="tablist"
     >
       {options.map((opt) => {
@@ -146,9 +145,9 @@ export function SegmentedControl({
             role="tab"
             aria-selected={selected}
             onClick={() => onChange(opt.id)}
-            className={`btn-compact flex-1 rounded-[8px] px-3 text-[13px] font-medium capitalize transition ${
+            className={`btn-compact flex-1 rounded-[9px] px-3 text-[13px] font-semibold capitalize transition ${
               selected
-                ? 'bg-beam-base text-beam-cream shadow-sm'
+                ? 'bg-white text-beam-cream shadow-[0_1px_2px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.95)]'
                 : 'text-beam-muted hover:text-beam-cream'
             }`}
           >
@@ -173,10 +172,10 @@ export function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`btn-compact shrink-0 rounded-full px-3.5 text-[13px] font-medium transition ${
+      className={`btn-compact shrink-0 rounded-full px-3.5 text-[13px] font-semibold transition ${
         active
-          ? 'bg-beam-charcoal text-white'
-          : 'border border-beam-line text-beam-cream-dim hover:border-beam-cream/40 hover:text-beam-cream'
+          ? 'bg-beam-charcoal text-white shadow-[0_1px_2px_rgba(15,23,42,0.14),inset_0_1px_0_rgba(255,255,255,0.12)]'
+          : 'bg-white text-beam-cream-dim shadow-[0_0_0_1px_rgba(15,23,42,0.08)] hover:text-beam-cream'
       }`}
     >
       {label}
@@ -185,7 +184,34 @@ export function FilterChip({
 }
 
 export function FlatDivider({ className = '' }: { className?: string }) {
-  return <hr className={`border-0 border-t border-beam-line ${className}`} />
+  return <hr className={`border-0 border-t border-black/[0.06] ${className}`} />
+}
+
+export function AppWindow({
+  url = 'yariapp.com',
+  children,
+  className = '',
+  toolbar,
+}: {
+  url?: string
+  children: ReactNode
+  className?: string
+  toolbar?: ReactNode
+}) {
+  return (
+    <div className={`window-chrome ${className}`}>
+      <div className="window-chrome-bar">
+        <div className="traffic-lights" aria-hidden>
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="window-url">{url}</div>
+        {toolbar}
+      </div>
+      {children}
+    </div>
+  )
 }
 
 export type FlatLinkProps = ComponentProps<typeof Link>

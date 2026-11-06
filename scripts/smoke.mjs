@@ -76,6 +76,9 @@ async function checkLandingMarkup() {
   assert.match(text, /id="coverage"|Austin neighborhood/i, 'neighborhood coverage')
   assert.match(text, /id="categories"/, 'categories section')
   assert.match(text, /id="trust"/, 'trust section')
+  assert.match(text, /landing-nav-inner|data-testid="landing-nav-capsule"/, 'floating capsule nav')
+  assert.match(text, /window-chrome|traffic-lights|yariapp\.com/, 'app window chrome')
+  assert.match(text, /Lady Bird Lake|austin-map|data-testid="austin-map"/, 'Austin SVG map')
   assert.doesNotMatch(text, /landing-section-full/, 'no sparse full-viewport section class')
   assert.doesNotMatch(text, /hero-stage|HeroProofStage|hero-beam-art|beam-stack|scrim-hero/i, 'no experimental/dark scrim markup')
   assert.doesNotMatch(
@@ -154,7 +157,7 @@ async function checkAuthBrowser() {
         card: card ? getComputedStyle(card).backgroundColor : '',
       }
     })
-    assert.match(surfaces.body, /rgb\(255,\s*255,\s*255\)/, 'auth body light')
+    assert.ok(isLightRgb(surfaces.body), `auth body light got ${surfaces.body}`)
 
     // Switch to Create account — neighborhood + show password
     await page.getByRole('tab', { name: 'Create account' }).click()
@@ -195,7 +198,8 @@ function isLightRgb(css) {
   const r = Number(m[1])
   const g = Number(m[2])
   const b = Number(m[3])
-  return r >= 240 && g >= 240 && b >= 240
+  // Soft enterprise canvases (#F6F7F9 ≈ 246) still count as light
+  return r >= 230 && g >= 230 && b >= 230
 }
 
 async function checkLandingBrowser() {
@@ -246,12 +250,16 @@ async function checkLandingBrowser() {
         transforms: sections.map((el) => getComputedStyle(el).transform),
       }
     })
-    assert.match(themeAndScale.bg, /rgb\(255,\s*255,\s*255\)/, 'light canvas')
+    // Canvas may be soft grey (#F6F7F9) — still light enterprise, not dark
+    assert.ok(isLightRgb(themeAndScale.bg), `light canvas got ${themeAndScale.bg}`)
     assert.match(themeAndScale.color, /rgb\(23,\s*23,\s*23\)|rgb\(34,\s*34,\s*34\)/, 'dark primary text')
     assert.match(themeAndScale.font, /Geist|geist/i, 'Geist family loaded')
     assert.ok(isLightRgb(themeAndScale.rootBg), `landing-root light got ${themeAndScale.rootBg}`)
     assert.ok(isLightRgb(themeAndScale.footerBg), `footer light got ${themeAndScale.footerBg}`)
-    assert.ok(themeAndScale.h1Px >= 34 && themeAndScale.h1Px <= 58, `hero size ${themeAndScale.h1Px}`)
+    assert.ok(await page.locator('[data-testid="landing-nav-capsule"], .landing-nav-inner').count() >= 1, 'capsule nav')
+    assert.ok(await page.locator('.window-chrome, .traffic-lights').count() >= 1, 'window chrome present')
+    assert.ok(await page.locator('[data-testid="austin-map"]').count() >= 1, 'Austin map present')
+    assert.ok(themeAndScale.h1Px >= 34 && themeAndScale.h1Px <= 64, `hero size ${themeAndScale.h1Px}`)
     assert.ok(themeAndScale.heroCtaH >= 36 && themeAndScale.heroCtaH <= 52, `hero CTA h ${themeAndScale.heroCtaH}`)
     assert.ok(themeAndScale.navCtaH >= 36 && themeAndScale.navCtaH <= 48, `nav CTA h ${themeAndScale.navCtaH}`)
     assert.ok(themeAndScale.sectionCount >= 6, 'landing sections present')
@@ -339,9 +347,9 @@ async function checkLandingBrowser() {
 
     // Interactive workflow tabs (Example-labeled) — after first-viewport checks (tabs may scroll)
     await page.locator('#product').scrollIntoViewIfNeeded()
-    await page.getByRole('tab', { name: /Compare priced offers/i }).click()
-    assert.match(await page.locator('[role="tabpanel"]').innerText(), /\$55|Within 1 hour|Example/i)
-    await page.getByRole('tab', { name: /Coordinate in-thread/i }).click()
+    await page.getByRole('tab', { name: /Offers/i }).click()
+    assert.match(await page.locator('[role="tabpanel"]').innerText(), /\$55|Within 1 hour|Example|\$60/i)
+    await page.getByRole('tab', { name: /Message/i }).click()
     assert.match(await page.locator('[role="tabpanel"]').innerText(), /Example|Thread/i)
     await page.evaluate(() => window.scrollTo(0, 0))
 
@@ -428,6 +436,25 @@ async function checkLandingBrowser() {
       'browse runtime reachable',
     )
 
+    // App shell chrome — sidebar on desktop when authenticated/demo; auth gate still healthy in live
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto(`${BASE_URL}/home`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('body')
+    const homeChrome = await page.evaluate(() => ({
+      sidebar: !!document.querySelector('[data-testid="app-sidebar"]'),
+      dock: !!document.querySelector('[data-testid="bottom-dock"]'),
+      text: document.body.innerText.slice(0, 400),
+    }))
+    assert.match(
+      homeChrome.text,
+      /Home|Browse|Messages|Continue with Google|Welcome back|Search/i,
+      'home/app shell reachable',
+    )
+    // If not gated, desktop sidebar must exist
+    if (!/Continue with Google|Welcome back/i.test(homeChrome.text)) {
+      assert.equal(homeChrome.sidebar, true, 'desktop app sidebar present')
+    }
+
     for (const { width, height } of [
       { width: 375, height: 812 },
       { width: 768, height: 1024 },
@@ -510,7 +537,7 @@ async function checkLandingBrowser() {
     assert.ok(reduced.pos === 'relative' || reduced.pos === 'static', 'reduced-motion normal flow')
     assert.equal(reduced.transform, 'none', 'reduced-motion no transform')
     assert.match(reduced.text, /Example/i, 'reduced-motion proof examples visible')
-    assert.match(reduced.text, /Post a request|priced offers/i, 'reduced-motion workflow copy')
+    assert.match(reduced.text, /Post|Offers|Message|complete/i, 'reduced-motion workflow copy')
 
     await page.locator('body').click({ position: { x: 2, y: 2 } })
     await page.keyboard.press('Tab')

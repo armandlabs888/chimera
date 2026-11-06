@@ -97,15 +97,15 @@ export function HomeDashboard() {
       </form>
 
       <div className="mb-8 grid gap-3 sm:grid-cols-3">
-        <Card className="p-4">
+        <Card className="p-4" hover>
           <p className="type-meta text-beam-muted">Your open requests</p>
           <p className="mt-1 tabular-nums type-h2 text-beam-cream">{myOpen.length}</p>
         </Card>
-        <Card className="p-4">
+        <Card className="p-4" hover>
           <p className="type-meta text-beam-muted">Your offers</p>
           <p className="mt-1 tabular-nums type-h2 text-beam-cream">{myOffers.length}</p>
         </Card>
-        <Card className="p-4">
+        <Card className="p-4" hover>
           <p className="type-meta text-beam-muted">Open nearby</p>
           <p className="mt-1 tabular-nums type-h2 text-beam-cream">{openNearby.length}</p>
         </Card>
@@ -123,8 +123,14 @@ export function HomeDashboard() {
             <Link
               key={c.id}
               href={`/browse?category=${c.id}`}
-              className="flat-row rounded-[12px] border border-beam-line bg-beam-base px-3 py-3 text-center hover:bg-beam-surface-2"
+              className="elevated elevated-hover flex flex-col items-center gap-2 px-3 py-3 text-center"
             >
+              <span
+                className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[12px] font-bold"
+                style={{ background: c.tintBg, color: c.tintFg }}
+              >
+                {c.shortLabel[0]}
+              </span>
               <p className="text-[13px] font-semibold text-beam-cream">{c.shortLabel}</p>
             </Link>
           ))}

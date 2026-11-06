@@ -30,7 +30,7 @@ export function EmptyState({
   action?: ReactNode
 }) {
   return (
-    <div className="rounded-[12px] border border-dashed border-beam-line bg-beam-surface-2/60 px-4 py-12 text-center">
+    <div className="elevated px-4 py-12 text-center">
       <h3 className="type-h3 text-beam-cream">{title}</h3>
       <p className="mx-auto mt-2 max-w-sm type-sec text-beam-muted">{body}</p>
       {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
@@ -55,8 +55,8 @@ export function Badge({
           : tone === 'danger'
             ? 'bg-beam-danger-soft text-beam-danger'
             : tone === 'outline'
-              ? 'border border-beam-line bg-beam-base text-beam-cream-dim'
-              : 'bg-beam-surface-2 text-beam-cream-dim'
+              ? 'bg-white text-beam-cream-dim shadow-[0_0_0_1px_rgba(15,23,42,0.08)]'
+              : 'bg-beam-surface-3 text-beam-cream-dim'
   return (
     <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 type-meta ${toneClass}`}>
       {children}
@@ -90,13 +90,15 @@ export function Card({
   children,
   className = '',
   as: Tag = 'div',
+  hover = false,
 }: {
   children: ReactNode
   className?: string
   as?: 'div' | 'article' | 'section'
+  hover?: boolean
 }) {
   return (
-    <Tag className={`rounded-[12px] border border-beam-line bg-beam-base ${className}`}>{children}</Tag>
+    <Tag className={`elevated ${hover ? 'elevated-hover' : ''} ${className}`}>{children}</Tag>
   )
 }
 
@@ -113,14 +115,14 @@ export function InlineBanner({
 }) {
   const styles =
     tone === 'error'
-      ? 'border-red-200 bg-beam-danger-soft text-beam-danger'
+      ? 'bg-beam-danger-soft text-beam-danger shadow-[0_0_0_1px_rgba(185,28,28,0.18)]'
       : tone === 'success'
-        ? 'border-emerald-200 bg-beam-success-soft text-beam-success'
+        ? 'bg-beam-success-soft text-beam-success shadow-[0_0_0_1px_rgba(21,128,61,0.18)]'
         : tone === 'warning'
-          ? 'border-amber-200 bg-beam-warning-soft text-beam-warning'
-          : 'border-beam-line bg-beam-surface-2 text-beam-cream-dim'
+          ? 'bg-beam-warning-soft text-beam-warning shadow-[0_0_0_1px_rgba(180,83,9,0.18)]'
+          : 'bg-beam-surface-2 text-beam-cream-dim shadow-[0_0_0_1px_rgba(15,23,42,0.06)]'
   return (
-    <div className={`rounded-[10px] border px-3.5 py-2.5 type-sec ${styles}`} role="status" aria-live="polite">
+    <div className={`rounded-[12px] px-3.5 py-2.5 type-sec ${styles}`} role="status" aria-live="polite">
       {children}
     </div>
   )
@@ -148,14 +150,14 @@ export function Avatar({
         alt=""
         width={size}
         height={size}
-        className="rounded-[8px] object-cover"
+        className="rounded-full object-cover shadow-[0_0_0_2px_#fff,0_0_0_3px_rgba(15,23,42,0.08)]"
         style={{ width: size, height: size }}
       />
     )
   }
   return (
     <span
-      className="inline-flex items-center justify-center rounded-[8px] bg-beam-surface-2 type-meta font-semibold text-beam-cream-dim"
+      className="inline-flex items-center justify-center rounded-full bg-beam-surface-3 type-meta font-semibold text-beam-cream-dim shadow-[0_0_0_2px_#fff,0_0_0_3px_rgba(15,23,42,0.08)]"
       style={{ width: size, height: size }}
       aria-hidden
     >
@@ -166,7 +168,7 @@ export function Avatar({
 
 export function Money({ amount, className = '' }: { amount: number | string; className?: string }) {
   const text = typeof amount === 'number' ? `$${amount}` : amount
-  return <span className={`tabular-nums font-semibold ${className}`}>{text}</span>
+  return <span className={`price-pill ${className}`}>{text}</span>
 }
 
 export function StatusPill({ status }: { status: string }) {
@@ -179,4 +181,25 @@ export function StatusPill({ status }: { status: string }) {
           ? 'danger'
           : 'neutral'
   return <Badge tone={tone as 'live'}>{status}</Badge>
+}
+
+export function CategoryIconBadge({
+  tintBg,
+  tintFg,
+  children,
+  size = 36,
+}: {
+  tintBg: string
+  tintFg: string
+  children: ReactNode
+  size?: number
+}) {
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-[10px] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]"
+      style={{ width: size, height: size, background: tintBg, color: tintFg }}
+    >
+      {children}
+    </span>
+  )
 }

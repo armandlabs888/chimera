@@ -1,29 +1,28 @@
 @import 'tailwindcss';
 
 /*
-  Beam enterprise light system — Attio precision + Stripe product density + Airbnb card hierarchy.
-  Amber is marketplace signal only. Light canvas only. See docs/flat-ui.md.
+  Beam visual system — elevated light SaaS surfaces (Attio / Cal / Ramp craft).
+  Canvas contrast + multi-stop shadows + category tints. Light only.
 */
 @theme {
   --color-beam-base: #ffffff;
+  --color-beam-canvas: #f6f7f9;
   --color-beam-surface-1: #ffffff;
-  --color-beam-surface-2: #f7f7f8;
-  --color-beam-surface-3: #f0f0f2;
-  /* Legacy aliases — keep Tailwind classes stable during migration */
-  --color-beam-ink: #f7f7f8;
+  --color-beam-surface-2: #f6f7f9;
+  --color-beam-surface-3: #eef0f4;
+  --color-beam-ink: #f6f7f9;
   --color-beam-raised: #ffffff;
-  --color-beam-panel: #f7f7f8;
+  --color-beam-panel: #f6f7f9;
   --color-beam-line: #e4e4e7;
   --color-beam-line-strong: #d4d4d8;
   --color-beam-muted: #71717a;
-  /* Legacy name “cream” = primary foreground on light canvas */
   --color-beam-cream: #171717;
   --color-beam-cream-dim: #52525b;
-  --color-beam-charcoal: #0c0c0e;
+  --color-beam-charcoal: #0a0a0b;
   --color-beam-on-ink: #ffffff;
-  --color-beam-amber: #e08a2c;
-  --color-beam-amber-deep: #c4741f;
-  --color-beam-amber-soft: rgba(224, 138, 44, 0.12);
+  --color-beam-amber: #d97706;
+  --color-beam-amber-deep: #b45309;
+  --color-beam-amber-soft: rgba(217, 119, 6, 0.12);
   --color-beam-success: #15803d;
   --color-beam-success-soft: #dcfce7;
   --color-beam-danger: #b91c1c;
@@ -32,11 +31,17 @@
   --color-beam-warning-soft: #ffedd5;
   --font-display: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  --beam-nav-offset: 3.5rem;
+  --beam-nav-offset: 4.5rem;
+  --beam-sidebar: 14.5rem;
   --beam-radius-sm: 8px;
   --beam-radius-md: 12px;
-  --beam-radius-lg: 14px;
-  --beam-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --beam-radius-lg: 16px;
+  --beam-shadow-hairline: 0 0 0 1px rgba(15, 23, 42, 0.06);
+  --beam-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --beam-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 28px -12px rgba(15, 23, 42, 0.1);
+  --beam-shadow-md: 0 2px 4px rgba(15, 23, 42, 0.04), 0 16px 40px -16px rgba(15, 23, 42, 0.14);
+  --beam-shadow-lg: 0 4px 8px rgba(15, 23, 42, 0.04), 0 24px 56px -20px rgba(15, 23, 42, 0.18);
+  --beam-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.95);
   --beam-content: 72rem;
 }
 
@@ -59,7 +64,7 @@
     font-size: 15px;
     line-height: 22px;
     font-weight: 400;
-    background: var(--color-beam-base);
+    background: var(--color-beam-canvas);
     color: var(--color-beam-cream);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -146,19 +151,10 @@
   }
 
   .type-hero {
-    font-size: clamp(2.25rem, 4.5vw, 3.5rem);
-    line-height: 1.1;
-    font-weight: 600;
-    letter-spacing: -0.025em;
-  }
-
-  /* Deprecated — do not use on marketing. Kept only so dead code removal is explicit. */
-  .scrim-hero {
-    background: linear-gradient(
-      180deg,
-      rgba(12, 12, 14, 0.08) 0%,
-      rgba(12, 12, 14, 0.16) 100%
-    );
+    font-size: clamp(2.35rem, 4.8vw, 3.65rem);
+    line-height: 1.05;
+    font-weight: 650;
+    letter-spacing: -0.035em;
   }
 
   .safe-bottom {
@@ -204,7 +200,7 @@
   @keyframes fade-up {
     from {
       opacity: 0;
-      transform: translateY(6px);
+      transform: translateY(8px);
     }
     to {
       opacity: 1;
@@ -222,11 +218,11 @@
   }
 
   .animate-fade-up {
-    animation: fade-up 0.35s ease-out both;
+    animation: fade-up 0.4s ease-out both;
   }
 
   .animate-fade-up-delay {
-    animation: fade-up 0.4s ease-out 0.08s both;
+    animation: fade-up 0.45s ease-out 0.08s both;
   }
 
   .animate-pulse-dot {
@@ -244,28 +240,69 @@
 
 @layer components {
   .flat-meta {
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    font-size: 12px;
+    font-size: 11px;
     line-height: 16px;
-    font-weight: 500;
+    font-weight: 600;
   }
 
-  .flat-surface {
-    border-radius: var(--beam-radius-md);
-    border: 1px solid var(--color-beam-line);
-    background: var(--color-beam-raised);
+  /* Raised surface physics — replaces flat bordered boxes */
+  .elevated,
+  .flat-surface,
+  .flat-bento,
+  .product-frame {
+    border-radius: var(--beam-radius-lg);
+    background: #ffffff;
+    box-shadow: var(--beam-shadow-sm), var(--beam-inset-highlight);
+    ring: none;
+    outline: none;
+    border: 0;
+    box-shadow:
+      var(--beam-shadow-sm),
+      var(--beam-inset-highlight),
+      var(--beam-shadow-hairline);
   }
 
-  .flat-bento {
-    border-radius: var(--beam-radius-md);
-    border: 1px solid var(--color-beam-line);
-    background: var(--color-beam-raised);
+  .elevated-md {
+    border-radius: var(--beam-radius-lg);
+    background: #ffffff;
+    box-shadow:
+      var(--beam-shadow-md),
+      var(--beam-inset-highlight),
+      var(--beam-shadow-hairline);
+  }
+
+  .elevated-lg {
+    border-radius: calc(var(--beam-radius-lg) + 2px);
+    background: #ffffff;
+    box-shadow:
+      var(--beam-shadow-lg),
+      var(--beam-inset-highlight),
+      var(--beam-shadow-hairline);
+  }
+
+  .elevated-hover {
+    transition:
+      transform 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .elevated-hover:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      var(--beam-shadow-md),
+      var(--beam-inset-highlight),
+      0 0 0 1px rgba(15, 23, 42, 0.1);
   }
 
   .flat-row {
     border-radius: var(--beam-radius-md);
-    transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease,
+      transform 150ms ease,
+      box-shadow 150ms ease;
   }
 
   .flat-row:focus-visible {
@@ -273,19 +310,47 @@
     outline-offset: 2px;
   }
 
+  .price-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    background: var(--color-beam-surface-2);
+    box-shadow: var(--beam-shadow-hairline);
+    padding: 0.15rem 0.65rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--color-beam-cream);
+  }
+
+  .eyebrow-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: var(--beam-shadow-hairline), var(--beam-shadow-xs);
+    padding: 0.3rem 0.7rem;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-beam-amber-deep);
+  }
+
   .section {
-    padding: 2.5rem 0;
+    padding: 2.75rem 0;
     scroll-margin-top: var(--beam-nav-offset);
   }
 
   @media (min-width: 768px) {
     .section {
-      padding: 4rem 0;
+      padding: 4.25rem 0;
     }
   }
 
   .section-band {
-    background: var(--color-beam-surface-2);
+    background: var(--color-beam-canvas);
   }
 
   .section-inner {
@@ -301,8 +366,84 @@
     }
   }
 
+  .canvas-dotfield {
+    background-color: var(--color-beam-canvas);
+    background-image:
+      radial-gradient(ellipse 80% 55% at 72% 18%, rgba(245, 158, 11, 0.1), transparent 58%),
+      radial-gradient(rgba(15, 23, 42, 0.055) 1px, transparent 1px);
+    background-size:
+      auto,
+      22px 22px;
+  }
+
+  .canvas-grid {
+    background-color: var(--color-beam-canvas);
+    background-image:
+      linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+      radial-gradient(ellipse 70% 50% at 50% 0%, rgba(245, 158, 11, 0.07), transparent 55%);
+    background-size:
+      24px 24px,
+      24px 24px,
+      auto;
+  }
+
+  .window-chrome {
+    border-radius: var(--beam-radius-lg);
+    background: #ffffff;
+    box-shadow:
+      var(--beam-shadow-md),
+      var(--beam-inset-highlight),
+      var(--beam-shadow-hairline);
+    overflow: hidden;
+  }
+
+  .window-chrome-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding: 0 0.85rem;
+    background: linear-gradient(180deg, #fbfbfc 0%, #f3f4f7 100%);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+  }
+
+  .traffic-lights {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .traffic-lights span {
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 9999px;
+  }
+
+  .traffic-lights span:nth-child(1) {
+    background: #ff5f57;
+  }
+  .traffic-lights span:nth-child(2) {
+    background: #febc2e;
+  }
+  .traffic-lights span:nth-child(3) {
+    background: #28c840;
+  }
+
+  .window-url {
+    flex: 1;
+    min-width: 0;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06), var(--beam-shadow-hairline);
+    padding: 0.2rem 0.75rem;
+    font-size: 11px;
+    color: var(--color-beam-muted);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
   .landing-root {
-    background: var(--color-beam-base);
+    background: var(--color-beam-canvas);
     color: var(--color-beam-cream);
   }
 
@@ -310,15 +451,26 @@
     position: sticky;
     top: 0;
     z-index: 40;
-    background: rgba(255, 255, 255, 0.92);
-    border-bottom: 1px solid var(--color-beam-line);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    color: var(--color-beam-cream);
+    padding: 0.75rem 1rem 0;
+    background: transparent;
+    pointer-events: none;
   }
 
   .landing-nav-inner {
+    pointer-events: auto;
     max-width: var(--beam-content);
+    margin-inline: auto;
+    display: flex;
+    height: 3.25rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0 0.55rem 0 0.85rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.86);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--beam-shadow-sm), var(--beam-shadow-hairline);
   }
 
   .landing-nav-brand {
@@ -334,8 +486,9 @@
     color: var(--color-beam-muted);
   }
 
-  .landing-nav-link:hover {
-    background: var(--color-beam-surface-2);
+  .landing-nav-link:hover,
+  .landing-nav-link[data-active='true'] {
+    background: var(--color-beam-surface-3);
     color: var(--color-beam-cream);
   }
 
@@ -350,17 +503,19 @@
   .landing-nav-cta {
     background: var(--color-beam-amber);
     color: var(--color-beam-charcoal);
+    box-shadow: var(--beam-shadow-xs), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   }
 
   .landing-nav-cta:hover {
     background: var(--color-beam-amber-deep);
+    color: #fff;
   }
 
   .landing-headline {
-    font-size: clamp(2.25rem, 4.5vw, 3.5rem);
-    line-height: 1.1;
-    letter-spacing: -0.025em;
-    font-weight: 600;
+    font-size: clamp(2.35rem, 4.8vw, 3.65rem);
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    font-weight: 650;
     text-wrap: balance;
   }
 
@@ -370,13 +525,6 @@
 
   .landing-hero-media img {
     display: block;
-  }
-
-  .product-frame {
-    border-radius: var(--beam-radius-lg);
-    border: 1px solid var(--color-beam-line);
-    background: var(--color-beam-base);
-    box-shadow: var(--beam-shadow-xs);
   }
 
   .skeleton-block {
@@ -391,10 +539,43 @@
     animation: skeleton-shimmer 1.4s ease-in-out infinite;
   }
 
+  .app-shell {
+    min-height: 100dvh;
+    background: var(--color-beam-canvas);
+  }
+
+  .app-sidebar {
+    width: var(--beam-sidebar);
+    background: #ffffff;
+    box-shadow: 1px 0 0 rgba(15, 23, 42, 0.07);
+  }
+
+  .app-command {
+    height: 3.5rem;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.07);
+  }
+
+  .bottom-dock {
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--beam-shadow-md), var(--beam-shadow-hairline);
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .landing-nav {
+    .landing-nav-inner,
+    .app-command,
+    .bottom-dock {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
+    }
+
+    .elevated-hover:hover {
+      transform: none;
     }
 
     .skeleton-block {

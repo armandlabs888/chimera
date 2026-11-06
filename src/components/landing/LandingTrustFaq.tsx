@@ -8,7 +8,7 @@ import { LandingSection } from '@/components/flat'
 const FAQS = [
   {
     q: 'What kinds of help are in scope?',
-    a: 'Moving & lifting, cleaning, tutoring, pet care, light handyman (assembly, mounting, small fixes — not licensed trades), and events & photo. Beam does not cover childcare, senior care, delivery/driving, or licensed electrical/plumbing/HVAC work.',
+    a: 'Moving & lifting, cleaning, tutoring, pet care, light handyman (not licensed trades), and events & photo. Beam does not cover childcare, senior care, delivery/driving, or licensed electrical/plumbing/HVAC.',
   },
   {
     q: 'Does Beam hold payments or offer escrow?',
@@ -20,11 +20,11 @@ const FAQS = [
   },
   {
     q: 'How does ranking work?',
-    a: 'Browse prefers closer Austin neighborhoods first using approximate neighborhood distances, then recency. It is not live GPS tracking.',
+    a: 'Browse prefers closer Austin neighborhoods first using approximate distances, then recency. It is not live GPS tracking.',
   },
   {
     q: 'What safety practices should I follow?',
-    a: 'Meet in public when practical, share plans with someone you trust, keep coordination in the request thread, and use Beam’s Safety checklist before accepting in-person help.',
+    a: 'Meet in public when practical, share plans with someone you trust, keep coordination in the request thread, and use Beam’s Safety checklist.',
   },
 ]
 
@@ -32,24 +32,24 @@ export function LandingTrustFaq() {
   const [open, setOpen] = useState<number | null>(0)
 
   return (
-    <LandingSection id="trust" className="border-b border-beam-line">
+    <LandingSection id="trust" className="border-b border-black/[0.05] bg-white">
       <div className="section-inner grid gap-10 lg:grid-cols-[1fr_1.2fr]">
         <div>
-          <p className="flat-meta text-beam-amber-deep">Trust &amp; scope</p>
-          <h2 className="mt-2 type-h1 text-beam-charcoal">Honest boundaries</h2>
+          <span className="eyebrow-pill">Trust &amp; scope</span>
+          <h2 className="mt-3 type-h1 text-beam-charcoal">Honest boundaries</h2>
           <p className="mt-2 type-intro text-beam-cream-dim">
-            Beam is a coordination marketplace for practical neighborhood help — not a guarantee,
-            not an escrow service, and not a licensed trades marketplace.
+            Beam coordinates practical neighborhood help — not a guarantee, not escrow, not licensed
+            trades.
           </p>
           <Link
             href="/safety"
-            className="mt-5 inline-flex touch-target items-center rounded-[10px] border border-beam-line px-4 text-[14px] font-medium text-beam-cream hover:bg-beam-surface-2"
+            className="mt-5 inline-flex touch-target items-center rounded-[12px] bg-white px-4 text-[14px] font-semibold text-beam-cream shadow-[0_0_0_1px_rgba(15,23,42,0.08)] hover:bg-beam-surface-2"
           >
             Read Safety practices
           </Link>
         </div>
 
-        <div className="divide-y divide-beam-line rounded-[12px] border border-beam-line bg-beam-base">
+        <div className="elevated divide-y divide-black/[0.06] overflow-hidden">
           {FAQS.map((item, index) => {
             const isOpen = open === index
             return (
@@ -57,7 +57,7 @@ export function LandingTrustFaq() {
                 <h3>
                   <button
                     type="button"
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left text-[15px] font-semibold text-beam-cream hover:bg-beam-surface-2"
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left text-[15px] font-semibold text-beam-cream hover:bg-beam-canvas"
                     aria-expanded={isOpen}
                     onClick={() => setOpen(isOpen ? null : index)}
                   >
@@ -68,9 +68,7 @@ export function LandingTrustFaq() {
                     />
                   </button>
                 </h3>
-                {isOpen ? (
-                  <p className="px-4 pb-4 type-sec text-beam-cream-dim">{item.a}</p>
-                ) : null}
+                {isOpen ? <p className="px-4 pb-4 type-sec text-beam-cream-dim">{item.a}</p> : null}
               </div>
             )
           })}

@@ -10,6 +10,8 @@ export const CATEGORIES: Category[] = [
     shortLabel: 'Moving',
     description: 'Furniture, boxes, loading, unloading',
     image: unsplash('photo-1600518464441-9154a4dea21b'),
+    tintBg: '#FEF3C7',
+    tintFg: '#B45309',
     templates: [
       {
         title: 'Help move a couch upstairs',
@@ -31,6 +33,8 @@ export const CATEGORIES: Category[] = [
     shortLabel: 'Cleaning',
     description: 'Post-party tidy, deep clean, move-out',
     image: unsplash('photo-1581578731548-c64695cc6952'),
+    tintBg: '#E0F2FE',
+    tintFg: '#0369A1',
     templates: [
       {
         title: 'Post-brunch kitchen reset',
@@ -52,6 +56,8 @@ export const CATEGORIES: Category[] = [
     shortLabel: 'Tutoring',
     description: 'Homework help, test prep, skills',
     image: unsplash('photo-1503676260728-1c00da094a0b'),
+    tintBg: '#D1FAE5',
+    tintFg: '#047857',
     templates: [
       {
         title: 'Algebra II homework help tonight',
@@ -73,6 +79,8 @@ export const CATEGORIES: Category[] = [
     shortLabel: 'Pets',
     description: 'Walks, sitting, drop-ins',
     image: unsplash('photo-1548199973-03cce0bbc87b'),
+    tintBg: '#FFE4E6',
+    tintFg: '#BE123C',
     templates: [
       {
         title: 'Afternoon dog walk (friendly lab)',
@@ -94,6 +102,8 @@ export const CATEGORIES: Category[] = [
     shortLabel: 'Handyman',
     description: 'Assembly, mounting, small fixes',
     image: unsplash('photo-1504148455328-c376907d081c'),
+    tintBg: '#FFEDD5',
+    tintFg: '#C2410C',
     templates: [
       {
         title: 'Mount a TV on drywall',
@@ -115,6 +125,8 @@ export const CATEGORIES: Category[] = [
     shortLabel: 'Events',
     description: 'Setup help, candid photos, teardown',
     image: unsplash('photo-1511795409834-ef04bbd61622'),
+    tintBg: '#CCFBF1',
+    tintFg: '#0F766E',
     templates: [
       {
         title: 'Candid photos at backyard birthday',
