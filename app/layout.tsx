@@ -15,9 +15,9 @@ const fraunces = Fraunces({
   display: 'swap',
 })
 
-const title = 'Beam — Local help in Austin, made easy'
+const title = 'Beam — Local help, made easy'
 const description =
-  'Post what you need done today and get priced offers with arrival times from vetted neighbors nearby. Peer-to-peer same-day help across Austin.'
+  'Post what you need done today and get priced offers with arrival times from vetted neighbors nearby. Peer-to-peer same-day help in your neighborhood.'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.yariapp.com'),

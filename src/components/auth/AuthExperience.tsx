@@ -208,7 +208,7 @@ function AsidePanel() {
         <div className="relative mx-auto h-[280px] w-[200px] overflow-hidden rounded-[26px] border-4 border-white shadow-[0_24px_50px_-12px_rgba(12,42,102,0.35)]">
           <Image
             src={LIFESTYLE.authShowcase}
-            alt="Austin helper ready to help"
+            alt="Local helper ready to help"
             fill
             className="object-cover"
             sizes="200px"
@@ -218,7 +218,7 @@ function AsidePanel() {
       </div>
       <div className="absolute inset-x-10 bottom-12 z-10">
         <p className="max-w-[20ch] font-display text-[32px] font-bold leading-[1.1] tracking-[-0.03em] text-white">
-          Local help in Austin, made easy.
+          Local help, made easy.
         </p>
         <p className="mt-3 text-[14px] text-white/85">
           “Posted a couch move in South Congress — two neighbors showed up same afternoon.” — Elena R.
@@ -360,7 +360,7 @@ function FormColumn(props: {
       <p className="mt-3 text-[16px] text-[#64748B]">
         {tab === 'signin'
           ? 'Sign in to post requests, send offers, and message neighbors nearby.'
-          : 'Join Beam to post practical jobs or help neighbors around Austin.'}
+          : 'Join Beam to post practical jobs or help neighbors nearby.'}
       </p>
 
       <button
@@ -412,7 +412,7 @@ function FormColumn(props: {
                 className="h-[52px] rounded-2xl"
               />
             </Field>
-            <Field label="Austin neighborhood">
+            <Field label="Neighborhood">
               <select
                 className="touch-target h-[52px] w-full rounded-2xl border border-[rgba(7,19,48,0.1)] bg-white px-3.5 text-[15px] text-[#071330] outline-none focus:border-[#1D5CE5]"
                 value={neighborhood}
