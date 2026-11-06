@@ -165,14 +165,14 @@ export function Browse() {
         }
       />
 
-      <div className="sticky top-16 z-20 mb-4 flex flex-col gap-3 border-b border-white/[0.08] bg-[#0C0C0E]/95 py-3 backdrop-blur-sm lg:flex-row lg:items-center">
+      <div className="sticky top-16 z-20 mb-4 flex flex-col gap-3 border-b border-[rgba(7,19,48,0.08)] bg-white/95 py-3 backdrop-blur-sm lg:flex-row lg:items-center">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-beam-muted" />
           <TextInput
             value={qDraft}
             onChange={(e) => setQDraft(e.target.value)}
             placeholder="Search titles, details, skills…"
-            className="h-11 border-white/[0.12] bg-[#141518] pl-9"
+            className="h-11 border-[rgba(7,19,48,0.12)] bg-[#FFFFFF] pl-9"
             aria-label="Search browse"
           />
         </div>

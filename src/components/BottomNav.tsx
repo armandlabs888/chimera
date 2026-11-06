@@ -30,8 +30,8 @@ export function BottomNav() {
             <li key={href}>
               <Link
                 href={href}
-                className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[12px] text-[11px] font-semibold transition ${
-                  isActive ? 'text-beam-amber-deep' : 'text-beam-muted hover:text-beam-cream'
+                className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-[11px] font-semibold transition ${
+                  isActive ? 'text-[#1D5CE5]' : 'text-[#64748B] hover:text-[#071330]'
                 }`}
               >
                 <Icon className="h-5 w-5" strokeWidth={1.75} />

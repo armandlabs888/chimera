@@ -11,6 +11,7 @@ import { friendlyAuthError } from '@/lib/auth/errors'
 import { sanitizeNext } from '@/lib/auth/safeNext'
 import type { NeighborhoodId } from '@/types'
 import { GoogleMark } from './GoogleMark'
+import { LIFESTYLE } from '@/data/media'
 
 export type AuthMode = 'signin' | 'signup'
 
@@ -165,19 +166,19 @@ export function AuthExperience({
   }
 
   return (
-    <div className="min-h-dvh bg-[#0C0C0E] text-[#F6F3EE] lg:grid lg:min-h-dvh lg:grid-cols-[1.05fr_1fr]">
+    <div className="min-h-dvh bg-white text-[#071330] lg:grid lg:min-h-dvh lg:grid-cols-[1.05fr_1fr]">
       <AsidePanel />
       <div className="flex flex-col px-6 py-6 lg:px-10">
         <div className="mb-6 lg:hidden">
           <Link href="/">
-            <BeamWordmark markWidth={44} markHeight={20} wordClassName="text-[26px]" />
+            <BeamWordmark markWidth={26} markHeight={26} wordClassName="text-[24px]" tone="ink" />
           </Link>
-          <div className="relative mt-5 h-[180px] overflow-hidden rounded-2xl">
+          <div className="relative mt-5 h-[180px] overflow-hidden rounded-[26px] bg-gradient-to-br from-[#1D5CE5] to-[#7CC9FA]">
             <Image
-              src="/images/beam-hero-gig-work.jpg"
+              src={LIFESTYLE.authShowcase}
               alt=""
               fill
-              className="object-cover object-[60%_40%]"
+              className="object-cover object-[60%_30%] opacity-90"
               sizes="100vw"
               priority
             />
@@ -191,36 +192,37 @@ export function AuthExperience({
 
 function AsidePanel() {
   return (
-    <aside className="relative hidden min-h-dvh overflow-hidden lg:block">
-      <Image
-        src="/images/beam-hero-gig-work.jpg"
-        alt="Neighbors helping with furniture in a sunlit living room"
-        fill
-        priority
-        className="object-cover object-[60%_40%]"
-        sizes="50vw"
-      />
+    <aside className="relative hidden min-h-dvh overflow-hidden bg-gradient-to-br from-[#1A54D2] via-[#3E8FF0] to-[#7CC9FA] lg:block">
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          background: [
-            'radial-gradient(70% 75% at 2% 0%, rgba(214,150,64,0.36) 0%, rgba(170,108,44,0.15) 38%, transparent 68%)',
-            'linear-gradient(0deg, rgba(12,12,14,0.85), transparent 45%)',
-          ].join(', '),
+          background:
+            'radial-gradient(ellipse 50% 40% at 80% 20%, rgba(255,255,255,0.35), transparent 70%), radial-gradient(ellipse 45% 35% at 10% 85%, rgba(255,255,255,0.28), transparent 70%)',
         }}
         aria-hidden
       />
       <Link href="/" className="absolute left-10 top-10 z-10">
-        <BeamWordmark markWidth={48} markHeight={22} />
+        <BeamWordmark markWidth={28} markHeight={28} tone="white" />
       </Link>
+      <div className="absolute inset-x-10 top-[28%] z-10">
+        <div className="relative mx-auto h-[280px] w-[200px] overflow-hidden rounded-[26px] border-4 border-white shadow-[0_24px_50px_-12px_rgba(12,42,102,0.35)]">
+          <Image
+            src={LIFESTYLE.authShowcase}
+            alt="Austin helper ready to help"
+            fill
+            className="object-cover"
+            sizes="200px"
+            priority
+          />
+        </div>
+      </div>
       <div className="absolute inset-x-10 bottom-12 z-10">
-        <p
-          className="max-w-[18ch] font-serif text-[32px] font-normal leading-[1.1] tracking-[-0.02em] text-[#F6F3EE]"
-          style={{ fontVariationSettings: "'opsz' 72" }}
-        >
-          Post a job nearby. Get priced offers.
+        <p className="max-w-[20ch] font-display text-[32px] font-bold leading-[1.1] tracking-[-0.03em] text-white">
+          Local help in Austin, made easy.
         </p>
-        <p className="mt-3 text-[13px] text-[#B7B2AA]">Central Austin · Peer-to-peer</p>
+        <p className="mt-3 text-[14px] text-white/85">
+          “Posted a couch move in South Congress — two neighbors showed up same afternoon.” — Elena R.
+        </p>
       </div>
     </aside>
   )
@@ -286,22 +288,16 @@ function FormColumn(props: {
       <div>
         {showBrand ? (
           <Link href="/" className="mb-6 inline-block lg:hidden">
-            <BeamWordmark markWidth={40} markHeight={18} wordClassName="text-[24px]" />
+            <BeamWordmark markWidth={24} markHeight={24} wordClassName="text-[22px]" tone="ink" />
           </Link>
         ) : null}
-        <h1
-          className="font-serif text-[40px] font-normal leading-[1.05] tracking-[-0.02em] text-[#F6F3EE]"
-          style={{ fontVariationSettings: "'opsz' 72" }}
-        >
+        <h1 className="font-display text-[36px] font-bold leading-[1.05] tracking-[-0.03em] text-[#071330]">
           You’re in demo mode
         </h1>
-        <p className="mt-3 text-[16px] text-[#B7B2AA]">
+        <p className="mt-3 text-[16px] text-[#64748B]">
           Local demo skips live sign-in. Continue into Beam with Austin seed data in this browser.
         </p>
-        <Link
-          href={safeNext}
-          className="cta-primary mt-8 w-full justify-center"
-        >
+        <Link href={safeNext} className="cta-primary mt-8 w-full justify-center">
           Continue to Beam
         </Link>
       </div>
@@ -311,20 +307,14 @@ function FormColumn(props: {
   if (mode === 'unconfigured') {
     return (
       <div>
-        <h1
-          className="font-serif text-[40px] font-normal leading-[1.05] text-[#F6F3EE]"
-          style={{ fontVariationSettings: "'opsz' 72" }}
-        >
+        <h1 className="font-display text-[36px] font-bold leading-[1.05] text-[#071330]">
           Beam needs configuration
         </h1>
-        <p className="mt-3 text-[16px] text-[#B7B2AA]">
+        <p className="mt-3 text-[16px] text-[#64748B]">
           Set Supabase env vars for live auth, or enable demo with{' '}
-          <code className="text-[#D6B06C]">NEXT_PUBLIC_BEAM_DEMO_MODE=1</code>.
+          <code className="text-[#1D5CE5]">NEXT_PUBLIC_BEAM_DEMO_MODE=1</code>.
         </p>
-        <Link
-          href="/"
-          className="cta-ghost mt-8 w-full justify-center"
-        >
+        <Link href="/" className="cta-ghost mt-8 w-full justify-center">
           Back to home
         </Link>
       </div>
@@ -334,16 +324,13 @@ function FormColumn(props: {
   if (confirmSent) {
     return (
       <div>
-        <h1
-          className="font-serif text-[40px] font-normal leading-[1.05] text-[#F6F3EE]"
-          style={{ fontVariationSettings: "'opsz' 72" }}
-        >
+        <h1 className="font-display text-[36px] font-bold leading-[1.05] text-[#071330]">
           Check your inbox
         </h1>
-        <div className="mt-5 rounded-[14px] border border-[#D6B06C]/30 bg-[rgba(214,176,108,0.12)] px-4 py-3 text-[14px] text-[#D6B06C]">
-          We sent a confirmation link to <strong className="text-[#F6F3EE]">{email}</strong>.
+        <div className="mt-5 rounded-2xl border border-[#FDE68A] bg-[#FFF8D6] px-4 py-3 text-[14px] text-[#92400E]">
+          We sent a confirmation link to <strong className="text-[#071330]">{email}</strong>.
         </div>
-        {info ? <p className="mt-3 text-[14px] text-[#B7B2AA]">{info}</p> : null}
+        {info ? <p className="mt-3 text-[14px] text-[#64748B]">{info}</p> : null}
         {alertError ? <ErrorBanner message={alertError} /> : null}
         <div className="mt-6 flex flex-col gap-3">
           <Button type="button" onClick={onResend} disabled={resendPending} className="h-[52px] w-full">
@@ -367,13 +354,10 @@ function FormColumn(props: {
 
   return (
     <div>
-      <h1
-        className="font-serif text-[40px] font-normal leading-[1.05] tracking-[-0.02em] text-[#F6F3EE]"
-        style={{ fontVariationSettings: "'opsz' 72" }}
-      >
+      <h1 className="font-display text-[36px] font-bold leading-[1.05] tracking-[-0.03em] text-[#071330]">
         {tab === 'signin' ? 'Welcome back' : 'Join Beam'}
       </h1>
-      <p className="mt-3 text-[16px] text-[#B7B2AA]">
+      <p className="mt-3 text-[16px] text-[#64748B]">
         {tab === 'signin'
           ? 'Sign in to post requests, send offers, and message neighbors nearby.'
           : 'Join Beam to post practical jobs or help neighbors around Austin.'}
@@ -383,19 +367,19 @@ function FormColumn(props: {
         type="button"
         onClick={onGoogle}
         disabled={pending || googlePending}
-        className="mt-8 inline-flex h-[52px] w-full items-center justify-center gap-2.5 rounded-[14px] border border-white/[0.14] bg-[#141518] text-[16px] font-medium text-[#F6F3EE] transition hover:border-white/[0.24] disabled:opacity-50"
+        className="mt-8 inline-flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full border border-[rgba(7,19,48,0.12)] bg-white text-[16px] font-semibold text-[#071330] transition hover:bg-[#F4F8FD] disabled:opacity-50"
       >
         <GoogleMark />
         {googlePending ? 'Redirecting…' : 'Continue with Google'}
       </button>
 
       <div className="my-6 flex items-center gap-3" aria-hidden>
-        <span className="h-px flex-1 bg-white/[0.1]" />
-        <span className="text-[13px] text-[#85817A]">or</span>
-        <span className="h-px flex-1 bg-white/[0.1]" />
+        <span className="h-px flex-1 bg-[rgba(7,19,48,0.1)]" />
+        <span className="text-[13px] text-[#94A3B8]">or</span>
+        <span className="h-px flex-1 bg-[rgba(7,19,48,0.1)]" />
       </div>
 
-      <div className="flex gap-6 border-b border-white/[0.08]" role="tablist">
+      <div className="flex gap-6 border-b border-[rgba(7,19,48,0.08)]" role="tablist">
         {(['signin', 'signup'] as const).map((t) => (
           <button
             key={t}
@@ -403,10 +387,10 @@ function FormColumn(props: {
             role="tab"
             aria-selected={tab === t}
             onClick={() => switchTab(t)}
-            className={`pb-3 text-[15px] font-medium transition ${
+            className={`pb-3 text-[15px] font-semibold transition ${
               tab === t
-                ? 'border-b-2 border-[#F6F3EE] text-[#F6F3EE]'
-                : 'border-b-2 border-transparent text-[#85817A] hover:text-[#B7B2AA]'
+                ? 'border-b-2 border-[#1D5CE5] text-[#1D5CE5]'
+                : 'border-b-2 border-transparent text-[#94A3B8] hover:text-[#475569]'
             }`}
           >
             {t === 'signin' ? 'Sign in' : 'Create account'}
@@ -425,12 +409,12 @@ function FormColumn(props: {
                 maxLength={80}
                 autoComplete="name"
                 placeholder="Alex Rivera"
-                className="h-[52px] rounded-[14px]"
+                className="h-[52px] rounded-2xl"
               />
             </Field>
             <Field label="Austin neighborhood">
               <select
-                className="touch-target h-[52px] w-full rounded-[14px] border border-white/[0.14] bg-[#141518] px-3.5 text-[15px] text-[#F6F3EE] outline-none focus:border-[#E2B66A]"
+                className="touch-target h-[52px] w-full rounded-2xl border border-[rgba(7,19,48,0.1)] bg-white px-3.5 text-[15px] text-[#071330] outline-none focus:border-[#1D5CE5]"
                 value={neighborhood}
                 onChange={(e) => setNeighborhood(e.target.value as NeighborhoodId)}
                 required
@@ -452,7 +436,7 @@ function FormColumn(props: {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
-            className="h-[52px] rounded-[14px]"
+            className="h-[52px] rounded-2xl"
           />
         </Field>
 
@@ -465,11 +449,11 @@ function FormColumn(props: {
               required
               minLength={6}
               autoComplete={tab === 'signin' ? 'current-password' : 'new-password'}
-              className="h-[52px] rounded-[14px] pr-16"
+              className="h-[52px] rounded-2xl pr-16"
             />
             <button
               type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-[8px] px-2.5 py-1.5 text-[13px] font-medium text-[#85817A] hover:text-[#F6F3EE]"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2.5 py-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#071330]"
               onClick={() => setShowPassword((v) => !v)}
               aria-pressed={showPassword}
             >
@@ -480,23 +464,23 @@ function FormColumn(props: {
 
         {alertError ? <ErrorBanner message={alertError} /> : null}
         {info ? (
-          <div className="rounded-[14px] border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-[14px] text-emerald-300">
+          <div className="rounded-2xl border border-emerald-500/25 bg-emerald-50 px-4 py-3 text-[14px] text-emerald-700">
             {info}
           </div>
         ) : null}
 
-        <Button type="submit" className="h-[52px] w-full rounded-[14px]" disabled={pending || googlePending}>
+        <Button type="submit" className="h-[52px] w-full rounded-full" disabled={pending || googlePending}>
           {pending ? 'Working…' : tab === 'signin' ? 'Sign in' : 'Create account'}
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-[14px] text-[#B7B2AA]">
+      <p className="mt-6 text-center text-[14px] text-[#64748B]">
         {tab === 'signin' ? (
           <>
             New to Beam?{' '}
             <button
               type="button"
-              className="font-medium text-[#D6B06C] underline-offset-2 hover:underline"
+              className="font-semibold text-[#1D5CE5] underline-offset-2 hover:underline"
               onClick={() => switchTab('signup')}
             >
               Create an account
@@ -507,7 +491,7 @@ function FormColumn(props: {
             Already have an account?{' '}
             <button
               type="button"
-              className="font-medium text-[#D6B06C] underline-offset-2 hover:underline"
+              className="font-semibold text-[#1D5CE5] underline-offset-2 hover:underline"
               onClick={() => switchTab('signin')}
             >
               Sign in
@@ -523,7 +507,7 @@ function ErrorBanner({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="rounded-[14px] border border-red-500/30 bg-red-500/10 px-4 py-3 text-[14px] text-red-300"
+      className="rounded-2xl border border-red-500/25 bg-red-50 px-4 py-3 text-[14px] text-red-700"
     >
       {message}
     </div>

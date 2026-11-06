@@ -1,31 +1,15 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  ArrowRight,
-  Camera,
-  ChevronDown,
-  MapPin,
-  Search,
-  Shield,
-  Star,
-  Users,
-  Zap,
-} from 'lucide-react'
+import { ChevronDown, MapPin, Search } from 'lucide-react'
 import { LandingNav } from './LandingNav'
+import { HERO_HELPERS } from '@/data/media'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import type { NeighborhoodId } from '@/types'
 
-const AVATARS = [
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=96&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=96&q=80',
-  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=96&q=80',
-  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=96&q=80',
-  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=96&q=80',
-]
+const FAN_HELPERS = HERO_HELPERS
 
 export function LandingHero() {
   const router = useRouter()
@@ -36,7 +20,7 @@ export function LandingHero() {
 
   const neighborhoodLabel =
     neighborhood === 'all'
-      ? 'Austin'
+      ? 'Select Austin neighborhood'
       : NEIGHBORHOODS.find((n) => n.id === neighborhood)?.name ?? 'Austin'
 
   useEffect(() => {
@@ -64,231 +48,181 @@ export function LandingHero() {
     router.push(qs ? `/browse?${qs}` : '/browse')
   }
 
-  const postHref =
-    neighborhood !== 'all' ? `/post?neighborhood=${neighborhood}` : '/post'
-  const browseHref =
-    neighborhood !== 'all' ? `/browse?neighborhood=${neighborhood}` : '/browse'
-
   return (
-    <section className="relative isolate grid min-h-[max(100svh,720px)] grid-rows-[auto_1fr_auto] overflow-hidden bg-[#0C0C0E]">
-      {/* Photo + lighting layers */}
-      <div className="landing-hero-media absolute inset-0">
-        <Image
-          src="/images/beam-hero-moving-v2.jpg"
-          alt="Neighbor in a cap carrying a cardboard box through a warmly lit room"
-          fill
-          priority
-          sizes="(max-width:640px) 200vw, 100vw"
-          className="object-cover"
-          style={{ objectPosition: '72% 40%' }}
-        />
-      </div>
+    <section className="hero-sky relative isolate overflow-x-clip pb-0 pt-0">
+      <div className="hero-clouds" aria-hidden />
+      <LandingNav variant="hero" />
 
-      {/* Left blend — do not darken x > 64% */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'linear-gradient(90deg, #0C0C0E 0%, rgba(12,12,14,0.88) 32%, rgba(12,12,14,0.28) 50%, rgba(12,12,14,0) 64%)',
-        }}
-        aria-hidden
-      />
-      {/* Top-left amber cone from logo */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: [
-            'radial-gradient(70% 75% at 2% 0%, rgba(214,150,64,0.36) 0%, rgba(170,108,44,0.15) 38%, transparent 68%)',
-            'linear-gradient(118deg, rgba(240,180,100,0.11) 0%, transparent 34%)',
-          ].join(', '),
-        }}
-        aria-hidden
-      />
-      {/* Bottom-left warm glow */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(40% 30% at 8% 100%, rgba(200,130,60,0.20), transparent 70%)',
-        }}
-        aria-hidden
-      />
-      {/* Bottom trust-bar fade */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: 'linear-gradient(180deg, transparent 82%, rgba(12,12,14,0.62) 100%)',
-        }}
-        aria-hidden
-      />
+      <div className="beam-container relative z-20 flex flex-col items-center px-4 pb-8 pt-10 text-center sm:pb-10 sm:pt-14">
+        <p className="animate-fade-up inline-flex items-center gap-2 text-[13px] font-medium text-white/95">
+          <LaurelIcon />
+          <span>4.9★ Rated · Trusted across Austin neighborhoods</span>
+          <LaurelIcon mirror />
+        </p>
 
-      <LandingNav />
+        <h1 className="landing-headline animate-fade-up mt-5 max-w-[16ch]">
+          Local help in Austin, made easy.
+        </h1>
 
-      <div className="beam-container relative z-20 flex min-h-0 items-center self-stretch pt-[min(12vh,108px)]">
-        <div className="w-full max-w-[600px] animate-fade-up">
-          <p className="eyebrow text-[13px] font-medium uppercase tracking-[0.16em] text-[#D6B06C]">
-            PEER-TO-PEER HELP. LOCALLY.
-          </p>
+        <p className="animate-fade-up-delay mt-5 max-w-[46ch] text-[17px] leading-[1.55] text-white/90 sm:text-[18px]">
+          Post what you need done today and get priced offers with arrival times from vetted
+          neighbors nearby.
+        </p>
 
-          <h1
-            className="mt-[18px] font-serif text-[clamp(3.25rem,6.55vw,6rem)] font-normal leading-none tracking-[-0.022em] text-[#F6F3EE] max-md:text-[clamp(3.25rem,13.5vw,3.75rem)]"
-            style={{ fontVariationSettings: "'opsz' 72" }}
-          >
-            Help nearby.
-            <br />
-            Done today.
-          </h1>
-
-          <p className="mt-[22px] max-w-[30ch] text-[19px] font-normal leading-[1.55] text-[#B7B2AA] sm:text-[20px]">
-            From moving help to yard work to tech setup— real people. real quick. right in Austin.
-          </p>
-
-          <form onSubmit={onSearch} className="mt-9 w-full max-w-[580px]">
-            <label className="sr-only" htmlFor="hero-search">
-              What do you need help with?
-            </label>
-            <div className="flex h-16 w-full items-center rounded-2xl border border-white/[0.14] bg-[rgba(28,29,33,0.78)] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-[14px] transition focus-within:border-[#D6B06C]/65">
-              <Search className="h-[22px] w-[22px] shrink-0 text-[#9A968E]" aria-hidden />
+        <form
+          onSubmit={onSearch}
+          className="animate-fade-up-delay mt-8 w-full max-w-[760px]"
+          data-testid="hero-search-pill"
+        >
+          <div className="flex flex-col gap-2 rounded-[28px] bg-white p-2 shadow-[0_20px_50px_rgba(12,42,102,0.18)] sm:flex-row sm:items-center sm:rounded-full sm:gap-0">
+            <label className="flex min-w-0 flex-1 items-center gap-2.5 rounded-full px-4 py-3 sm:py-2.5">
+              <Search className="h-5 w-5 shrink-0 text-[#1D5CE5]" aria-hidden />
+              <span className="sr-only">What help do you need?</span>
               <input
-                id="hero-search"
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="What do you need help with?"
-                className="min-w-0 flex-1 bg-transparent px-3 text-[17px] text-[#F5F2EC] outline-none placeholder:text-[#8F8A83]"
+                placeholder="What help do you need?"
+                className="min-w-0 flex-1 bg-transparent text-[15px] text-[#071330] outline-none placeholder:text-[#94A3B8]"
               />
-              <span className="mx-3 h-7 w-px bg-white/[0.13]" aria-hidden />
-              <Link href="/post" aria-label="Post a request" className="shrink-0">
-                <Camera className="h-[22px] w-[22px] text-[#B5B0A8] transition hover:text-white" />
-              </Link>
-            </div>
-          </form>
+            </label>
 
-          <div className="landing-cta-row mt-[22px] flex flex-wrap items-center gap-4 max-sm:flex-col max-sm:items-stretch">
-            <Link href={postHref} className="cta-primary max-sm:w-full">
-              Post a request
-              <ArrowRight className="h-[18px] w-[18px]" />
-            </Link>
-            <Link href={browseHref} className="cta-ghost max-sm:w-full">
-              Browse nearby help
-              <Users className="h-5 w-5 text-[#CFCBC2]" />
-            </Link>
-          </div>
+            <span className="hidden h-8 w-px bg-slate-200 sm:block" aria-hidden />
 
-          <div className="relative mt-[18px] inline-block" ref={locRef}>
-            <button
-              type="button"
-              className="inline-flex h-[46px] items-center gap-2 rounded-[14px] border border-white/[0.14] bg-[rgba(18,19,22,0.72)] px-[18px] text-[16px] font-medium text-[#F6F3EE] transition hover:border-white/[0.25]"
-              aria-expanded={locOpen}
-              aria-haspopup="listbox"
-              onClick={() => setLocOpen((v) => !v)}
-            >
-              <MapPin className="h-[18px] w-[18px]" />
-              {neighborhoodLabel}
-              <ChevronDown className="h-4 w-4 text-[#85817A]" />
-            </button>
-            {locOpen ? (
-              <ul
-                role="listbox"
-                className="obsidian-popover absolute left-0 top-[calc(100%+8px)] z-40 max-h-64 min-w-[14rem] overflow-y-auto py-2"
+            <div className="relative min-w-0 flex-1" ref={locRef}>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2.5 rounded-full px-4 py-3 text-left sm:py-2.5"
+                aria-expanded={locOpen}
+                aria-haspopup="listbox"
+                onClick={() => setLocOpen((v) => !v)}
               >
-                <li>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={neighborhood === 'all'}
-                    className="w-full px-4 py-2.5 text-left text-[14px] text-[#F6F3EE] hover:bg-white/[0.06]"
-                    onClick={() => {
-                      setNeighborhood('all')
-                      setLocOpen(false)
-                    }}
-                  >
-                    Austin (All areas)
-                  </button>
-                </li>
-                {NEIGHBORHOODS.map((n) => (
-                  <li key={n.id}>
+                <MapPin className="h-5 w-5 shrink-0 text-[#1D5CE5]" aria-hidden />
+                <span
+                  className={`min-w-0 flex-1 truncate text-[15px] ${
+                    neighborhood === 'all' ? 'text-[#94A3B8]' : 'text-[#071330]'
+                  }`}
+                >
+                  {neighborhoodLabel}
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 text-[#94A3B8]" />
+              </button>
+              {locOpen ? (
+                <ul
+                  role="listbox"
+                  className="obsidian-popover absolute left-0 right-0 top-[calc(100%+8px)] z-40 max-h-64 overflow-y-auto py-2 sm:left-0 sm:right-auto sm:min-w-[16rem]"
+                >
+                  <li>
                     <button
                       type="button"
                       role="option"
-                      aria-selected={neighborhood === n.id}
-                      className="w-full px-4 py-2.5 text-left text-[14px] text-[#B7B2AA] hover:bg-white/[0.06] hover:text-white"
+                      aria-selected={neighborhood === 'all'}
+                      className="w-full px-4 py-2.5 text-left text-[14px] text-[#071330] hover:bg-[#F4F8FD]"
                       onClick={() => {
-                        setNeighborhood(n.id)
+                        setNeighborhood('all')
                         setLocOpen(false)
                       }}
                     >
-                      {n.name}
+                      All Austin
                     </button>
                   </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
-      {/* Trust bar */}
-      <div className="beam-container relative z-20 flex flex-col gap-5 pb-[52px] pt-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="min-w-0">
-          <p className="text-[13px] leading-snug text-[#85817A]">Built for neighbors across Austin</p>
-          <div className="mt-1.5 flex items-center gap-2.5">
-            <div className="flex items-center gap-0.5">
-              {AVATARS.map((src) => (
-                <img
-                  key={src}
-                  src={src}
-                  alt=""
-                  className="h-7 w-7 rounded-full object-cover ring-1 ring-white/20 sm:h-8 sm:w-8"
-                  loading="lazy"
-                />
-              ))}
+                  {NEIGHBORHOODS.map((n) => (
+                    <li key={n.id}>
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={neighborhood === n.id}
+                        className="w-full px-4 py-2.5 text-left text-[14px] text-[#475569] hover:bg-[#F4F8FD] hover:text-[#071330]"
+                        onClick={() => {
+                          setNeighborhood(n.id)
+                          setLocOpen(false)
+                        }}
+                      >
+                        {n.name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
-            <span className="text-[14px] text-[#B7B2AA]">8 central neighborhoods</span>
+
+            <button
+              type="submit"
+              className="h-12 shrink-0 rounded-full bg-[#1D5CE5] px-7 text-[15px] font-semibold text-white transition hover:bg-[#1649BD] sm:ml-1"
+            >
+              Find help
+            </button>
+          </div>
+        </form>
+
+        {/* 5-card fanned helper stack — 3 on mobile to avoid overflow */}
+        <div
+          className="relative mt-12 flex w-full max-w-[920px] items-end justify-center overflow-visible pb-2 pt-6 sm:mt-14 sm:pb-4"
+          data-testid="hero-fan-stack"
+        >
+          <div className="flex items-end justify-center gap-[-12px] sm:gap-0">
+            {FAN_HELPERS.map((helper, i) => {
+              const isEdge = i === 0 || i === 4
+              const isNear = i === 1 || i === 3
+              return (
+                <div
+                  key={helper.name}
+                  className={`relative shrink-0 origin-bottom transition-transform duration-500 ${
+                    isEdge ? 'hidden sm:block' : ''
+                  } ${helper.hero ? 'z-30 -mx-2 sm:-mx-3' : isNear ? 'z-20 -mx-3 sm:-mx-4' : 'z-10 -mx-4'}`}
+                  style={{ transform: `rotate(${helper.rotate}deg)` }}
+                >
+                  <div
+                    className={`overflow-hidden rounded-[26px] border-4 border-white shadow-[0_20px_40px_-12px_rgba(15,41,92,0.28)] ${
+                      helper.hero
+                        ? 'h-[220px] w-[150px] sm:h-[280px] sm:w-[190px]'
+                        : 'h-[190px] w-[130px] sm:h-[240px] sm:w-[164px]'
+                    }`}
+                  >
+                    <img
+                      src={helper.src}
+                      alt={`${helper.name} · ${helper.specialty}`}
+                      className="h-full w-full object-cover object-top"
+                      loading="eager"
+                      decoding="async"
+                    />
+                  </div>
+                  <span className="pointer-events-none absolute bottom-3 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-[#071330] shadow-sm sm:inline-flex">
+                    {helper.name} · {helper.specialty}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </div>
 
-        <div
-          data-testid="hero-trust-badges"
-          className="flex gap-7 max-lg:overflow-x-auto max-lg:pb-1 max-lg:hide-scrollbar lg:overflow-visible xl:gap-10"
-        >
-          <TrustBadge
-            icon={<Shield className="h-6 w-6 text-[#D6B06C]" strokeWidth={1.5} />}
-            title="Scoped & local"
-            body="Community safety rules"
-          />
-          <TrustBadge
-            icon={<Star className="h-6 w-6 text-[#D6B06C]" strokeWidth={1.5} />}
-            title="Fair & transparent"
-            body="No hidden fees"
-          />
-          <TrustBadge
-            icon={<Zap className="h-6 w-6 text-[#D6B06C]" strokeWidth={1.5} />}
-            title="Fast & local"
-            body="Help usually today"
-          />
-        </div>
+        <p className="mt-2 text-[13px] text-[#1A54D2]/70 sm:mt-0">
+          Or{' '}
+          <Link href="/post" className="font-semibold text-[#1649BD] underline-offset-2 hover:underline">
+            post a task
+          </Link>{' '}
+          directly — takes about a minute.
+        </p>
       </div>
     </section>
   )
 }
 
-function TrustBadge({
-  icon,
-  title,
-  body,
-}: {
-  icon: React.ReactNode
-  title: string
-  body: string
-}) {
+function LaurelIcon({ mirror = false }: { mirror?: boolean }) {
   return (
-    <div className="flex shrink-0 items-start gap-2.5">
-      <span className="mt-0.5 shrink-0">{icon}</span>
-      <div>
-        <p className="text-[14.5px] font-medium text-[#F6F3EE]">{title}</p>
-        <p className="text-[13px] text-[#85817A]">{body}</p>
-      </div>
-    </div>
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      className={mirror ? '-scale-x-100' : ''}
+      aria-hidden
+    >
+      <path
+        d="M12 20c-3-2.5-5-5.5-5-9 0-2.5 1.2-4.2 3-5.2C8.5 8 8 10.5 8.5 13c1.2-1.8 2.6-3 3.5-3.5.9.5 2.3 1.7 3.5 3.5.5-2.5 0-5-1.5-7.2 1.8 1 3 2.7 3 5.2 0 3.5-2 6.5-5 9z"
+        fill="currentColor"
+        opacity="0.9"
+      />
+    </svg>
   )
 }

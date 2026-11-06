@@ -126,7 +126,7 @@ export function MessagesThread({
           />
           <button
             type="submit"
-            className="touch-target inline-flex items-center justify-center rounded-[10px] bg-beam-amber px-3.5 text-[#FAF8F4] disabled:opacity-40"
+            className="touch-target inline-flex items-center justify-center rounded-[10px] bg-beam-amber px-3.5 text-[#071330] disabled:opacity-40"
             disabled={!body.trim() || sending}
             aria-label="Send"
           >

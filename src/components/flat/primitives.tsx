@@ -5,11 +5,11 @@ import { ArrowRight } from 'lucide-react'
 type Tone = 'base' | 'raised' | 'panel' | 'ink' | 'canvas'
 
 const toneClass: Record<Tone, string> = {
-  base: 'bg-[#0E0F12]',
-  raised: 'bg-[#16181D]',
-  panel: 'bg-[#1D2026]',
-  ink: 'bg-[#0E0F12]',
-  canvas: 'bg-[#0E0F12]',
+  base: 'bg-white',
+  raised: 'bg-white',
+  panel: 'bg-[#F4F8FD]',
+  ink: 'bg-white',
+  canvas: 'bg-[#F4F8FD]',
 }
 
 export function MetaLabel({
@@ -22,7 +22,6 @@ export function MetaLabel({
   return <p className={`flat-meta ${className}`}>{children}</p>
 }
 
-/** Elevated dark surface. */
 export function FlatSurface({
   tone = 'raised',
   className = '',
@@ -59,16 +58,16 @@ export function FlatRow({
   return (
     <Link
       href={href}
-      className={`flat-row group flex min-h-11 items-center gap-3 rounded-[12px] px-3 py-2.5 transition ${
+      className={`flat-row group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 transition ${
         active
-          ? 'bg-[rgba(221,163,82,0.14)] text-[#E7B567]'
-          : 'hover:bg-white/[0.04] text-[#F7F4EE]'
+          ? 'bg-[rgba(29,92,229,0.1)] text-[#1D5CE5]'
+          : 'text-[#071330] hover:bg-[#F4F8FD]'
       } ${className}`}
     >
       <div className="min-w-0 flex-1">{children}</div>
       {arrow ? (
         <ArrowRight
-          className="h-4 w-4 shrink-0 text-[#7E7A73] transition duration-150 group-hover:translate-x-0.5 group-hover:text-[#DDA352]"
+          className="h-4 w-4 shrink-0 text-[#94A3B8] transition duration-150 group-hover:translate-x-0.5 group-hover:text-[#1D5CE5]"
           aria-hidden
         />
       ) : null}
@@ -104,9 +103,7 @@ export function LandingSection({
   id?: string
   children: ReactNode
   className?: string
-  /** @deprecated unused — kept for call-site compatibility */
   tone?: Tone
-  /** @deprecated unused — kept for call-site compatibility */
   band?: boolean
 }) {
   return (
@@ -116,7 +113,6 @@ export function LandingSection({
   )
 }
 
-/** Dark track + amber-selected pill. */
 export function SegmentedControl({
   options,
   value,
@@ -130,7 +126,7 @@ export function SegmentedControl({
 }) {
   return (
     <div
-      className={`flex rounded-[12px] border border-white/[0.1] bg-[#121317] p-1 ${className}`}
+      className={`flex rounded-full border border-[rgba(7,19,48,0.1)] bg-[#F4F8FD] p-1 ${className}`}
       role="tablist"
     >
       {options.map((opt) => {
@@ -142,10 +138,10 @@ export function SegmentedControl({
             role="tab"
             aria-selected={selected}
             onClick={() => onChange(opt.id)}
-            className={`btn-compact flex-1 rounded-[9px] px-3 text-[13px] font-semibold capitalize transition ${
+            className={`btn-compact flex-1 rounded-full px-3 text-[13px] font-semibold capitalize transition ${
               selected
-                ? 'bg-[#1D2026] text-[#FAF8F4] shadow-[inset_0_0_0_1px_rgba(221,163,82,0.35)]'
-                : 'text-[#A7A39C] hover:text-[#F7F4EE]'
+                ? 'bg-[#1D5CE5] text-white shadow-sm'
+                : 'text-[#64748B] hover:text-[#071330]'
             }`}
           >
             {opt.label}
@@ -169,10 +165,10 @@ export function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`btn-compact h-9 shrink-0 rounded-full px-3.5 text-[13px] font-medium transition ${
+      className={`btn-compact h-9 shrink-0 rounded-full px-3.5 text-[13px] font-semibold transition ${
         active
-          ? 'bg-[#F6F3EE] text-[#0C0C0E]'
-          : 'bg-transparent text-[#B7B2AA] ring-1 ring-white/[0.14] hover:text-[#F6F3EE]'
+          ? 'bg-[#1D5CE5] text-white'
+          : 'bg-white text-[#475569] ring-1 ring-[rgba(7,19,48,0.1)] hover:text-[#071330]'
       }`}
     >
       {label}
@@ -181,10 +177,9 @@ export function FilterChip({
 }
 
 export function FlatDivider({ className = '' }: { className?: string }) {
-  return <hr className={`border-0 border-t border-white/[0.08] ${className}`} />
+  return <hr className={`border-0 border-t border-[rgba(7,19,48,0.08)] ${className}`} />
 }
 
-/** Soft elevated preview frame — no macOS traffic lights. */
 export function AppWindow({
   url = 'yariapp.com',
   children,
@@ -198,8 +193,8 @@ export function AppWindow({
 }) {
   return (
     <div className={`elevated overflow-hidden ${className}`}>
-      <div className="flex items-center justify-between gap-3 border-b border-white/[0.08] bg-[#121317] px-3.5 py-2.5">
-        <p className="truncate type-meta text-[#7E7A73]">{url}</p>
+      <div className="flex items-center justify-between gap-3 border-b border-[rgba(7,19,48,0.08)] bg-[#F4F8FD] px-3.5 py-2.5">
+        <p className="truncate type-meta text-[#94A3B8]">{url}</p>
         {toolbar}
       </div>
       {children}

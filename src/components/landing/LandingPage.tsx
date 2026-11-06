@@ -1,18 +1,20 @@
 import { LandingHero } from './LandingHero'
 import { LandingCategories } from './LandingCategories'
 import { LandingHowItWorks } from './LandingHowItWorks'
-import { LandingCoverageSafety } from './LandingCoverageSafety'
+import { LandingWhyBeam } from './LandingWhyBeam'
+import { LandingHelpers } from './LandingHelpers'
 import { LandingFooter } from './LandingFooter'
 
-/** Reference-locked 4-section landing. */
+/** Daylight Home Services marketplace landing — Dribbble shot 27708245. */
 export function LandingPage() {
   return (
-    <div className="landing-root relative min-h-dvh bg-[#0C0C0E] text-[#F6F3EE]">
+    <div className="landing-root relative min-h-dvh bg-white text-[#071330]">
       <main>
         <LandingHero />
         <LandingCategories />
         <LandingHowItWorks />
-        <LandingCoverageSafety />
+        <LandingWhyBeam />
+        <LandingHelpers />
       </main>
       <LandingFooter />
     </div>

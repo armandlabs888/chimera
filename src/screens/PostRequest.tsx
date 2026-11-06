@@ -122,15 +122,15 @@ export function PostRequest() {
                     key={c.id}
                     type="button"
                     onClick={() => setCategory(c.id)}
-                    className={`overflow-hidden rounded-2xl bg-[#141518] text-left transition ring-2 ${
-                      category === c.id ? 'ring-[#F6F3EE]' : 'ring-transparent hover:bg-[#1B1C20]'
+                    className={`overflow-hidden rounded-[26px] border border-[rgba(7,19,48,0.08)] bg-white text-left transition ring-2 ${
+                      category === c.id ? 'ring-[#1D5CE5]' : 'ring-transparent hover:bg-[#F4F8FD]'
                     }`}
                   >
                     <div className="relative h-28 bg-beam-surface-2">
                       <img src={c.image} alt="" className="h-full w-full object-cover opacity-90" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C0E]/80 via-transparent to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
                       {category === c.id ? (
-                        <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-b from-[#DCAB5A] to-[#BD8A41] text-[#FFF8EC]">
+                        <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[#1D5CE5] text-white">
                           <Check className="h-4 w-4" />
                         </span>
                       ) : null}
@@ -262,7 +262,7 @@ export function PostRequest() {
         </div>
 
         <aside className="lg:sticky lg:top-20 lg:self-start">
-          <p className="mb-3 text-[13px] text-[#85817A]">Preview</p>
+          <p className="mb-3 text-[13px] text-[#64748B]">Preview</p>
           <div className="pointer-events-none select-none" aria-hidden>
             <RequestCard
               request={
@@ -283,7 +283,7 @@ export function PostRequest() {
               }
             />
           </div>
-          <p className="mt-3 text-[13px] text-[#85817A]">
+          <p className="mt-3 text-[13px] text-[#64748B]">
             Preview updates as you edit. Nothing posts until you confirm on step 3.
           </p>
         </aside>
