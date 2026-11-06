@@ -230,23 +230,28 @@ export function LandingHero() {
 
       {/* Trust bar */}
       <div className="beam-container relative z-20 flex flex-col gap-5 pb-[52px] pt-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap items-center gap-3.5">
-          <span className="text-[14.5px] text-[#85817A]">Built for neighbors across Austin</span>
-          <div className="flex items-center gap-0.5">
-            {AVATARS.map((src) => (
-              <img
-                key={src}
-                src={src}
-                alt=""
-                className="h-8 w-8 rounded-full object-cover ring-1 ring-white/20"
-                loading="lazy"
-              />
-            ))}
+        <div className="min-w-0">
+          <p className="text-[13px] leading-snug text-[#85817A]">Built for neighbors across Austin</p>
+          <div className="mt-1.5 flex items-center gap-2.5">
+            <div className="flex items-center gap-0.5">
+              {AVATARS.map((src) => (
+                <img
+                  key={src}
+                  src={src}
+                  alt=""
+                  className="h-7 w-7 rounded-full object-cover ring-1 ring-white/20 sm:h-8 sm:w-8"
+                  loading="lazy"
+                />
+              ))}
+            </div>
+            <span className="text-[14px] text-[#B7B2AA]">8 central neighborhoods</span>
           </div>
-          <span className="text-[14.5px] text-[#B7B2AA]">8 central neighborhoods</span>
         </div>
 
-        <div className="flex gap-12 overflow-x-auto hide-scrollbar max-lg:pb-1 xl:gap-12">
+        <div
+          data-testid="hero-trust-badges"
+          className="flex gap-7 max-lg:overflow-x-auto max-lg:pb-1 max-lg:hide-scrollbar lg:overflow-visible xl:gap-10"
+        >
           <TrustBadge
             icon={<Shield className="h-6 w-6 text-[#D6B06C]" strokeWidth={1.5} />}
             title="Scoped & local"

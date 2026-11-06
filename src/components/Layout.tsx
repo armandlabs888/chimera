@@ -14,6 +14,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { BottomNav } from './BottomNav'
 import { BeamWordmark } from '@/components/BeamMark'
+import { LandingFooter } from '@/components/landing/LandingFooter'
+import { LandingNav } from '@/components/landing/LandingNav'
 import { useBeam } from '@/context/BeamContext'
 import { getNeighborhood } from '@/data/neighborhoods'
 import { Avatar } from '@/components/ui'
@@ -29,6 +31,15 @@ function shouldHideAppChrome(pathname: string) {
   return pathname === '/'
 }
 
+function isPublicGuestPath(pathname: string) {
+  return (
+    pathname === '/browse' ||
+    pathname === '/safety' ||
+    pathname.startsWith('/requests/') ||
+    pathname.startsWith('/people/')
+  )
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -41,12 +52,24 @@ export function AppShell({ children }: { children: ReactNode }) {
     return <div className="app-shell relative min-h-dvh text-[#F6F3EE]">{children}</div>
   }
 
-  // Public Safety page uses marketing chrome when logged out
-  if (pathname === '/safety' && isGuest) {
-    return <div className="app-shell relative min-h-dvh text-[#F6F3EE]">{children}</div>
+  // Logged-out public discovery: marketing chrome (no Guest sidebar / duplicate search)
+  if (isGuest && isPublicGuestPath(pathname)) {
+    // Safety already renders LandingNav + LandingFooter internally
+    if (pathname === '/safety') {
+      return <div className="app-shell relative min-h-dvh text-[#F6F3EE]">{children}</div>
+    }
+
+    return (
+      <div className="app-shell relative min-h-dvh bg-[#0C0C0E] text-[#F6F3EE]">
+        <LandingNav />
+        <main className="beam-container py-8 sm:py-12">{children}</main>
+        <LandingFooter />
+      </div>
+    )
   }
 
   const neighborhood = ready ? getNeighborhood(currentUser.neighborhood) : null
+  const showCommandSearch = pathname !== '/browse'
 
   function onSearch(e: FormEvent) {
     e.preventDefault()
@@ -121,30 +144,34 @@ export function AppShell({ children }: { children: ReactNode }) {
               <BeamWordmark markWidth={36} markHeight={16} wordClassName="text-[22px]" />
             </Link>
 
-            <form onSubmit={onSearch} className="hidden min-w-0 flex-1 md:block">
-              <label className="sr-only" htmlFor="app-command-search">
-                Search Beam
-              </label>
-              <div className="relative max-w-[480px]">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#85817A]" />
-                <input
-                  id="app-command-search"
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Search requests or skills…"
-                  className="h-11 w-full rounded-[12px] border border-white/[0.1] bg-[#141518] pl-9 pr-3 text-[14px] text-[#F6F3EE] placeholder:text-[#85817A] focus:border-[#E2B66A] focus:outline-none"
-                />
-              </div>
-            </form>
+            {showCommandSearch ? (
+              <form onSubmit={onSearch} className="hidden min-w-0 flex-1 md:block">
+                <label className="sr-only" htmlFor="app-command-search">
+                  Search Beam
+                </label>
+                <div className="relative max-w-[480px]">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#85817A]" />
+                  <input
+                    id="app-command-search"
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Search requests or skills…"
+                    className="h-11 w-full rounded-[12px] border border-white/[0.1] bg-[#141518] pl-9 pr-3 text-[14px] text-[#F6F3EE] placeholder:text-[#85817A] focus:border-[#E2B66A] focus:outline-none"
+                  />
+                </div>
+              </form>
+            ) : (
+              <div className="hidden min-w-0 flex-1 md:block" aria-hidden />
+            )}
 
             <div className="ml-auto flex items-center gap-2">
               {neighborhood ? (
-                <button
-                  type="button"
-                  className="hidden items-center rounded-[10px] px-3 py-2 text-[13px] font-medium text-[#B7B2AA] sm:inline-flex"
+                <Link
+                  href={`/browse?neighborhood=${currentUser.neighborhood}`}
+                  className="hidden items-center rounded-[10px] px-3 py-2 text-[13px] font-medium text-[#B7B2AA] transition hover:text-[#F6F3EE] sm:inline-flex"
                 >
                   {neighborhood.shortName} ▾
-                </button>
+                </Link>
               ) : null}
               {process.env.NODE_ENV !== 'production' ? (
                 <span className="hidden rounded-full border border-white/[0.1] px-2.5 py-1 text-[12px] text-[#85817A] md:inline-flex">

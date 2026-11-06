@@ -321,6 +321,37 @@ async function checkLandingBrowser() {
       'no horizontal overflow desktop',
     )
 
+    async function assertTrustBadgesUnclipped(label) {
+      const trust = await page.evaluate(() => {
+        const phrases = ['Fast & local', 'Help usually today', 'Fair & transparent', 'Scoped & local']
+        const hits = phrases.map((t) => {
+          const el = [...document.querySelectorAll('p,span')].find((n) => (n.textContent || '').trim() === t)
+          if (!el) return { t, missing: true }
+          const r = el.getBoundingClientRect()
+          return { t, missing: false, right: r.right, left: r.left }
+        })
+        const row = document.querySelector('[data-testid="hero-trust-badges"]')
+        return {
+          hits,
+          vw: innerWidth,
+          scrollOk: row ? row.scrollWidth <= row.clientWidth + 1 : false,
+          clientWidth: row?.clientWidth ?? 0,
+          scrollWidth: row?.scrollWidth ?? 0,
+        }
+      })
+      for (const h of trust.hits) {
+        assert.equal(h.missing, false, `${label}: missing trust text "${h.t}"`)
+        assert.ok(h.right <= trust.vw - 20, `${label}: "${h.t}" clips (right=${h.right}, vw=${trust.vw})`)
+      }
+      assert.equal(
+        trust.scrollOk,
+        true,
+        `${label}: trust badge row scrolls (scroll=${trust.scrollWidth} client=${trust.clientWidth})`,
+      )
+    }
+
+    await assertTrustBadgesUnclipped('1440×900')
+
     await page.locator('a[href="/browse?category=cleaning"]').first().click()
     await page.waitForURL(/\/browse\?category=cleaning/)
     console.log('ok landing category navigation')
@@ -334,9 +365,23 @@ async function checkLandingBrowser() {
       /Browse|Open requests|Welcome back|Continue with Google|Sign in/i,
       'browse reachable',
     )
-    // Should not be a bare dead-end with only a card and no nav chrome in demo;
-    // in live mode public browse shows AppShell or content.
     assert.doesNotMatch(browseBody.slice(0, 80), /^Beam\nSign in to help nearby$/m)
+    // Live guest browse: marketing chrome, no Guest sidebar / no duplicate command search
+    const browseChrome = await page.evaluate(() => ({
+      sidebar: !!document.querySelector('[data-testid="app-sidebar"]'),
+      guest: /Guest/.test(document.body.innerText),
+      landingNav: !!document.querySelector('[data-testid="landing-nav-obsidian"]'),
+      commandSearch: !!document.querySelector('#app-command-search'),
+      browseSearch: [...document.querySelectorAll('input')].filter((i) =>
+        /Search titles|Search requests/i.test(i.placeholder || ''),
+      ).length,
+    }))
+    if (browseChrome.landingNav) {
+      assert.equal(browseChrome.sidebar, false, 'guest browse has no app sidebar')
+      assert.equal(browseChrome.guest, false, 'guest browse has no Guest label')
+      assert.equal(browseChrome.commandSearch, false, 'guest browse has no command search')
+      assert.ok(browseChrome.browseSearch <= 1, `guest browse search count ${browseChrome.browseSearch}`)
+    }
 
     await page.goto(`${BASE_URL}/safety`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body')
@@ -344,6 +389,11 @@ async function checkLandingBrowser() {
     assert.match(safetyText, /Safety/i)
     assert.match(safetyText, /never holds your money|Beam never holds/i)
     assert.ok(await page.locator('a[href="/browse"], a[href="/"]').count() >= 1, 'safety has nav escape')
+    assert.equal(
+      await page.locator('[data-testid="landing-nav-obsidian"]').count(),
+      1,
+      'safety has exactly one LandingNav',
+    )
 
     for (const { width, height } of [
       { width: 375, height: 812 },
@@ -395,6 +445,9 @@ async function checkLandingBrowser() {
       assert.ok(g.heroH >= g.vh - 1, `hero fills viewport @${width}`)
       if (width === 375 || width === 390 || width >= 1280) {
         assert.equal(g.ctasInView, true, `hero CTAs in fold @${width}`)
+      }
+      if (width === 1280 || width === 1440) {
+        await assertTrustBadgesUnclipped(`${width}×${height}`)
       }
       if (width >= 1280) assert.ok(g.pageH <= 3800, `desktop height @${width}: ${g.pageH}`)
       if (width <= 390) assert.ok(g.pageH <= 6200, `mobile height @${width}: ${g.pageH}`)
