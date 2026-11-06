@@ -17,10 +17,11 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-beam-line bg-beam-base/95 backdrop-blur-sm md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 px-3 pb-3 md:hidden"
       aria-label="Primary"
+      data-testid="bottom-dock"
     >
-      <ul className="safe-bottom mx-auto grid max-w-lg grid-cols-5 px-1 pt-1">
+      <ul className="bottom-dock safe-bottom mx-auto grid max-w-lg grid-cols-5 px-1 pt-1">
         {tabs.map(({ href, label, icon: Icon, end }) => {
           const isActive = end
             ? pathname === href
@@ -29,7 +30,7 @@ export function BottomNav() {
             <li key={href}>
               <Link
                 href={href}
-                className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[8px] text-[11px] font-medium transition ${
+                className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[12px] text-[11px] font-semibold transition ${
                   isActive ? 'text-beam-amber-deep' : 'text-beam-muted hover:text-beam-cream'
                 }`}
               >

@@ -28,6 +28,10 @@ export interface Category {
   shortLabel: string
   description: string
   image: string
+  /** Soft tile background for category icon badges */
+  tintBg: string
+  /** Deep foreground for category icons / labels */
+  tintFg: string
   templates: RequestTemplate[]
 }
 

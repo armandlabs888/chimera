@@ -1,21 +1,24 @@
+import { Clock3, MessagesSquare, ShieldCheck, Sparkles, Wallet } from 'lucide-react'
+
 const CHIPS = [
-  'Six practical categories',
-  'Priced offers with arrival time',
-  'In-thread coordination',
-  'Bidirectional reviews',
-  'Payments arranged peer-to-peer (not held by Beam)',
+  { label: 'Six practical categories', icon: Sparkles },
+  { label: 'Priced offers + arrival', icon: Clock3 },
+  { label: 'In-thread coordination', icon: MessagesSquare },
+  { label: 'Bidirectional reviews', icon: ShieldCheck },
+  { label: 'Peer-to-peer payments', icon: Wallet },
 ]
 
 export function LandingTrustStrip() {
   return (
-    <section className="border-b border-beam-line bg-beam-surface-2 py-4" aria-label="What Beam includes">
+    <section className="border-b border-black/[0.05] bg-white py-4" aria-label="What Beam includes">
       <div className="section-inner flex flex-wrap items-center gap-2">
-        {CHIPS.map((chip) => (
+        {CHIPS.map(({ label, icon: Icon }) => (
           <span
-            key={chip}
-            className="inline-flex items-center rounded-full border border-beam-line bg-beam-base px-3 py-1.5 type-sec text-beam-cream-dim"
+            key={label}
+            className="inline-flex items-center gap-2 rounded-full bg-beam-canvas px-3 py-1.5 type-sec font-medium text-beam-cream-dim shadow-[0_0_0_1px_rgba(15,23,42,0.06)]"
           >
-            {chip}
+            <Icon className="h-3.5 w-3.5 text-beam-amber-deep" strokeWidth={2} />
+            {label}
           </span>
         ))}
       </div>

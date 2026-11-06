@@ -11,4 +11,5 @@ export {
   Avatar,
   Money,
   StatusPill,
+  CategoryIconBadge,
 } from './display'

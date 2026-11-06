@@ -357,7 +357,7 @@ export function AuthExperience({
 
 function Shell({ children, compact }: { children: React.ReactNode; compact?: boolean }) {
   return (
-    <div className="min-h-dvh bg-beam-base text-beam-cream">
+    <div className="min-h-dvh canvas-dotfield text-beam-cream">
       <div
         className={`mx-auto grid min-h-dvh max-w-[72rem] items-center gap-8 px-4 py-10 sm:px-6 ${
           compact ? 'max-w-md' : 'lg:grid-cols-2 lg:gap-12'
@@ -371,7 +371,7 @@ function Shell({ children, compact }: { children: React.ReactNode; compact?: boo
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="w-full max-w-md justify-self-center rounded-[14px] border border-beam-line bg-white p-6 shadow-sm sm:p-8 lg:justify-self-end">
+    <div className="elevated-md w-full max-w-md justify-self-center bg-white/95 p-6 backdrop-blur-sm sm:p-8 lg:justify-self-end">
       {children}
     </div>
   )
@@ -392,7 +392,15 @@ function BrandLink() {
 function AsidePanel() {
   return (
     <aside className="hidden max-w-md justify-self-start lg:block">
-      <div className="overflow-hidden rounded-[14px] border border-beam-line bg-beam-ink">
+      <div className="window-chrome">
+        <div className="window-chrome-bar">
+          <div className="traffic-lights" aria-hidden>
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="window-url">yariapp.com · Example</div>
+        </div>
         <Image
           src="/images/beam-hero-gig-work.jpg"
           alt="Neighbors helping with a bookshelf and boxed armchair in a sunlit living room"

@@ -262,38 +262,50 @@ export function PostRequest() {
         </div>
 
         <aside className="lg:sticky lg:top-20 lg:self-start">
-          <div className="product-frame p-4">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <p className="type-meta text-beam-muted">Live request preview</p>
-              <Badge tone="outline">How neighbors see it</Badge>
+          <div className="window-chrome">
+            <div className="window-chrome-bar">
+              <div className="traffic-lights" aria-hidden>
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className="window-url">yariapp.com/browse · preview</div>
             </div>
-            <div className="overflow-hidden rounded-[12px] border border-beam-line bg-beam-base">
-              <div className="relative h-28 bg-beam-surface-2">
-                <img src={cat.image} alt="" className="h-full w-full object-cover opacity-85" />
-                <div className="absolute left-2.5 top-2.5 flex gap-1.5">
-                  <Badge tone="brand">{cat.shortLabel}</Badge>
-                  <Badge tone="live">Open</Badge>
+            <div className="p-4">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <p className="type-meta text-beam-muted">Live request preview</p>
+                <Badge tone="outline">How neighbors see it</Badge>
+              </div>
+              <div className="overflow-hidden rounded-[12px] bg-beam-canvas shadow-[0_0_0_1px_rgba(15,23,42,0.06)]">
+                <div className="relative h-28">
+                  <img src={cat.image} alt="" className="h-full w-full object-cover opacity-90" />
+                  <div className="absolute left-2.5 top-2.5 flex gap-1.5">
+                    <Badge tone="brand">{cat.shortLabel}</Badge>
+                    <Badge tone="live">Open</Badge>
+                  </div>
+                </div>
+                <div className="space-y-2 bg-white p-4">
+                  <h3 className="type-intro font-semibold text-beam-cream">
+                    {title.trim() || 'Your request title'}
+                  </h3>
+                  <p className="line-clamp-3 type-sec text-beam-muted">
+                    {details.trim() || 'Details helpers will read before offering a price…'}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-beam-surface-2 px-2 py-0.5 type-meta">
+                      {getNeighborhood(neighborhood).shortName}
+                    </span>
+                    <span className="rounded-full bg-beam-surface-2 px-2 py-0.5 type-meta">
+                      {whenLabel(when)}
+                    </span>
+                    <span className="price-pill ml-auto">${budget || 0}</span>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2 p-4">
-                <h3 className="type-intro font-semibold text-beam-cream">
-                  {title.trim() || 'Your request title'}
-                </h3>
-                <p className="line-clamp-3 type-sec text-beam-muted">
-                  {details.trim() || 'Details helpers will read before offering a price…'}
-                </p>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 type-meta text-beam-cream-dim">
-                  <span>{getNeighborhood(neighborhood).shortName}</span>
-                  <span>{whenLabel(when)}</span>
-                  <span className="ml-auto tabular-nums text-[15px] font-semibold text-beam-cream">
-                    ${budget || 0}
-                  </span>
-                </div>
-              </div>
+              <p className="mt-3 type-sec text-beam-muted">
+                Preview updates as you edit. Nothing posts until you confirm on step 3.
+              </p>
             </div>
-            <p className="mt-3 type-sec text-beam-muted">
-              Preview updates as you edit. Nothing posts until you confirm on step 3.
-            </p>
           </div>
         </aside>
       </div>
