@@ -2,24 +2,35 @@
 
 import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
-
-const NAV_LINKS = [
-  { href: '/browse', label: 'Services' },
-  { href: '/#how-it-works', label: 'How it works' },
-  { href: '/#neighborhoods', label: 'Neighborhoods' },
-  { href: '/auth?mode=signup&role=helper', label: 'Become a helper' },
-]
+import { useBeam } from '@/context/BeamContext'
 
 export function LandingNav({
   variant = 'hero',
 }: {
   variant?: 'hero' | 'light'
 }) {
+  const { authUser, mode } = useBeam()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const light = variant === 'light' || scrolled
+  const canOnboardHelper = Boolean(authUser) || mode === 'demo'
+
+  const navLinks = useMemo(
+    () => [
+      { href: '/browse', label: 'Services' },
+      { href: '/#how-it-works', label: 'How it works' },
+      { href: '/#neighborhoods', label: 'Neighborhoods' },
+      {
+        href: canOnboardHelper
+          ? '/onboarding/helper'
+          : '/auth?mode=signup&next=%2Fonboarding%2Fhelper',
+        label: 'Become a helper',
+      },
+    ],
+    [canOnboardHelper],
+  )
 
   useEffect(() => {
     if (variant === 'light') return
@@ -71,7 +82,7 @@ export function LandingNav({
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Marketing">
-          {NAV_LINKS.map((l) =>
+          {navLinks.map((l) =>
             l.href.startsWith('/#') ? (
               <a key={l.href} href={l.href} className={linkClass}>
                 {l.label}
@@ -113,7 +124,7 @@ export function LandingNav({
           data-testid="landing-mobile-menu"
         >
           <div className="flex flex-col py-2">
-            {NAV_LINKS.map((l) =>
+            {navLinks.map((l) =>
               l.href.startsWith('/#') ? (
                 <a
                   key={l.href}

@@ -23,25 +23,53 @@ import {
   createLiveRequest,
   ensureLiveThread,
   ensureProfile,
+  inviteLiveHelper,
   loadLiveState,
+  loadPublicLiveMarketplace,
+  markAllLiveNotificationsRead,
+  markLiveNotificationRead,
   sendLiveMessage,
   submitLiveReview,
+  toggleLiveSavedHelper,
   updateLiveProfile,
   BeamBackendError,
+  type CreateRequestInput,
 } from '@/lib/beam/liveRepository'
 import { createClient } from '@/lib/supabase/client'
 import { profileSeedFromUser } from '@/lib/auth/profileSeed'
 import type {
   AppState,
   AvailabilitySlot,
+  BeamNotification,
+  BudgetType,
   CategoryId,
   HelpRequest,
   NeighborhoodId,
   Offer,
   Person,
+  RequestInvite,
   Review,
   WhenOption,
 } from '@/types'
+
+export type PostRequestInput = {
+  title: string
+  details: string
+  category: CategoryId
+  neighborhood?: NeighborhoodId | ''
+  when: WhenOption
+  whenLabel?: string
+  budget: number
+  locationLabel?: string
+  lat?: number | null
+  lng?: number | null
+  radiusMiles?: number
+  exactAddress?: string
+  budgetType?: BudgetType
+  scheduledFor?: string | null
+  preferredHelperId?: string | null
+  image?: string
+}
 
 interface BeamContextValue {
   mode: BeamMode
@@ -56,7 +84,11 @@ interface BeamContextValue {
     email: string,
     password: string,
     name: string,
-    options?: { neighborhood?: NeighborhoodId; emailRedirectTo?: string },
+    options?: {
+      neighborhood?: NeighborhoodId | ''
+      locationLabel?: string
+      emailRedirectTo?: string
+    },
   ) => Promise<{ needsEmailConfirmation: boolean }>
   signInWithGoogle: (redirectTo: string) => Promise<void>
   resendSignupConfirmation: (email: string) => Promise<void>
@@ -64,15 +96,9 @@ interface BeamContextValue {
   clearBackendError: () => void
   resetDemo: () => void
   updateProfile: (patch: Partial<Person>) => void
-  createRequest: (input: {
-    title: string
-    details: string
-    category: CategoryId
-    neighborhood: NeighborhoodId
-    when: WhenOption
-    whenLabel?: string
-    budget: number
-  }) => HelpRequest | Promise<HelpRequest>
+  /** @deprecated Prefer postRequest */
+  createRequest: (input: PostRequestInput) => HelpRequest | Promise<HelpRequest>
+  postRequest: (input: PostRequestInput) => HelpRequest | Promise<HelpRequest>
   createOffer: (input: {
     requestId: string
     price: number
@@ -93,6 +119,14 @@ interface BeamContextValue {
     body: string,
     opts?: { simulateReply?: boolean },
   ) => void | Promise<void>
+  inviteHelper: (
+    requestId: string,
+    helperId: string,
+    note?: string,
+  ) => Promise<{ invite: RequestInvite; threadId: string }>
+  toggleSavedHelper: (helperId: string) => void | Promise<void>
+  markNotificationRead: (notificationId: string) => void | Promise<void>
+  markAllNotificationsRead: () => void | Promise<void>
   getPerson: (id: string) => Person | undefined
   getRequest: (id: string) => HelpRequest | undefined
 }
@@ -124,6 +158,9 @@ function emptyLiveState(userId: string): AppState {
     threads: [],
     messages: [],
     reviews: [],
+    invites: [],
+    savedHelperIds: [],
+    notifications: [],
   }
 }
 
@@ -133,13 +170,15 @@ function guestStubPerson(): Person {
     name: 'Guest',
     avatar: '',
     bio: '',
-    neighborhood: 'east-austin',
+    neighborhood: '',
     skills: [],
     hourlyRate: 0,
     availability: [],
     rating: 0,
     reviewCount: 0,
     jobsCompleted: 0,
+    locationLabel: '',
+    isHelper: false,
   }
 }
 
@@ -180,6 +219,12 @@ export function BeamProvider({
     setState(next)
   }, [])
 
+  const refreshPublic = useCallback(async () => {
+    const client = createClient()
+    const next = await loadPublicLiveMarketplace(client)
+    setState(next)
+  }, [])
+
   useEffect(() => {
     let cancelled = false
 
@@ -207,7 +252,9 @@ export function BeamProvider({
         const session = data.session
         setAuthUser(session?.user ?? null)
         if (!session?.user) {
-          setState(null)
+          // CRITICAL: hydrate sanitized public marketplace for signed-out guests
+          const publicState = await loadPublicLiveMarketplace(client)
+          if (!cancelled) setState(publicState)
           return
         }
 
@@ -217,7 +264,6 @@ export function BeamProvider({
       } catch (err) {
         if (!cancelled) {
           setBackendError(err instanceof Error ? err.message : 'Failed to start Beam backend')
-          // Live/config errors must not fall back to localStorage.
           setState(null)
         }
       } finally {
@@ -227,16 +273,18 @@ export function BeamProvider({
 
     void boot()
 
-    if (mode !== 'live') return () => {
-      cancelled = true
-    }
+    if (mode !== 'live')
+      return () => {
+        cancelled = true
+      }
 
     const client = createClient()
     const { data: sub } = client.auth.onAuthStateChange(async (_event, session: Session | null) => {
       try {
         setAuthUser(session?.user ?? null)
         if (!session?.user) {
-          setState(null)
+          const publicState = await loadPublicLiveMarketplace(client)
+          setState(publicState)
           return
         }
         await ensureProfile(client, session.user.id, profileSeedFromUser(session.user))
@@ -267,37 +315,47 @@ export function BeamProvider({
     return user
   }, [state])
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    const client = createClient()
-    const { error } = await client.auth.signInWithPassword({ email, password })
-    if (error) reportError(error, 'Sign in failed')
-  }, [reportError])
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      const client = createClient()
+      const { error } = await client.auth.signInWithPassword({ email, password })
+      if (error) reportError(error, 'Sign in failed')
+    },
+    [reportError],
+  )
 
   const signUp = useCallback(
     async (
       email: string,
       password: string,
       name: string,
-      options?: { neighborhood?: NeighborhoodId; emailRedirectTo?: string },
+      options?: {
+        neighborhood?: NeighborhoodId | ''
+        locationLabel?: string
+        emailRedirectTo?: string
+      },
     ) => {
       const client = createClient()
-      const neighborhood = options?.neighborhood ?? 'east-austin'
+      const locationLabel = options?.locationLabel?.trim() || ''
+      const neighborhood = options?.neighborhood || ''
       const { data, error } = await client.auth.signUp({
         email,
         password,
         options: {
-          data: { name, neighborhood },
+          data: {
+            name,
+            location_label: locationLabel,
+            ...(neighborhood ? { neighborhood } : {}),
+          },
           emailRedirectTo: options?.emailRedirectTo,
         },
       })
       if (error) reportError(error, 'Sign up failed')
-      // Without autoconfirm, session is null — calling ensureProfile would fail RLS (auth.uid() null).
-      // The DB trigger creates the profile; client ensureProfile only when a session exists.
       if (data.session?.user) {
         await ensureProfile(
           client,
           data.session.user.id,
-          profileSeedFromUser(data.session.user, { name, neighborhood }),
+          profileSeedFromUser(data.session.user, { name, neighborhood, locationLabel }),
         )
       }
       return { needsEmailConfirmation: !data.session }
@@ -330,9 +388,17 @@ export function BeamProvider({
     const client = createClient()
     const { error } = await client.auth.signOut()
     if (error) reportError(error, 'Sign out failed')
-    setState(null)
     setAuthUser(null)
-  }, [reportError])
+    if (mode === 'live') {
+      try {
+        await refreshPublic()
+      } catch {
+        setState(emptyLiveState('anonymous'))
+      }
+    } else {
+      setState(null)
+    }
+  }, [mode, refreshPublic, reportError])
 
   const resetDemo = useCallback(() => {
     if (mode !== 'demo') {
@@ -360,33 +426,53 @@ export function BeamProvider({
       withState(setState, (prev) => ({
         ...prev,
         people: prev.people.map((p) =>
-          p.id === prev.currentUserId ? { ...p, ...patch, id: p.id, isCurrentUser: true } : p,
+          p.id === prev.currentUserId
+            ? {
+                ...p,
+                ...patch,
+                id: p.id,
+                isCurrentUser: true,
+                isHelper:
+                  patch.isHelper ??
+                  (patch.skills !== undefined ? patch.skills.length > 0 : p.isHelper),
+              }
+            : p,
         ),
       }))
     },
     [authUser, mode, refreshLive, reportError],
   )
 
-  const createRequest = useCallback(
-    (input: {
-      title: string
-      details: string
-      category: CategoryId
-      neighborhood: NeighborhoodId
-      when: WhenOption
-      whenLabel?: string
-      budget: number
-    }) => {
+  const postRequest = useCallback(
+    (input: PostRequestInput) => {
+      const budgetType = input.budgetType ?? (input.budget === 0 ? 'open' : 'fixed')
+      const image = input.image || getCategory(input.category).image
+      const label = input.whenLabel ?? whenLabel(input.when)
+
       if (mode === 'live') {
         return (async () => {
           try {
             if (!authUser) throw new Error('Not signed in')
             const client = createClient()
-            const created = await createLiveRequest(client, authUser.id, {
-              ...input,
-              whenLabel: input.whenLabel ?? whenLabel(input.when),
-              image: getCategory(input.category).image,
-            })
+            const payload: CreateRequestInput = {
+              title: input.title,
+              details: input.details,
+              category: input.category,
+              neighborhood: input.neighborhood ?? '',
+              when: input.when,
+              whenLabel: label,
+              budget: budgetType === 'open' ? 0 : input.budget,
+              image,
+              locationLabel: input.locationLabel,
+              lat: input.lat,
+              lng: input.lng,
+              radiusMiles: input.radiusMiles,
+              exactAddress: input.exactAddress,
+              budgetType,
+              scheduledFor: input.scheduledFor,
+              preferredHelperId: input.preferredHelperId,
+            }
+            const created = await createLiveRequest(client, authUser.id, payload)
             await refreshLive(authUser.id)
             return created
           } catch (err) {
@@ -403,21 +489,83 @@ export function BeamProvider({
           title: input.title.trim(),
           details: input.details.trim(),
           category: input.category,
-          neighborhood: input.neighborhood,
+          neighborhood: input.neighborhood ?? '',
           when: input.when,
-          whenLabel: input.whenLabel ?? whenLabel(input.when),
-          budget: input.budget,
+          whenLabel: label,
+          budget: budgetType === 'open' ? 0 : input.budget,
+          budgetType,
           status: 'open',
           requesterId: prev.currentUserId,
-          image: getCategory(input.category).image,
+          image,
           createdAt: new Date().toISOString(),
+          locationLabel: input.locationLabel?.trim() || '',
+          exactAddress: input.exactAddress?.trim() || undefined,
+          lat: input.lat ?? null,
+          lng: input.lng ?? null,
+          radiusMiles: input.radiusMiles ?? 5,
+          scheduledFor: input.scheduledFor ?? null,
+          preferredHelperId: input.preferredHelperId ?? null,
         }
-        return { ...prev, requests: [created, ...prev.requests] }
+        let next: AppState = { ...prev, requests: [created, ...prev.requests] }
+        if (input.preferredHelperId) {
+          const invite: RequestInvite = {
+            id: uid('inv'),
+            requestId: created.id,
+            requesterId: prev.currentUserId,
+            helperId: input.preferredHelperId,
+            note: '',
+            status: 'pending',
+            createdAt: new Date().toISOString(),
+          }
+          const threadId = uid('th')
+          const msgBody = `Hi! I just posted "${created.title}" and would love your help if you are available.`
+          next = {
+            ...next,
+            invites: [invite, ...next.invites],
+            threads: [
+              {
+                id: threadId,
+                requestId: created.id,
+                participantIds: [prev.currentUserId, input.preferredHelperId],
+                lastMessageAt: invite.createdAt,
+              },
+              ...next.threads,
+            ],
+            messages: [
+              ...next.messages,
+              {
+                id: uid('msg'),
+                threadId,
+                requestId: created.id,
+                senderId: prev.currentUserId,
+                body: msgBody,
+                createdAt: invite.createdAt,
+              },
+            ],
+            notifications: [
+              {
+                id: uid('notif'),
+                userId: input.preferredHelperId,
+                kind: 'invite',
+                title: `${prev.people.find((p) => p.id === prev.currentUserId)?.name ?? 'A neighbor'} invited you to help`,
+                body: created.title,
+                href: `/requests/${created.id}`,
+                requestId: created.id,
+                readAt: null,
+                createdAt: invite.createdAt,
+              },
+              ...next.notifications,
+            ],
+          }
+        }
+        return next
       })
       return created
     },
     [authUser, mode, refreshLive, reportError],
   )
+
+  const createRequest = postRequest
 
   const createOffer = useCallback(
     (input: { requestId: string; price: number; note: string; eta: string }) => {
@@ -451,7 +599,25 @@ export function BeamProvider({
         const withoutMine = prev.offers.filter(
           (o) => !(o.requestId === input.requestId && o.helperId === prev.currentUserId),
         )
-        return { ...prev, offers: [full, ...withoutMine] }
+        const req = prev.requests.find((r) => r.id === input.requestId)
+        const notif: BeamNotification | null = req
+          ? {
+              id: uid('notif'),
+              userId: req.requesterId,
+              kind: 'new_offer',
+              title: 'New offer received',
+              body: `$${full.price} · ${full.eta}`,
+              href: `/requests/${req.id}`,
+              requestId: req.id,
+              readAt: null,
+              createdAt: full.createdAt,
+            }
+          : null
+        return {
+          ...prev,
+          offers: [full, ...withoutMine],
+          notifications: notif ? [notif, ...prev.notifications] : prev.notifications,
+        }
       })
       return offer
     },
@@ -523,12 +689,24 @@ export function BeamProvider({
           body: `Offer accepted at $${offer.price}. Let’s coordinate timing here.`,
           createdAt: new Date().toISOString(),
         }
+        const notif: BeamNotification = {
+          id: uid('notif'),
+          userId: offer.helperId,
+          kind: 'offer_accepted',
+          title: 'Your offer was accepted',
+          body: `$${offer.price} · ${offer.eta}`,
+          href: `/requests/${offer.requestId}`,
+          requestId: offer.requestId,
+          readAt: null,
+          createdAt: systemMsg.createdAt,
+        }
         return {
           ...prev,
           offers,
           requests,
           threads,
           messages: [...prev.messages, systemMsg],
+          notifications: [notif, ...prev.notifications],
         }
       })
     },
@@ -549,12 +727,32 @@ export function BeamProvider({
           }
         })()
       }
-      withState(setState, (prev) => ({
-        ...prev,
-        requests: prev.requests.map((r) =>
-          r.id === requestId ? { ...r, status: 'completed' as const } : r,
-        ),
-      }))
+      withState(setState, (prev) => {
+        const req = prev.requests.find((r) => r.id === requestId)
+        const otherId =
+          req?.helperId === prev.currentUserId ? req.requesterId : req?.helperId
+        const notif: BeamNotification | null =
+          otherId
+            ? {
+                id: uid('notif'),
+                userId: otherId,
+                kind: 'job_completed',
+                title: 'Job marked complete',
+                body: req?.title ?? 'A job was completed',
+                href: `/requests/${requestId}`,
+                requestId,
+                readAt: null,
+                createdAt: new Date().toISOString(),
+              }
+            : null
+        return {
+          ...prev,
+          requests: prev.requests.map((r) =>
+            r.id === requestId ? { ...r, status: 'completed' as const } : r,
+          ),
+          notifications: notif ? [notif, ...prev.notifications] : prev.notifications,
+        }
+      })
     },
     [authUser, mode, refreshLive, reportError],
   )
@@ -598,7 +796,23 @@ export function BeamProvider({
             jobsCompleted: p.jobsCompleted + (p.id !== prev.currentUserId ? 1 : 0),
           }
         })
-        return { ...prev, reviews: [full, ...prev.reviews], people }
+        const notif: BeamNotification = {
+          id: uid('notif'),
+          userId: input.toId,
+          kind: 'new_review',
+          title: 'You received a review',
+          body: `${input.rating}★ · ${input.comment.trim().slice(0, 80)}`,
+          href: `/requests/${input.requestId}`,
+          requestId: input.requestId,
+          readAt: null,
+          createdAt: full.createdAt,
+        }
+        return {
+          ...prev,
+          reviews: [full, ...prev.reviews],
+          people,
+          notifications: [notif, ...prev.notifications],
+        }
       })
       return review
     },
@@ -687,12 +901,27 @@ export function BeamProvider({
           body: trimmed,
           createdAt: new Date().toISOString(),
         }
+        const otherId = thread.participantIds.find((id) => id !== prev.currentUserId)
+        const notif: BeamNotification | null = otherId
+          ? {
+              id: uid('notif'),
+              userId: otherId,
+              kind: 'new_message',
+              title: 'New message',
+              body: trimmed.slice(0, 100),
+              href: `/messages/${threadId}`,
+              requestId: thread.requestId,
+              readAt: null,
+              createdAt: msg.createdAt,
+            }
+          : null
         return {
           ...prev,
           messages: [...prev.messages, msg],
           threads: prev.threads.map((t) =>
             t.id === threadId ? { ...t, lastMessageAt: msg.createdAt } : t,
           ),
+          notifications: notif ? [notif, ...prev.notifications] : prev.notifications,
         }
       })
 
@@ -726,6 +955,202 @@ export function BeamProvider({
     [authUser, mode, refreshLive, reportError],
   )
 
+  const inviteHelper = useCallback(
+    async (requestId: string, helperId: string, note = '') => {
+      if (mode === 'live') {
+        try {
+          if (!authUser) throw new Error('Not signed in')
+          const client = createClient()
+          const invite = await inviteLiveHelper(client, requestId, helperId, note)
+          await refreshLive(authUser.id)
+          const thread = stateRef.current?.threads.find(
+            (t) =>
+              t.requestId === requestId &&
+              t.participantIds.includes(helperId) &&
+              t.participantIds.includes(authUser.id),
+          )
+          return { invite, threadId: thread?.id ?? '' }
+        } catch (err) {
+          reportError(err, 'Invite helper failed')
+          throw err
+        }
+      }
+
+      const createdAt = new Date().toISOString()
+      let invite!: RequestInvite
+      let threadId = ''
+      withState(setState, (prev) => {
+        const existing = prev.invites.find(
+          (i) => i.requestId === requestId && i.helperId === helperId,
+        )
+        invite =
+          existing ??
+          ({
+            id: uid('inv'),
+            requestId,
+            requesterId: prev.currentUserId,
+            helperId,
+            note: note.trim(),
+            status: 'pending',
+            createdAt,
+          } satisfies RequestInvite)
+
+        const existingThread = prev.threads.find(
+          (t) =>
+            t.requestId === requestId &&
+            t.participantIds.includes(prev.currentUserId) &&
+            t.participantIds.includes(helperId),
+        )
+        threadId = existingThread?.id ?? uid('th')
+        const req = prev.requests.find((r) => r.id === requestId)
+        const msgBody =
+          note.trim() ||
+          `Hi! I just posted "${req?.title ?? 'a task'}" and would love your help if you are available.`
+
+        let threads = prev.threads
+        let messages = prev.messages
+        if (!existingThread) {
+          threads = [
+            {
+              id: threadId,
+              requestId,
+              participantIds: [prev.currentUserId, helperId],
+              lastMessageAt: createdAt,
+            },
+            ...threads,
+          ]
+        }
+        messages = [
+          ...messages,
+          {
+            id: uid('msg'),
+            threadId,
+            requestId,
+            senderId: prev.currentUserId,
+            body: msgBody,
+            createdAt,
+          },
+        ]
+
+        // Simulated helper reply
+        window.setTimeout(() => {
+          withState(setState, (s) => ({
+            ...s,
+            messages: [
+              ...s.messages,
+              {
+                id: uid('msg'),
+                threadId,
+                requestId,
+                senderId: helperId,
+                body: 'Thanks for the invite — I’ll take a look and send an offer shortly!',
+                createdAt: new Date().toISOString(),
+                isSimulated: true,
+              },
+            ],
+          }))
+        }, 1600)
+
+        const me = prev.people.find((p) => p.id === prev.currentUserId)
+        const notif: BeamNotification = {
+          id: uid('notif'),
+          userId: helperId,
+          kind: 'invite',
+          title: `${me?.name ?? 'A neighbor'} invited you to help`,
+          body: req?.title ?? 'New invite',
+          href: `/requests/${requestId}`,
+          requestId,
+          readAt: null,
+          createdAt,
+        }
+
+        return {
+          ...prev,
+          invites: existing ? prev.invites : [invite, ...prev.invites],
+          threads,
+          messages,
+          notifications: [notif, ...prev.notifications],
+        }
+      })
+      return { invite, threadId }
+    },
+    [authUser, mode, refreshLive, reportError],
+  )
+
+  const toggleSavedHelper = useCallback(
+    (helperId: string) => {
+      if (mode === 'live') {
+        return (async () => {
+          try {
+            if (!authUser) throw new Error('Not signed in')
+            const client = createClient()
+            const currentlySaved = Boolean(
+              stateRef.current?.savedHelperIds.includes(helperId),
+            )
+            await toggleLiveSavedHelper(client, authUser.id, helperId, currentlySaved)
+            await refreshLive(authUser.id)
+          } catch (err) {
+            reportError(err, 'Toggle saved helper failed')
+          }
+        })()
+      }
+      withState(setState, (prev) => {
+        const saved = prev.savedHelperIds.includes(helperId)
+        return {
+          ...prev,
+          savedHelperIds: saved
+            ? prev.savedHelperIds.filter((id) => id !== helperId)
+            : [...prev.savedHelperIds, helperId],
+        }
+      })
+    },
+    [authUser, mode, refreshLive, reportError],
+  )
+
+  const markNotificationRead = useCallback(
+    (notificationId: string) => {
+      if (mode === 'live') {
+        return (async () => {
+          try {
+            if (!authUser) throw new Error('Not signed in')
+            const client = createClient()
+            await markLiveNotificationRead(client, notificationId)
+            await refreshLive(authUser.id)
+          } catch (err) {
+            reportError(err, 'Mark notification read failed')
+          }
+        })()
+      }
+      withState(setState, (prev) => ({
+        ...prev,
+        notifications: prev.notifications.map((n) =>
+          n.id === notificationId ? { ...n, readAt: n.readAt ?? new Date().toISOString() } : n,
+        ),
+      }))
+    },
+    [authUser, mode, refreshLive, reportError],
+  )
+
+  const markAllNotificationsRead = useCallback(() => {
+    if (mode === 'live') {
+      return (async () => {
+        try {
+          if (!authUser) throw new Error('Not signed in')
+          const client = createClient()
+          await markAllLiveNotificationsRead(client)
+          await refreshLive(authUser.id)
+        } catch (err) {
+          reportError(err, 'Mark all notifications read failed')
+        }
+      })()
+    }
+    const now = new Date().toISOString()
+    withState(setState, (prev) => ({
+      ...prev,
+      notifications: prev.notifications.map((n) => ({ ...n, readAt: n.readAt ?? now })),
+    }))
+  }, [authUser, mode, refreshLive, reportError])
+
   const getPerson = useCallback(
     (id: string) => state?.people.find((p) => p.id === id),
     [state?.people],
@@ -737,6 +1162,31 @@ export function BeamProvider({
 
   const ready = !booting
 
+  const sharedActions = {
+    signIn,
+    signUp,
+    signInWithGoogle,
+    resendSignupConfirmation,
+    signOut,
+    clearBackendError: () => setBackendError(null),
+    resetDemo,
+    updateProfile,
+    createRequest,
+    postRequest,
+    createOffer,
+    acceptOffer,
+    markComplete,
+    addReview,
+    ensureThread,
+    sendMessage,
+    inviteHelper,
+    toggleSavedHelper,
+    markNotificationRead,
+    markAllNotificationsRead,
+    getPerson,
+    getRequest,
+  }
+
   if (booting) {
     if (nonBlocking) {
       const provisional: BeamContextValue = {
@@ -747,28 +1197,12 @@ export function BeamProvider({
         state: emptyLiveState('anonymous'),
         currentUser: guestStubPerson(),
         refresh: noopAsync,
-        signIn,
-        signUp,
-        signInWithGoogle,
-        resendSignupConfirmation,
-        signOut,
-        clearBackendError: () => setBackendError(null),
-        resetDemo,
-        updateProfile,
-        createRequest,
-        createOffer,
-        acceptOffer,
-        markComplete,
-        addReview,
-        ensureThread,
-        sendMessage,
-        getPerson,
-        getRequest,
+        ...sharedActions,
       }
       return <BeamContext.Provider value={provisional}>{children}</BeamContext.Provider>
     }
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-beam-base text-beam-cream">
+      <div className="flex min-h-dvh items-center justify-center bg-[#F4F8FD] text-[#071330]">
         <p className="text-[22px] font-semibold tracking-tight text-[#071330]" aria-busy="true">
           Beam
         </p>
@@ -778,9 +1212,9 @@ export function BeamProvider({
 
   if (mode === 'unconfigured') {
     return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-4 text-beam-cream">
+      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-4 text-[#071330]">
         <h1 className="type-h2 text-[#071330]">Beam needs configuration</h1>
-        <p className="text-sm text-beam-muted">
+        <p className="text-sm text-[#64748B]">
           {backendError ||
             'Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, or enable local demo with NEXT_PUBLIC_BEAM_DEMO_MODE=1.'}
         </p>
@@ -796,26 +1230,10 @@ export function BeamProvider({
           ready,
           authUser,
           backendError,
-          state: emptyLiveState('anonymous'),
+          state: state ?? emptyLiveState('anonymous'),
           currentUser: guestStubPerson(),
-          refresh: async () => undefined,
-          signIn,
-          signUp,
-          signInWithGoogle,
-          resendSignupConfirmation,
-          signOut,
-          clearBackendError: () => setBackendError(null),
-          resetDemo,
-          updateProfile,
-          createRequest,
-          createOffer,
-          acceptOffer,
-          markComplete,
-          addReview,
-          ensureThread,
-          sendMessage,
-          getPerson,
-          getRequest,
+          refresh: refreshPublic,
+          ...sharedActions,
         }}
       >
         {children}
@@ -825,12 +1243,12 @@ export function BeamProvider({
 
   if (!state || !currentUser) {
     return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-4 text-beam-cream">
+      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-4 text-[#071330]">
         <h1 className="type-h2 text-[#071330]">Beam backend error</h1>
-        <p className="text-sm text-beam-muted">
+        <p className="text-sm text-[#64748B]">
           {backendError || 'Could not load your Beam session from Supabase.'}
         </p>
-        <p className="text-xs text-beam-muted">
+        <p className="text-xs text-[#64748B]">
           Live mode does not fall back to localStorage. Fix the backend error or use explicit demo
           mode.
         </p>
@@ -848,23 +1266,7 @@ export function BeamProvider({
     refresh: async () => {
       if (mode === 'live' && authUser) await refreshLive(authUser.id)
     },
-    signIn,
-    signUp,
-    signInWithGoogle,
-    resendSignupConfirmation,
-    signOut,
-    clearBackendError: () => setBackendError(null),
-    resetDemo,
-    updateProfile,
-    createRequest,
-    createOffer,
-    acceptOffer,
-    markComplete,
-    addReview,
-    ensureThread,
-    sendMessage,
-    getPerson,
-    getRequest,
+    ...sharedActions,
   }
 
   return <BeamContext.Provider value={value}>{children}</BeamContext.Provider>
@@ -879,8 +1281,13 @@ export function useBeam() {
 export type ProfileForm = {
   name: string
   bio: string
-  neighborhood: NeighborhoodId
+  neighborhood: NeighborhoodId | ''
+  locationLabel?: string
   skills: CategoryId[]
   hourlyRate: number
   availability: AvailabilitySlot[]
+  rateType?: Person['rateType']
+  availableNow?: boolean
+  serviceRadiusMiles?: number
+  isHelper?: boolean
 }

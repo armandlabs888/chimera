@@ -2,31 +2,51 @@
 
 import {
   CheckCircle2,
-  Clock3,
+  Heart,
   MapPin,
   MessageCircle,
   Send,
   Star,
 } from 'lucide-react'
-import { useMemo, useState, type FormEvent } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter, useParams } from 'next/navigation'
-import { PersonCard } from '../components/PersonCard'
-import { Badge, Button, ButtonLink, EmptyState, Field, TextArea, TextInput } from '../components/ui'
-import { useBeam } from '../context/BeamContext'
-import { getCategory } from '../data/categories'
-import { distanceMiles, formatDistance, getNeighborhood } from '../data/neighborhoods'
-import { formatMoney, rankMatches, relativeTime } from '../lib/matching'
+import { useMemo, useState, type FormEvent } from 'react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { Avatar, Button, ButtonLink, EmptyState, Field, TextArea, TextInput } from '@/components/ui'
+import { useBeam } from '@/context/BeamContext'
+import { getCategory } from '@/data/categories'
+import { CATEGORY_ICONS } from '@/lib/categoryIcons'
+import {
+  formatBudget,
+  formatLocation,
+  formatMoney,
+  formatRate,
+  rankHelpersForRequest,
+  relativeTime,
+} from '@/lib/matching'
+
+const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexible'] as const
 
 function paramId(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? ''
   return value ?? ''
 }
 
+function statusLabel(status: string): string {
+  if (status === 'open') return 'Open'
+  if (status === 'accepted') return 'In progress'
+  if (status === 'completed') return 'Completed'
+  if (status === 'cancelled') return 'Cancelled'
+  return status
+}
+
 export function RequestDetail() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const id = paramId(params.id)
+  const justPosted = searchParams.get('justPosted') === '1'
   const router = useRouter()
+
   const {
     state,
     currentUser,
@@ -38,40 +58,74 @@ export function RequestDetail() {
     markComplete,
     addReview,
     ensureThread,
+    inviteHelper,
+    toggleSavedHelper,
   } = useBeam()
 
   const request = getRequest(id)
-  const [offerPrice, setOfferPrice] = useState(request?.budget ?? 40)
-  const [offerNote, setOfferNote] = useState('')
-  const [offerEta, setOfferEta] = useState('Within 1 hour')
-  const [offerError, setOfferError] = useState('')
-  const [reviewRating, setReviewRating] = useState(5)
-  const [reviewComment, setReviewComment] = useState('')
-  const [showOfferForm, setShowOfferForm] = useState(false)
-
   const requester = request ? getPerson(request.requesterId) : undefined
-  const isOwner = request?.requesterId === currentUser.id
   const category = request ? getCategory(request.category) : undefined
+  const CategoryIcon = request ? CATEGORY_ICONS[request.category] : null
+
+  const isOwner = request?.requesterId === currentUser.id
+  const isAcceptedHelper = Boolean(request?.helperId && request.helperId === currentUser.id)
+  const canSeeExactAddress = Boolean(isOwner || isAcceptedHelper)
 
   const offers = useMemo(
     () =>
       state.offers
-        .filter((o) => o.requestId === request?.id)
+        .filter((o) => o.requestId === request?.id && o.status !== 'withdrawn')
         .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
     [state.offers, request?.id],
   )
 
   const myOffer = offers.find((o) => o.helperId === currentUser.id)
   const acceptedOffer = offers.find((o) => o.id === request?.acceptedOfferId)
+  const acceptedHelper = request?.helperId ? getPerson(request.helperId) : undefined
+
+  const myInvite = useMemo(
+    () =>
+      state.invites.find(
+        (inv) => inv.requestId === request?.id && inv.helperId === currentUser.id,
+      ),
+    [state.invites, request?.id, currentUser.id],
+  )
+
+  const invitedHelperIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const inv of state.invites) {
+      if (inv.requestId === request?.id) ids.add(inv.helperId)
+    }
+    return ids
+  }, [state.invites, request?.id])
+
+  const offeredHelperIds = useMemo(
+    () => new Set(offers.map((o) => o.helperId)),
+    [offers],
+  )
 
   const matches = useMemo(() => {
     if (!request) return []
-    return rankMatches(request, state.people).slice(0, 5)
-  }, [request, state.people])
+    const exclude = [...offeredHelperIds]
+    return rankHelpersForRequest(request, state.people, exclude).slice(0, 6)
+  }, [request, state.people, offeredHelperIds])
 
   const existingReview = state.reviews.find(
     (r) => r.requestId === request?.id && r.fromId === currentUser.id,
   )
+
+  const helperSaved =
+    acceptedHelper != null && (state.savedHelperIds?.includes(acceptedHelper.id) ?? false)
+
+  const [offerPrice, setOfferPrice] = useState(() => myOffer?.price ?? request?.budget ?? 40)
+  const [offerNote, setOfferNote] = useState(() => myOffer?.note ?? '')
+  const [offerEta, setOfferEta] = useState(() => myOffer?.eta ?? 'Within 1 hour')
+  const [offerError, setOfferError] = useState('')
+  const [offerPending, setOfferPending] = useState(false)
+  const [invitePendingId, setInvitePendingId] = useState<string | null>(null)
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewComment, setReviewComment] = useState('')
+  const [reviewPending, setReviewPending] = useState(false)
 
   if (!request || !category || !requester) {
     return (
@@ -86,6 +140,15 @@ export function RequestDetail() {
   }
 
   const activeRequest = request
+  const budgetLabel = formatBudget(request)
+  const locationLabel = formatLocation(request)
+  const radiusMiles = request.radiusMiles ?? 5
+  const isOpenBudget = request.budgetType === 'open' || request.budget === 0
+
+  async function openThreadWith(otherId: string) {
+    const threadId = await ensureThread(activeRequest.id, otherId)
+    router.push(`/messages/${threadId}`)
+  }
 
   async function submitOffer(e: FormEvent) {
     e.preventDefault()
@@ -93,162 +156,229 @@ export function RequestDetail() {
       setOfferError('Name a real price before you show up.')
       return
     }
+    setOfferPending(true)
+    setOfferError('')
     try {
       await createOffer({
         requestId: activeRequest.id,
         price: offerPrice,
-        note: offerNote || 'Happy to help — message me to coordinate.',
+        note: offerNote.trim() || 'Happy to help — message me to coordinate.',
         eta: offerEta,
       })
       await ensureThread(activeRequest.id, activeRequest.requesterId)
-      setShowOfferForm(false)
-      setOfferError('')
     } catch (err) {
       setOfferError(err instanceof Error ? err.message : 'Could not send offer')
+    } finally {
+      setOfferPending(false)
     }
-  }
-
-  async function openThreadWith(otherId: string) {
-    const threadId = await ensureThread(activeRequest.id, otherId)
-    router.push(`/messages/${threadId}`)
   }
 
   async function submitReview(e: FormEvent) {
     e.preventDefault()
     if (!activeRequest.helperId && !isOwner) return
     const toId = isOwner ? activeRequest.helperId! : activeRequest.requesterId
-    await addReview({
-      requestId: activeRequest.id,
-      toId,
-      rating: reviewRating,
-      comment: reviewComment || 'Great experience on Beam.',
-    })
+    setReviewPending(true)
+    try {
+      await addReview({
+        requestId: activeRequest.id,
+        toId,
+        rating: reviewRating,
+        comment: reviewComment.trim() || 'Great experience on Beam.',
+      })
+    } finally {
+      setReviewPending(false)
+    }
+  }
+
+  async function onInvite(helperId: string) {
+    setInvitePendingId(helperId)
+    try {
+      const { threadId } = await inviteHelper(activeRequest.id, helperId)
+      if (threadId) {
+        // Stay on page; CTA flips to Invited ✓ · Open chat
+      }
+    } finally {
+      setInvitePendingId(null)
+    }
   }
 
   return (
-    <div>
-      <div className="relative h-56 overflow-hidden md:h-72">
-        <img src={request.image} alt="" className="h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 px-4 pb-5">
-          <div className="mb-2 flex flex-wrap gap-2">
-            <Badge tone="amber">{category.label}</Badge>
-            <Badge tone={request.status === 'open' ? 'live' : 'neutral'}>{request.status}</Badge>
+    <div className="mx-auto max-w-3xl space-y-5 px-4 py-6 pb-16">
+      {/* 1. Top summary card */}
+      <article className="overflow-hidden rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)]">
+        {request.image ? (
+          <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#F4F8FD]">
+            <Image
+              src={request.image}
+              alt=""
+              fill
+              sizes="(min-width:768px) 768px, 100vw"
+              className="object-cover"
+              priority
+            />
           </div>
-          <h1 className="max-w-3xl text-[28px] font-semibold tracking-tight text-white md:text-[32px]">
+        ) : null}
+
+        <div className="space-y-4 p-5 sm:p-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F8FD] px-3 py-1.5 text-[12.5px] font-semibold text-[#071330]">
+              {CategoryIcon ? (
+                <CategoryIcon className="h-3.5 w-3.5 text-[#1D5CE5]" strokeWidth={2} aria-hidden />
+              ) : null}
+              {category.shortLabel}
+            </span>
+            <span
+              className={`inline-flex items-center rounded-full px-2.5 py-1 text-[12px] font-semibold capitalize ${
+                request.status === 'open'
+                  ? 'bg-emerald-50 text-emerald-700'
+                  : request.status === 'accepted'
+                    ? 'bg-[#EEF4FF] text-[#1D5CE5]'
+                    : request.status === 'completed'
+                      ? 'bg-[#F4F8FD] text-[#475569]'
+                      : 'bg-[#F4F8FD] text-[#64748B]'
+              }`}
+            >
+              {statusLabel(request.status)}
+            </span>
+            <span className="text-[12.5px] text-[#94A3B8]">
+              Posted {relativeTime(request.createdAt)}
+            </span>
+          </div>
+
+          <h1 className="font-display text-[28px] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330] sm:text-[32px]">
             {request.title}
           </h1>
-        </div>
-      </div>
 
-      <div className="grid gap-8 px-4 py-6 lg:grid-cols-[1.4fr_1fr]">
-        <div className="space-y-6">
-          <div className="flex flex-wrap gap-4 text-sm text-beam-cream-dim">
-            <span className="inline-flex items-center gap-1.5">
-              <MapPin className="h-4 w-4 text-beam-amber" />
-              {getNeighborhood(request.neighborhood).name}
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Clock3 className="h-4 w-4 text-beam-amber" />
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[14px] text-[#475569]">
+            <span className="inline-flex items-center gap-1.5 font-medium text-[#071330]">
               {request.whenLabel}
             </span>
-            <span className="font-semibold text-beam-amber">Budget {formatMoney(request.budget)}</span>
-            <span className="text-beam-muted">Posted {relativeTime(request.createdAt)}</span>
+            <span aria-hidden className="text-[#CBD5E1]">
+              ·
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-[#94A3B8]" aria-hidden />
+              {locationLabel}
+            </span>
+            <span aria-hidden className="text-[#CBD5E1]">
+              ·
+            </span>
+            <span>Within {radiusMiles} mi</span>
           </div>
 
-          <p className="whitespace-pre-wrap text-base leading-relaxed text-beam-cream-dim">
+          <div className="flex items-end justify-between gap-3 border-t border-[rgba(7,19,48,0.07)] pt-4">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748B]">
+                Budget
+              </p>
+              <p
+                className={`font-display font-bold leading-none text-[#071330] ${
+                  isOpenBudget ? 'text-[18px]' : 'text-[28px] tabular-nums'
+                }`}
+              >
+                {budgetLabel}
+              </p>
+            </div>
+          </div>
+
+          <p className="whitespace-pre-wrap text-[15px] leading-[1.6] text-[#475569]">
             {request.details}
           </p>
 
-          <Link href={`/people/${requester.id}`} className="flat-row flex items-center gap-3 rounded-xl px-2 py-3 transition hover:bg-beam-ink">
-            <img src={requester.avatar} alt="" className="h-12 w-12 rounded-xl object-cover" />
-            <div>
-              <p className="font-medium text-beam-cream">
+          <Link
+            href={`/people/${requester.id}`}
+            className="flex items-center gap-3 rounded-2xl border border-[rgba(7,19,48,0.08)] bg-[#F4F8FD] px-3 py-3 transition hover:border-[rgba(29,92,229,0.25)]"
+          >
+            <Avatar src={requester.avatar} name={requester.name} size={44} />
+            <div className="min-w-0">
+              <p className="truncate text-[15px] font-semibold text-[#071330]">
                 {requester.name}
                 {isOwner ? ' (you)' : ''}
               </p>
-              <p className="text-xs text-beam-muted">
-                {getNeighborhood(requester.neighborhood).shortName} · {requester.jobsCompleted} jobs
+              <p className="truncate text-[13px] text-[#64748B]">
+                {formatLocation(requester)} · ★ {requester.rating.toFixed(1)} ·{' '}
+                {requester.jobsCompleted} jobs
               </p>
             </div>
           </Link>
+        </div>
+      </article>
 
-          <section>
-            <h2 className="mb-3 type-h2 text-beam-cream">Offers</h2>
+      {/* justPosted warm confirmation */}
+      {justPosted && isOwner && request.status === 'open' ? (
+        <div
+          className="rounded-[28px] border border-[rgba(217,119,6,0.2)] bg-[#FFF8D6] px-5 py-4 text-[14px] leading-relaxed text-[#92400E]"
+          role="status"
+        >
+          <p className="font-semibold text-[#071330]">Your request is live nearby.</p>
+          <p className="mt-1">
+            Nearby helpers can send offers now. Invite strong matches below to speed things up.
+          </p>
+        </div>
+      ) : null}
+
+      {/* 2. Requester + status open */}
+      {isOwner && request.status === 'open' ? (
+        <>
+          <section className="rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white p-5 shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] sm:p-6">
+            <h2 className="text-[18px] font-bold text-[#071330]">Incoming offers</h2>
+            <p className="mt-1 text-[14px] text-[#64748B]">
+              Accept when the price and timing feel right — then coordinate in chat.
+            </p>
+
             {offers.length === 0 ? (
-              <EmptyState
-                title="No offers yet"
-                body={
-                  isOwner
-                    ? 'Nearby matches are listed on the right. They’ll appear here when someone names a price.'
-                    : 'Be the first to name a price and ETA.'
-                }
-              />
+              <div className="mt-5 rounded-2xl bg-[#F4F8FD] px-4 py-8 text-center">
+                <p className="text-[15px] font-semibold text-[#071330]">No offers yet</p>
+                <p className="mt-1 text-[13px] text-[#64748B]">
+                  Invite nearby matches below — they’ll show up here when they name a price.
+                </p>
+              </div>
             ) : (
-              <ul className="space-y-3">
+              <ul className="mt-5 space-y-3">
                 {offers.map((offer) => {
                   const helper = getPerson(offer.helperId)
                   if (!helper) return null
                   return (
                     <li
                       key={offer.id}
-                      className="rounded-xl bg-beam-ink/70 p-4"
+                      className="rounded-2xl border border-[rgba(7,19,48,0.08)] bg-[#F4F8FD]/60 p-4"
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <Link href={`/people/${helper.id}`} className="flex items-center gap-3">
-                          <img
-                            src={helper.avatar}
-                            alt=""
-                            className="h-11 w-11 rounded-xl object-cover"
-                          />
-                          <div>
-                            <p className="font-medium text-beam-cream">{helper.name}</p>
-                            <p className="text-xs text-beam-muted">
-                              {authUser
-                                ? `${formatDistance(
-                                    distanceMiles(request.neighborhood, helper.neighborhood),
-                                  )} · `
-                                : ''}
-                              ETA {offer.eta} · {relativeTime(offer.createdAt)}
+                        <Link href={`/people/${helper.id}`} className="flex min-w-0 items-center gap-3">
+                          <Avatar src={helper.avatar} name={helper.name} size={44} />
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-[#071330]">{helper.name}</p>
+                            <p className="text-[12.5px] text-[#64748B]">
+                              {formatRate(helper)} · ETA {offer.eta} · {relativeTime(offer.createdAt)}
                             </p>
                           </div>
                         </Link>
-                        <div className="text-right">
-                          <p className="text-lg font-semibold text-beam-amber">
+                        <div className="shrink-0 text-right">
+                          <p className="font-display text-[22px] font-bold tabular-nums text-[#071330]">
                             {formatMoney(offer.price)}
                           </p>
-                          <Badge
-                            tone={
-                              offer.status === 'accepted'
-                                ? 'live'
-                                : offer.status === 'pending'
-                                  ? 'amber'
-                                  : 'neutral'
-                            }
-                          >
+                          <p className="text-[12px] font-semibold capitalize text-[#64748B]">
                             {offer.status}
-                          </Badge>
+                          </p>
                         </div>
                       </div>
-                      <p className="mt-3 text-sm text-beam-cream-dim">{offer.note}</p>
+                      {offer.note ? (
+                        <p className="mt-3 text-[14px] leading-relaxed text-[#475569]">{offer.note}</p>
+                      ) : null}
                       <div className="mt-4 flex flex-wrap gap-2">
-                        {isOwner && offer.status === 'pending' && request.status === 'open' ? (
-                          <Button type="button" onClick={() => acceptOffer(offer.id)}>
+                        {offer.status === 'pending' ? (
+                          <Button type="button" onClick={() => void acceptOffer(offer.id)}>
                             Accept offer
                           </Button>
                         ) : null}
-                        {(isOwner || offer.helperId === currentUser.id) && (
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() =>
-                              openThreadWith(isOwner ? offer.helperId : request.requesterId)
-                            }
-                          >
-                            <MessageCircle className="h-4 w-4" />
-                            Message
-                          </Button>
-                        )}
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => void openThreadWith(offer.helperId)}
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          Message
+                        </Button>
                       </div>
                     </li>
                   )
@@ -257,164 +387,343 @@ export function RequestDetail() {
             )}
           </section>
 
-          {!isOwner && request.status === 'open' ? (
-            <section className="rounded-xl bg-beam-ink/80 p-4 ring-1 ring-white/[0.06]">
-              <h2 className="type-h2 text-beam-cream">
-                {myOffer ? 'Update your offer' : 'Send an offer'}
-              </h2>
-              <p className="mt-1 text-sm text-beam-muted">
-                Name a price before anyone shows up. No lead fees.
-              </p>
-              {showOfferForm || !myOffer ? (
-                <form className="mt-4 space-y-3" onSubmit={submitOffer}>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <Field label="Your price (USD)">
-                      <TextInput
-                        type="number"
-                        min={5}
-                        value={offerPrice}
-                        onChange={(e) => setOfferPrice(Number(e.target.value))}
-                        required
-                      />
-                    </Field>
-                    <Field label="When you can start">
-                      <TextInput
-                        value={offerEta}
-                        onChange={(e) => setOfferEta(e.target.value)}
-                        placeholder="e.g. 40 min"
-                        required
-                      />
-                    </Field>
-                  </div>
-                  <Field label="Note">
-                    <TextArea
-                      value={offerNote}
-                      onChange={(e) => setOfferNote(e.target.value)}
-                      placeholder="Experience, what you’ll bring, questions…"
-                    />
-                  </Field>
-                  {offerError ? <p className="text-sm text-beam-danger" role="alert">{offerError}</p> : null}
-                  <Button type="submit" className="w-full sm:w-auto">
-                    <Send className="h-4 w-4" />
-                    {myOffer ? 'Update offer' : 'Send offer'}
-                  </Button>
-                </form>
-              ) : (
-                <div className="mt-4">
-                  <p className="text-sm text-beam-cream-dim">
-                    You offered {formatMoney(myOffer.price)} · {myOffer.eta}
-                  </p>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="mt-3"
-                    onClick={() => setShowOfferForm(true)}
-                  >
-                    Edit offer
-                  </Button>
-                </div>
-              )}
-            </section>
+          <section className="rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white p-5 shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] sm:p-6">
+            <h2 className="text-[18px] font-bold text-[#071330]">Instant Nearby Matches</h2>
+            <p className="mt-1 text-[14px] text-[#64748B]">
+              Ranked by skill, distance, and availability for this task.
+            </p>
+
+            {matches.length === 0 ? (
+              <div className="mt-5 rounded-2xl bg-[#F4F8FD] px-4 py-8 text-center">
+                <p className="text-[15px] font-semibold text-[#071330]">No matches in range</p>
+                <p className="mt-1 text-[13px] text-[#64748B]">
+                  Helpers will appear as they come online nearby.
+                </p>
+              </div>
+            ) : (
+              <ul className="mt-5 space-y-3">
+                {matches.map((match) => {
+                  const { person } = match
+                  const invited = invitedHelperIds.has(person.id)
+                  return (
+                    <li
+                      key={person.id}
+                      className="rounded-2xl border border-[rgba(7,19,48,0.08)] bg-[#F4F8FD]/60 p-4"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <Link
+                          href={`/people/${person.id}`}
+                          className="flex min-w-0 items-center gap-3"
+                        >
+                          <Avatar src={person.avatar} name={person.name} size={44} />
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-[#071330]">{person.name}</p>
+                            <p className="text-[12.5px] text-[#64748B]">
+                              {authUser
+                                ? `${match.distanceMiles.toFixed(1)} mi · `
+                                : ''}
+                              {formatRate(person)} · ★ {person.rating.toFixed(1)}
+                            </p>
+                            {match.reasons.length ? (
+                              <p className="mt-1 line-clamp-1 text-[12px] text-[#94A3B8]">
+                                {match.reasons.slice(0, 3).join(' · ')}
+                              </p>
+                            ) : null}
+                          </div>
+                        </Link>
+                      </div>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {invited ? (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => void openThreadWith(person.id)}
+                          >
+                            Invited ✓ · Open chat
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            loading={invitePendingId === person.id}
+                            onClick={() => void onInvite(person.id)}
+                          >
+                            Invite to offer
+                          </Button>
+                        )}
+                        {!invited ? (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => void openThreadWith(person.id)}
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                            Message
+                          </Button>
+                        ) : null}
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </section>
+        </>
+      ) : null}
+
+      {/* 3. Helper + status open */}
+      {!isOwner && request.status === 'open' ? (
+        <section className="space-y-4">
+          {myInvite ? (
+            <div className="rounded-[28px] border border-[rgba(217,119,6,0.2)] bg-[#FFF8D6] px-5 py-3.5 text-[14px] font-semibold text-[#071330]">
+              You were invited to offer on this task
+            </div>
           ) : null}
 
-          {request.status === 'accepted' &&
-          (isOwner || request.helperId === currentUser.id) ? (
-            <section className="rounded-xl bg-beam-amber-soft p-4 ring-1 ring-beam-amber/35">
-              <h2 className="type-h3 text-beam-cream">Job in progress</h2>
-              <p className="mt-1 text-sm text-beam-cream-dim">
-                Accepted at {acceptedOffer ? formatMoney(acceptedOffer.price) : '—'}. Message to
-                coordinate, then mark complete when done.
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2">
+          <div className="rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white p-5 shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] sm:p-6">
+            <h2 className="text-[18px] font-bold text-[#071330]">
+              {myOffer ? 'Update your offer' : 'Send an offer'}
+            </h2>
+            <p className="mt-1 text-[14px] text-[#64748B]">
+              Name a price and ETA before you show up. No lead fees.
+            </p>
+
+            <form className="mt-5 space-y-4" onSubmit={(e) => void submitOffer(e)}>
+              <Field label="Your price (USD)" required>
+                <TextInput
+                  type="number"
+                  min={5}
+                  value={offerPrice}
+                  onChange={(e) => setOfferPrice(Number(e.target.value))}
+                  required
+                />
+              </Field>
+
+              <div>
+                <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64748B]">
+                  When you can start
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {ETA_CHIPS.map((chip) => {
+                    const selected = offerEta === chip
+                    return (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => setOfferEta(chip)}
+                        className={`rounded-full px-3.5 py-2 text-[13px] font-semibold transition ${
+                          selected
+                            ? 'bg-[#1D5CE5] text-white'
+                            : 'border border-[rgba(7,19,48,0.12)] bg-white text-[#071330] hover:bg-[#F4F8FD]'
+                        }`}
+                      >
+                        {chip}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <Field label="Note">
+                <TextArea
+                  value={offerNote}
+                  onChange={(e) => setOfferNote(e.target.value)}
+                  placeholder="Experience, what you’ll bring, questions…"
+                />
+              </Field>
+
+              {offerError ? (
+                <p className="text-[14px] text-[#DC2626]" role="alert">
+                  {offerError}
+                </p>
+              ) : null}
+
+              <div className="flex flex-wrap gap-2">
+                <Button type="submit" loading={offerPending}>
+                  <Send className="h-4 w-4" />
+                  {myOffer ? 'Update offer' : 'Submit offer'}
+                </Button>
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() =>
-                    openThreadWith(isOwner ? request.helperId! : request.requesterId)
-                  }
+                  onClick={() => void openThreadWith(request.requesterId)}
                 >
                   <MessageCircle className="h-4 w-4" />
-                  Open messages
-                </Button>
-                <Button type="button" onClick={() => markComplete(request.id)}>
-                  <CheckCircle2 className="h-4 w-4" />
-                  Mark complete
+                  Ask a question first
                 </Button>
               </div>
-            </section>
-          ) : null}
-
-          {request.status === 'completed' ? (
-            <section className="rounded-xl bg-beam-ink/80 p-4">
-              <h2 className="type-h3 text-beam-cream">Leave a review</h2>
-              {existingReview ? (
-                <p className="mt-2 text-sm text-beam-cream-dim">
-                  You rated {existingReview.rating}/5 — “{existingReview.comment}”
-                </p>
-              ) : (
-                <form className="mt-4 space-y-3" onSubmit={submitReview}>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() => setReviewRating(n)}
-                        className={`touch-target rounded-xl border px-3 ${
-                          reviewRating >= n
-                            ? 'border-beam-amber text-beam-amber'
-                            : 'border-beam-line text-beam-muted'
-                        }`}
-                        aria-label={`${n} stars`}
-                      >
-                        <Star
-                          className={`h-5 w-5 ${reviewRating >= n ? 'fill-beam-amber' : ''}`}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                  <TextArea
-                    value={reviewComment}
-                    onChange={(e) => setReviewComment(e.target.value)}
-                    placeholder="How did it go?"
-                  />
-                  <Button type="submit">Submit review</Button>
-                </form>
-              )}
-            </section>
-          ) : null}
-        </div>
-
-        <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-          <div>
-            <h2 className="mb-1 type-h2 text-beam-cream">Nearby matches</h2>
-            <p className="mb-4 text-sm text-beam-muted">
-              Ranked by skill + distance + availability for this request.
-            </p>
-            <div className="space-y-3">
-              {matches.map((match) => (
-                <div key={match.person.id} className="space-y-2">
-                  <PersonCard person={match.person} match={match} />
-                  <div className="flex flex-wrap gap-1.5 px-1">
-                    {match.reasons.map((reason) => (
-                      <Badge key={reason} tone="amber">
-                        {reason}
-                      </Badge>
-                    ))}
-                    {authUser ? (
-                      <Badge>{formatDistance(match.distanceMiles)}</Badge>
-                    ) : null}
-                  </div>
-                </div>
-              ))}
-            </div>
+            </form>
           </div>
-          {isOwner ? (
-            <ButtonLink href="/post" variant="secondary" className="w-full">
-              Post another request
-            </ButtonLink>
+        </section>
+      ) : null}
+
+      {/* 4. status accepted — Pinned Job Agreement */}
+      {request.status === 'accepted' && (isOwner || isAcceptedHelper) ? (
+        <section className="rounded-[28px] border-2 border-[#FFF8D6] bg-[#F4F8FD] p-5 sm:p-6">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#64748B]">
+            Pinned Job Agreement
+          </p>
+          <h2 className="mt-1 text-[20px] font-bold text-[#071330]">You’re booked</h2>
+
+          <dl className="mt-5 grid gap-4 sm:grid-cols-2">
+            <div>
+              <dt className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64748B]">
+                Confirmed Helper
+              </dt>
+              <dd className="mt-1.5 flex items-center gap-2.5">
+                {acceptedHelper ? (
+                  <>
+                    <Avatar src={acceptedHelper.avatar} name={acceptedHelper.name} size={36} />
+                    <span className="font-semibold text-[#071330]">{acceptedHelper.name}</span>
+                  </>
+                ) : (
+                  <span className="text-[#64748B]">—</span>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64748B]">
+                Agreed Price
+              </dt>
+              <dd className="mt-1.5 font-display text-[24px] font-bold tabular-nums text-[#071330]">
+                {acceptedOffer ? formatMoney(acceptedOffer.price) : '—'}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64748B]">
+                ETA
+              </dt>
+              <dd className="mt-1.5 font-semibold text-[#071330]">
+                {acceptedOffer?.eta ?? request.whenLabel}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64748B]">
+                Service Area
+              </dt>
+              <dd className="mt-1.5 font-semibold text-[#071330]">
+                {locationLabel}
+                <span className="font-normal text-[#64748B]"> · Within {radiusMiles} mi</span>
+              </dd>
+            </div>
+            {canSeeExactAddress && request.exactAddress ? (
+              <div className="sm:col-span-2">
+                <dt className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64748B]">
+                  Exact address
+                </dt>
+                <dd className="mt-1.5 font-semibold text-[#071330]">{request.exactAddress}</dd>
+              </div>
+            ) : null}
+          </dl>
+
+          <div className="mt-5 rounded-2xl border border-[rgba(217,119,6,0.2)] bg-[#FFF8D6] px-4 py-3 text-[13.5px] leading-relaxed text-[#92400E]">
+            Pay your helper peer-to-peer (Venmo, cash, Zelle, etc.). Beam doesn’t process payments
+            yet — agree on the method in chat before you start.
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() =>
+                void openThreadWith(isOwner ? request.helperId! : request.requesterId)
+              }
+            >
+              <MessageCircle className="h-4 w-4" />
+              Open chat
+            </Button>
+            <Button type="button" onClick={() => void markComplete(request.id)}>
+              <CheckCircle2 className="h-4 w-4" />
+              Mark job complete
+            </Button>
+          </div>
+        </section>
+      ) : null}
+
+      {/* 5. status completed — Mutual review */}
+      {request.status === 'completed' ? (
+        <section className="rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white p-5 shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] sm:p-6">
+          <h2 className="text-[18px] font-bold text-[#071330]">Mutual review</h2>
+          <p className="mt-1 text-[14px] text-[#64748B]">
+            Rate your experience so neighbors know who to trust next time.
+          </p>
+
+          {existingReview ? (
+            <div className="mt-5 rounded-2xl bg-[#F4F8FD] px-4 py-4">
+              <div className="flex items-center gap-1 text-[#1D5CE5]">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-5 w-5 ${
+                      i < existingReview.rating ? 'fill-[#1D5CE5] text-[#1D5CE5]' : 'text-[#CBD5E1]'
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="mt-2 text-[14px] text-[#475569]">“{existingReview.comment}”</p>
+            </div>
+          ) : isOwner || isAcceptedHelper ? (
+            <form className="mt-5 space-y-4" onSubmit={(e) => void submitReview(e)}>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setReviewRating(n)}
+                    className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition ${
+                      reviewRating >= n
+                        ? 'border-[#1D5CE5] bg-[#EEF4FF] text-[#1D5CE5]'
+                        : 'border-[rgba(7,19,48,0.12)] bg-white text-[#94A3B8]'
+                    }`}
+                    aria-label={`${n} stars`}
+                  >
+                    <Star className={`h-5 w-5 ${reviewRating >= n ? 'fill-current' : ''}`} />
+                  </button>
+                ))}
+              </div>
+              <Field label="Comment">
+                <TextArea
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="How did it go?"
+                />
+              </Field>
+              <Button type="submit" loading={reviewPending}>
+                Submit review
+              </Button>
+            </form>
+          ) : (
+            <p className="mt-4 text-[14px] text-[#64748B]">Only the people on this job can review.</p>
+          )}
+
+          {isOwner && acceptedHelper ? (
+            <div className="mt-6 flex flex-wrap gap-2 border-t border-[rgba(7,19,48,0.07)] pt-5">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => void toggleSavedHelper(acceptedHelper.id)}
+              >
+                <Heart
+                  className={`h-4 w-4 ${helperSaved ? 'fill-[#1D5CE5] text-[#1D5CE5]' : ''}`}
+                />
+                {helperSaved ? 'Saved to favorites' : 'Save to favorites'}
+              </Button>
+              <ButtonLink
+                href={`/post?rebook=${acceptedHelper.id}&category=${request.category}`}
+              >
+                Book again
+              </ButtonLink>
+            </div>
           ) : null}
-        </aside>
-      </div>
+        </section>
+      ) : null}
+
+      {isOwner && request.status === 'open' ? (
+        <div className="pt-1">
+          <ButtonLink href="/post" variant="secondary" className="w-full sm:w-auto">
+            Post another request
+          </ButtonLink>
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -35,12 +35,12 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
         />
       </div>
 
-      <div className="md:grid md:min-h-[70vh] md:grid-cols-[minmax(280px,34%)_1fr] md:overflow-hidden md:rounded-[14px] md:border md:border-beam-line">
+      <div className="md:grid md:min-h-[70vh] md:grid-cols-[minmax(280px,34%)_1fr] md:overflow-hidden md:rounded-[14px] md:border md:border-[rgba(7,19,48,0.1)] md:bg-white">
         <aside
-          className={`${active ? 'hidden md:block' : 'block'} border-b border-beam-line md:border-b-0 md:border-r`}
+          className={`${active ? 'hidden md:block' : 'block'} border-b border-[rgba(7,19,48,0.1)] bg-white md:border-b-0 md:border-r`}
         >
-          <div className="border-b border-beam-line px-4 py-3 md:hidden">
-            <h1 className="type-h3 text-beam-cream">Messages</h1>
+          <div className="border-b border-[rgba(7,19,48,0.1)] px-4 py-3 md:hidden">
+            <h1 className="type-h3 text-[#071330]">Messages</h1>
           </div>
           {threads.length === 0 ? (
             <div className="p-4">
@@ -51,33 +51,33 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
               />
             </div>
           ) : (
-            <ul className="divide-y divide-beam-line">
+            <ul className="divide-y divide-[rgba(7,19,48,0.08)]">
               {threads.map(({ thread, other, request, last }) => {
                 const selected = active === thread.id
                 return (
                   <li key={thread.id}>
                     <Link
                       href={`/messages/${thread.id}`}
-                      className={`flex gap-3 px-4 py-3.5 transition hover:bg-beam-surface-2 ${
-                        selected ? 'bg-beam-amber-soft' : 'bg-beam-base'
+                      className={`flex gap-3 px-4 py-3.5 transition hover:bg-[#F4F8FD] ${
+                        selected ? 'bg-[#EEF4FF]' : 'bg-white'
                       }`}
                     >
                       <Avatar src={other?.avatar} name={other?.name ?? 'Neighbor'} size={40} />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="truncate text-[14px] font-semibold text-beam-cream">
+                          <p className="truncate text-[14px] font-semibold text-[#071330]">
                             {other?.name ?? 'Neighbor'}
                           </p>
-                          <span className="shrink-0 tabular-nums type-meta text-beam-muted">
+                          <span className="shrink-0 tabular-nums type-meta text-[#94A3B8]">
                             {relativeTime(thread.lastMessageAt)}
                           </span>
                         </div>
-                        <p className="truncate type-sec text-beam-muted">
+                        <p className="truncate type-sec text-[#64748B]">
                           {request?.title ?? 'Request'}
                         </p>
                         <div className="mt-1 flex items-center gap-2">
                           {request ? <Badge tone="outline">{request.status}</Badge> : null}
-                          <p className="truncate type-sec text-beam-cream-dim">
+                          <p className="truncate type-sec text-[#475569]">
                             {last?.body ?? 'No messages yet'}
                           </p>
                         </div>
@@ -90,7 +90,7 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
           )}
         </aside>
 
-        <section className={`${active ? 'block' : 'hidden md:block'} min-h-[60vh] bg-beam-base`}>
+        <section className={`${active ? 'block' : 'hidden md:block'} min-h-[60vh] bg-[#F4F8FD]`}>
           {active ? (
             <MessagesThread threadId={active} inboxHref="/messages" />
           ) : (

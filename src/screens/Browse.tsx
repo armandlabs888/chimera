@@ -26,11 +26,13 @@ import { RequestCard } from '@/components/RequestCard'
 import { EmptyState, ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { CATEGORIES, WHEN_OPTIONS } from '@/data/categories'
-import { NEIGHBORHOODS, distanceMiles } from '@/data/neighborhoods'
 import { ALL_CATEGORY_ICON, CATEGORY_ICONS } from '@/lib/categoryIcons'
-import type { AvailabilitySlot, NeighborhoodId, WhenOption } from '@/types'
+import { distanceBetween, formatLocation } from '@/lib/location'
+import { formatBudget } from '@/lib/matching'
+import type { AvailabilitySlot, Person, WhenOption } from '@/types'
 
 type SortMode = 'nearest' | 'newest' | 'budget'
+type RadiusMiles = 'all' | '3' | '5' | '10' | '25'
 
 const REQUEST_SORT_OPTIONS: { id: SortMode; label: string }[] = [
   { id: 'nearest', label: 'Nearest' },
@@ -57,6 +59,14 @@ const AVAIL_FILTER_OPTIONS: { id: AvailabilitySlot | 'all'; label: string }[] = 
   { id: 'weekends', label: 'Weekends' },
 ]
 
+const RADIUS_FILTER_OPTIONS: { id: RadiusMiles; label: string }[] = [
+  { id: 'all', label: 'Any distance' },
+  { id: '3', label: 'Within 3 mi' },
+  { id: '5', label: 'Within 5 mi' },
+  { id: '10', label: 'Within 10 mi' },
+  { id: '25', label: 'Within 25 mi' },
+]
+
 function parseWhen(value: string | null): WhenOption | 'all' {
   if (value === 'asap' || value === 'today' || value === 'tomorrow' || value === 'this-week') {
     return value
@@ -76,6 +86,24 @@ function parseAvail(value: string | null): AvailabilitySlot | 'all' {
   return 'all'
 }
 
+function parseRadius(value: string | null): RadiusMiles {
+  if (value === '3' || value === '5' || value === '10' || value === '25') return value
+  return 'all'
+}
+
+function isBlankZeroCard(person: Person): boolean {
+  if (person.rateType === 'quote') return false
+  return !(person.hourlyRate > 0)
+}
+
+function isBrowseHelper(person: Person): boolean {
+  return Boolean(person.isHelper || person.skills.length > 0) && !isBlankZeroCard(person)
+}
+
+function milesTo(entity: { lat?: number | null; lng?: number | null; neighborhood?: string }, user: Person) {
+  return distanceBetween(user, entity)
+}
+
 export function Browse() {
   const { state, currentUser, authUser } = useBeam()
   const isGuest = !authUser
@@ -86,7 +114,7 @@ export function Browse() {
 
   const tab = params.get('tab') === 'people' ? 'people' : 'requests'
   const category = params.get('category') ?? 'all'
-  const neighborhood = (params.get('neighborhood') as NeighborhoodId | null) ?? 'all'
+  const radius = parseRadius(params.get('radius'))
   const when = parseWhen(params.get('when'))
   const avail = parseAvail(params.get('avail'))
   const qParam = params.get('q') ?? ''
@@ -148,21 +176,28 @@ export function Browse() {
   }
 
   const q = qParam.toLowerCase().trim()
+  const radiusMiles = radius === 'all' ? null : Number(radius)
+  const userLocationLabel = formatLocation(currentUser)
 
   const openRequests = useMemo(() => {
     let list = state.requests
       .filter((r) => r.status === 'open')
       .filter((r) => (category === 'all' ? true : r.category === category))
-      .filter((r) =>
-        isGuest || neighborhood === 'all' ? true : r.neighborhood === neighborhood,
-      )
+      .filter((r) => {
+        if (isGuest || radiusMiles == null) return true
+        const d = milesTo(r, currentUser)
+        if (d == null) return true
+        return d <= radiusMiles
+      })
       .filter((r) => (isGuest ? (when === 'all' ? true : r.when === when) : true))
       .filter((r) => {
         if (!q) return true
         return (
           r.title.toLowerCase().includes(q) ||
           r.details.toLowerCase().includes(q) ||
-          r.category.includes(q)
+          r.category.includes(q) ||
+          formatBudget(r).toLowerCase().includes(q) ||
+          formatLocation(r).toLowerCase().includes(q)
         )
       })
 
@@ -171,29 +206,29 @@ export function Browse() {
       if (sort === 'newest' || isGuest) {
         return +new Date(b.createdAt) - +new Date(a.createdAt)
       }
-      const da = distanceMiles(currentUser.neighborhood, a.neighborhood)
-      const db = distanceMiles(currentUser.neighborhood, b.neighborhood)
-      return da - db || +new Date(b.createdAt) - +new Date(a.createdAt)
+      const da = milesTo(a, currentUser)
+      const db = milesTo(b, currentUser)
+      const na = da ?? Number.POSITIVE_INFINITY
+      const nb = db ?? Number.POSITIVE_INFINITY
+      return na - nb || +new Date(b.createdAt) - +new Date(a.createdAt)
     })
     return list
-  }, [
-    state.requests,
-    category,
-    neighborhood,
-    when,
-    q,
-    sort,
-    currentUser.neighborhood,
-    isGuest,
-  ])
+  }, [state.requests, category, radiusMiles, when, q, sort, currentUser, isGuest])
 
   const people = useMemo(() => {
     let list = state.people
-      .filter((p) => !p.isCurrentUser)
+      .filter((p) => isBrowseHelper(p))
+      .filter((p) => {
+        const isSelf = p.isCurrentUser || p.id === currentUser.id
+        return !isSelf
+      })
       .filter((p) => (category === 'all' ? true : p.skills.includes(category as never)))
-      .filter((p) =>
-        isGuest || neighborhood === 'all' ? true : p.neighborhood === neighborhood,
-      )
+      .filter((p) => {
+        if (isGuest || radiusMiles == null) return true
+        const d = milesTo(p, currentUser)
+        if (d == null) return true
+        return d <= radiusMiles
+      })
       .filter((p) =>
         isGuest ? (avail === 'all' ? true : p.availability.includes(avail)) : true,
       )
@@ -202,7 +237,8 @@ export function Browse() {
         return (
           p.name.toLowerCase().includes(q) ||
           p.bio.toLowerCase().includes(q) ||
-          p.skills.some((s) => s.includes(q))
+          p.skills.some((s) => s.includes(q)) ||
+          formatLocation(p).toLowerCase().includes(q)
         )
       })
       .filter((p) =>
@@ -212,32 +248,26 @@ export function Browse() {
     list = [...list].sort((a, b) => {
       if (sort === 'newest' || (isGuest && sort !== 'budget')) return b.rating - a.rating
       if (sort === 'budget') return a.hourlyRate - b.hourlyRate
-      return (
-        distanceMiles(currentUser.neighborhood, a.neighborhood) -
-          distanceMiles(currentUser.neighborhood, b.neighborhood) || b.rating - a.rating
-      )
+      const da = milesTo(a, currentUser)
+      const db = milesTo(b, currentUser)
+      return (da ?? Number.POSITIVE_INFINITY) - (db ?? Number.POSITIVE_INFINITY) || b.rating - a.rating
     })
     return list
-  }, [
-    state.people,
-    category,
-    neighborhood,
-    avail,
-    q,
-    freeOnly,
-    sort,
-    currentUser.neighborhood,
-    isGuest,
-  ])
+  }, [state.people, category, radiusMiles, avail, q, freeOnly, sort, currentUser, isGuest])
 
   const openRequestCount = useMemo(
     () => state.requests.filter((r) => r.status === 'open').length,
     [state.requests],
   )
   const helperCount = useMemo(
-    () => state.people.filter((p) => !p.isCurrentUser).length,
-    [state.people],
+    () =>
+      state.people.filter(
+        (p) => isBrowseHelper(p) && !(p.isCurrentUser || p.id === currentUser.id),
+      ).length,
+    [state.people, currentUser.id],
   )
+
+  const marketplaceEmpty = state.requests.length === 0
 
   function setTab(next: string) {
     const nextParams = new URLSearchParams(params.toString())
@@ -259,10 +289,12 @@ export function Browse() {
     replaceQuery(nextParams)
   }
 
-  function setNeighborhood(id: string) {
+  function setRadius(id: string) {
     const nextParams = new URLSearchParams(params.toString())
-    if (id === 'all') nextParams.delete('neighborhood')
-    else nextParams.set('neighborhood', id)
+    if (id === 'all') nextParams.delete('radius')
+    else nextParams.set('radius', id)
+    // Drop legacy neighborhood chip param if present
+    nextParams.delete('neighborhood')
     replaceQuery(nextParams)
     setAreaOpen(false)
   }
@@ -316,8 +348,8 @@ export function Browse() {
     setCategory('all')
   }
 
-  function removeNeighborhood() {
-    setNeighborhood('all')
+  function removeRadius() {
+    setRadius('all')
   }
 
   function removeWhen() {
@@ -338,10 +370,8 @@ export function Browse() {
     (o) => !(isGuest && o.id === 'nearest'),
   )
   const sortLabel = sortOptions.find((o) => o.id === sort)?.label ?? (isGuest ? 'Newest first' : 'Nearest')
-  const neighborhoodLabel =
-    neighborhood === 'all'
-      ? 'All neighborhoods'
-      : NEIGHBORHOODS.find((n) => n.id === neighborhood)?.name ?? 'All neighborhoods'
+  const radiusLabel =
+    RADIUS_FILTER_OPTIONS.find((o) => o.id === radius)?.label ?? 'Any distance'
   const whenLabel = WHEN_FILTER_OPTIONS.find((o) => o.id === when)?.label ?? 'Any timing'
   const availLabel = AVAIL_FILTER_OPTIONS.find((o) => o.id === avail)?.label ?? 'Any availability'
   const categoryLabel =
@@ -353,7 +383,7 @@ export function Browse() {
     category !== 'all' ||
     !!qParam ||
     freeOnly ||
-    (isGuest ? guestMiddleActive : neighborhood !== 'all')
+    (isGuest ? guestMiddleActive : radius !== 'all')
 
   function onListboxKeyDown(
     e: ReactKeyboardEvent,
@@ -383,7 +413,7 @@ export function Browse() {
     }
   }
 
-  const neighborhoodOptionIds = ['all', ...NEIGHBORHOODS.map((n) => n.id)]
+  const radiusOptionIds = RADIUS_FILTER_OPTIONS.map((o) => o.id)
   const whenOptionIds = WHEN_FILTER_OPTIONS.map((o) => o.id)
   const availOptionIds = AVAIL_FILTER_OPTIONS.map((o) => o.id)
   const sortOptionIds = sortOptions.map((o) => o.id)
@@ -413,7 +443,7 @@ export function Browse() {
           <p className="mt-2 max-w-[52ch] text-[15px] leading-[1.55] text-[#64748B] sm:text-[16px]">
             {isGuest
               ? 'Compare open neighborhood requests with upfront budgets, or connect with reviewed helpers nearby.'
-              : 'Open neighborhood requests and reviewed helpers across Austin.'}
+              : `Open requests and reviewed helpers near ${userLocationLabel}.`}
           </p>
         </div>
 
@@ -584,8 +614,8 @@ export function Browse() {
                   className="flex w-full items-center gap-2.5 rounded-full px-3 py-2.5 text-left sm:px-4"
                   aria-expanded={areaOpen}
                   aria-haspopup="listbox"
-                  aria-controls="browse-neighborhood-listbox"
-                  data-testid="browse-neighborhood-trigger"
+                  aria-controls="browse-radius-listbox"
+                  data-testid="browse-radius-trigger"
                   onClick={() => {
                     setAreaOpen((v) => !v)
                     setSortOpen(false)
@@ -601,10 +631,10 @@ export function Browse() {
                   <MapPin className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
                   <span
                     className={`min-w-0 flex-1 truncate text-[14.5px] ${
-                      neighborhood === 'all' ? 'text-[#64748B]' : 'font-medium text-[#071330]'
+                      radius === 'all' ? 'text-[#64748B]' : 'font-medium text-[#071330]'
                     }`}
                   >
-                    {neighborhoodLabel}
+                    {radiusLabel}
                   </span>
                   <ChevronDown
                     className={`h-4 w-4 shrink-0 text-[#94A3B8] transition-transform ${
@@ -614,53 +644,33 @@ export function Browse() {
                 </button>
                 {areaOpen ? (
                   <ul
-                    id="browse-neighborhood-listbox"
+                    id="browse-radius-listbox"
                     role="listbox"
-                    data-testid="browse-neighborhood-listbox"
+                    data-testid="browse-radius-listbox"
                     className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-2xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-0 lg:right-auto lg:min-w-[17rem]"
                     onKeyDown={(e) =>
-                      onListboxKeyDown(
-                        e,
-                        neighborhoodOptionIds,
-                        neighborhood,
-                        setNeighborhood,
-                        () => setAreaOpen(false),
+                      onListboxKeyDown(e, radiusOptionIds, radius, setRadius, () =>
+                        setAreaOpen(false),
                       )
                     }
                   >
-                    <li>
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={neighborhood === 'all'}
-                        className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
-                          neighborhood === 'all'
-                            ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
-                            : 'text-[#071330]'
-                        }`}
-                        onClick={() => setNeighborhood('all')}
-                      >
-                        All neighborhoods
-                        {neighborhood === 'all' ? (
-                          <Check className="h-4 w-4 shrink-0" aria-hidden />
-                        ) : null}
-                      </button>
-                    </li>
-                    {NEIGHBORHOODS.map((n) => (
-                      <li key={n.id}>
+                    {RADIUS_FILTER_OPTIONS.map((opt) => (
+                      <li key={opt.id}>
                         <button
                           type="button"
                           role="option"
-                          aria-selected={neighborhood === n.id}
+                          aria-selected={radius === opt.id}
                           className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
-                            neighborhood === n.id
+                            radius === opt.id
                               ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
-                              : 'text-[#475569]'
+                              : opt.id === 'all'
+                                ? 'text-[#071330]'
+                                : 'text-[#475569]'
                           }`}
-                          onClick={() => setNeighborhood(n.id)}
+                          onClick={() => setRadius(opt.id)}
                         >
-                          {n.name}
-                          {neighborhood === n.id ? (
+                          {opt.label}
+                          {radius === opt.id ? (
                             <Check className="h-4 w-4 shrink-0" aria-hidden />
                           ) : null}
                         </button>
@@ -782,13 +792,8 @@ export function Browse() {
           {categoryLabel ? (
             <FilterSummaryPill label={categoryLabel} onRemove={removeCategory} />
           ) : null}
-          {!isGuest && neighborhood !== 'all' ? (
-            <FilterSummaryPill
-              label={
-                NEIGHBORHOODS.find((n) => n.id === neighborhood)?.shortName ?? neighborhood
-              }
-              onRemove={removeNeighborhood}
-            />
+          {!isGuest && radius !== 'all' ? (
+            <FilterSummaryPill label={radiusLabel} onRemove={removeRadius} />
           ) : null}
           {isGuest && tab === 'requests' && when !== 'all' ? (
             <FilterSummaryPill label={whenLabel} onRemove={removeWhen} />
@@ -811,7 +816,28 @@ export function Browse() {
         <div className="mb-5" />
       )}
 
-      {tab === 'requests' ? (
+      {marketplaceEmpty ? (
+        <div className="rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white px-6 py-14 text-center shadow-[0_12px_32px_-16px_rgba(12,42,102,0.1)] sm:px-10">
+          <span className="inline-flex items-center rounded-full border border-[rgba(7,19,48,0.1)] bg-[#FFF8D6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#071330]">
+            Fresh marketplace
+          </span>
+          <h2 className="mt-4 font-display text-[clamp(1.6rem,3vw,2.1rem)] font-bold tracking-[-0.03em] text-[#071330]">
+            Be the first on Beam
+          </h2>
+          <p className="mx-auto mt-2 max-w-[42ch] text-[15px] leading-[1.55] text-[#64748B]">
+            No requests yet — post a task for neighbors nearby, or set up your helper profile and
+            start earning.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <ButtonLink href="/post" variant="brand">
+              Post the first request
+            </ButtonLink>
+            <ButtonLink href="/onboarding/helper" variant="secondary">
+              Become a helper
+            </ButtonLink>
+          </div>
+        </div>
+      ) : tab === 'requests' ? (
         openRequests.length ? (
           <div className="grid auto-rows-fr gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
             {openRequests.map((request) => (
