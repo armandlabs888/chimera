@@ -79,7 +79,7 @@ export function You() {
   const locationText = formatLocationLabel(currentUser)
 
   return (
-    <div className="px-4 py-6 sm:py-8">
+    <div className="py-1 sm:py-2">
       <div className="mb-6 flex items-center gap-3 rounded-[20px] border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4 shadow-[0_8px_24px_-14px_rgba(12,42,102,0.1)]">
         <Avatar src={currentUser.avatar} name={currentUser.name} size={52} />
         <div className="min-w-0 flex-1">

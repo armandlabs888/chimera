@@ -29,7 +29,7 @@ export function HelperProfile() {
 
   if (!person) {
     return (
-      <div className="px-4 py-10">
+      <div className="py-10">
         <EmptyState
           title="Person not found"
           body="They may not be in this demo seed."
@@ -55,7 +55,7 @@ export function HelperProfile() {
     : `/post?rebook=${person.id}`
 
   return (
-    <div className="px-4 py-6 sm:py-8">
+    <div className="py-1 sm:py-2">
       <div className="overflow-hidden rounded-[26px] border border-[rgba(7,19,48,0.08)] bg-white shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)]">
         <div className="h-24 bg-gradient-to-br from-[#E8F1FF] via-[#F4F8FD] to-[#FFF8D6] sm:h-28" />
         <div className="relative px-5 pb-6 pt-0 sm:px-7">

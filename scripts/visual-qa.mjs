@@ -89,10 +89,16 @@ async function checkPage(page, route, viewport) {
       innerWidth: window.innerWidth,
       visibleImgs,
       remnantHits,
-      hasAppSidebar: !!document.querySelector('[data-testid="app-sidebar"]'),
+      hasAppSidebar: document.querySelectorAll('[data-testid="app-sidebar"]').length,
+      hasAppTopnav: !!document.querySelector('[data-testid="app-topnav"]'),
       hasLandingNav: !!document.querySelector('[data-testid="landing-nav"]'),
+      hasBottomDock: !!document.querySelector('[data-testid="bottom-dock"]'),
+      hasAccountMenu: !!document.querySelector('[data-testid="account-menu-trigger"]'),
       guestLabel: /\bGuest\b/.test(bodyText),
       heroSearchCount: document.querySelectorAll('[data-testid="hero-search-pill"]').length,
+      austinGuestCopy: /across Austin neighborhoods|Open requests and nearby helpers across Austin/i.test(
+        bodyText,
+      ),
       bodyTextSample: bodyText.slice(0, 2000),
     }
   }, DARK_REMNANTS)
@@ -134,11 +140,26 @@ async function checkPage(page, route, viewport) {
       entry.ok = false
       entry.issues.push('Browse has duplicate hero search pill')
     }
-    // In live guest mode, marketing nav should show and sidebar should not.
-    // Demo mode intentionally uses app shell with seed user — only fail if Guest chrome is wrong.
-    if (metrics.hasLandingNav && metrics.hasAppSidebar) {
+    if (metrics.hasAppSidebar > 0) {
       entry.ok = false
-      entry.issues.push('Browse has both landing nav and app sidebar')
+      entry.issues.push('Browse still has app-sidebar')
+    }
+    if (metrics.austinGuestCopy) {
+      entry.ok = false
+      entry.issues.push('Browse has Austin guest copy')
+    }
+    // Guest: landing nav. Signed-in/demo: app topnav. Never both with a sidebar.
+    if (metrics.hasLandingNav && metrics.hasAppTopnav) {
+      entry.ok = false
+      entry.issues.push('Browse has both landing nav and app topnav')
+    }
+    if (!metrics.hasLandingNav && !metrics.hasAppTopnav) {
+      entry.ok = false
+      entry.issues.push('Browse missing navigation chrome')
+    }
+    if (metrics.hasAppTopnav && !metrics.hasAccountMenu) {
+      entry.ok = false
+      entry.issues.push('App topnav missing account menu')
     }
   }
 

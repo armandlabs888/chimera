@@ -129,7 +129,7 @@ export function RequestDetail() {
 
   if (!request || !category || !requester) {
     return (
-      <div className="px-4 py-10">
+      <div className="py-10">
         <EmptyState
           title="Request not found"
           body="It may have been cleared with demo reset."
@@ -203,7 +203,7 @@ export function RequestDetail() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5 px-4 py-6 pb-16">
+    <div className="mx-auto max-w-3xl space-y-5 py-2 pb-16 sm:py-4">
       {/* 1. Top summary card */}
       <article className="overflow-hidden rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)]">
         {request.image ? (

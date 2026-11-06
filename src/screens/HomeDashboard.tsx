@@ -159,7 +159,7 @@ export function HomeDashboard() {
   }, [isHelper, state.requests, currentUser])
 
   return (
-    <div className="px-4 py-8 sm:py-10">
+    <div className="py-2 sm:py-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-[clamp(2rem,4vw,2.5rem)] font-bold leading-[1.05] tracking-[-0.02em] text-[#071330]">

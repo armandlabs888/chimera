@@ -100,7 +100,7 @@ export function MessagesThread({
 
   if (!thread || !other || !request || !category) {
     return (
-      <div className="px-4 py-10">
+      <div className="py-10">
         <EmptyState
           title="Thread not found"
           body="Open a conversation from a request or your inbox."

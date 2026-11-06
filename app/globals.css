@@ -38,7 +38,6 @@
   --font-serif: var(--font-display), ui-serif, Georgia, serif;
   --font-body: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --beam-nav-offset: 6rem;
-  --beam-sidebar: 15rem;
   --beam-radius-sm: 12px;
   --beam-radius-md: 18px;
   --beam-radius-lg: 26px;
@@ -419,20 +418,6 @@
     background: #f4f8fd;
   }
 
-  .app-sidebar {
-    width: var(--beam-sidebar);
-    background: #ffffff;
-    border-right: 1px solid var(--hairline);
-  }
-
-  .app-command {
-    height: 4rem;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--hairline);
-  }
-
   .bottom-dock {
     border-radius: 1.25rem;
     background: rgba(255, 255, 255, 0.96);
@@ -542,7 +527,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .app-command,
+    [data-testid='app-topnav'],
     .bottom-dock {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;

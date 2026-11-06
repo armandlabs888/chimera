@@ -428,7 +428,7 @@ export function PostRequest() {
   }
 
   return (
-    <div className="min-h-full px-4 py-6 sm:px-6" style={{ backgroundColor: PAGE_BG }}>
+    <div className="min-h-full py-2 sm:py-4" style={{ backgroundColor: PAGE_BG }}>
       <div className="mx-auto max-w-[1080px]">
         <header className="mb-6">
           <h1 className="text-[28px] font-bold tracking-tight sm:text-[32px]" style={{ color: INK }}>
