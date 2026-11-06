@@ -246,16 +246,27 @@ try {
 
     // ——— Guest browse ———
     await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
-    await page.waitForSelector('text=Browse', { timeout: 15000 })
+    await page.waitForSelector('text=Browse tasks', { timeout: 15000 })
     const browseBody = await page.locator('body').innerText()
     if (/across Austin neighborhoods/i.test(browseBody)) {
       throw new Error(`Guest /browse still assumes Austin @ ${vp.name}`)
     }
+    // Guest subtitle must stay location-neutral (no Austin assumption in heading/subtitle).
+    const browseH1 = (await page.locator('h1').first().innerText()).replace(/\s+/g, ' ').trim()
+    assertNoAustin(`guest browse h1 @ ${vp.name}`, browseH1)
     if (
+      !/Compare open neighborhood requests with upfront budgets/i.test(browseBody) &&
       !/Open requests and nearby helpers across local neighborhoods/i.test(browseBody) &&
       !/Open requests and nearby helpers in your area/i.test(browseBody)
     ) {
       throw new Error(`Guest /browse missing location-neutral subtitle @ ${vp.name}`)
+    }
+    if (/Austin/i.test(browseBody.split('\n').slice(0, 12).join('\n'))) {
+      // First viewport chrome + header should stay Austin-free for guests
+      const headerSlice = browseBody.split('\n').slice(0, 16).join('\n')
+      if (/across Austin|in Austin|Austin neighborhoods/i.test(headerSlice)) {
+        throw new Error(`Guest /browse header assumes Austin @ ${vp.name}: ${headerSlice}`)
+      }
     }
 
     const browseShot = join('/tmp', `guest-browse-${vp.name}.png`)

@@ -62,7 +62,16 @@ export function AppShell({ children }: { children: ReactNode }) {
     return (
       <div className="app-shell relative min-h-dvh bg-[#F4F8FD] text-[#071330]">
         <LandingNav variant="light" />
-        <main className="beam-container py-8 sm:py-12">{children}</main>
+        {/* Browse owns its own vertical rhythm; other guest pages keep section padding */}
+        <main
+          className={
+            pathname === '/browse'
+              ? 'beam-container py-6 sm:py-8'
+              : 'beam-container py-8 sm:py-12'
+          }
+        >
+          {children}
+        </main>
         <LandingFooter />
       </div>
     )
