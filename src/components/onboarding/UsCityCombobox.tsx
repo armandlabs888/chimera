@@ -1,12 +1,14 @@
 'use client'
 
-import { Check, MapPin, Navigation, X } from 'lucide-react'
+import { Check, CornerDownLeft, Loader2, MapPin, Navigation, Search, X } from 'lucide-react'
 import {
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
 } from 'react'
 import {
   citiesReady,
@@ -23,6 +25,43 @@ type Props = {
   disabled?: boolean
 }
 
+/** Diverse major metros — never Austin (guest/default no-Austin rule). */
+const POPULAR_CITY_QUERIES = [
+  'New York, NY',
+  'Los Angeles, CA',
+  'Chicago, IL',
+  'Houston, TX',
+  'Phoenix, AZ',
+  'Seattle, WA',
+] as const
+
+function highlightMatch(label: string, query: string): ReactNode {
+  const q = query.trim()
+  if (!q) return label
+  const lower = label.toLowerCase()
+  const idx = lower.indexOf(q.toLowerCase())
+  if (idx < 0) return label
+  return (
+    <>
+      {label.slice(0, idx)}
+      <span className="rounded-[3px] bg-[#EEF4FF] font-bold text-[#1D5CE5]">
+        {label.slice(idx, idx + q.length)}
+      </span>
+      {label.slice(idx + q.length)}
+    </>
+  )
+}
+
+function resolvePopularCities(): UsCity[] {
+  const out: UsCity[] = []
+  for (const q of POPULAR_CITY_QUERIES) {
+    const hits = searchUsCities(q, 5)
+    const exact = hits.find((c) => c.label.toLowerCase() === q.toLowerCase()) ?? hits[0]
+    if (exact && !out.some((c) => c.label === exact.label)) out.push(exact)
+  }
+  return out
+}
+
 export function UsCityCombobox({ value, onChange, disabled }: Props) {
   const listboxId = useId()
   const inputId = useId()
@@ -37,6 +76,7 @@ export function UsCityCombobox({ value, onChange, disabled }: Props) {
   const [options, setOptions] = useState<UsCity[]>([])
   const [locating, setLocating] = useState(false)
   const [geoError, setGeoError] = useState('')
+  const [popular, setPopular] = useState<UsCity[]>([])
 
   useEffect(() => {
     let cancelled = false
@@ -45,6 +85,7 @@ export function UsCityCombobox({ value, onChange, disabled }: Props) {
         if (!cancelled) {
           setReady(true)
           setOptions(searchUsCities('', 10))
+          setPopular(resolvePopularCities())
         }
       })
       .catch(() => {
@@ -151,47 +192,73 @@ export function UsCityCombobox({ value, onChange, disabled }: Props) {
   }
 
   const activeId = open && options[activeIndex] ? `${listboxId}-opt-${activeIndex}` : undefined
-  const showQuickLocation = open && !query.trim() && !value
+  const needsSelectionHint = query.trim().length > 0 && !value && !open
+  const showPopularChips = !value && !open && ready && popular.length > 0
+
+  const helperCopy = useMemo(() => {
+    if (loadError || geoError) return null
+    if (needsSelectionHint) return 'Select your city from the suggestions above to continue.'
+    return '32,000+ US cities & towns supported'
+  }, [loadError, geoError, needsSelectionHint])
 
   return (
     <div ref={rootRef} className="relative">
-      <label htmlFor={inputId} className="mb-2 block text-[13px] font-semibold text-[#475569]">
-        Your city
-      </label>
+      <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
+        <label htmlFor={inputId} className="text-[13px] font-semibold text-[#475569]">
+          Your city
+        </label>
+        {!value ? (
+          <button
+            type="button"
+            onClick={() => void snapToCurrentLocation()}
+            disabled={disabled || locating || !ready}
+            className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[12.5px] font-semibold text-[#1D5CE5] transition hover:bg-[#EEF4FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/30 disabled:cursor-not-allowed disabled:opacity-50"
+            data-testid="onboarding-use-location"
+          >
+            {locating ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+            ) : (
+              <Navigation className="h-3.5 w-3.5" aria-hidden />
+            )}
+            {locating ? 'Finding…' : 'Use current location'}
+          </button>
+        ) : null}
+      </div>
 
       {value ? (
         <div
-          className="flex items-center gap-3 rounded-2xl border border-[rgba(7,19,48,0.1)] bg-[#F4F8FD] px-3 py-3"
+          className="flex items-center gap-3 rounded-2xl border border-[#1D5CE5]/25 bg-[#F5F9FF] px-4 py-3.5"
           data-testid="onboarding-city-verified"
         >
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1D5CE5] shadow-[0_0_0_1px_rgba(7,19,48,0.06)]">
+          <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1D5CE5] text-white shadow-[0_8px_18px_-6px_rgba(29,92,229,0.45)]">
             <MapPin className="h-[18px] w-[18px]" aria-hidden />
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate text-[15px] font-semibold text-[#071330]">{value.label}</p>
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#E8F0FF] px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.06em] text-[#1D5CE5]">
+              <p className="truncate text-[15px] font-bold text-[#071330]">{value.label}</p>
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.06em] text-emerald-700">
                 <Check className="h-3 w-3" aria-hidden />
                 Verified
               </span>
             </div>
-            <p className="mt-0.5 text-[13px] text-[#64748B]">{stateDisplayName(value.stateCode)}</p>
+            <p className="mt-0.5 text-[13px] text-[#64748B]">
+              {stateDisplayName(value.stateCode)} · United States
+            </p>
           </div>
           <button
             type="button"
             onClick={clearSelection}
             disabled={disabled}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold text-[#64748B] transition hover:bg-white hover:text-[#071330]"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[rgba(7,19,48,0.1)] bg-white px-3 text-[13px] font-semibold text-[#475569] transition hover:border-[rgba(7,19,48,0.18)] hover:text-[#071330]"
             aria-label="Change city"
           >
-            <X className="h-3.5 w-3.5" aria-hidden />
             Change
           </button>
         </div>
       ) : (
         <div className="relative">
-          <MapPin
-            className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#1D5CE5]"
+          <Search
+            className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#1D5CE5]"
             aria-hidden
           />
           <input
@@ -207,7 +274,11 @@ export function UsCityCombobox({ value, onChange, disabled }: Props) {
             autoComplete="off"
             spellCheck={false}
             disabled={disabled || !ready}
-            placeholder={ready ? 'Search any US city or town' : 'Loading US cities…'}
+            placeholder={
+              ready
+                ? 'Search any US city or town (e.g. Chicago, Miami, Seattle)…'
+                : 'Loading US cities…'
+            }
             value={query}
             onChange={(e) => onInputChange(e.target.value)}
             onFocus={() => {
@@ -218,8 +289,23 @@ export function UsCityCombobox({ value, onChange, disabled }: Props) {
             }}
             onKeyDown={onKeyDown}
             data-testid="onboarding-city-input"
-            className="h-[52px] w-full rounded-2xl border border-[rgba(7,19,48,0.12)] bg-white py-3 pl-11 pr-4 text-[15px] text-[#071330] outline-none transition placeholder:text-[#94A3B8] focus-visible:border-[#1D5CE5] focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/15 disabled:opacity-60"
+            className="h-[54px] w-full rounded-2xl border border-[rgba(7,19,48,0.12)] bg-white py-3 pl-11 pr-11 text-[15px] text-[#071330] shadow-[0_8px_20px_-16px_rgba(12,42,102,0.2)] outline-none transition placeholder:text-[#94A3B8] focus-visible:border-[#1D5CE5] focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/15 disabled:opacity-60"
           />
+          {query ? (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery('')
+                onChange(null)
+                setOpen(true)
+                inputRef.current?.focus()
+              }}
+              className="absolute right-3 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-[#94A3B8] transition hover:bg-[#F4F8FD] hover:text-[#071330]"
+              aria-label="Clear city search"
+            >
+              <X className="h-4 w-4" aria-hidden />
+            </button>
+          ) : null}
         </div>
       )}
 
@@ -228,31 +314,9 @@ export function UsCityCombobox({ value, onChange, disabled }: Props) {
           id={listboxId}
           role="listbox"
           aria-label="US cities"
-          className="absolute z-40 mt-2 max-h-[320px] w-full overflow-auto rounded-2xl border border-[rgba(7,19,48,0.1)] bg-white p-1.5 shadow-[0_18px_40px_-16px_rgba(12,42,102,0.18)]"
+          className="absolute z-50 mt-2 max-h-[300px] w-full overflow-auto overscroll-contain rounded-2xl border border-[rgba(7,19,48,0.1)] bg-white p-1.5 shadow-[0_22px_48px_-18px_rgba(12,42,102,0.28)]"
           data-testid="onboarding-city-listbox"
         >
-          {showQuickLocation ? (
-            <button
-              type="button"
-              onClick={() => void snapToCurrentLocation()}
-              disabled={locating}
-              className="mb-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-[#F4F8FD] focus-visible:bg-[#F4F8FD] focus-visible:outline-none"
-              data-testid="onboarding-use-location"
-            >
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#EEF4FF] text-[#1D5CE5]">
-                <Navigation className="h-4 w-4" aria-hidden />
-              </span>
-              <span className="min-w-0">
-                <span className="block text-[14px] font-semibold text-[#071330]">
-                  {locating ? 'Finding nearest city…' : 'Use my current location'}
-                </span>
-                <span className="block text-[12.5px] text-[#64748B]">
-                  Snap to the closest US city in our directory
-                </span>
-              </span>
-            </button>
-          ) : null}
-
           {options.length === 0 ? (
             <p className="px-3 py-4 text-[14px] text-[#64748B]">No matching US cities.</p>
           ) : (
@@ -267,22 +331,25 @@ export function UsCityCombobox({ value, onChange, disabled }: Props) {
                   aria-selected={active}
                   onMouseEnter={() => setActiveIndex(index)}
                   onClick={() => selectCity(city)}
-                  className={`flex w-full items-start justify-between gap-3 rounded-xl px-3 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 ${
+                  className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 ${
                     active ? 'bg-[#EEF4FF]' : 'hover:bg-[#F4F8FD]'
                   }`}
                 >
-                  <span>
-                    <span className="block text-[14.5px] font-semibold text-[#071330]">
-                      {city.label}
+                  <span className="min-w-0">
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="block text-[14.5px] font-semibold text-[#071330]">
+                        {highlightMatch(city.label, query)}
+                      </span>
+                      <span className="rounded-md bg-[#F4F8FD] px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-[#475569]">
+                        {city.stateCode}
+                      </span>
                     </span>
-                    <span className="block text-[12.5px] text-[#64748B]">
+                    <span className="mt-0.5 block text-[12.5px] text-[#64748B]">
                       {stateDisplayName(city.stateCode)}
                     </span>
                   </span>
-                  {city.population > 0 ? (
-                    <span className="shrink-0 pt-0.5 text-[11px] font-medium tabular-nums text-[#94A3B8]">
-                      {city.population.toLocaleString()}
-                    </span>
+                  {active ? (
+                    <CornerDownLeft className="h-3.5 w-3.5 shrink-0 text-[#94A3B8]" aria-hidden />
                   ) : null}
                 </button>
               )
@@ -291,15 +358,40 @@ export function UsCityCombobox({ value, onChange, disabled }: Props) {
         </div>
       ) : null}
 
+      {showPopularChips ? (
+        <div className="mt-3">
+          <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
+            Popular
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {popular.map((city) => (
+              <button
+                key={city.label}
+                type="button"
+                onClick={() => selectCity(city)}
+                disabled={disabled}
+                className="inline-flex items-center rounded-full border border-[rgba(7,19,48,0.1)] bg-white px-3 py-1.5 text-[12.5px] font-semibold text-[#475569] transition hover:border-[#1D5CE5]/35 hover:bg-[#F5F9FF] hover:text-[#1D5CE5]"
+              >
+                {city.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {loadError || geoError ? (
         <p className="mt-2 text-[13px] text-red-600" role="alert">
           {loadError || geoError}
         </p>
-      ) : (
-        <p className="mt-2 text-[12.5px] text-[#94A3B8]">
-          Pick a verified US city from the list — typing alone is not enough.
+      ) : helperCopy ? (
+        <p
+          className={`mt-2 text-[12.5px] ${
+            needsSelectionHint ? 'font-medium text-[#64748B]' : 'text-[#94A3B8]'
+          }`}
+        >
+          {helperCopy}
         </p>
-      )}
+      ) : null}
     </div>
   )
 }
