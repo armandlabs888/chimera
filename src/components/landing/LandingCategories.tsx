@@ -1,47 +1,62 @@
+import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
+import { LandingSection } from '@/components/flat'
+import { Badge } from '@/components/ui'
 import { CATEGORIES } from '@/data/categories'
-import { LandingSection, MetaLabel, FlatBento } from '@/components/flat'
-
-const NOTES: Record<string, string> = {
-  handyman: 'Light fixes only — not licensed trades',
-}
+import { EXAMPLE_LABEL } from './examples'
 
 export function LandingCategories() {
   return (
-    <LandingSection
-      id="categories"
-      tone="base"
-      fullPage
-      className="border-t border-beam-line px-4 sm:px-6"
-    >
-      <div className="mx-auto max-w-[72rem]">
-        <div className="max-w-xl">
-          <MetaLabel className="text-beam-amber">Categories</MetaLabel>
-          <h2 className="mt-2 type-h2 text-beam-cream">Practical jobs, on purpose</h2>
-          <p className="mt-2 type-sec text-beam-muted">
-            Six focused categories. Each opens browse with that filter.
+    <LandingSection id="categories" band className="border-b border-beam-line">
+      <div className="section-inner">
+        <div className="max-w-2xl">
+          <p className="flat-meta text-beam-amber-deep">Categories</p>
+          <h2 className="mt-2 type-h1 text-beam-charcoal">Six practical scopes</h2>
+          <p className="mt-2 type-intro text-beam-cream-dim">
+            Beam stays focused on neighborhood help you can describe clearly. Light handyman
+            excludes licensed trades.
           </p>
         </div>
 
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {CATEGORIES.map((cat) => (
-            <FlatBento key={cat.id} href={`/browse?category=${cat.id}`} className="p-4">
-              <div className="absolute inset-0">
-                <img src={cat.image} alt="" className="h-full w-full object-cover opacity-90" loading="lazy" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/15" />
-              </div>
-              <div className="relative min-h-[9.5rem] text-white">
-                <MetaLabel className="text-white/80">Browse</MetaLabel>
-                <h3 className="mt-1.5 text-[20px] font-semibold tracking-tight">{cat.label}</h3>
-                <p className="mt-1 type-sec text-white/85">{cat.description}</p>
-                {NOTES[cat.id] ? <p className="mt-2 type-meta text-white/70">{NOTES[cat.id]}</p> : null}
-                <span className="mt-3 inline-flex items-center gap-1 type-sec font-medium text-beam-amber transition duration-150 group-hover:gap-1.5">
-                  Open filter
-                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-                </span>
-              </div>
-            </FlatBento>
-          ))}
+          {CATEGORIES.map((cat) => {
+            const example = cat.templates[0]
+            return (
+              <article key={cat.id} className="flat-bento flex flex-col overflow-hidden bg-beam-base">
+                <div className="border-b border-beam-line bg-beam-surface-2 px-4 py-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-[16px] font-semibold text-beam-cream">{cat.label}</h3>
+                    {cat.id === 'handyman' ? (
+                      <Badge tone="warning">No licensed trades</Badge>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 type-sec text-beam-muted">{cat.description}</p>
+                </div>
+                <div className="flex flex-1 flex-col p-4">
+                  <p className="type-meta text-beam-muted">Typical request · {EXAMPLE_LABEL}</p>
+                  <p className="mt-1 text-[14px] font-medium text-beam-cream">{example.title}</p>
+                  <p className="mt-1 line-clamp-2 type-sec text-beam-muted">{example.details}</p>
+                  <p className="mt-2 tabular-nums type-sec font-semibold text-beam-cream">
+                    Budget hint ${example.budgetHint}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Link
+                      href={`/browse?category=${cat.id}`}
+                      className="btn-compact inline-flex items-center gap-1 rounded-[8px] border border-beam-line px-3 text-[13px] font-medium text-beam-cream hover:bg-beam-surface-2"
+                    >
+                      Browse <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                    <Link
+                      href={`/post?category=${cat.id}`}
+                      className="btn-compact inline-flex items-center rounded-[8px] bg-beam-amber px-3 text-[13px] font-semibold text-beam-charcoal hover:bg-beam-amber-deep"
+                    >
+                      Post
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            )
+          })}
         </div>
       </div>
     </LandingSection>

@@ -13,10 +13,14 @@ const routes = [
   '/auth',
   '/auth?mode=signin',
   '/auth?mode=signup',
+  '/home',
   '/browse',
   '/browse?tab=people',
+  '/browse?q=couch',
   '/post',
+  '/messages',
   '/you',
+  '/you?tab=profile',
   '/safety',
   '/people/p-maya',
   '/requests/req-1',
@@ -68,11 +72,15 @@ async function checkLandingMarkup() {
   assert.match(text, /href="\/auth\?mode=signin"/, 'landing sign-in links to /auth')
   assert.match(text, /Example/, 'example badges present')
   assert.match(text, /beam-hero-gig-work/, 'hero gig-work image referenced')
-  assert.match(text, /landing-section-full/, 'full-page section class present')
-  assert.doesNotMatch(text, /hero-stage|HeroProofStage|hero-beam-art|beam-stack/i, 'no experimental stage markup')
+  assert.match(text, /id="product"|Product/, 'workflow product section')
+  assert.match(text, /id="coverage"|Austin neighborhood/i, 'neighborhood coverage')
+  assert.match(text, /id="categories"/, 'categories section')
+  assert.match(text, /id="trust"/, 'trust section')
+  assert.doesNotMatch(text, /landing-section-full/, 'no sparse full-viewport section class')
+  assert.doesNotMatch(text, /hero-stage|HeroProofStage|hero-beam-art|beam-stack|scrim-hero/i, 'no experimental/dark scrim markup')
   assert.doesNotMatch(
     text,
-    /Y Combinator|backed by|guaranteed same-day|try free for 14 days|payius/i,
+    /Y Combinator|backed by|guaranteed same-day|try free for 14 days|payius|Sequoia/i,
     'no invented claims / brand clone',
   )
   const imgRes = await fetch(`${BASE_URL}/images/beam-hero-gig-work.jpg`)
@@ -239,14 +247,14 @@ async function checkLandingBrowser() {
       }
     })
     assert.match(themeAndScale.bg, /rgb\(255,\s*255,\s*255\)/, 'light canvas')
-    assert.match(themeAndScale.color, /rgb\(34,\s*34,\s*34\)/, 'dark primary text')
+    assert.match(themeAndScale.color, /rgb\(23,\s*23,\s*23\)|rgb\(34,\s*34,\s*34\)/, 'dark primary text')
     assert.match(themeAndScale.font, /Geist|geist/i, 'Geist family loaded')
     assert.ok(isLightRgb(themeAndScale.rootBg), `landing-root light got ${themeAndScale.rootBg}`)
     assert.ok(isLightRgb(themeAndScale.footerBg), `footer light got ${themeAndScale.footerBg}`)
     assert.ok(themeAndScale.h1Px >= 34 && themeAndScale.h1Px <= 58, `hero size ${themeAndScale.h1Px}`)
     assert.ok(themeAndScale.heroCtaH >= 36 && themeAndScale.heroCtaH <= 52, `hero CTA h ${themeAndScale.heroCtaH}`)
     assert.ok(themeAndScale.navCtaH >= 36 && themeAndScale.navCtaH <= 48, `nav CTA h ${themeAndScale.navCtaH}`)
-    assert.ok(themeAndScale.sectionCount >= 5, 'landing sections present')
+    assert.ok(themeAndScale.sectionCount >= 6, 'landing sections present')
     assert.equal(themeAndScale.hasStage, false, 'no experimental stage DOM')
     assert.ok(
       themeAndScale.sectionPositions.every((p) => p === 'static' || p === 'relative'),
@@ -256,6 +264,9 @@ async function checkLandingBrowser() {
       themeAndScale.transforms.every((t) => t === 'none'),
       'no section transforms',
     )
+
+    assert.equal(await page.locator('.scrim-hero').count(), 0, 'no dark hero scrim on marketing')
+    assert.equal(await page.locator('.landing-section-full').count(), 0, 'no full-viewport slabs')
 
     // Hero image loaded (no screenshots — DOM/network only)
     await page.waitForSelector('.landing-hero-media img')
@@ -282,33 +293,30 @@ async function checkLandingBrowser() {
     assert.ok(heroImg.naturalWidth > 0, `hero naturalWidth ${heroImg.naturalWidth}`)
     assert.match(heroImg.alt, /bookshelf|armchair|neighbor|living room/i, 'meaningful alt')
 
-    // Full-page section heights ≥ viewport − header − tolerance
-    const fullPageGeo = await page.evaluate(() => {
-      const nav = document.querySelector('.landing-nav')
-      const navH = nav ? nav.getBoundingClientRect().height : 56
+    // Dense enterprise rhythm — sections should NOT force full viewport min-height
+    const densityGeo = await page.evaluate(() => {
       const vh = window.innerHeight
-      const minExpected = vh - navH - 12
-      const sections = [...document.querySelectorAll('main > section.landing-section-full')]
+      const sections = [...document.querySelectorAll('main > section')]
       return {
-        navH,
-        vh,
-        minExpected,
         count: sections.length,
         heights: sections.map((el) => Math.round(el.getBoundingClientRect().height)),
         positions: sections.map((el) => getComputedStyle(el).position),
-        ids: sections.map((el) => el.id || el.getAttribute('aria-label') || ''),
+        vh,
+        hasCoverage: !!document.querySelector('#coverage'),
+        hasProduct: !!document.querySelector('#product'),
       }
     })
-    assert.ok(fullPageGeo.count >= 6, `full-page sections ${fullPageGeo.count}`)
-    for (const h of fullPageGeo.heights) {
-      assert.ok(
-        h >= fullPageGeo.minExpected,
-        `section height ${h} < min ${fullPageGeo.minExpected} (vh=${fullPageGeo.vh} nav=${fullPageGeo.navH})`,
-      )
-    }
+    assert.ok(densityGeo.count >= 6, `dense sections ${densityGeo.count}`)
+    assert.equal(densityGeo.hasCoverage, true, 'coverage matrix present')
+    assert.equal(densityGeo.hasProduct, true, 'product workflow present')
     assert.ok(
-      fullPageGeo.positions.every((p) => p === 'static' || p === 'relative'),
-      'full-page sections non-sticky',
+      densityGeo.positions.every((p) => p === 'static' || p === 'relative'),
+      'sections non-sticky',
+    )
+    // At least some content sections are shorter than a full viewport (density, not theater)
+    assert.ok(
+      densityGeo.heights.some((h) => h < densityGeo.vh - 40),
+      'has non-full-viewport sections (enterprise density)',
     )
 
     const postVisible = await page.locator('a[href="/post"]').first().isVisible()
@@ -329,6 +337,14 @@ async function checkLandingBrowser() {
     })
     assert.equal(inView, true, 'hero CTAs in first desktop viewport')
 
+    // Interactive workflow tabs (Example-labeled) — after first-viewport checks (tabs may scroll)
+    await page.locator('#product').scrollIntoViewIfNeeded()
+    await page.getByRole('tab', { name: /Compare priced offers/i }).click()
+    assert.match(await page.locator('[role="tabpanel"]').innerText(), /\$55|Within 1 hour|Example/i)
+    await page.getByRole('tab', { name: /Coordinate in-thread/i }).click()
+    assert.match(await page.locator('[role="tabpanel"]').innerText(), /Example|Thread/i)
+    await page.evaluate(() => window.scrollTo(0, 0))
+
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1),
       false,
@@ -337,28 +353,28 @@ async function checkLandingBrowser() {
 
     // Vertical scroll down/up — sections move with the document
     const scrollProbe = await page.evaluate(() => {
-      const proof = document.querySelector('#how-it-works')
+      const product = document.querySelector('#product')
       const cats = document.querySelector('#categories')
       const cta = document.querySelector('main > section:last-of-type')
       const footer = document.querySelector('footer')
-      if (!proof || !cats || !footer) return null
+      if (!product || !cats || !footer) return null
       const before = {
         scrollY: window.scrollY,
-        proofTop: proof.getBoundingClientRect().top,
+        productTop: product.getBoundingClientRect().top,
         catsTop: cats.getBoundingClientRect().top,
       }
       window.scrollBy(0, 500)
-      const midProofTop = proof.getBoundingClientRect().top
+      const midProductTop = product.getBoundingClientRect().top
       const midCatsTop = cats.getBoundingClientRect().top
       const mid = {
         scrollY: window.scrollY,
-        proofTop: midProofTop,
+        productTop: midProductTop,
         catsTop: midCatsTop,
-        overlap: midProofTop < midCatsTop && proof.getBoundingClientRect().bottom > midCatsTop + 2,
+        overlap: midProductTop < midCatsTop && product.getBoundingClientRect().bottom > midCatsTop + 2,
       }
       window.scrollBy(0, -500)
       const after = {
-        proofTop: proof.getBoundingClientRect().top,
+        productTop: product.getBoundingClientRect().top,
       }
       window.scrollTo(0, document.body.scrollHeight)
       const end = {
@@ -368,13 +384,12 @@ async function checkLandingBrowser() {
       }
       window.scrollTo(0, 0)
       return { before, mid, after, end }
-
     })
     assert.ok(scrollProbe, 'scroll probe sections found')
     assert.ok(scrollProbe.mid.scrollY > scrollProbe.before.scrollY, 'scroll down advances')
     assert.ok(
-      scrollProbe.mid.proofTop < scrollProbe.before.proofTop - 100,
-      'proof moves up with scroll (not pinned)',
+      scrollProbe.mid.productTop < scrollProbe.before.productTop - 100,
+      'product moves up with scroll (not pinned)',
     )
     assert.ok(
       scrollProbe.mid.catsTop < scrollProbe.before.catsTop - 100,
@@ -382,7 +397,7 @@ async function checkLandingBrowser() {
     )
     assert.equal(scrollProbe.mid.overlap, false, 'no section overlap while scrolling')
     assert.ok(
-      Math.abs(scrollProbe.after.proofTop - scrollProbe.before.proofTop) < 8,
+      Math.abs(scrollProbe.after.productTop - scrollProbe.before.productTop) < 8,
       'scroll up restores position',
     )
     assert.ok(scrollProbe.end.footerTop < 900, 'footer reachable')
@@ -433,11 +448,8 @@ async function checkLandingBrowser() {
       )
       const geo = await page.evaluate(() => {
         const doc = document.documentElement
-        const nav = document.querySelector('.landing-nav')
-        const navH = nav ? nav.getBoundingClientRect().height : 56
         const vh = window.innerHeight
-        const minExpected = vh - navH - 12
-        const sections = [...document.querySelectorAll('main > section.landing-section-full')]
+        const sections = [...document.querySelectorAll('main > section')]
         const post = document.querySelector('.landing-cta-row a[href="/post"]')
         const browse = document.querySelector('.landing-cta-row a[href="/browse"]')
         const ok = (el) => {
@@ -448,15 +460,14 @@ async function checkLandingBrowser() {
         const img = document.querySelector('.landing-hero-media img')
         const surfaces = [
           document.querySelector('.landing-root'),
-          document.querySelector('#how-it-works'),
+          document.querySelector('#product'),
           document.querySelector('footer'),
         ].map((el) => (el ? getComputedStyle(el).backgroundColor : ''))
         return {
           overflowX: doc.scrollWidth > doc.clientWidth + 1,
           positions: sections.map((el) => getComputedStyle(el).position),
           transforms: sections.map((el) => getComputedStyle(el).transform),
-          heights: sections.map((el) => Math.round(el.getBoundingClientRect().height)),
-          minExpected,
+          fullPageCount: document.querySelectorAll('.landing-section-full').length,
           ctasInView: ok(post) && ok(browse),
           surfaces,
           imgW: img?.naturalWidth ?? 0,
@@ -470,9 +481,7 @@ async function checkLandingBrowser() {
       assert.ok(geo.transforms.every((t) => t === 'none'), `no transforms @${width}`)
       assert.ok(geo.surfaces.every(isLightRgb), `light surfaces @${width}: ${geo.surfaces.join(' | ')}`)
       assert.ok(geo.imgW > 0, `hero image loaded @${width}`)
-      for (const h of geo.heights) {
-        assert.ok(h >= geo.minExpected, `full-page h ${h} < ${geo.minExpected} @${width}x${height}`)
-      }
+      assert.equal(geo.fullPageCount, 0, `no full-page slabs @${width}`)
       if (width === 375 || width >= 1280) {
         assert.equal(geo.ctasInView, true, `hero CTAs in first viewport @${width}`)
       }
@@ -491,7 +500,7 @@ async function checkLandingBrowser() {
     await page.setViewportSize({ width: 1280, height: 800 })
     await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
     const reduced = await page.evaluate(() => {
-      const el = document.querySelector('#how-it-works')
+      const el = document.querySelector('#product')
       return {
         pos: el ? getComputedStyle(el).position : null,
         text: el?.innerText ?? '',
@@ -501,13 +510,13 @@ async function checkLandingBrowser() {
     assert.ok(reduced.pos === 'relative' || reduced.pos === 'static', 'reduced-motion normal flow')
     assert.equal(reduced.transform, 'none', 'reduced-motion no transform')
     assert.match(reduced.text, /Example/i, 'reduced-motion proof examples visible')
-    assert.match(reduced.text, /Help move a couch/i, 'reduced-motion request example')
+    assert.match(reduced.text, /Post a request|priced offers/i, 'reduced-motion workflow copy')
 
     await page.locator('body').click({ position: { x: 2, y: 2 } })
     await page.keyboard.press('Tab')
     const focusedTag = await page.evaluate(() => document.activeElement?.tagName ?? '')
     assert.ok(focusedTag === 'A' || focusedTag === 'BUTTON', 'tab reaches interactive control')
-    console.log('ok landing browser DOM + conventional vertical SaaS flow')
+    console.log('ok landing browser DOM + dense enterprise SaaS flow')
   } finally {
     await browser.close()
   }

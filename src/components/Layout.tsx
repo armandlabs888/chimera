@@ -7,15 +7,17 @@ import type { ReactNode } from 'react'
 import { BottomNav } from './BottomNav'
 
 const desktopLinks = [
-  { href: '/', label: 'Home' },
+  { href: '/home', label: 'Home' },
   { href: '/browse', label: 'Browse' },
   { href: '/post', label: 'Post' },
+  { href: '/messages', label: 'Messages' },
   { href: '/you', label: 'You' },
   { href: '/safety', label: 'Safety' },
 ]
 
 function shouldHideAppChrome(pathname: string) {
-  return pathname === '/' || pathname.startsWith('/messages/')
+  // Marketing landing keeps its own chrome; thread immersion uses inbox chrome instead.
+  return pathname === '/'
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -27,8 +29,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       {!hideChrome ? (
         <header className="sticky top-0 z-30 border-b border-beam-line bg-beam-base/95 backdrop-blur-sm">
           <div className="mx-auto flex h-14 max-w-[72rem] items-center justify-between px-4">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-beam-amber/15 text-beam-amber">
+            <Link href="/" className="flex items-center gap-2" title="Beam marketing home">
+              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-beam-amber-soft text-beam-amber-deep">
                 <Zap className="h-4 w-4" fill="currentColor" />
               </span>
               <span className="text-[17px] font-semibold tracking-tight text-beam-charcoal">Beam</span>
@@ -36,7 +38,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <nav className="hidden items-center gap-0.5 md:flex" aria-label="Desktop">
               {desktopLinks.map((link) => {
                 const active =
-                  link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)
+                  link.href === '/home'
+                    ? pathname === '/home'
+                    : pathname === link.href || pathname.startsWith(`${link.href}/`)
                 return (
                   <Link
                     key={link.href}
@@ -44,7 +48,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     className={`btn-compact inline-flex items-center rounded-[8px] px-3 text-[13px] font-medium transition ${
                       active
                         ? 'bg-beam-amber-soft text-beam-amber-deep'
-                        : 'text-beam-muted hover:bg-beam-ink hover:text-beam-cream'
+                        : 'text-beam-muted hover:bg-beam-surface-2 hover:text-beam-cream'
                     }`}
                   >
                     {link.label}

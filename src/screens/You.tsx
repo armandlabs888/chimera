@@ -3,6 +3,7 @@
 import { MessageCircle, RotateCcw } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
 import Link from 'next/link'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { RequestCard } from '../components/RequestCard'
 import {
   Badge,
@@ -11,6 +12,7 @@ import {
   EmptyState,
   Field,
   SectionHeader,
+  Select,
   TextArea,
   TextInput,
 } from '../components/ui'
@@ -21,10 +23,18 @@ import { formatMoney, relativeTime } from '../lib/matching'
 import type { AvailabilitySlot, CategoryId } from '../types'
 
 const SLOTS: AvailabilitySlot[] = ['mornings', 'afternoons', 'evenings', 'weekends']
+const TABS = ['requests', 'offers', 'messages', 'profile'] as const
+type YouTab = (typeof TABS)[number]
 
 export function You() {
   const { state, currentUser, updateProfile, resetDemo, getPerson, getRequest, mode, signOut } =
     useBeam()
+  const router = useRouter()
+  const pathname = usePathname()
+  const params = useSearchParams()
+  const rawTab = params.get('tab')
+  const tab: YouTab = TABS.includes(rawTab as YouTab) ? (rawTab as YouTab) : 'requests'
+
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(currentUser.name)
   const [bio, setBio] = useState(currentUser.bio)
@@ -32,7 +42,14 @@ export function You() {
   const [hourlyRate, setHourlyRate] = useState(currentUser.hourlyRate)
   const [skills, setSkills] = useState<CategoryId[]>(currentUser.skills)
   const [availability, setAvailability] = useState<AvailabilitySlot[]>(currentUser.availability)
-  const [tab, setTab] = useState<'requests' | 'offers' | 'messages' | 'profile'>('requests')
+
+  function setTab(next: YouTab) {
+    const nextParams = new URLSearchParams(params.toString())
+    if (next === 'requests') nextParams.delete('tab')
+    else nextParams.set('tab', next)
+    const qs = nextParams.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname)
+  }
 
   const myRequests = useMemo(
     () => state.requests.filter((r) => r.requesterId === currentUser.id),
@@ -279,17 +296,16 @@ export function You() {
                 <TextArea value={bio} onChange={(e) => setBio(e.target.value)} required />
               </Field>
               <Field label="Neighborhood">
-                <select
+                <Select
                   value={neighborhood}
                   onChange={(e) => setNeighborhood(e.target.value as typeof neighborhood)}
-                  className="touch-target w-full rounded-xl border border-beam-line/80 bg-beam-ink px-4 py-3"
                 >
                   {NEIGHBORHOODS.map((n) => (
                     <option key={n.id} value={n.id}>
                       {n.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </Field>
               <Field label="Hourly rate (USD)">
                 <TextInput
