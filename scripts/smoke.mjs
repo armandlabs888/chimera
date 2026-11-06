@@ -24,6 +24,8 @@ const routes = [
   '/safety',
   '/people/p-maya',
   '/requests/req-1',
+  '/onboarding',
+  '/onboarding?preview=1',
   '/onboarding/helper',
   '/messages/missing-thread',
   '/does-not-exist',
@@ -310,9 +312,8 @@ async function checkAuthBrowser() {
     await page.getByRole('tab', { name: 'Create account' }).click()
     await page.waitForSelector('text=Full name')
     assert.equal(await page.locator('select').count(), 0, 'signup has no Austin neighborhood select')
-    const locationField = page.getByPlaceholder(/City or ZIP/i)
-    assert.equal(await locationField.count(), 1, 'City or ZIP signup field')
-    assert.ok(await page.getByRole('button', { name: /Detect/i }).count() >= 1)
+    assert.equal(await page.getByPlaceholder(/City or ZIP/i).count(), 0, 'signup no longer asks City/ZIP')
+    assert.equal(await page.getByTestId('signup-location').count(), 0, 'no signup-location field')
 
     await page.locator('input[type="password"], input[type="text"]').last().fill('secret12')
     const showBtn = page.getByRole('button', { name: /Show|Hide/ })
@@ -324,13 +325,12 @@ async function checkAuthBrowser() {
 
     await page.getByRole('tab', { name: 'Sign in' }).click()
     assert.equal(await page.locator('text=Full name').count(), 0)
-    assert.equal(await page.getByPlaceholder(/City or ZIP/i).count(), 0)
 
     await page.goto(`${BASE_URL}/auth?mode=signup`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('text=Full name')
     assert.equal(await page.getByRole('tab', { name: 'Create account' }).getAttribute('aria-selected'), 'true')
 
-    console.log('ok auth browser Google + City/ZIP signup + password toggle')
+    console.log('ok auth browser Google + simplified signup + password toggle')
   } finally {
     await browser.close()
   }
@@ -564,6 +564,108 @@ async function checkBrowserPersistence() {
   }
 }
 
+async function checkOnboardingFlow() {
+  let chromium
+  try {
+    ;({ chromium } = await import('playwright'))
+  } catch {
+    console.log('skip onboarding flow (playwright not installed)')
+    return
+  }
+
+  const browser = await chromium.launch({ headless: true })
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+  try {
+    await page.goto(`${BASE_URL}/onboarding?preview=1`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('[data-testid="onboarding-root"]', { timeout: 20000 })
+
+    const step1 = await page.locator('[data-testid="onboarding-step-1"]').innerText()
+    assert.match(step1, /Welcome to Beam/i)
+    assert.match(step1, /Customer/i)
+    assert.match(step1, /Helper \/ Tasker/i)
+    assert.equal(await page.getByTestId('onboarding-next').isDisabled(), true, 'Next disabled initially')
+
+    const darkProbe = await page.evaluate(() => {
+      const bodyBg = getComputedStyle(document.body).backgroundColor
+      const darkNodes = [...document.querySelectorAll('*')].filter((el) => {
+        const bg = getComputedStyle(el).backgroundColor
+        const alphaM = bg.match(/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)\s*\)/i)
+        if (alphaM && Number(alphaM[1]) < 0.05) return false
+        if (bg === 'transparent' || bg === 'rgba(0, 0, 0, 0)') return false
+        const m = bg.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i)
+        if (!m) return false
+        const r = Number(m[1])
+        const g = Number(m[2])
+        const b = Number(m[3])
+        return (r <= 14 && g <= 14 && b <= 16) || (r === 20 && g === 20 && b === 24)
+      })
+      return {
+        bodyBg,
+        darkCount: darkNodes.length,
+        overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+        austin: /across Austin|Hyde Park|East Austin/i.test(document.body.innerText),
+      }
+    })
+    assert.ok(isLightRgb(darkProbe.bodyBg) || !isDarkLeftover(darkProbe.bodyBg), `onboarding body ${darkProbe.bodyBg}`)
+    assert.equal(darkProbe.darkCount, 0, 'onboarding dark leftovers')
+    assert.equal(darkProbe.overflowX, false, 'onboarding no horizontal overflow')
+    assert.equal(darkProbe.austin, false, 'onboarding has no Austin assumptions')
+
+    await page.getByTestId('onboarding-role-helper').click()
+    assert.equal(await page.getByTestId('onboarding-role-helper').getAttribute('aria-checked'), 'true')
+
+    await page.waitForSelector('[data-testid="onboarding-city-input"]', { timeout: 15000 })
+    const cityInput = page.getByTestId('onboarding-city-input')
+    await cityInput.click()
+    await page.waitForSelector('[data-testid="onboarding-city-listbox"]')
+
+    // Diverse US city coverage across states
+    const cityChecks = [
+      { q: 'Boise, ID', expect: /Boise,\s*ID/i },
+      { q: 'San Juan, PR', expect: /San Juan,\s*PR/i },
+      { q: 'Springfield, IL', expect: /Springfield,\s*IL/i },
+    ]
+    for (const check of cityChecks) {
+      await cityInput.fill('')
+      await cityInput.fill(check.q)
+      await page.waitForSelector('[data-testid="onboarding-city-listbox"]')
+      const optionsText = await page.getByTestId('onboarding-city-listbox').innerText()
+      assert.match(optionsText, check.expect, `autocomplete for ${check.q}`)
+    }
+
+    await cityInput.fill('Boise, ID')
+    await page.waitForSelector('[data-testid="onboarding-city-listbox"]')
+    await page.getByRole('option', { name: /Boise,\s*ID/i }).first().click()
+    await page.waitForSelector('[data-testid="onboarding-city-verified"]')
+    assert.match(await page.getByTestId('onboarding-city-verified').innerText(), /Boise,\s*ID/i)
+    assert.equal(await page.getByTestId('onboarding-next').isDisabled(), false, 'Next enabled')
+
+    await page.getByTestId('onboarding-next').click()
+    await page.waitForSelector('[data-testid="onboarding-step-2"]')
+    const step2 = await page.getByTestId('onboarding-step-2').innerText()
+    assert.match(step2, /Posting illegal content or listing sexual services is strictly prohibited/i)
+    assert.match(step2, /temporary ban/i)
+    assert.match(step2, /Back/i)
+    assert.match(step2, /Complete/i)
+    assert.ok(await page.getByTestId('onboarding-safety-callout').count() >= 1)
+
+    await page.getByTestId('onboarding-back').click()
+    await page.waitForSelector('[data-testid="onboarding-step-1"]')
+    assert.equal(await page.getByTestId('onboarding-role-helper').getAttribute('aria-checked'), 'true')
+    assert.ok(await page.getByTestId('onboarding-city-verified').count() >= 1, 'city preserved on Back')
+
+    await page.getByTestId('onboarding-next').click()
+    await page.waitForSelector('[data-testid="onboarding-step-2"]')
+    await page.getByTestId('onboarding-complete').click()
+    await page.waitForURL(/\/browse/, { timeout: 15000 })
+    assert.match(page.url(), /\/browse/)
+
+    console.log('ok onboarding Step1 role+cities + Step2 disclaimer + Complete→/browse')
+  } finally {
+    await browser.close()
+  }
+}
+
 async function checkMarketplaceFlows() {
   let chromium
   try {
@@ -612,6 +714,7 @@ async function checkMarketplaceFlows() {
       '/messages',
       '/you',
       '/onboarding/helper',
+      '/onboarding?preview=1',
       '/browse',
       '/auth?mode=signup',
     ]
@@ -733,6 +836,7 @@ async function main() {
   await checkAuthMarkupAndRedirects()
   await checkLandingBrowser()
   await checkAuthBrowser()
+  await checkOnboardingFlow()
   await checkBrowserPersistence()
   await checkMarketplaceFlows()
   console.log('smoke passed')

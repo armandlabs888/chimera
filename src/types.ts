@@ -26,6 +26,8 @@ export type BudgetType = 'fixed' | 'open'
 
 export type RateType = 'hourly' | 'quote'
 
+export type AccountRole = 'customer' | 'helper'
+
 export type NotificationKind =
   | 'match_request'
   | 'invite'
@@ -84,6 +86,13 @@ export interface Person {
   rateType?: RateType
   availableNow?: boolean
   isHelper?: boolean
+  accountRole?: AccountRole | null
+  city?: string | null
+  stateCode?: string | null
+  cityGeoid?: string | null
+  onboardingCompletedAt?: string | null
+  safetyDisclaimerAcceptedAt?: string | null
+  safetyDisclaimerVersion?: string | null
 }
 
 export interface HelpRequest {

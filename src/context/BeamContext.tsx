@@ -37,7 +37,9 @@ import {
 } from '@/lib/beam/liveRepository'
 import { createClient } from '@/lib/supabase/client'
 import { profileSeedFromUser } from '@/lib/auth/profileSeed'
+import { mapProfile } from '@/lib/beam/mappers'
 import type {
+  AccountRole,
   AppState,
   AvailabilitySlot,
   BeamNotification,
@@ -96,6 +98,12 @@ interface BeamContextValue {
   clearBackendError: () => void
   resetDemo: () => void
   updateProfile: (patch: Partial<Person>) => void
+  completeOnboarding: (input: {
+    role: AccountRole
+    city: string
+    stateCode: string
+    safetyVersion?: string
+  }) => Promise<void>
   /** @deprecated Prefer postRequest */
   createRequest: (input: PostRequestInput) => HelpRequest | Promise<HelpRequest>
   postRequest: (input: PostRequestInput) => HelpRequest | Promise<HelpRequest>
@@ -179,6 +187,8 @@ function guestStubPerson(): Person {
     jobsCompleted: 0,
     locationLabel: '',
     isHelper: false,
+    accountRole: null,
+    onboardingCompletedAt: null,
   }
 }
 
@@ -435,6 +445,74 @@ export function BeamProvider({
                 isHelper:
                   patch.isHelper ??
                   (patch.skills !== undefined ? patch.skills.length > 0 : p.isHelper),
+              }
+            : p,
+        ),
+      }))
+    },
+    [authUser, mode, refreshLive, reportError],
+  )
+
+  const completeOnboarding = useCallback(
+    async (input: {
+      role: AccountRole
+      city: string
+      stateCode: string
+      safetyVersion?: string
+    }) => {
+      const safetyVersion = input.safetyVersion || 'v1'
+      const now = new Date().toISOString()
+      const locationLabel = `${input.city}, ${input.stateCode}`
+
+      if (mode === 'live') {
+        try {
+          if (!authUser) throw new Error('Not signed in')
+          const client = createClient()
+          await ensureProfile(client, authUser.id, profileSeedFromUser(authUser))
+          const { data, error } = await client.rpc('complete_onboarding', {
+            p_role: input.role,
+            p_city: input.city,
+            p_state_code: input.stateCode,
+            p_accept_safety: true,
+            p_safety_version: safetyVersion,
+          })
+          if (error) throw error
+          if (!data) throw new Error('Onboarding did not return a profile')
+
+          const mapped = mapProfile(data, authUser.id)
+          // Patch BeamContext immediately so AuthGate sees onboardingCompletedAt
+          // before navigation — avoids a redirect loop back to /onboarding.
+          setState((prev) => {
+            if (!prev) return prev
+            const others = prev.people.filter((p) => p.id !== mapped.id)
+            return {
+              ...prev,
+              people: [...others, { ...mapped, isCurrentUser: true }],
+            }
+          })
+          await refreshLive(authUser.id)
+          return
+        } catch (err) {
+          reportError(err, 'Could not complete onboarding')
+          return
+        }
+      }
+
+      // Demo / preview: persist locally and continue to browse.
+      withState(setState, (prev) => ({
+        ...prev,
+        people: prev.people.map((p) =>
+          p.id === prev.currentUserId
+            ? {
+                ...p,
+                accountRole: input.role,
+                city: input.city,
+                stateCode: input.stateCode,
+                locationLabel,
+                onboardingCompletedAt: p.onboardingCompletedAt ?? now,
+                safetyDisclaimerAcceptedAt: now,
+                safetyDisclaimerVersion: safetyVersion,
+                isCurrentUser: true,
               }
             : p,
         ),
@@ -1171,6 +1249,7 @@ export function BeamProvider({
     clearBackendError: () => setBackendError(null),
     resetDemo,
     updateProfile,
+    completeOnboarding,
     createRequest,
     postRequest,
     createOffer,

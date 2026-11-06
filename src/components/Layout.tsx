@@ -30,7 +30,7 @@ const primaryNav = [
 ]
 
 function shouldHideAppChrome(pathname: string) {
-  return pathname === '/'
+  return pathname === '/' || pathname === '/onboarding'
 }
 
 function isPublicGuestPath(pathname: string) {

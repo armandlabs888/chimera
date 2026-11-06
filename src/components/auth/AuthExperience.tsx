@@ -22,7 +22,7 @@ type Props = {
 
 export function AuthExperience({
   initialMode = 'signin',
-  nextPath = '/browse',
+  nextPath = '/onboarding',
   initialError = null,
   compact = false,
 }: Props) {
@@ -36,14 +36,12 @@ export function AuthExperience({
     clearBackendError,
   } = useBeam()
 
-  const safeNext = useMemo(() => sanitizeNext(nextPath), [nextPath])
+  const safeNext = useMemo(() => sanitizeNext(nextPath, '/onboarding'), [nextPath])
   const [tab, setTab] = useState<AuthMode>(initialMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [name, setName] = useState('')
-  const [locationLabel, setLocationLabel] = useState('')
-  const [detecting, setDetecting] = useState(false)
   const [pending, setPending] = useState(false)
   const [googlePending, setGooglePending] = useState(false)
   const [localError, setLocalError] = useState(() =>
@@ -97,7 +95,6 @@ export function AuthExperience({
             ? buildAuthCallbackUrl(window.location.origin, safeNext)
             : undefined
         const result = await signUp(email.trim(), password, name.trim().slice(0, 80), {
-          locationLabel: locationLabel.trim(),
           emailRedirectTo,
         })
         if (result.needsEmailConfirmation) {
@@ -142,29 +139,6 @@ export function AuthExperience({
       setShowPassword={setShowPassword}
       name={name}
       setName={setName}
-      locationLabel={locationLabel}
-      setLocationLabel={setLocationLabel}
-      detecting={detecting}
-      onDetect={async () => {
-        if (!navigator.geolocation) return
-        setDetecting(true)
-        try {
-          const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000 }),
-          )
-          const res = await fetch(
-            `/api/geocode?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`,
-          )
-          if (res.ok) {
-            const data = (await res.json()) as { label?: string }
-            if (data.label) setLocationLabel(data.label)
-          }
-        } catch {
-          /* ignore */
-        } finally {
-          setDetecting(false)
-        }
-      }}
       pending={pending}
       googlePending={googlePending}
       onGoogle={onGoogle}
@@ -259,10 +233,6 @@ function FormColumn(props: {
   setShowPassword: (v: boolean | ((b: boolean) => boolean)) => void
   name: string
   setName: (v: string) => void
-  locationLabel: string
-  setLocationLabel: (v: string) => void
-  detecting: boolean
-  onDetect: () => void
   pending: boolean
   googlePending: boolean
   onGoogle: () => void
@@ -288,10 +258,6 @@ function FormColumn(props: {
     setShowPassword,
     name,
     setName,
-    locationLabel,
-    setLocationLabel,
-    detecting,
-    onDetect,
     pending,
     googlePending,
     onGoogle,
@@ -427,40 +393,17 @@ function FormColumn(props: {
 
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
         {tab === 'signup' ? (
-          <>
-            <Field label="Full name">
-              <TextInput
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                maxLength={80}
-                autoComplete="name"
-                placeholder="Alex Rivera"
-                className="h-[52px] rounded-2xl"
-              />
-            </Field>
-            <Field label="Location" hint="City or ZIP — works anywhere">
-              <div className="flex gap-2">
-                <TextInput
-                  value={locationLabel}
-                  onChange={(e) => setLocationLabel(e.target.value)}
-                  placeholder="City or ZIP (e.g. Seattle, WA or 98101)"
-                  autoComplete="address-level2"
-                  className="h-[52px] flex-1 rounded-2xl"
-                  data-testid="signup-location"
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="h-[52px] shrink-0 px-4"
-                  onClick={onDetect}
-                  disabled={detecting}
-                >
-                  {detecting ? '…' : 'Detect'}
-                </Button>
-              </div>
-            </Field>
-          </>
+          <Field label="Full name">
+            <TextInput
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              maxLength={80}
+              autoComplete="name"
+              placeholder="Alex Rivera"
+              className="h-[52px] rounded-2xl"
+            />
+          </Field>
         ) : null}
 
         <Field label="Email">

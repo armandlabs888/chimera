@@ -9,11 +9,11 @@ import { sanitizeNext } from '@/lib/auth/safeNext'
 export default function AuthPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { authUser, ready } = useBeam()
+  const { authUser, ready, currentUser } = useBeam()
 
   const rawMode = searchParams.get('mode')
   const initialMode: AuthMode = rawMode === 'signup' ? 'signup' : 'signin'
-  const safeNext = sanitizeNext(searchParams.get('next'))
+  const safeNext = sanitizeNext(searchParams.get('next'), '/onboarding')
   const initialError = searchParams.get('error')
 
   useEffect(() => {
@@ -21,9 +21,12 @@ export default function AuthPage() {
     // Already signed-in users should not linger on /auth.
     // Demo mode stays on /auth so the daylight auth chrome (and Continue CTA) is visible.
     if (authUser) {
-      router.replace(safeNext)
+      const destination = currentUser.onboardingCompletedAt
+        ? sanitizeNext(searchParams.get('next'), '/browse')
+        : '/onboarding'
+      router.replace(destination)
     }
-  }, [ready, authUser, router, safeNext])
+  }, [ready, authUser, router, searchParams, currentUser.onboardingCompletedAt])
 
   if (!ready) {
     return (

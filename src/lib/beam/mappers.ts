@@ -1,4 +1,5 @@
 import type {
+  AccountRole,
   AvailabilitySlot,
   BeamNotification,
   BudgetType,
@@ -48,6 +49,13 @@ export function mapProfile(row: ProfileRow, currentUserId?: string): Person {
     rateType: (row.rate_type as RateType) || 'hourly',
     availableNow: Boolean(row.available_now),
     isHelper: Boolean(row.is_helper) || skills.length > 0,
+    accountRole: (row.account_role as AccountRole | null) ?? null,
+    city: row.city,
+    stateCode: row.state_code,
+    cityGeoid: row.city_geoid,
+    onboardingCompletedAt: row.onboarding_completed_at,
+    safetyDisclaimerAcceptedAt: row.safety_disclaimer_accepted_at,
+    safetyDisclaimerVersion: row.safety_disclaimer_version,
   }
 }
 
@@ -174,6 +182,14 @@ export function mapPublicProfile(row: Record<string, unknown>): Person {
     rateType: (row.rate_type as RateType) || 'hourly',
     availableNow: Boolean(row.available_now),
     isHelper: Boolean(row.is_helper) || skills.length > 0,
+    accountRole: (row.account_role as AccountRole | null) ?? null,
+    city: (row.city as string | null) ?? null,
+    stateCode: (row.state_code as string | null) ?? null,
+    cityGeoid: (row.city_geoid as string | null) ?? null,
+    onboardingCompletedAt: (row.onboarding_completed_at as string | null) ?? null,
+    safetyDisclaimerAcceptedAt:
+      (row.safety_disclaimer_accepted_at as string | null) ?? null,
+    safetyDisclaimerVersion: (row.safety_disclaimer_version as string | null) ?? null,
   }
 }
 

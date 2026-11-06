@@ -17,6 +17,13 @@ function normalizePerson(p: Person): Person {
     rateType: p.rateType ?? 'hourly',
     availableNow: p.availableNow ?? false,
     isHelper: p.isHelper ?? p.skills.length > 0,
+    accountRole: p.accountRole ?? null,
+    city: p.city ?? null,
+    stateCode: p.stateCode ?? null,
+    cityGeoid: p.cityGeoid ?? null,
+    onboardingCompletedAt: p.onboardingCompletedAt ?? null,
+    safetyDisclaimerAcceptedAt: p.safetyDisclaimerAcceptedAt ?? null,
+    safetyDisclaimerVersion: p.safetyDisclaimerVersion ?? null,
   }
 }
 
