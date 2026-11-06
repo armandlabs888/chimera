@@ -17,14 +17,12 @@ type Props = {
   initialMode?: AuthMode
   nextPath?: string
   initialError?: string | null
-  compact?: boolean
 }
 
 export function AuthExperience({
   initialMode = 'signin',
   nextPath = '/onboarding',
   initialError = null,
-  compact = false,
 }: Props) {
   const {
     mode,
@@ -151,13 +149,8 @@ export function AuthExperience({
       setConfirmSent={setConfirmSent}
       mode={mode}
       safeNext={safeNext}
-      showBrand={!compact}
     />
   )
-
-  if (compact) {
-    return <div className="mx-auto w-full max-w-[400px] px-6 py-10">{form}</div>
-  }
 
   return (
     <div className="min-h-dvh bg-white text-[#071330] lg:grid lg:min-h-dvh lg:grid-cols-[1.05fr_1fr]">
@@ -245,7 +238,6 @@ function FormColumn(props: {
   setConfirmSent: (v: boolean) => void
   mode: string
   safeNext: string
-  showBrand: boolean
 }) {
   const {
     tab,
@@ -270,17 +262,11 @@ function FormColumn(props: {
     setConfirmSent,
     mode,
     safeNext,
-    showBrand,
   } = props
 
   if (mode === 'demo') {
     return (
       <div>
-        {showBrand ? (
-          <Link href="/" className="mb-6 inline-block lg:hidden">
-            <BeamWordmark markWidth={24} markHeight={24} wordClassName="text-[22px]" tone="ink" />
-          </Link>
-        ) : null}
         <h1 className="font-display text-[36px] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
           You’re in demo mode
         </h1>
