@@ -1,10 +1,9 @@
-import { ArrowRight, Clock3, MapPin, Package } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { getCategory } from '../data/categories'
 import { getNeighborhood } from '../data/neighborhoods'
 import { formatMoney, relativeTime } from '../lib/matching'
 import type { HelpRequest } from '../types'
-import { Badge, CategoryIconBadge } from './ui'
 
 export function RequestCard({
   request,
@@ -19,59 +18,39 @@ export function RequestCard({
   return (
     <Link
       href={`/requests/${request.id}`}
-      className="elevated elevated-hover group flex flex-col overflow-hidden"
+      className="group block overflow-hidden rounded-2xl bg-[#141518] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E2B66A]"
     >
-      <div className={`relative overflow-hidden ${compact ? 'h-28' : 'h-36'}`}>
-        <img
+      <div className="relative aspect-[16/10] overflow-hidden">
+        <Image
           src={request.image}
           alt=""
-          className="h-full w-full object-cover"
-          loading="lazy"
+          fill
+          sizes="(min-width:1024px) 360px, 50vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
-        <div className="absolute left-2.5 top-2.5 flex items-center gap-1.5">
-          <CategoryIconBadge tintBg={category.tintBg} tintFg={category.tintFg} size={28}>
-            <Package className="h-3.5 w-3.5" strokeWidth={2} />
-          </CategoryIconBadge>
-          <Badge tone="outline">{category.shortLabel}</Badge>
-          {request.status === 'open' ? (
-            <Badge tone="live">
-              <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-emerald-500" />
-              Open
-            </Badge>
-          ) : (
-            <Badge>{request.status}</Badge>
-          )}
-        </div>
       </div>
-      <div className="flex flex-1 flex-col gap-1.5 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="type-intro font-semibold text-beam-cream">{request.title}</h3>
-          <ArrowRight
-            className="mt-1 h-4 w-4 shrink-0 text-beam-muted transition duration-150 group-hover:translate-x-0.5 group-hover:text-beam-amber"
-            aria-hidden
-          />
-        </div>
+      <div className="p-5">
+        <p className="text-[13px] font-medium tracking-[0.01em] text-[#D6B06C]">{category.label}</p>
+        <h3 className="mt-1.5 line-clamp-2 text-[17px] font-medium leading-[1.35] text-[#F6F3EE]">
+          {request.title}
+        </h3>
         {!compact ? (
-          <p className="line-clamp-2 type-sec text-beam-muted">{request.details}</p>
+          <p className="mt-2 line-clamp-2 text-[14px] leading-[1.5] text-[#B7B2AA]">{request.details}</p>
         ) : null}
-        <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-beam-surface-2 px-2 py-0.5 type-meta text-beam-cream-dim shadow-[0_0_0_1px_rgba(15,23,42,0.05)]">
-            <MapPin className="h-3 w-3 text-beam-amber-deep" />
-            {neighborhood.shortName}
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-beam-surface-2 px-2 py-0.5 type-meta text-beam-cream-dim shadow-[0_0_0_1px_rgba(15,23,42,0.05)]">
-            <Clock3 className="h-3 w-3 text-beam-amber-deep" />
-            {request.whenLabel}
-          </span>
-          <span className="price-pill ml-auto">{formatMoney(request.budget)}</span>
+        <div className="mt-4 flex items-end justify-between gap-3">
+          <p className="text-[13px] text-[#85817A]">
+            {neighborhood.shortName} · {request.whenLabel} · {relativeTime(request.createdAt)}
+          </p>
+          <p
+            className="font-serif text-[24px] leading-none tabular-nums text-[#F6F3EE]"
+            style={{ fontVariationSettings: "'opsz' 36" }}
+          >
+            {formatMoney(request.budget)}
+          </p>
         </div>
-        <div className="mt-2 flex items-center justify-between border-t border-white/[0.08] pt-2">
-          <p className="type-meta text-beam-muted">Posted {relativeTime(request.createdAt)}</p>
-          <span className="type-meta font-semibold text-beam-amber-deep opacity-0 transition group-hover:opacity-100">
-            View
-          </span>
-        </div>
+        {request.status !== 'open' ? (
+          <p className="mt-3 text-[13px] capitalize text-[#85817A]">{request.status}</p>
+        ) : null}
       </div>
     </Link>
   )

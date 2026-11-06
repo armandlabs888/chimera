@@ -10,7 +10,7 @@ import {
   ChevronDown,
   MapPin,
   Search,
-  ShieldCheck,
+  Shield,
   Star,
   Users,
   Zap,
@@ -70,114 +70,122 @@ export function LandingHero() {
     neighborhood !== 'all' ? `/browse?neighborhood=${neighborhood}` : '/browse'
 
   return (
-    <section className="relative flex min-h-[100svh] min-h-[780px] flex-col justify-between overflow-hidden bg-[#0E0F12]">
-      {/* Full-bleed photography */}
+    <section className="relative isolate grid min-h-[max(100svh,720px)] grid-rows-[auto_1fr_auto] overflow-hidden bg-[#0C0C0E]">
+      {/* Photo + lighting layers */}
       <div className="landing-hero-media absolute inset-0">
         <Image
-          src="/images/beam-hero-moving-bg.jpg"
-          alt="Neighbor carrying a moving box through a warmly lit interior"
+          src="/images/beam-hero-moving-v2.jpg"
+          alt="Neighbor in a cap carrying a cardboard box through a warmly lit room"
           fill
           priority
-          sizes="100vw"
-          className="object-cover object-right"
+          sizes="(max-width:640px) 200vw, 100vw"
+          className="object-cover"
+          style={{ objectPosition: '72% 40%' }}
         />
       </div>
 
-      {/* Lighting overlays */}
+      {/* Left blend — do not darken x > 64% */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'radial-gradient(520px 340px at 4% 5%, rgba(213, 152, 72, 0.30) 0%, rgba(180, 120, 48, 0.10) 42%, transparent 75%)',
+            'linear-gradient(90deg, #0C0C0E 0%, rgba(12,12,14,0.88) 32%, rgba(12,12,14,0.28) 50%, rgba(12,12,14,0) 64%)',
         }}
         aria-hidden
       />
+      {/* Top-left amber cone from logo */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          background:
-            'linear-gradient(90deg, #0E0F12 0%, #0E0F12 36%, rgba(14,15,18,0.80) 52%, rgba(14,15,18,0.12) 74%, rgba(14,15,18,0.25) 100%)',
+          background: [
+            'radial-gradient(70% 75% at 2% 0%, rgba(214,150,64,0.36) 0%, rgba(170,108,44,0.15) 38%, transparent 68%)',
+            'linear-gradient(118deg, rgba(240,180,100,0.11) 0%, transparent 34%)',
+          ].join(', '),
         }}
         aria-hidden
       />
+      {/* Bottom-left warm glow */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'linear-gradient(180deg, rgba(14,15,18,0.28) 0%, transparent 16%, transparent 80%, rgba(12,13,16,0.88) 100%)',
+            'radial-gradient(40% 30% at 8% 100%, rgba(200,130,60,0.20), transparent 70%)',
+        }}
+        aria-hidden
+      />
+      {/* Bottom trust-bar fade */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: 'linear-gradient(180deg, transparent 82%, rgba(12,12,14,0.62) 100%)',
         }}
         aria-hidden
       />
 
       <LandingNav />
 
-      {/* Left column stack */}
-      <div className="relative z-20 mx-auto w-full max-w-[82rem] flex-1 px-6 py-8 sm:px-10 lg:px-14 lg:py-10">
-        <div className="max-w-[35rem] animate-fade-up">
-          <p className="text-[11.5px] font-semibold uppercase tracking-[0.17em] text-[#DDA352] sm:text-[12px]">
+      <div className="beam-container relative z-20 flex min-h-0 items-center self-stretch pt-[min(12vh,108px)]">
+        <div className="w-full max-w-[600px] animate-fade-up">
+          <p className="eyebrow text-[13px] font-medium uppercase tracking-[0.16em] text-[#D6B06C]">
             PEER-TO-PEER HELP. LOCALLY.
           </p>
 
-          <h1 className="mt-4 font-serif text-[clamp(3.35rem,6vw,5.35rem)] font-normal leading-[1.03] tracking-[-0.02em] text-[#FAF8F4]">
+          <h1
+            className="mt-[18px] font-serif text-[clamp(3.25rem,6.55vw,6rem)] font-normal leading-none tracking-[-0.022em] text-[#F6F3EE] max-md:text-[clamp(3.25rem,13.5vw,3.75rem)]"
+            style={{ fontVariationSettings: "'opsz' 72" }}
+          >
             Help nearby.
             <br />
             Done today.
           </h1>
 
-          <p className="mt-5 text-[17px] font-normal leading-[1.55] text-[#A7A39C] sm:text-[18.5px]">
-            From moving help to yard work to tech setup—
-            <br className="hidden sm:inline" /> real people. real quick. right in Austin.
+          <p className="mt-[22px] max-w-[30ch] text-[19px] font-normal leading-[1.55] text-[#B7B2AA] sm:text-[20px]">
+            From moving help to yard work to tech setup— real people. real quick. right in Austin.
           </p>
 
-          <form onSubmit={onSearch} className="mt-8 max-w-[31rem]">
+          <form onSubmit={onSearch} className="mt-9 w-full max-w-[580px]">
             <label className="sr-only" htmlFor="hero-search">
               What do you need help with?
             </label>
-            <div className="flex h-[56px] w-full items-center rounded-[14px] border border-white/[0.14] bg-[#212225]/90 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-md transition focus-within:border-[#DDA352]/65">
-              <Search className="h-5 w-5 shrink-0 text-[#9A968E]" aria-hidden />
+            <div className="flex h-16 w-full items-center rounded-2xl border border-white/[0.14] bg-[rgba(28,29,33,0.78)] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-[14px] transition focus-within:border-[#D6B06C]/65">
+              <Search className="h-[22px] w-[22px] shrink-0 text-[#9A968E]" aria-hidden />
               <input
                 id="hero-search"
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="What do you need help with?"
-                className="min-w-0 flex-1 bg-transparent px-3 text-[15.5px] text-[#F5F2EC] outline-none placeholder:text-[#8E8A83]"
+                className="min-w-0 flex-1 bg-transparent px-3 text-[17px] text-[#F5F2EC] outline-none placeholder:text-[#8F8A83]"
               />
-              <span className="mx-3 h-6 w-px bg-white/[0.13]" aria-hidden />
+              <span className="mx-3 h-7 w-px bg-white/[0.13]" aria-hidden />
               <Link href="/post" aria-label="Post a request" className="shrink-0">
-                <Camera className="h-5 w-5 text-[#B5B0A8] transition hover:text-white" />
+                <Camera className="h-[22px] w-[22px] text-[#B5B0A8] transition hover:text-white" />
               </Link>
             </div>
           </form>
 
-          <div className="landing-cta-row mt-4 flex flex-wrap items-center gap-3.5">
-            <Link
-              href={postHref}
-              className="inline-flex h-[50px] items-center justify-center gap-3 rounded-[13px] bg-gradient-to-b from-[#D5A455] via-[#C6944B] to-[#B88842] px-7 text-[15.5px] font-medium text-[#FDFBF7] shadow-[0_8px_28px_rgba(198,148,75,0.26),inset_0_1px_0_rgba(255,235,195,0.36)] transition hover:brightness-105"
-            >
+          <div className="landing-cta-row mt-[22px] flex flex-wrap items-center gap-4 max-sm:flex-col max-sm:items-stretch">
+            <Link href={postHref} className="cta-primary max-sm:w-full">
               Post a request
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-[18px] w-[18px]" />
             </Link>
-            <Link
-              href={browseHref}
-              className="inline-flex h-[50px] items-center justify-center gap-2.5 rounded-[13px] border border-white/[0.15] bg-[#131416]/90 px-6 text-[15.5px] font-medium text-[#ECE8E1] transition hover:border-white/[0.24] hover:bg-white/[0.06]"
-            >
+            <Link href={browseHref} className="cta-ghost max-sm:w-full">
               Browse nearby help
-              <Users className="h-4 w-4 text-[#CFCBC2]" />
+              <Users className="h-5 w-5 text-[#CFCBC2]" />
             </Link>
           </div>
 
-          <div className="relative mt-4 inline-block" ref={locRef}>
+          <div className="relative mt-[18px] inline-block" ref={locRef}>
             <button
               type="button"
-              className="inline-flex h-[40px] items-center gap-2 rounded-[11px] border border-white/[0.14] bg-[#16171A]/90 px-4 text-[14px] font-medium text-[#EDE9E2] transition hover:border-white/[0.25]"
+              className="inline-flex h-[46px] items-center gap-2 rounded-[14px] border border-white/[0.14] bg-[rgba(18,19,22,0.72)] px-[18px] text-[16px] font-medium text-[#F6F3EE] transition hover:border-white/[0.25]"
               aria-expanded={locOpen}
               aria-haspopup="listbox"
               onClick={() => setLocOpen((v) => !v)}
             >
-              <MapPin className="h-4 w-4 text-[#EDE9E2]" />
+              <MapPin className="h-[18px] w-[18px]" />
               {neighborhoodLabel}
-              <ChevronDown className="h-3.5 w-3.5 text-[#A7A39C]" />
+              <ChevronDown className="h-4 w-4 text-[#85817A]" />
             </button>
             {locOpen ? (
               <ul
@@ -189,7 +197,7 @@ export function LandingHero() {
                     type="button"
                     role="option"
                     aria-selected={neighborhood === 'all'}
-                    className="w-full px-4 py-2.5 text-left text-[14px] text-[#EDE9E2] hover:bg-white/[0.06]"
+                    className="w-full px-4 py-2.5 text-left text-[14px] text-[#F6F3EE] hover:bg-white/[0.06]"
                     onClick={() => {
                       setNeighborhood('all')
                       setLocOpen(false)
@@ -204,7 +212,7 @@ export function LandingHero() {
                       type="button"
                       role="option"
                       aria-selected={neighborhood === n.id}
-                      className="w-full px-4 py-2.5 text-left text-[14px] text-[#D4D0C8] hover:bg-white/[0.06] hover:text-white"
+                      className="w-full px-4 py-2.5 text-left text-[14px] text-[#B7B2AA] hover:bg-white/[0.06] hover:text-white"
                       onClick={() => {
                         setNeighborhood(n.id)
                         setLocOpen(false)
@@ -220,37 +228,42 @@ export function LandingHero() {
         </div>
       </div>
 
-      {/* Bottom trust bar */}
-      <div className="relative z-20 mx-auto flex w-full max-w-[82rem] flex-col gap-5 px-6 pb-7 pt-6 sm:px-10 lg:flex-row lg:items-center lg:justify-between lg:px-14">
-        <div className="flex flex-wrap items-center gap-3.5">
-          <span className="text-[13.5px] text-[#9E9A93]">Built for neighbors across Austin</span>
-          <div className="flex -space-x-2.5">
-            {AVATARS.map((src) => (
-              <img
-                key={src}
-                src={src}
-                alt=""
-                className="h-8 w-8 rounded-full object-cover ring-2 ring-[#111215]"
-                loading="lazy"
-              />
-            ))}
+      {/* Trust bar */}
+      <div className="beam-container relative z-20 flex flex-col gap-5 pb-[52px] pt-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <p className="text-[13px] leading-snug text-[#85817A]">Built for neighbors across Austin</p>
+          <div className="mt-1.5 flex items-center gap-2.5">
+            <div className="flex items-center gap-0.5">
+              {AVATARS.map((src) => (
+                <img
+                  key={src}
+                  src={src}
+                  alt=""
+                  className="h-7 w-7 rounded-full object-cover ring-1 ring-white/20 sm:h-8 sm:w-8"
+                  loading="lazy"
+                />
+              ))}
+            </div>
+            <span className="text-[14px] text-[#B7B2AA]">8 central neighborhoods</span>
           </div>
-          <span className="text-[13.5px] text-[#B8B3AB]">8 central neighborhoods</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-8 xl:gap-11">
+        <div
+          data-testid="hero-trust-badges"
+          className="flex gap-7 max-lg:overflow-x-auto max-lg:pb-1 max-lg:hide-scrollbar lg:overflow-visible xl:gap-10"
+        >
           <TrustBadge
-            icon={<ShieldCheck className="h-5 w-5 text-[#DDA352]" strokeWidth={1.75} />}
+            icon={<Shield className="h-6 w-6 text-[#D6B06C]" strokeWidth={1.5} />}
             title="Scoped & local"
             body="Community safety rules"
           />
           <TrustBadge
-            icon={<Star className="h-5 w-5 text-[#DDA352]" strokeWidth={1.75} />}
+            icon={<Star className="h-6 w-6 text-[#D6B06C]" strokeWidth={1.5} />}
             title="Fair & transparent"
             body="No hidden fees"
           />
           <TrustBadge
-            icon={<Zap className="h-5 w-5 text-[#DDA352]" strokeWidth={1.75} />}
+            icon={<Zap className="h-6 w-6 text-[#D6B06C]" strokeWidth={1.5} />}
             title="Fast & local"
             body="Help usually today"
           />
@@ -270,11 +283,11 @@ function TrustBadge({
   body: string
 }) {
   return (
-    <div className="flex items-start gap-2.5">
+    <div className="flex shrink-0 items-start gap-2.5">
       <span className="mt-0.5 shrink-0">{icon}</span>
       <div>
-        <p className="text-[13.5px] font-medium text-[#F3EFE8]">{title}</p>
-        <p className="text-[12px] text-[#8E8A83]">{body}</p>
+        <p className="text-[14.5px] font-medium text-[#F6F3EE]">{title}</p>
+        <p className="text-[13px] text-[#85817A]">{body}</p>
       </div>
     </div>
   )

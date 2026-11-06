@@ -4,7 +4,6 @@ import { Check } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
-  Badge,
   Button,
   Field,
   InlineBanner,
@@ -13,10 +12,11 @@ import {
   TextArea,
   TextInput,
 } from '@/components/ui'
+import { RequestCard } from '@/components/RequestCard'
 import { useBeam } from '@/context/BeamContext'
 import { CATEGORIES, WHEN_OPTIONS, getCategory, whenLabel } from '@/data/categories'
-import { NEIGHBORHOODS, getNeighborhood } from '@/data/neighborhoods'
-import type { CategoryId, WhenOption } from '@/types'
+import { NEIGHBORHOODS } from '@/data/neighborhoods'
+import type { CategoryId, HelpRequest, WhenOption } from '@/types'
 
 export function PostRequest() {
   const { createRequest, currentUser } = useBeam()
@@ -122,15 +122,15 @@ export function PostRequest() {
                     key={c.id}
                     type="button"
                     onClick={() => setCategory(c.id)}
-                    className={`flat-bento overflow-hidden text-left transition ring-1 ${
-                      category === c.id ? 'ring-beam-amber' : 'ring-transparent hover:bg-beam-surface-2'
+                    className={`overflow-hidden rounded-2xl bg-[#141518] text-left transition ring-2 ${
+                      category === c.id ? 'ring-[#F6F3EE]' : 'ring-transparent hover:bg-[#1B1C20]'
                     }`}
                   >
                     <div className="relative h-28 bg-beam-surface-2">
                       <img src={c.image} alt="" className="h-full w-full object-cover opacity-90" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C0E]/80 via-transparent to-transparent" />
                       {category === c.id ? (
-                        <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-b from-[#D5A455] to-[#B88842] text-[#FDFBF7]">
+                        <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-b from-[#DCAB5A] to-[#BD8A41] text-[#FFF8EC]">
                           <Check className="h-4 w-4" />
                         </span>
                       ) : null}
@@ -262,43 +262,30 @@ export function PostRequest() {
         </div>
 
         <aside className="lg:sticky lg:top-20 lg:self-start">
-          <div className="elevated overflow-hidden">
-            <div className="flex items-center justify-between gap-2 border-b border-white/[0.08] bg-[#121317] px-4 py-2.5">
-              <p className="type-meta text-[#7E7A73]">Live request preview</p>
-              <Badge tone="outline">How neighbors see it</Badge>
-            </div>
-            <div className="p-4">
-              <div className="overflow-hidden rounded-[12px] border border-white/[0.08] bg-[#121317]">
-                <div className="relative h-28">
-                  <img src={cat.image} alt="" className="h-full w-full object-cover opacity-90" />
-                  <div className="absolute left-2.5 top-2.5 flex gap-1.5">
-                    <Badge tone="brand">{cat.shortLabel}</Badge>
-                    <Badge tone="live">Open</Badge>
-                  </div>
-                </div>
-                <div className="space-y-2 bg-[#16181D] p-4">
-                  <h3 className="type-intro font-semibold text-[#FAF8F4]">
-                    {title.trim() || 'Your request title'}
-                  </h3>
-                  <p className="line-clamp-3 type-sec text-[#A7A39C]">
-                    {details.trim() || 'Details helpers will read before offering a price…'}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-white/[0.1] bg-[#1D2026] px-2 py-0.5 type-meta text-[#A7A39C]">
-                      {getNeighborhood(neighborhood).shortName}
-                    </span>
-                    <span className="rounded-full border border-white/[0.1] bg-[#1D2026] px-2 py-0.5 type-meta text-[#A7A39C]">
-                      {whenLabel(when)}
-                    </span>
-                    <span className="price-pill ml-auto">${budget || 0}</span>
-                  </div>
-                </div>
-              </div>
-              <p className="mt-3 type-sec text-[#A7A39C]">
-                Preview updates as you edit. Nothing posts until you confirm on step 3.
-              </p>
-            </div>
+          <p className="mb-3 text-[13px] text-[#85817A]">Preview</p>
+          <div className="pointer-events-none select-none" aria-hidden>
+            <RequestCard
+              request={
+                {
+                  id: 'draft-preview',
+                  title: title.trim() || 'Your request title',
+                  details: details.trim() || 'Details helpers will read before offering a price…',
+                  category,
+                  neighborhood,
+                  when,
+                  whenLabel: whenLabel(when),
+                  budget: budget || 0,
+                  status: 'open',
+                  requesterId: currentUser.id,
+                  image: cat.image,
+                  createdAt: '2026-01-01T12:00:00.000Z',
+                } satisfies HelpRequest
+              }
+            />
           </div>
+          <p className="mt-3 text-[13px] text-[#85817A]">
+            Preview updates as you edit. Nothing posts until you confirm on step 3.
+          </p>
         </aside>
       </div>
     </div>

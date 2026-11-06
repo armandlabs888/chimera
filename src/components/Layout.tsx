@@ -14,6 +14,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { BottomNav } from './BottomNav'
 import { BeamWordmark } from '@/components/BeamMark'
+import { LandingFooter } from '@/components/landing/LandingFooter'
+import { LandingNav } from '@/components/landing/LandingNav'
 import { useBeam } from '@/context/BeamContext'
 import { getNeighborhood } from '@/data/neighborhoods'
 import { Avatar } from '@/components/ui'
@@ -25,27 +27,49 @@ const primaryNav = [
   { href: '/you', label: 'You', icon: UserRound },
 ]
 
-const secondaryNav = [
-  { href: '/safety', label: 'Safety', icon: Shield },
-  { href: '/', label: 'Landing', icon: Compass },
-]
-
 function shouldHideAppChrome(pathname: string) {
   return pathname === '/'
+}
+
+function isPublicGuestPath(pathname: string) {
+  return (
+    pathname === '/browse' ||
+    pathname === '/safety' ||
+    pathname.startsWith('/requests/') ||
+    pathname.startsWith('/people/')
+  )
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
-  const { currentUser, mode, ready } = useBeam()
+  const { currentUser, mode, ready, authUser } = useBeam()
   const hideChrome = shouldHideAppChrome(pathname)
   const [q, setQ] = useState('')
+  const isGuest = mode === 'live' && !authUser
 
   if (hideChrome) {
-    return <div className="app-shell relative min-h-dvh text-beam-cream">{children}</div>
+    return <div className="app-shell relative min-h-dvh text-[#F6F3EE]">{children}</div>
+  }
+
+  // Logged-out public discovery: marketing chrome (no Guest sidebar / duplicate search)
+  if (isGuest && isPublicGuestPath(pathname)) {
+    // Safety already renders LandingNav + LandingFooter internally
+    if (pathname === '/safety') {
+      return <div className="app-shell relative min-h-dvh text-[#F6F3EE]">{children}</div>
+    }
+
+    return (
+      <div className="app-shell relative min-h-dvh bg-[#0C0C0E] text-[#F6F3EE]">
+        <LandingNav />
+        <main className="beam-container py-8 sm:py-12">{children}</main>
+        <LandingFooter />
+      </div>
+    )
   }
 
   const neighborhood = ready ? getNeighborhood(currentUser.neighborhood) : null
+  const showCommandSearch = pathname !== '/browse'
 
   function onSearch(e: FormEvent) {
     e.preventDefault()
@@ -54,113 +78,109 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="app-shell relative min-h-dvh text-beam-cream lg:flex">
+    <div className="app-shell relative min-h-dvh text-[#F6F3EE] lg:flex">
       <aside
         className="app-sidebar sticky top-0 hidden h-dvh shrink-0 flex-col lg:flex"
         data-testid="app-sidebar"
       >
-        <div className="flex h-14 items-center px-4">
+        <div className="flex h-16 items-center px-4">
           <Link href="/">
-            <BeamWordmark markSize={28} />
+            <BeamWordmark markWidth={40} markHeight={18} wordClassName="text-[24px]" />
           </Link>
         </div>
 
-        <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-2" aria-label="Primary">
-          <div className="space-y-0.5">
-            <p className="px-2 pb-1 type-meta text-beam-muted">Workspace</p>
-            {primaryNav.map(({ href, label, icon: Icon }) => {
-              const active =
-                href === '/home'
-                  ? pathname === '/home'
-                  : pathname === href || pathname.startsWith(`${href}/`)
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`flex items-center gap-2.5 rounded-[11px] px-2.5 py-2 text-[13px] font-semibold transition ${
-                    active
-                      ? 'bg-[rgba(221,163,82,0.14)] text-[#E7B567]'
-                      : 'text-beam-cream-dim hover:bg-white/[0.04] hover:text-beam-cream'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" strokeWidth={1.9} />
-                  {label}
-                </Link>
-              )
-            })}
-          </div>
-          <div className="space-y-0.5">
-            <p className="px-2 pb-1 type-meta text-beam-muted">More</p>
-            {secondaryNav.map(({ href, label, icon: Icon }) => {
-              const active = pathname === href
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`flex items-center gap-2.5 rounded-[11px] px-2.5 py-2 text-[13px] font-medium transition ${
-                    active
-                      ? 'bg-beam-surface-3 text-beam-cream'
-                      : 'text-beam-muted hover:bg-white/[0.04] hover:text-beam-cream'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" strokeWidth={1.9} />
-                  {label}
-                </Link>
-              )
-            })}
-          </div>
+        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-2" aria-label="Primary">
+          {primaryNav.map(({ href, label, icon: Icon }) => {
+            const active =
+              href === '/home'
+                ? pathname === '/home'
+                : pathname === href || pathname.startsWith(`${href}/`)
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`flex h-10 items-center gap-2.5 rounded-[10px] px-2.5 text-[14.5px] font-medium transition ${
+                  active
+                    ? 'bg-[#1B1C20] text-[#F6F3EE]'
+                    : 'text-[#B7B2AA] hover:bg-white/[0.04] hover:text-[#F6F3EE]'
+                }`}
+              >
+                <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                {label}
+              </Link>
+            )
+          })}
+          <div className="my-3 h-px bg-white/[0.08]" />
+          <Link
+            href="/safety"
+            className={`flex h-10 items-center gap-2.5 rounded-[10px] px-2.5 text-[14.5px] font-medium transition ${
+              pathname === '/safety'
+                ? 'bg-[#1B1C20] text-[#F6F3EE]'
+                : 'text-[#B7B2AA] hover:bg-white/[0.04] hover:text-[#F6F3EE]'
+            }`}
+          >
+            <Shield className="h-[18px] w-[18px]" strokeWidth={1.75} />
+            Safety
+          </Link>
         </nav>
 
-        <div className="m-3 elevated p-3">
-          <div className="flex items-center gap-2.5">
-            {ready ? <Avatar src={currentUser.avatar} name={currentUser.name} size={36} /> : null}
-            <div className="min-w-0">
-              <p className="truncate text-[13px] font-semibold text-beam-cream">
-                {ready ? currentUser.name : '…'}
-              </p>
-              <p className="truncate type-meta text-beam-muted">
-                {neighborhood?.shortName ?? 'Austin'} · {mode}
-              </p>
-            </div>
+        <div className="m-3 flex items-center gap-2.5 rounded-[12px] border border-white/[0.08] bg-[#141518] p-3">
+          {ready ? <Avatar src={currentUser.avatar} name={currentUser.name} size={32} /> : null}
+          <div className="min-w-0">
+            <p className="truncate text-[14px] font-medium text-[#F6F3EE]">
+              {ready ? currentUser.name : '…'}
+            </p>
+            <p className="truncate text-[12px] text-[#85817A]">
+              {neighborhood?.shortName ?? 'Austin'}
+            </p>
           </div>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="app-command sticky top-0 z-30">
-          <div className="flex h-14 items-center gap-3 px-4">
+          <div className="flex h-16 items-center gap-3 px-4">
             <Link href="/" className="lg:hidden">
-              <BeamWordmark markSize={26} />
+              <BeamWordmark markWidth={36} markHeight={16} wordClassName="text-[22px]" />
             </Link>
 
-            <form onSubmit={onSearch} className="hidden min-w-0 flex-1 md:block">
-              <label className="sr-only" htmlFor="app-command-search">
-                Search Beam
-              </label>
-              <div className="relative max-w-md">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-beam-muted" />
-                <input
-                  id="app-command-search"
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Search requests or skills…"
-                  className="h-10 w-full rounded-[11px] border border-white/[0.1] bg-[#212225]/90 pl-9 pr-3 text-[13px] text-beam-cream placeholder:text-beam-muted focus:border-[#DDA352]/65 focus:outline-none"
-                />
-              </div>
-            </form>
+            {showCommandSearch ? (
+              <form onSubmit={onSearch} className="hidden min-w-0 flex-1 md:block">
+                <label className="sr-only" htmlFor="app-command-search">
+                  Search Beam
+                </label>
+                <div className="relative max-w-[480px]">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#85817A]" />
+                  <input
+                    id="app-command-search"
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Search requests or skills…"
+                    className="h-11 w-full rounded-[12px] border border-white/[0.1] bg-[#141518] pl-9 pr-3 text-[14px] text-[#F6F3EE] placeholder:text-[#85817A] focus:border-[#E2B66A] focus:outline-none"
+                  />
+                </div>
+              </form>
+            ) : (
+              <div className="hidden min-w-0 flex-1 md:block" aria-hidden />
+            )}
 
             <div className="ml-auto flex items-center gap-2">
               {neighborhood ? (
-                <span className="hidden items-center rounded-full border border-white/[0.1] bg-[#16181D] px-3 py-1.5 type-meta text-beam-cream-dim sm:inline-flex">
-                  {neighborhood.shortName}
+                <Link
+                  href={`/browse?neighborhood=${currentUser.neighborhood}`}
+                  className="hidden items-center rounded-[10px] px-3 py-2 text-[13px] font-medium text-[#B7B2AA] transition hover:text-[#F6F3EE] sm:inline-flex"
+                >
+                  {neighborhood.shortName} ▾
+                </Link>
+              ) : null}
+              {process.env.NODE_ENV !== 'production' ? (
+                <span className="hidden rounded-full border border-white/[0.1] px-2.5 py-1 text-[12px] text-[#85817A] md:inline-flex">
+                  {mode === 'live' ? 'Live' : 'Demo'}
                 </span>
               ) : null}
-              <span className="hidden rounded-full border border-white/[0.1] bg-[#16181D] px-2.5 py-1 type-meta text-beam-muted md:inline-flex">
-                {mode === 'live' ? 'Live' : 'Demo'}
-              </span>
               <Link
                 href="/post"
-                className="btn-compact inline-flex items-center gap-1.5 rounded-[11px] bg-gradient-to-b from-[#D5A455] via-[#C6944B] to-[#B88842] px-3.5 text-[13px] font-semibold text-[#FDFBF7] shadow-[0_4px_14px_rgba(198,148,75,0.22),inset_0_1px_0_rgba(255,235,195,0.3)] hover:brightness-105"
+                className="inline-flex h-10 items-center gap-1.5 rounded-[12px] bg-gradient-to-b from-[#DCAB5A] to-[#BD8A41] px-3.5 text-[13px] font-medium text-[#FFF8EC]"
               >
                 <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">Post a request</span>
