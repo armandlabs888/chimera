@@ -4,22 +4,23 @@ import { NEIGHBORHOODS } from '@/data/neighborhoods'
 
 const NEIGHBORHOOD_IDS = new Set(NEIGHBORHOODS.map((n) => n.id))
 
-export function sanitizeNeighborhood(raw: string | null | undefined): NeighborhoodId {
+export function sanitizeNeighborhood(raw: string | null | undefined): NeighborhoodId | '' {
   const value = (raw ?? '').trim().toLowerCase()
   if (NEIGHBORHOOD_IDS.has(value as NeighborhoodId)) return value as NeighborhoodId
-  return 'east-austin'
+  return ''
 }
 
 export type ProfileSeed = {
   name: string
   avatarUrl: string
-  neighborhood: NeighborhoodId
+  neighborhood: NeighborhoodId | ''
+  locationLabel: string
 }
 
 /** Build profile seed from auth user metadata (Google + email signup). */
 export function profileSeedFromUser(
   user: User,
-  overrides?: { name?: string; neighborhood?: string },
+  overrides?: { name?: string; neighborhood?: string; locationLabel?: string },
 ): ProfileSeed {
   const md = (user.user_metadata ?? {}) as Record<string, unknown>
   const metaName =
@@ -37,5 +38,10 @@ export function profileSeedFromUser(
   const neighborhood = sanitizeNeighborhood(
     overrides?.neighborhood || (typeof md.neighborhood === 'string' ? md.neighborhood : undefined),
   )
-  return { name, avatarUrl, neighborhood }
+  const locationLabel = (
+    overrides?.locationLabel?.trim() ||
+    (typeof md.location_label === 'string' ? md.location_label.trim() : '') ||
+    ''
+  ).slice(0, 120)
+  return { name, avatarUrl, neighborhood, locationLabel }
 }

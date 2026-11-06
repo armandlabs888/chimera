@@ -146,7 +146,7 @@ export function RequestDetail() {
           <div className="flex flex-wrap gap-4 text-sm text-beam-cream-dim">
             <span className="inline-flex items-center gap-1.5">
               <MapPin className="h-4 w-4 text-beam-amber" />
-              {getNeighborhood(request.neighborhood).name}
+              {getNeighborhood(request.neighborhood)?.name ?? 'Nearby'}
             </span>
             <span className="inline-flex items-center gap-1.5">
               <Clock3 className="h-4 w-4 text-beam-amber" />
@@ -168,7 +168,7 @@ export function RequestDetail() {
                 {isOwner ? ' (you)' : ''}
               </p>
               <p className="text-xs text-beam-muted">
-                {getNeighborhood(requester.neighborhood).shortName} · {requester.jobsCompleted} jobs
+                {getNeighborhood(requester.neighborhood)?.shortName ?? 'Nearby'} · {requester.jobsCompleted} jobs
               </p>
             </div>
           </Link>

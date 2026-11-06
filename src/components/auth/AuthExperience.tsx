@@ -6,10 +6,8 @@ import { useCallback, useMemo, useState, type FormEvent } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
 import { useBeam } from '@/context/BeamContext'
 import { Button, Field, TextInput } from '@/components/ui'
-import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { friendlyAuthError } from '@/lib/auth/errors'
 import { sanitizeNext } from '@/lib/auth/safeNext'
-import type { NeighborhoodId } from '@/types'
 import { GoogleMark } from './GoogleMark'
 import { LIFESTYLE } from '@/data/media'
 
@@ -44,7 +42,8 @@ export function AuthExperience({
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [name, setName] = useState('')
-  const [neighborhood, setNeighborhood] = useState<NeighborhoodId>('east-austin')
+  const [locationLabel, setLocationLabel] = useState('')
+  const [detecting, setDetecting] = useState(false)
   const [pending, setPending] = useState(false)
   const [googlePending, setGooglePending] = useState(false)
   const [localError, setLocalError] = useState(() =>
@@ -98,7 +97,7 @@ export function AuthExperience({
             ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`
             : undefined
         const result = await signUp(email.trim(), password, name.trim().slice(0, 80), {
-          neighborhood,
+          locationLabel: locationLabel.trim(),
           emailRedirectTo,
         })
         if (result.needsEmailConfirmation) {
@@ -143,8 +142,29 @@ export function AuthExperience({
       setShowPassword={setShowPassword}
       name={name}
       setName={setName}
-      neighborhood={neighborhood}
-      setNeighborhood={setNeighborhood}
+      locationLabel={locationLabel}
+      setLocationLabel={setLocationLabel}
+      detecting={detecting}
+      onDetect={async () => {
+        if (!navigator.geolocation) return
+        setDetecting(true)
+        try {
+          const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000 }),
+          )
+          const res = await fetch(
+            `/api/geocode?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`,
+          )
+          if (res.ok) {
+            const data = (await res.json()) as { label?: string }
+            if (data.label) setLocationLabel(data.label)
+          }
+        } catch {
+          /* ignore */
+        } finally {
+          setDetecting(false)
+        }
+      }}
       pending={pending}
       googlePending={googlePending}
       onGoogle={onGoogle}
@@ -239,8 +259,10 @@ function FormColumn(props: {
   setShowPassword: (v: boolean | ((b: boolean) => boolean)) => void
   name: string
   setName: (v: string) => void
-  neighborhood: NeighborhoodId
-  setNeighborhood: (v: NeighborhoodId) => void
+  locationLabel: string
+  setLocationLabel: (v: string) => void
+  detecting: boolean
+  onDetect: () => void
   pending: boolean
   googlePending: boolean
   onGoogle: () => void
@@ -266,8 +288,10 @@ function FormColumn(props: {
     setShowPassword,
     name,
     setName,
-    neighborhood,
-    setNeighborhood,
+    locationLabel,
+    setLocationLabel,
+    detecting,
+    onDetect,
     pending,
     googlePending,
     onGoogle,
@@ -412,19 +436,26 @@ function FormColumn(props: {
                 className="h-[52px] rounded-2xl"
               />
             </Field>
-            <Field label="Neighborhood">
-              <select
-                className="touch-target h-[52px] w-full rounded-2xl border border-[rgba(7,19,48,0.1)] bg-white px-3.5 text-[15px] text-[#071330] outline-none focus:border-[#1D5CE5]"
-                value={neighborhood}
-                onChange={(e) => setNeighborhood(e.target.value as NeighborhoodId)}
-                required
-              >
-                {NEIGHBORHOODS.map((n) => (
-                  <option key={n.id} value={n.id}>
-                    {n.name}
-                  </option>
-                ))}
-              </select>
+            <Field label="Location" hint="City or ZIP — works anywhere">
+              <div className="flex gap-2">
+                <TextInput
+                  value={locationLabel}
+                  onChange={(e) => setLocationLabel(e.target.value)}
+                  placeholder="City or ZIP (e.g. Seattle, WA or 98101)"
+                  autoComplete="address-level2"
+                  className="h-[52px] flex-1 rounded-2xl"
+                  data-testid="signup-location"
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="h-[52px] shrink-0 px-4"
+                  onClick={onDetect}
+                  disabled={detecting}
+                >
+                  {detecting ? '…' : 'Detect'}
+                </Button>
+              </div>
             </Field>
           </>
         ) : null}

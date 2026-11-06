@@ -1,4 +1,4 @@
-import type { Category, CategoryId } from '../types'
+import type { Category, CategoryId, WhenOption } from '../types'
 import { LIFESTYLE } from './media'
 
 export const CATEGORIES: Category[] = [
@@ -165,6 +165,7 @@ export const WHEN_OPTIONS = [
   { id: 'this-week' as const, label: 'This week', detail: 'Flexible this week' },
 ]
 
-export function whenLabel(id: (typeof WHEN_OPTIONS)[number]['id']): string {
+export function whenLabel(id: WhenOption): string {
+  if (id === 'scheduled') return 'Scheduled'
   return WHEN_OPTIONS.find((w) => w.id === id)?.label ?? id
 }

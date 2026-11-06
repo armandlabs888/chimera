@@ -95,12 +95,14 @@ const DISTANCE_MILES: Record<NeighborhoodId, Record<NeighborhoodId, number>> = {
   },
 }
 
-export function getNeighborhood(id: NeighborhoodId): Neighborhood {
-  return NEIGHBORHOODS.find((n) => n.id === id) ?? NEIGHBORHOODS[0]
+export function getNeighborhood(id: NeighborhoodId | '' | string | undefined): Neighborhood | undefined {
+  if (!id) return undefined
+  return NEIGHBORHOODS.find((n) => n.id === id)
 }
 
-export function distanceMiles(a: NeighborhoodId, b: NeighborhoodId): number {
-  return DISTANCE_MILES[a][b]
+export function distanceMiles(a: NeighborhoodId | '', b: NeighborhoodId | ''): number {
+  if (!a || !b) return 5
+  return DISTANCE_MILES[a]?.[b] ?? 5
 }
 
 export function formatDistance(miles: number): string {

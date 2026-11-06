@@ -16,11 +16,24 @@ export type NeighborhoodId =
   | 'clarksville'
   | 'the-domain'
 
-export type WhenOption = 'asap' | 'today' | 'tomorrow' | 'this-week'
+export type WhenOption = 'asap' | 'today' | 'tomorrow' | 'this-week' | 'scheduled'
 
 export type RequestStatus = 'open' | 'accepted' | 'completed' | 'cancelled'
 
 export type AvailabilitySlot = 'mornings' | 'afternoons' | 'evenings' | 'weekends'
+
+export type BudgetType = 'fixed' | 'open'
+
+export type RateType = 'hourly' | 'quote'
+
+export type NotificationKind =
+  | 'match_request'
+  | 'invite'
+  | 'new_offer'
+  | 'offer_accepted'
+  | 'new_message'
+  | 'job_completed'
+  | 'new_review'
 
 export interface Category {
   id: CategoryId
@@ -28,9 +41,9 @@ export interface Category {
   shortLabel: string
   description: string
   image: string
-  /** Soft tile background for category icon badges (legacy; avoid on dark UI) */
+  /** Soft tile background for category icon badges */
   tintBg: string
-  /** Deep foreground for category icons / labels (legacy; avoid on dark UI) */
+  /** Deep foreground for category icons / labels */
   tintFg: string
   /** Typical budget range shown on marketing tiles */
   typicalRange: string
@@ -56,7 +69,7 @@ export interface Person {
   name: string
   avatar: string
   bio: string
-  neighborhood: NeighborhoodId
+  neighborhood: NeighborhoodId | ''
   skills: CategoryId[]
   hourlyRate: number
   availability: AvailabilitySlot[]
@@ -64,6 +77,13 @@ export interface Person {
   reviewCount: number
   jobsCompleted: number
   isCurrentUser?: boolean
+  locationLabel?: string
+  lat?: number | null
+  lng?: number | null
+  serviceRadiusMiles?: number
+  rateType?: RateType
+  availableNow?: boolean
+  isHelper?: boolean
 }
 
 export interface HelpRequest {
@@ -71,7 +91,7 @@ export interface HelpRequest {
   title: string
   details: string
   category: CategoryId
-  neighborhood: NeighborhoodId
+  neighborhood: NeighborhoodId | ''
   when: WhenOption
   whenLabel: string
   budget: number
@@ -81,6 +101,15 @@ export interface HelpRequest {
   createdAt: string
   acceptedOfferId?: string
   helperId?: string
+  locationLabel?: string
+  exactAddress?: string
+  lat?: number | null
+  lng?: number | null
+  radiusMiles?: number
+  budgetType?: BudgetType
+  scheduledFor?: string | null
+  preferredHelperId?: string | null
+  publicOfferCount?: number
 }
 
 export interface Offer {
@@ -121,6 +150,28 @@ export interface Review {
   createdAt: string
 }
 
+export interface RequestInvite {
+  id: string
+  requestId: string
+  requesterId: string
+  helperId: string
+  note: string
+  status: 'pending' | 'responded' | 'declined'
+  createdAt: string
+}
+
+export interface BeamNotification {
+  id: string
+  userId: string
+  kind: NotificationKind
+  title: string
+  body: string
+  href: string
+  requestId?: string | null
+  readAt?: string | null
+  createdAt: string
+}
+
 export interface AppState {
   version: number
   currentUserId: string
@@ -130,6 +181,9 @@ export interface AppState {
   threads: MessageThread[]
   messages: Message[]
   reviews: Review[]
+  invites: RequestInvite[]
+  savedHelperIds: string[]
+  notifications: BeamNotification[]
 }
 
 export interface MatchScore {
