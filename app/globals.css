@@ -1,29 +1,43 @@
 @import 'tailwindcss';
 
 /*
-  Beam presentable light system (Airbnb clarity + Linear type discipline).
-  Proposed specs — not measured Airbnb/Linear values. See docs/flat-ui.md.
+  Beam enterprise light system — Attio precision + Stripe product density + Airbnb card hierarchy.
+  Amber is marketplace signal only. Light canvas only. See docs/flat-ui.md.
 */
 @theme {
   --color-beam-base: #ffffff;
-  --color-beam-ink: #f7f7f7;
+  --color-beam-surface-1: #ffffff;
+  --color-beam-surface-2: #f7f7f8;
+  --color-beam-surface-3: #f0f0f2;
+  /* Legacy aliases — keep Tailwind classes stable during migration */
+  --color-beam-ink: #f7f7f8;
   --color-beam-raised: #ffffff;
-  --color-beam-panel: #f7f7f7;
-  --color-beam-line: #dddddd;
-  --color-beam-muted: #6a6a6a;
+  --color-beam-panel: #f7f7f8;
+  --color-beam-line: #e4e4e7;
+  --color-beam-line-strong: #d4d4d8;
+  --color-beam-muted: #71717a;
   /* Legacy name “cream” = primary foreground on light canvas */
-  --color-beam-cream: #222222;
-  --color-beam-cream-dim: #484848;
+  --color-beam-cream: #171717;
+  --color-beam-cream-dim: #52525b;
   --color-beam-charcoal: #0c0c0e;
-  --color-beam-amber: #e8a54b;
-  --color-beam-amber-deep: #c4842f;
-  --color-beam-amber-soft: rgba(232, 165, 75, 0.14);
+  --color-beam-on-ink: #ffffff;
+  --color-beam-amber: #e08a2c;
+  --color-beam-amber-deep: #c4741f;
+  --color-beam-amber-soft: rgba(224, 138, 44, 0.12);
+  --color-beam-success: #15803d;
+  --color-beam-success-soft: #dcfce7;
+  --color-beam-danger: #b91c1c;
+  --color-beam-danger-soft: #fee2e2;
+  --color-beam-warning: #b45309;
+  --color-beam-warning-soft: #ffedd5;
   --font-display: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --beam-nav-offset: 3.5rem;
   --beam-radius-sm: 8px;
   --beam-radius-md: 12px;
-  --beam-content: 72rem; /* ~1152px */
+  --beam-radius-lg: 14px;
+  --beam-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --beam-content: 72rem;
 }
 
 @layer base {
@@ -51,6 +65,12 @@
     text-rendering: optimizeLegibility;
   }
 
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
   button,
   a,
   input,
@@ -65,7 +85,7 @@
   }
 
   ::selection {
-    background: var(--color-beam-amber);
+    background: var(--color-beam-amber-soft);
     color: var(--color-beam-charcoal);
   }
 }
@@ -79,7 +99,10 @@
     font-family: var(--font-body);
   }
 
-  /* Type scale (proposed) */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
   .type-meta {
     font-size: 12px;
     line-height: 16px;
@@ -123,18 +146,18 @@
   }
 
   .type-hero {
-    font-size: clamp(2.25rem, 4.5vw, 3.5rem); /* ~36–56 */
+    font-size: clamp(2.25rem, 4.5vw, 3.5rem);
     line-height: 1.1;
     font-weight: 600;
     letter-spacing: -0.025em;
   }
 
+  /* Deprecated — do not use on marketing. Kept only so dead code removal is explicit. */
   .scrim-hero {
     background: linear-gradient(
       180deg,
-      rgba(12, 12, 14, 0.15) 0%,
-      rgba(12, 12, 14, 0.45) 45%,
-      rgba(12, 12, 14, 0.72) 100%
+      rgba(12, 12, 14, 0.08) 0%,
+      rgba(12, 12, 14, 0.16) 100%
     );
   }
 
@@ -142,7 +165,6 @@
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
 
-  /* Hit area ≥44 without forcing huge visual buttons */
   .touch-target {
     min-height: 44px;
     min-width: 44px;
@@ -182,11 +204,20 @@
   @keyframes fade-up {
     from {
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(6px);
     }
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  @keyframes skeleton-shimmer {
+    0% {
+      background-position: 100% 0;
+    }
+    100% {
+      background-position: -100% 0;
     }
   }
 
@@ -200,6 +231,14 @@
 
   .animate-pulse-dot {
     animation: pulse-dot 1.8s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up,
+    .animate-fade-up-delay,
+    .animate-pulse-dot {
+      animation: none !important;
+    }
   }
 }
 
@@ -234,6 +273,34 @@
     outline-offset: 2px;
   }
 
+  .section {
+    padding: 2.5rem 0;
+    scroll-margin-top: var(--beam-nav-offset);
+  }
+
+  @media (min-width: 768px) {
+    .section {
+      padding: 4rem 0;
+    }
+  }
+
+  .section-band {
+    background: var(--color-beam-surface-2);
+  }
+
+  .section-inner {
+    margin-inline: auto;
+    width: 100%;
+    max-width: var(--beam-content);
+    padding-inline: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .section-inner {
+      padding-inline: 1.5rem;
+    }
+  }
+
   .landing-root {
     background: var(--color-beam-base);
     color: var(--color-beam-cream);
@@ -259,8 +326,8 @@
   }
 
   .landing-nav-mark {
-    background: rgba(232, 165, 75, 0.15);
-    color: var(--color-beam-amber);
+    background: var(--color-beam-amber-soft);
+    color: var(--color-beam-amber-deep);
   }
 
   .landing-nav-link {
@@ -268,7 +335,7 @@
   }
 
   .landing-nav-link:hover {
-    background: var(--color-beam-ink);
+    background: var(--color-beam-surface-2);
     color: var(--color-beam-cream);
   }
 
@@ -289,47 +356,49 @@
     background: var(--color-beam-amber-deep);
   }
 
-  .landing-glass {
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-    border-radius: 0;
-  }
-
   .landing-headline {
     font-size: clamp(2.25rem, 4.5vw, 3.5rem);
     line-height: 1.1;
     letter-spacing: -0.025em;
     font-weight: 600;
+    text-wrap: balance;
   }
 
   .landing-meta {
     letter-spacing: 0.06em;
   }
 
-  /* Full-page landing sections: min-height under sticky nav; grow, never clip */
-  .landing-section-full {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: calc(100svh - var(--beam-nav-offset));
-    scroll-margin-top: var(--beam-nav-offset);
-    padding-top: 2.5rem;
-    padding-bottom: 2.5rem;
-  }
-
-  .landing-section-full-inner {
-    flex: 0 1 auto;
-  }
-
   .landing-hero-media img {
     display: block;
+  }
+
+  .product-frame {
+    border-radius: var(--beam-radius-lg);
+    border: 1px solid var(--color-beam-line);
+    background: var(--color-beam-base);
+    box-shadow: var(--beam-shadow-xs);
+  }
+
+  .skeleton-block {
+    border-radius: var(--beam-radius-sm);
+    background: linear-gradient(
+      90deg,
+      var(--color-beam-surface-2) 0%,
+      var(--color-beam-surface-3) 50%,
+      var(--color-beam-surface-2) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
   }
 
   @media (prefers-reduced-motion: reduce) {
     .landing-nav {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
+    }
+
+    .skeleton-block {
+      animation: none;
     }
   }
 }

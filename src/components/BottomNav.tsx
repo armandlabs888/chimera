@@ -1,15 +1,15 @@
 'use client'
 
-import { Compass, Home, PlusCircle, Shield, UserRound } from 'lucide-react'
+import { Compass, Home, MessageCircle, PlusCircle, UserRound } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const tabs = [
-  { href: '/', label: 'Home', icon: Home, end: true },
+  { href: '/home', label: 'Home', icon: Home, end: true },
   { href: '/browse', label: 'Browse', icon: Compass },
   { href: '/post', label: 'Post', icon: PlusCircle },
+  { href: '/messages', label: 'Messages', icon: MessageCircle },
   { href: '/you', label: 'You', icon: UserRound },
-  { href: '/safety', label: 'Safety', icon: Shield },
 ]
 
 export function BottomNav() {
@@ -22,7 +22,9 @@ export function BottomNav() {
     >
       <ul className="safe-bottom mx-auto grid max-w-lg grid-cols-5 px-1 pt-1">
         {tabs.map(({ href, label, icon: Icon, end }) => {
-          const isActive = end ? pathname === href : pathname.startsWith(href)
+          const isActive = end
+            ? pathname === href
+            : pathname === href || pathname.startsWith(`${href}/`)
           return (
             <li key={href}>
               <Link

@@ -290,7 +290,7 @@ export function RequestDetail() {
                       placeholder="Experience, what you’ll bring, questions…"
                     />
                   </Field>
-                  {offerError ? <p className="text-sm text-red-300">{offerError}</p> : null}
+                  {offerError ? <p className="text-sm text-beam-danger" role="alert">{offerError}</p> : null}
                   <Button type="submit" className="w-full sm:w-auto">
                     <Send className="h-4 w-4" />
                     {myOffer ? 'Update offer' : 'Send offer'}

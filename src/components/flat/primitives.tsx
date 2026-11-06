@@ -96,27 +96,27 @@ export function FlatBento({
   return <div className={classes}>{children}</div>
 }
 
-/** Marketing page section — normal document flow (no sticky stacking). */
+/** Marketing page section — dense enterprise rhythm (no sparse full-viewport slabs). */
 export function LandingSection({
   id,
   children,
   className = '',
   tone = 'base',
-  fullPage = false,
+  band = false,
 }: {
   id?: string
   children: ReactNode
   className?: string
   tone?: Tone
-  /** Full viewport min-height under sticky nav; grows with content (never clips). */
-  fullPage?: boolean
+  /** Soft surface-2 band */
+  band?: boolean
 }) {
   return (
     <section
       id={id}
-      className={`${toneClass[tone]} ${fullPage ? 'landing-section-full' : ''} ${className}`}
+      className={`section ${toneClass[tone]} ${band ? 'section-band' : ''} ${className}`}
     >
-      {fullPage ? <div className="landing-section-full-inner w-full">{children}</div> : children}
+      {children}
     </section>
   )
 }

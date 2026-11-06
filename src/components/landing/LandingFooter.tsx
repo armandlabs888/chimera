@@ -1,38 +1,79 @@
 import Link from 'next/link'
+import { Zap } from 'lucide-react'
 
-/** Light conventional footer (no dark band). */
+const PRODUCT = [
+  { href: '#product', label: 'How it works' },
+  { href: '#categories', label: 'Categories' },
+  { href: '#coverage', label: 'Neighborhoods' },
+  { href: '/browse', label: 'Browse' },
+  { href: '/post', label: 'Post a request' },
+]
+
+const ACCOUNT = [
+  { href: '/auth?mode=signin', label: 'Sign in' },
+  { href: '/auth?mode=signup', label: 'Create account' },
+  { href: '/you', label: 'Your account' },
+  { href: '/messages', label: 'Messages' },
+  { href: '/home', label: 'App home' },
+]
+
+const TRUST = [
+  { href: '#trust', label: 'Trust & FAQ' },
+  { href: '/safety', label: 'Safety' },
+]
+
 export function LandingFooter() {
   return (
-    <footer className="border-t border-beam-line bg-beam-base px-4 py-10 text-beam-cream sm:px-6">
-      <div className="mx-auto flex max-w-[72rem] flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-[17px] font-semibold tracking-tight text-beam-charcoal">Beam</p>
-          <p className="mt-1 type-sec text-beam-muted">Help nearby. Done today. · Austin</p>
+    <footer className="border-t border-beam-line bg-beam-surface-2">
+      <div className="section-inner py-10 sm:py-12">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <Link href="/" className="inline-flex items-center gap-2 text-beam-charcoal">
+              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-beam-amber-soft text-beam-amber-deep">
+                <Zap className="h-4 w-4" fill="currentColor" />
+              </span>
+              <span className="text-[17px] font-semibold tracking-tight">Beam</span>
+            </Link>
+            <p className="mt-3 max-w-xs type-sec text-beam-muted">
+              Help nearby. Done today. Austin peer-to-peer marketplace for practical same-day help.
+            </p>
+          </div>
+
+          <FooterCol title="Product" links={PRODUCT} />
+          <FooterCol title="Account" links={ACCOUNT} />
+          <FooterCol title="Trust" links={TRUST} />
         </div>
-        <nav className="flex flex-wrap gap-x-4 gap-y-2 type-sec text-beam-muted" aria-label="Footer">
-          <a href="#how-it-works" className="hover:text-beam-cream">
-            How it works
-          </a>
-          <a href="#categories" className="hover:text-beam-cream">
-            Categories
-          </a>
-          <Link href="/browse" className="hover:text-beam-cream">
-            Browse
-          </Link>
-          <Link href="/post" className="hover:text-beam-cream">
-            Post
-          </Link>
-          <Link href="/safety" className="hover:text-beam-cream">
-            Safety
-          </Link>
-          <Link href="/auth?mode=signin" className="hover:text-beam-cream">
-            Sign in
-          </Link>
-          <Link href="/auth?mode=signup" className="hover:text-beam-cream">
-            Create account
-          </Link>
-        </nav>
+
+        <div className="mt-10 flex flex-col gap-2 border-t border-beam-line pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="type-sec text-beam-muted">
+            Scoped to eight Austin neighborhoods · Payments arranged peer-to-peer
+          </p>
+          <p className="type-meta text-beam-muted">© 2026 Beam</p>
+        </div>
       </div>
     </footer>
+  )
+}
+
+function FooterCol({
+  title,
+  links,
+}: {
+  title: string
+  links: { href: string; label: string }[]
+}) {
+  return (
+    <div>
+      <p className="type-meta text-beam-muted">{title}</p>
+      <ul className="mt-3 space-y-2">
+        {links.map((l) => (
+          <li key={l.href + l.label}>
+            <Link href={l.href} className="type-sec text-beam-cream-dim hover:text-beam-cream">
+              {l.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }

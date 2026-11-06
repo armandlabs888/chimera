@@ -1,61 +1,79 @@
-import Link from 'next/link'
-import { LandingSection, MetaLabel } from '@/components/flat'
+'use client'
 
-const faqs = [
+import Link from 'next/link'
+import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
+import { LandingSection } from '@/components/flat'
+
+const FAQS = [
   {
-    q: 'Does Beam guarantee someone finishes today?',
-    a: 'No. Beam helps you post and collect timed, priced offers from nearby helpers. Completion depends on the people involved.',
+    q: 'What kinds of help are in scope?',
+    a: 'Moving & lifting, cleaning, tutoring, pet care, light handyman (assembly, mounting, small fixes — not licensed trades), and events & photo. Beam does not cover childcare, senior care, delivery/driving, or licensed electrical/plumbing/HVAC work.',
   },
   {
-    q: 'Does Beam hold payments?',
-    a: 'Not yet. Offers name a price so expectations are clear; payment is arranged between neighbors outside Beam for now.',
+    q: 'Does Beam hold payments or offer escrow?',
+    a: 'No. Helpers and requesters arrange payment peer-to-peer after agreeing in-thread. Beam does not process cards or guarantee funds today.',
   },
   {
-    q: 'What jobs are in scope?',
-    a: 'Practical same-day help: moving & lifting, cleaning, tutoring, pet care, light handyman (no licensed trades), and events/photo.',
+    q: 'Is same-day help guaranteed?',
+    a: 'No. Beam surfaces nearby open requests and priced offers with arrival windows, but availability depends on neighbors who choose to respond.',
   },
   {
-    q: 'Is my data live or demo?',
-    a: 'With Supabase configured, signed-in accounts persist for real. Explicit demo mode keeps an Austin seed in your browser only.',
+    q: 'How does ranking work?',
+    a: 'Browse prefers closer Austin neighborhoods first using approximate neighborhood distances, then recency. It is not live GPS tracking.',
+  },
+  {
+    q: 'What safety practices should I follow?',
+    a: 'Meet in public when practical, share plans with someone you trust, keep coordination in the request thread, and use Beam’s Safety checklist before accepting in-person help.',
   },
 ]
 
 export function LandingTrustFaq() {
+  const [open, setOpen] = useState<number | null>(0)
+
   return (
-    <LandingSection
-      id="trust"
-      tone="base"
-      fullPage
-      className="border-t border-beam-line px-4 sm:px-6"
-    >
-      <div className="mx-auto grid max-w-[72rem] gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+    <LandingSection id="trust" className="border-b border-beam-line">
+      <div className="section-inner grid gap-10 lg:grid-cols-[1fr_1.2fr]">
         <div>
-          <MetaLabel className="text-beam-amber">Clear expectations</MetaLabel>
-          <h2 className="mt-2 type-h2 text-beam-cream">Only what Beam actually does</h2>
-          <p className="mt-2 type-sec text-beam-muted">
-            Agree on price in the offer, keep scope in the thread, and prefer daytime or public
-            meetups for a first job.
+          <p className="flat-meta text-beam-amber-deep">Trust &amp; scope</p>
+          <h2 className="mt-2 type-h1 text-beam-charcoal">Honest boundaries</h2>
+          <p className="mt-2 type-intro text-beam-cream-dim">
+            Beam is a coordination marketplace for practical neighborhood help — not a guarantee,
+            not an escrow service, and not a licensed trades marketplace.
           </p>
           <Link
             href="/safety"
-            className="btn-compact mt-5 inline-flex items-center justify-center rounded-[8px] border border-beam-line px-4 text-[13px] font-semibold text-beam-cream hover:border-beam-cream/30"
+            className="mt-5 inline-flex touch-target items-center rounded-[10px] border border-beam-line px-4 text-[14px] font-medium text-beam-cream hover:bg-beam-surface-2"
           >
-            Safety basics
+            Read Safety practices
           </Link>
         </div>
 
-        <div className="divide-y divide-beam-line rounded-[12px] border border-beam-line bg-beam-base px-4">
-          {faqs.map((item) => (
-            <details key={item.q} className="group py-3.5">
-              <summary className="cursor-pointer list-none text-[15px] font-medium text-beam-cream marker:content-none [&::-webkit-details-marker]:hidden">
-                <span className="flex items-start justify-between gap-3">
-                  {item.q}
-                  <span className="text-beam-amber transition group-open:rotate-45">+</span>
-                </span>
-              </summary>
-              <p className="mt-2 type-sec text-beam-muted">{item.a}</p>
-            </details>
-          ))}
+        <div className="divide-y divide-beam-line rounded-[12px] border border-beam-line bg-beam-base">
+          {FAQS.map((item, index) => {
+            const isOpen = open === index
+            return (
+              <div key={item.q}>
+                <h3>
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left text-[15px] font-semibold text-beam-cream hover:bg-beam-surface-2"
+                    aria-expanded={isOpen}
+                    onClick={() => setOpen(isOpen ? null : index)}
+                  >
+                    {item.q}
+                    <ChevronDown
+                      className={`h-4 w-4 shrink-0 text-beam-muted transition ${isOpen ? 'rotate-180' : ''}`}
+                      aria-hidden
+                    />
+                  </button>
+                </h3>
+                {isOpen ? (
+                  <p className="px-4 pb-4 type-sec text-beam-cream-dim">{item.a}</p>
+                ) : null}
+              </div>
+            )
+          })}
         </div>
       </div>
     </LandingSection>
