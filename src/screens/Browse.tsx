@@ -7,10 +7,12 @@ import {
   Clock,
   MapPin,
   Search,
+  SlidersHorizontal,
   Sun,
   X,
   type LucideIcon,
 } from 'lucide-react'
+import Link from 'next/link'
 import {
   useEffect,
   useMemo,
@@ -22,12 +24,12 @@ import {
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { PersonCard } from '@/components/PersonCard'
 import { RequestCard } from '@/components/RequestCard'
-import { EmptyState, ButtonLink } from '@/components/ui'
+import { Avatar, EmptyState, ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { CATEGORIES, WHEN_OPTIONS } from '@/data/categories'
 import { ALL_CATEGORY_ICON, CATEGORY_ICONS } from '@/lib/categoryIcons'
 import { distanceBetween, formatLocation } from '@/lib/location'
-import { formatBudget } from '@/lib/matching'
+import { formatBudget, formatRate } from '@/lib/matching'
 import type { AvailabilitySlot, Person, WhenOption } from '@/types'
 
 type SortMode = 'nearest' | 'newest' | 'budget'
@@ -99,8 +101,27 @@ function isBrowseHelper(person: Person): boolean {
   return Boolean(person.isHelper || person.skills.length > 0) && !isBlankZeroCard(person)
 }
 
-function milesTo(entity: { lat?: number | null; lng?: number | null; neighborhood?: string }, user: Person) {
+function milesTo(
+  entity: { lat?: number | null; lng?: number | null; neighborhood?: string },
+  user: Person,
+) {
   return distanceBetween(user, entity)
+}
+
+function trendingScore(helper: Person, user: Person, signedIn: boolean): number {
+  let score = helper.rating * 12 + Math.min(helper.jobsCompleted, 40) * 0.55
+  if (helper.availableNow) score += 28
+  if (signedIn) {
+    const d = milesTo(helper, user)
+    if (d != null && Number.isFinite(d)) {
+      if (d <= 5) score += 36 - d * 3
+      else if (d <= 15) score += 18 - (d - 5)
+      else if (d <= 25) score += 6
+    } else {
+      score += 4
+    }
+  }
+  return score
 }
 
 export function Browse() {
@@ -128,6 +149,7 @@ export function Browse() {
   const [qDraft, setQDraft] = useState(qParam)
   const [areaOpen, setAreaOpen] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const areaRef = useRef<HTMLDivElement>(null)
   const sortRef = useRef<HTMLDivElement>(null)
 
@@ -178,6 +200,11 @@ export function Browse() {
   const q = qParam.toLowerCase().trim()
   const radiusMiles = radius === 'all' ? null : Number(radius)
   const userLocationLabel = formatLocation(currentUser)
+  const cityOrArea =
+    (currentUser.city && currentUser.city.trim()) ||
+    (userLocationLabel && userLocationLabel !== 'Local area'
+      ? userLocationLabel.split(',')[0]?.trim()
+      : '')
 
   const openRequests = useMemo(() => {
     let list = state.requests
@@ -189,7 +216,7 @@ export function Browse() {
         if (d == null) return true
         return d <= radiusMiles
       })
-      .filter((r) => (isGuest ? (when === 'all' ? true : r.when === when) : true))
+      .filter((r) => (when === 'all' ? true : r.when === when))
       .filter((r) => {
         if (!q) return true
         return (
@@ -229,9 +256,7 @@ export function Browse() {
         if (d == null) return true
         return d <= radiusMiles
       })
-      .filter((p) =>
-        isGuest ? (avail === 'all' ? true : p.availability.includes(avail)) : true,
-      )
+      .filter((p) => (avail === 'all' ? true : p.availability.includes(avail)))
       .filter((p) => {
         if (!q) return true
         return (
@@ -250,7 +275,9 @@ export function Browse() {
       if (sort === 'budget') return a.hourlyRate - b.hourlyRate
       const da = milesTo(a, currentUser)
       const db = milesTo(b, currentUser)
-      return (da ?? Number.POSITIVE_INFINITY) - (db ?? Number.POSITIVE_INFINITY) || b.rating - a.rating
+      return (
+        (da ?? Number.POSITIVE_INFINITY) - (db ?? Number.POSITIVE_INFINITY) || b.rating - a.rating
+      )
     })
     return list
   }, [state.people, category, radiusMiles, avail, q, freeOnly, sort, currentUser, isGuest])
@@ -267,15 +294,45 @@ export function Browse() {
     [state.people, currentUser.id],
   )
 
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: 0 }
+    for (const c of CATEGORIES) counts[c.id] = 0
+    if (tab === 'requests') {
+      const open = state.requests.filter((r) => r.status === 'open')
+      counts.all = open.length
+      for (const r of open) {
+        if (counts[r.category] != null) counts[r.category] += 1
+      }
+    } else {
+      const helpers = state.people.filter(
+        (p) => isBrowseHelper(p) && !(p.isCurrentUser || p.id === currentUser.id),
+      )
+      counts.all = helpers.length
+      for (const p of helpers) {
+        for (const skill of p.skills) {
+          if (counts[skill] != null) counts[skill] += 1
+        }
+      }
+    }
+    return counts
+  }, [state.requests, state.people, tab, currentUser.id])
+
+  const trendingHelpers = useMemo(() => {
+    return state.people
+      .filter((p) => isBrowseHelper(p) && !(p.isCurrentUser || p.id === currentUser.id))
+      .map((p) => ({ person: p, score: trendingScore(p, currentUser, !isGuest) }))
+      .sort((a, b) => b.score - a.score || b.person.rating - a.person.rating)
+      .slice(0, 5)
+      .map((x) => x.person)
+  }, [state.people, currentUser, isGuest])
+
   function setTab(next: string) {
     const nextParams = new URLSearchParams(params.toString())
     if (next === 'people') nextParams.set('tab', 'people')
     else nextParams.delete('tab')
     if (next !== 'people') nextParams.delete('free')
-    if (isGuest) {
-      if (next === 'people') nextParams.delete('when')
-      else nextParams.delete('avail')
-    }
+    if (next === 'people') nextParams.delete('when')
+    else nextParams.delete('avail')
     replaceQuery(nextParams)
     setAreaOpen(false)
   }
@@ -291,7 +348,6 @@ export function Browse() {
     const nextParams = new URLSearchParams(params.toString())
     if (id === 'all') nextParams.delete('radius')
     else nextParams.set('radius', id)
-    // Drop legacy neighborhood chip param if present
     nextParams.delete('neighborhood')
     replaceQuery(nextParams)
     setAreaOpen(false)
@@ -367,21 +423,21 @@ export function Browse() {
   const sortOptions = (tab === 'people' ? PEOPLE_SORT_OPTIONS : REQUEST_SORT_OPTIONS).filter(
     (o) => !(isGuest && o.id === 'nearest'),
   )
-  const sortLabel = sortOptions.find((o) => o.id === sort)?.label ?? (isGuest ? 'Newest first' : 'Nearest')
-  const radiusLabel =
-    RADIUS_FILTER_OPTIONS.find((o) => o.id === radius)?.label ?? 'Any distance'
+  const sortLabel =
+    sortOptions.find((o) => o.id === sort)?.label ?? (isGuest ? 'Newest first' : 'Nearest')
+  const radiusLabel = RADIUS_FILTER_OPTIONS.find((o) => o.id === radius)?.label ?? 'Any distance'
   const whenLabel = WHEN_FILTER_OPTIONS.find((o) => o.id === when)?.label ?? 'Any timing'
   const availLabel = AVAIL_FILTER_OPTIONS.find((o) => o.id === avail)?.label ?? 'Any availability'
   const categoryLabel =
-    category === 'all' ? null : CATEGORIES.find((c) => c.id === category)?.shortLabel ?? category
+    category === 'all' ? null : (CATEGORIES.find((c) => c.id === category)?.shortLabel ?? category)
 
-  const guestMiddleActive =
-    isGuest && ((tab === 'requests' && when !== 'all') || (tab === 'people' && avail !== 'all'))
   const hasActiveFilters =
     category !== 'all' ||
     !!qParam ||
     freeOnly ||
-    (isGuest ? guestMiddleActive : radius !== 'all')
+    when !== 'all' ||
+    avail !== 'all' ||
+    (!isGuest && radius !== 'all')
 
   function onListboxKeyDown(
     e: ReactKeyboardEvent,
@@ -393,12 +449,10 @@ export function Browse() {
     const idx = options.indexOf(current)
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      const next = options[(idx + 1) % options.length]
-      onSelect(next)
+      onSelect(options[(idx + 1) % options.length])
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      const next = options[(idx - 1 + options.length) % options.length]
-      onSelect(next)
+      onSelect(options[(idx - 1 + options.length) % options.length])
     } else if (e.key === 'Home') {
       e.preventDefault()
       onSelect(options[0])
@@ -433,463 +487,776 @@ export function Browse() {
     tab === 'requests' && hasActiveFilters && openRequests.length === 0
   const showHelpersEmpty = tab === 'people' && people.length === 0
 
-  return (
-    <div className="py-1 sm:py-0">
-      {/* Editorial marketplace header */}
-      <div className="mb-6 flex flex-col gap-5 lg:mb-8 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-2xl">
-          <span className="inline-flex items-center rounded-full border border-[rgba(7,19,48,0.1)] bg-[#FFF8D6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#071330]">
-            Marketplace
-          </span>
-          <h1 className="mt-3 font-display text-[clamp(2rem,4vw,2.75rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330] text-balance">
-            Browse tasks &amp; local helpers
-          </h1>
-          <p className="mt-2 max-w-[52ch] text-[15px] leading-[1.55] text-[#64748B] sm:text-[16px]">
-            {isGuest
-              ? 'Compare open neighborhood requests with upfront budgets, or connect with reviewed helpers nearby.'
-              : `Open requests and reviewed helpers near ${userLocationLabel}.`}
-          </p>
-        </div>
+  const trendingTitle = isGuest
+    ? 'Trending helpers'
+    : cityOrArea
+      ? `Trending helpers near ${cityOrArea}`
+      : 'Trending helpers in your area'
 
-        <div
-          className="inline-flex self-start rounded-full border border-[rgba(7,19,48,0.1)] bg-white p-1 shadow-[0_8px_20px_-12px_rgba(12,42,102,0.12)] lg:self-auto"
-          role="tablist"
-          aria-label="Browse mode"
-        >
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === 'requests'}
-            onClick={() => setTab('requests')}
-            className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition sm:px-4 ${
-              tab === 'requests'
-                ? 'bg-[#1D5CE5] text-white shadow-sm'
-                : 'text-[#64748B] hover:text-[#071330]'
-            }`}
-          >
-            Open requests
-            <span
-              className={`inline-flex min-w-[1.5rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
-                tab === 'requests' ? 'bg-white/20 text-white' : 'bg-[#F4F8FD] text-[#475569]'
-              }`}
-            >
-              {openRequestCount}
-            </span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === 'people'}
-            onClick={() => setTab('people')}
-            className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition sm:px-4 ${
-              tab === 'people'
-                ? 'bg-[#1D5CE5] text-white shadow-sm'
-                : 'text-[#64748B] hover:text-[#071330]'
-            }`}
-          >
-            Local helpers
-            <span
-              className={`inline-flex min-w-[1.5rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
-                tab === 'people' ? 'bg-white/20 text-white' : 'bg-[#F4F8FD] text-[#475569]'
-              }`}
-            >
-              {helperCount}
-            </span>
-          </button>
-        </div>
-      </div>
+  const filterSurface =
+    'rounded-xl border border-[rgba(7,19,48,0.08)] bg-white shadow-[0_8px_24px_-14px_rgba(12,42,102,0.08)]'
 
-      {/* Unified command bar — compact desktop width (aligned with category pills) */}
-      <div className="relative z-30 mb-3" data-testid="browse-command-bar">
-        <div className="flex w-full flex-col gap-2 rounded-xl border border-[rgba(7,19,48,0.09)] bg-white p-2 shadow-[0_12px_32px_-12px_rgba(12,42,102,0.08)] lg:max-w-[45rem] lg:flex-row lg:items-center lg:gap-0">
-          <label className="relative flex min-w-0 flex-1 items-center gap-2.5 rounded-full px-3 py-2.5 sm:px-4 lg:flex-1">
-            <Search className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
-            <span className="sr-only">Search browse</span>
-            <input
-              value={qDraft}
-              onChange={(e) => setQDraft(e.target.value)}
-              placeholder="Search tasks or skills…"
-              aria-label="Search browse"
-              className="min-w-0 flex-1 bg-transparent text-[14.5px] text-[#071330] outline-none placeholder:text-[#94A3B8]"
-            />
-            {qDraft ? (
-              <button
-                type="button"
-                onClick={clearSearch}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#64748B] transition hover:bg-[#F4F8FD] hover:text-[#071330]"
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            ) : null}
-          </label>
-
-          <span className="mx-1 hidden h-8 w-px bg-[rgba(7,19,48,0.1)] lg:block" aria-hidden />
-
-          <div className="relative min-w-0 flex-1 lg:w-[11.25rem] lg:flex-none" ref={areaRef}>
-            {isGuest ? (
-              <>
+  function renderSidebarFilterList(
+    label: string,
+    options: { id: string; label: string }[],
+    current: string,
+    onSelect: (id: string) => void,
+  ) {
+    return (
+      <div className="space-y-1.5">
+        <p className="px-1 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
+          {label}
+        </p>
+        <ul className="space-y-0.5">
+          {options.map((opt) => {
+            const active = current === opt.id
+            return (
+              <li key={opt.id}>
                 <button
                   type="button"
-                  className="flex w-full items-center gap-2.5 rounded-full px-3 py-2.5 text-left sm:px-4"
-                  aria-expanded={areaOpen}
-                  aria-haspopup="listbox"
-                  aria-controls={guestMiddleListboxId}
-                  data-testid={guestMiddleTriggerId}
-                  onClick={() => {
-                    setAreaOpen((v) => !v)
-                    setSortOpen(false)
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      setAreaOpen(true)
-                      setSortOpen(false)
-                    }
-                  }}
+                  onClick={() => onSelect(opt.id)}
+                  className={`flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-[13.5px] transition ${
+                    active
+                      ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
+                      : 'font-medium text-[#475569] hover:bg-[#F4F8FD] hover:text-[#071330]'
+                  }`}
                 >
-                  <Clock className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
-                  <span
-                    className={`min-w-0 flex-1 truncate text-[14.5px] ${
-                      guestMiddleIsDefault ? 'text-[#64748B]' : 'font-medium text-[#071330]'
-                    }`}
-                  >
-                    {guestMiddleLabel}
-                  </span>
-                  <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-[#94A3B8] transition-transform ${
-                      areaOpen ? 'rotate-180' : ''
-                    }`}
-                  />
+                  <span className="truncate">{opt.label}</span>
+                  {active ? <Check className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
                 </button>
-                {areaOpen ? (
-                  <ul
-                    id={guestMiddleListboxId}
-                    role="listbox"
-                    data-testid={guestMiddleListboxId}
-                    className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-0 lg:right-auto lg:min-w-[17rem]"
-                    onKeyDown={(e) =>
-                      onListboxKeyDown(
-                        e,
-                        guestMiddleOptionIds,
-                        guestMiddleValue,
-                        guestMiddleSelect,
-                        () => setAreaOpen(false),
-                      )
-                    }
-                  >
-                    {guestMiddleOptions.map((opt) => (
-                      <li key={opt.id}>
-                        <button
-                          type="button"
-                          role="option"
-                          aria-selected={guestMiddleValue === opt.id}
-                          className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
-                            guestMiddleValue === opt.id
-                              ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
-                              : opt.id === 'all'
-                                ? 'text-[#071330]'
-                                : 'text-[#475569]'
-                          }`}
-                          onClick={() => guestMiddleSelect(opt.id)}
-                        >
-                          {opt.label}
-                          {guestMiddleValue === opt.id ? (
-                            <Check className="h-4 w-4 shrink-0" aria-hidden />
-                          ) : null}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    )
+  }
+
+  function renderFiltersSidebar() {
+    return (
+      <div className={`${filterSurface} overflow-hidden`}>
+        <div className="flex items-center justify-between gap-3 border-b border-[#E2E8F0] px-4 py-3">
+          <h2 className="text-[14px] font-bold text-[#071330]">Filters</h2>
+          {hasActiveFilters ? (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="text-[12.5px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
+            >
+              Reset
+            </button>
+          ) : null}
+        </div>
+
+        <div className="space-y-4 px-3 py-3.5">
+          <div className="space-y-1.5">
+            <p className="px-1 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
+              Category
+            </p>
+            <ul className="space-y-0.5">
+              <li>
+                <CategoryRow
+                  active={category === 'all'}
+                  onClick={() => setCategory('all')}
+                  label="All"
+                  icon={ALL_CATEGORY_ICON}
+                  count={categoryCounts.all}
+                />
+              </li>
+              {CATEGORIES.map((c) => (
+                <li key={c.id}>
+                  <CategoryRow
+                    active={category === c.id}
+                    onClick={() => setCategory(c.id)}
+                    label={c.shortLabel}
+                    icon={CATEGORY_ICONS[c.id]}
+                    count={categoryCounts[c.id] ?? 0}
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="border-t border-[#E2E8F0] pt-4">
+            {isGuest ? (
+              tab === 'requests'
+                ? renderSidebarFilterList('Timing', WHEN_FILTER_OPTIONS, when, setWhen)
+                : renderSidebarFilterList('Availability', AVAIL_FILTER_OPTIONS, avail, setAvail)
             ) : (
               <>
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2.5 rounded-full px-3 py-2.5 text-left sm:px-4"
-                  aria-expanded={areaOpen}
-                  aria-haspopup="listbox"
-                  aria-controls="browse-radius-listbox"
-                  data-testid="browse-radius-trigger"
-                  onClick={() => {
-                    setAreaOpen((v) => !v)
-                    setSortOpen(false)
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      setAreaOpen(true)
-                      setSortOpen(false)
-                    }
-                  }}
-                >
-                  <MapPin className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
-                  <span
-                    className={`min-w-0 flex-1 truncate text-[14.5px] ${
-                      radius === 'all' ? 'text-[#64748B]' : 'font-medium text-[#071330]'
-                    }`}
-                  >
-                    {radiusLabel}
-                  </span>
-                  <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-[#94A3B8] transition-transform ${
-                      areaOpen ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
-                {areaOpen ? (
-                  <ul
-                    id="browse-radius-listbox"
-                    role="listbox"
-                    data-testid="browse-radius-listbox"
-                    className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-0 lg:right-auto lg:min-w-[17rem]"
-                    onKeyDown={(e) =>
-                      onListboxKeyDown(e, radiusOptionIds, radius, setRadius, () =>
-                        setAreaOpen(false),
-                      )
-                    }
-                  >
-                    {RADIUS_FILTER_OPTIONS.map((opt) => (
-                      <li key={opt.id}>
-                        <button
-                          type="button"
-                          role="option"
-                          aria-selected={radius === opt.id}
-                          className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
-                            radius === opt.id
-                              ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
-                              : opt.id === 'all'
-                                ? 'text-[#071330]'
-                                : 'text-[#475569]'
-                          }`}
-                          onClick={() => setRadius(opt.id)}
-                        >
-                          {opt.label}
-                          {radius === opt.id ? (
-                            <Check className="h-4 w-4 shrink-0" aria-hidden />
-                          ) : null}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
+                <div className="mb-4">
+                  {renderSidebarFilterList('Distance', RADIUS_FILTER_OPTIONS, radius, setRadius)}
+                </div>
+                {tab === 'requests'
+                  ? renderSidebarFilterList('When', WHEN_FILTER_OPTIONS, when, setWhen)
+                  : renderSidebarFilterList('Availability', AVAIL_FILTER_OPTIONS, avail, setAvail)}
               </>
             )}
           </div>
 
-          <span className="mx-1 hidden h-8 w-px bg-[rgba(7,19,48,0.1)] lg:block" aria-hidden />
-
-          <div className="relative min-w-0 flex-1 lg:w-[10.75rem] lg:flex-none" ref={sortRef}>
-            <button
-              type="button"
-              className="flex w-full items-center gap-2.5 rounded-full px-3 py-2.5 text-left sm:px-4"
-              aria-expanded={sortOpen}
-              aria-haspopup="listbox"
-              aria-controls="browse-sort-listbox"
-              aria-label="Sort results"
-              data-testid="browse-sort-trigger"
-              onClick={() => {
-                setSortOpen((v) => !v)
-                setAreaOpen(false)
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  setSortOpen(true)
-                  setAreaOpen(false)
-                }
-              }}
-            >
-              <ArrowUpDown className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
-              <span className="min-w-0 flex-1 truncate text-[14.5px] font-medium text-[#071330]">
-                {sortLabel}
-              </span>
-              <ChevronDown
-                className={`h-4 w-4 shrink-0 text-[#94A3B8] transition-transform ${
-                  sortOpen ? 'rotate-180' : ''
+          {tab === 'people' || freeOnly ? (
+            <div className="border-t border-[#E2E8F0] pt-4">
+              <button
+                type="button"
+                onClick={toggleFree}
+                className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[13.5px] font-semibold transition ${
+                  freeOnly
+                    ? 'bg-[#EEF4FF] text-[#1D5CE5]'
+                    : 'text-[#475569] hover:bg-[#F4F8FD] hover:text-[#071330]'
                 }`}
-              />
-            </button>
-            {sortOpen ? (
-              <ul
-                id="browse-sort-listbox"
-                role="listbox"
-                data-testid="browse-sort-listbox"
-                className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-y-auto rounded-xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-auto lg:right-0 lg:min-w-[14rem]"
-                onKeyDown={(e) =>
-                  onListboxKeyDown(e, sortOptionIds, sort, setSort, () => setSortOpen(false))
-                }
               >
-                {sortOptions.map((opt) => (
-                  <li key={opt.id}>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={sort === opt.id}
-                      className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
-                        sort === opt.id
-                          ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
-                          : 'text-[#475569]'
-                      }`}
-                      onClick={() => setSort(opt.id)}
-                    >
-                      {opt.label}
-                      {sort === opt.id ? <Check className="h-4 w-4 shrink-0" aria-hidden /> : null}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+                <Sun className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
+                <Clock className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
+                Afternoons &amp; evenings
+              </button>
+            </div>
+          ) : null}
+
+          <div className="border-t border-[#E2E8F0] pt-4">
+            {renderSidebarFilterList(
+              'Sort',
+              sortOptions.map((o) => ({ id: o.id, label: o.label })),
+              sort,
+              setSort,
+            )}
           </div>
         </div>
       </div>
+    )
+  }
 
-      {/* Single category icon-pill row */}
-      <div className="hide-scrollbar mb-3 flex gap-2 overflow-x-auto pb-1">
-        <CategoryPill
-          active={category === 'all'}
-          onClick={() => setCategory('all')}
-          label="All"
-          icon={ALL_CATEGORY_ICON}
-        />
-        {CATEGORIES.map((c) => (
-          <CategoryPill
-            key={c.id}
-            active={category === c.id}
-            onClick={() => setCategory(c.id)}
-            label={c.shortLabel}
-            icon={CATEGORY_ICONS[c.id]}
-          />
-        ))}
-        {tab === 'people' || freeOnly ? (
-          <button
-            type="button"
-            onClick={toggleFree}
-            className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold transition ${
-              freeOnly
-                ? 'bg-[#1D5CE5] text-white'
-                : 'bg-white text-[#475569] ring-1 ring-[rgba(7,19,48,0.1)] hover:text-[#071330]'
-            }`}
+  function renderTrendingHelpers() {
+    return (
+      <div className="space-y-3">
+        <div className={`${filterSurface} overflow-hidden`} data-testid="browse-trending-helpers">
+          <div className="border-b border-[#E2E8F0] px-4 py-3">
+            <h2 className="text-[14px] font-bold text-[#071330]">{trendingTitle}</h2>
+          </div>
+
+          {trendingHelpers.length === 0 ? (
+            <div className="px-4 py-5">
+              <p className="text-[13.5px] font-semibold text-[#071330]">No helpers in your area yet</p>
+              <p className="mt-1 text-[12.5px] leading-snug text-[#64748B]">
+                Be the first neighbor to set up a helper profile.
+              </p>
+              <Link
+                href="/onboarding/helper"
+                className="mt-3 inline-flex text-[13px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
+              >
+                Become a helper →
+              </Link>
+            </div>
+          ) : (
+            <ul className="divide-y divide-[#F1F5F9]">
+              {trendingHelpers.map((helper) => {
+                const miles = !isGuest ? milesTo(helper, currentUser) : null
+                const skillLabels = helper.skills
+                  .slice(0, 2)
+                  .map((id) => CATEGORIES.find((c) => c.id === id)?.shortLabel ?? id)
+                return (
+                  <li key={helper.id}>
+                    <Link
+                      href={`/people/${helper.id}`}
+                      className="flex gap-3 px-4 py-3 transition hover:bg-[#F8FBFF]"
+                    >
+                      <span className="relative shrink-0">
+                        <Avatar src={helper.avatar} name={helper.name} size={42} />
+                        {helper.availableNow ? (
+                          <span
+                            className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-[#22C55E]"
+                            aria-label="Available now"
+                          />
+                        ) : null}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-start justify-between gap-2">
+                          <span className="truncate text-[14px] font-bold text-[#071330]">
+                            {helper.name}
+                          </span>
+                          <span className="shrink-0 font-display text-[14.5px] font-bold tabular-nums text-[#071330]">
+                            {formatRate(helper)}
+                          </span>
+                        </span>
+                        <span className="mt-0.5 block truncate text-[12.5px] text-[#64748B]">
+                          ★ {helper.rating.toFixed(1)} · {helper.jobsCompleted} tasks
+                          {miles != null && Number.isFinite(miles)
+                            ? ` · ${miles < 10 ? miles.toFixed(1) : Math.round(miles)} mi`
+                            : ` · ${formatLocation(helper)}`}
+                        </span>
+                        {skillLabels.length ? (
+                          <span className="mt-1.5 flex flex-wrap gap-1">
+                            {skillLabels.map((label) => (
+                              <span
+                                key={label}
+                                className="rounded-full bg-[#F4F8FD] px-2 py-0.5 text-[11px] font-semibold text-[#475569]"
+                              >
+                                {label}
+                              </span>
+                            ))}
+                          </span>
+                        ) : null}
+                      </span>
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+
+          {trendingHelpers.length > 0 ? (
+            <div className="border-t border-[#E2E8F0] px-4 py-3">
+              <button
+                type="button"
+                onClick={() => setTab('people')}
+                className="text-[13px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
+              >
+                View all helpers →
+              </button>
+            </div>
+          ) : null}
+        </div>
+
+        <div className={`${filterSurface} px-4 py-3.5`}>
+          <p className="text-[13.5px] font-bold text-[#071330]">Need a hand today?</p>
+          <p className="mt-1 text-[12.5px] leading-snug text-[#64748B]">
+            Post a task and get offers from reviewed neighbors nearby.
+          </p>
+          <Link
+            href="/post"
+            className="mt-2.5 inline-flex text-[13px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
           >
-            <Sun className="h-[15px] w-[15px]" strokeWidth={2} aria-hidden />
-            <Clock className="h-[15px] w-[15px]" strokeWidth={2} aria-hidden />
-            Afternoons &amp; evenings
-          </button>
+            Post a task →
+          </Link>
+        </div>
+
+        {!currentUser.isHelper ? (
+          <div className={`${filterSurface} px-4 py-3.5`}>
+            <p className="text-[13.5px] font-bold text-[#071330]">Earn in your neighborhood</p>
+            <p className="mt-1 text-[12.5px] leading-snug text-[#64748B]">
+              Set up a helper profile and pick up nearby tasks.
+            </p>
+            <Link
+              href="/onboarding/helper"
+              className="mt-2.5 inline-flex text-[13px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
+            >
+              Helper profile →
+            </Link>
+          </div>
         ) : null}
       </div>
+    )
+  }
 
-      {/* Human active filter summary */}
-      {hasActiveFilters ? (
-        <div className="mb-5 flex flex-wrap items-center gap-2">
-          {qParam ? (
-            <FilterSummaryPill label={`Search: ${qParam}`} onRemove={clearSearch} />
-          ) : null}
-          {categoryLabel ? (
-            <FilterSummaryPill label={categoryLabel} onRemove={removeCategory} />
-          ) : null}
-          {!isGuest && radius !== 'all' ? (
-            <FilterSummaryPill label={radiusLabel} onRemove={removeRadius} />
-          ) : null}
-          {isGuest && tab === 'requests' && when !== 'all' ? (
-            <FilterSummaryPill label={whenLabel} onRemove={removeWhen} />
-          ) : null}
-          {isGuest && tab === 'people' && avail !== 'all' ? (
-            <FilterSummaryPill label={availLabel} onRemove={removeAvail} />
-          ) : null}
-          {freeOnly ? (
-            <FilterSummaryPill label="Afternoons & evenings" onRemove={removeFree} />
-          ) : null}
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="inline-flex items-center px-2 py-1 text-[13px] font-semibold text-[#64748B] transition hover:text-[#1D5CE5]"
-          >
-            Reset all
-          </button>
-        </div>
-      ) : (
-        <div className="mb-5" />
-      )}
-
-      {showFreshMarketplace ? (
-        <div
-          className="rounded-xl border border-[rgba(7,19,48,0.08)] bg-white px-6 py-14 text-center shadow-[0_12px_32px_-16px_rgba(12,42,102,0.1)] sm:px-10"
-          data-testid="browse-fresh-empty"
+  return (
+    <div className="py-1 sm:py-0">
+      <div
+        data-testid="browse-3col-grid"
+        className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(248px,268px)_minmax(0,1fr)] lg:gap-6 xl:grid-cols-[minmax(248px,268px)_minmax(0,1fr)_minmax(300px,328px)]"
+      >
+        <aside
+          data-testid="browse-filters-sidebar"
+          className="hidden max-h-[calc(100vh-6.5rem)] overflow-y-auto overscroll-contain lg:block lg:sticky lg:top-24 lg:self-start"
         >
-          <span className="inline-flex items-center rounded-full border border-[rgba(7,19,48,0.1)] bg-[#FFF8D6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#071330]">
-            Fresh marketplace
-          </span>
-          <h2 className="mt-4 font-display text-[clamp(1.6rem,3vw,2.1rem)] font-bold tracking-[-0.02em] text-[#071330]">
-            Be the first on Beam
-          </h2>
-          <p className="mx-auto mt-2 max-w-[42ch] text-[15px] leading-[1.55] text-[#64748B]">
-            No requests yet — post a task for neighbors nearby, or set up your helper profile and
-            start earning.
-          </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <ButtonLink href="/post" variant="brand">
-              Post the first request
-            </ButtonLink>
-            <ButtonLink href="/onboarding/helper" variant="secondary">
-              Become a helper
-            </ButtonLink>
+          {renderFiltersSidebar()}
+        </aside>
+
+        <div data-testid="browse-feed-main" className="min-w-0">
+          <div className="mb-4 flex flex-col gap-4 sm:mb-5">
+            <div className="max-w-2xl">
+              <h1 className="font-display text-[clamp(1.75rem,3.2vw,2.35rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330] text-balance">
+                Browse tasks &amp; local helpers
+              </h1>
+              <p className="mt-1.5 max-w-[52ch] text-[14.5px] leading-[1.55] text-[#64748B] sm:text-[15px]">
+                {isGuest
+                  ? 'Compare open neighborhood requests with upfront budgets, or connect with reviewed helpers nearby.'
+                  : `Open requests and reviewed helpers near ${userLocationLabel}.`}
+              </p>
+            </div>
+
+            <div
+              className="inline-flex self-start rounded-full border border-[rgba(7,19,48,0.1)] bg-white p-1 shadow-[0_8px_20px_-12px_rgba(12,42,102,0.12)]"
+              role="tablist"
+              aria-label="Browse mode"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === 'requests'}
+                onClick={() => setTab('requests')}
+                className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition sm:px-4 ${
+                  tab === 'requests'
+                    ? 'bg-[#1D5CE5] text-white shadow-sm'
+                    : 'text-[#64748B] hover:text-[#071330]'
+                }`}
+              >
+                Open requests
+                <span
+                  className={`inline-flex min-w-[1.5rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
+                    tab === 'requests' ? 'bg-white/20 text-white' : 'bg-[#F4F8FD] text-[#475569]'
+                  }`}
+                >
+                  {openRequestCount}
+                </span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === 'people'}
+                onClick={() => setTab('people')}
+                className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition sm:px-4 ${
+                  tab === 'people'
+                    ? 'bg-[#1D5CE5] text-white shadow-sm'
+                    : 'text-[#64748B] hover:text-[#071330]'
+                }`}
+              >
+                Local helpers
+                <span
+                  className={`inline-flex min-w-[1.5rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
+                    tab === 'people' ? 'bg-white/20 text-white' : 'bg-[#F4F8FD] text-[#475569]'
+                  }`}
+                >
+                  {helperCount}
+                </span>
+              </button>
+            </div>
           </div>
-        </div>
-      ) : showFilteredRequestsEmpty ? (
-        <EmptyState
-          title="No open requests match"
-          body="Try clearing filters or post a request for your neighborhood."
-          action={
+
+          {/* Compact category + filters access on < lg */}
+          <div className="mb-3 lg:hidden">
+            <div className="hide-scrollbar mb-2 flex gap-2 overflow-x-auto pb-1">
+              <CategoryPill
+                active={category === 'all'}
+                onClick={() => setCategory('all')}
+                label="All"
+                icon={ALL_CATEGORY_ICON}
+              />
+              {CATEGORIES.map((c) => (
+                <CategoryPill
+                  key={c.id}
+                  active={category === c.id}
+                  onClick={() => setCategory(c.id)}
+                  label={c.shortLabel}
+                  icon={CATEGORY_ICONS[c.id]}
+                />
+              ))}
+            </div>
             <button
               type="button"
-              onClick={clearFilters}
-              className="inline-flex h-10 items-center justify-center rounded-full bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD]"
-              data-testid="browse-reset-filters"
+              onClick={() => setMobileFiltersOpen((v) => !v)}
+              className={`inline-flex h-10 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold transition ${
+                mobileFiltersOpen || hasActiveFilters
+                  ? 'bg-[#1D5CE5] text-white'
+                  : 'bg-white text-[#475569] ring-1 ring-[rgba(7,19,48,0.1)]'
+              }`}
             >
-              Reset filters
+              <SlidersHorizontal className="h-4 w-4" aria-hidden />
+              Filters
             </button>
-          }
-        />
-      ) : tab === 'requests' ? (
-        <div className="grid auto-rows-fr gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {openRequests.map((request) => (
-            <RequestCard key={request.id} request={request} />
-          ))}
-        </div>
-      ) : people.length ? (
-        <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {people.map((person) => (
-            <PersonCard key={person.id} person={person} />
-          ))}
-        </div>
-      ) : showHelpersEmpty ? (
-        <EmptyState
-          title={hasActiveFilters ? 'No local helpers match' : 'No helpers nearby yet'}
-          body={
-            hasActiveFilters
-              ? 'Widen category or availability filters, or reset to see everyone nearby.'
-              : 'Be the first neighbor to set up a helper profile and start earning.'
-          }
-          action={
-            hasActiveFilters ? (
+            {mobileFiltersOpen ? <div className="mt-3">{renderFiltersSidebar()}</div> : null}
+          </div>
+
+          {/* Command bar: search + distance/timing + sort */}
+          <div className="relative z-30 mb-3" data-testid="browse-command-bar">
+            <div className="flex w-full max-w-[780px] flex-col gap-2 rounded-xl border border-[rgba(7,19,48,0.09)] bg-white p-2 shadow-[0_12px_32px_-12px_rgba(12,42,102,0.08)] lg:max-w-[45rem] lg:flex-row lg:items-center lg:gap-0">
+              <label className="relative flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-3 py-2.5 sm:px-4 lg:flex-1">
+                <Search className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
+                <span className="sr-only">Search browse</span>
+                <input
+                  value={qDraft}
+                  onChange={(e) => setQDraft(e.target.value)}
+                  placeholder="Search tasks or skills…"
+                  aria-label="Search browse"
+                  className="min-w-0 flex-1 bg-transparent text-[14.5px] text-[#071330] outline-none placeholder:text-[#94A3B8]"
+                />
+                {qDraft ? (
+                  <button
+                    type="button"
+                    onClick={clearSearch}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#64748B] transition hover:bg-[#F4F8FD] hover:text-[#071330]"
+                    aria-label="Clear search"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                ) : null}
+              </label>
+
+              <span className="mx-1 hidden h-8 w-px bg-[rgba(7,19,48,0.1)] lg:block" aria-hidden />
+
+              <div className="relative min-w-0 flex-1 lg:w-[11.25rem] lg:flex-none" ref={areaRef}>
+                {isGuest ? (
+                  <>
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left sm:px-4"
+                      aria-expanded={areaOpen}
+                      aria-haspopup="listbox"
+                      aria-controls={guestMiddleListboxId}
+                      data-testid={guestMiddleTriggerId}
+                      onClick={() => {
+                        setAreaOpen((v) => !v)
+                        setSortOpen(false)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setAreaOpen(true)
+                          setSortOpen(false)
+                        }
+                      }}
+                    >
+                      <Clock className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
+                      <span
+                        className={`min-w-0 flex-1 truncate text-[14.5px] ${
+                          guestMiddleIsDefault ? 'text-[#64748B]' : 'font-medium text-[#071330]'
+                        }`}
+                      >
+                        {guestMiddleLabel}
+                      </span>
+                      <ChevronDown
+                        className={`h-4 w-4 shrink-0 text-[#94A3B8] transition-transform ${
+                          areaOpen ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+                    {areaOpen ? (
+                      <ul
+                        id={guestMiddleListboxId}
+                        role="listbox"
+                        data-testid={guestMiddleListboxId}
+                        className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-0 lg:right-auto lg:min-w-[17rem]"
+                        onKeyDown={(e) =>
+                          onListboxKeyDown(
+                            e,
+                            guestMiddleOptionIds,
+                            guestMiddleValue,
+                            guestMiddleSelect,
+                            () => setAreaOpen(false),
+                          )
+                        }
+                      >
+                        {guestMiddleOptions.map((opt) => (
+                          <li key={opt.id}>
+                            <button
+                              type="button"
+                              role="option"
+                              aria-selected={guestMiddleValue === opt.id}
+                              className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                                guestMiddleValue === opt.id
+                                  ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
+                                  : opt.id === 'all'
+                                    ? 'text-[#071330]'
+                                    : 'text-[#475569]'
+                              }`}
+                              onClick={() => guestMiddleSelect(opt.id)}
+                            >
+                              {opt.label}
+                              {guestMiddleValue === opt.id ? (
+                                <Check className="h-4 w-4 shrink-0" aria-hidden />
+                              ) : null}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left sm:px-4"
+                      aria-expanded={areaOpen}
+                      aria-haspopup="listbox"
+                      aria-controls="browse-radius-listbox"
+                      data-testid="browse-radius-trigger"
+                      onClick={() => {
+                        setAreaOpen((v) => !v)
+                        setSortOpen(false)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setAreaOpen(true)
+                          setSortOpen(false)
+                        }
+                      }}
+                    >
+                      <MapPin className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
+                      <span
+                        className={`min-w-0 flex-1 truncate text-[14.5px] ${
+                          radius === 'all' ? 'text-[#64748B]' : 'font-medium text-[#071330]'
+                        }`}
+                      >
+                        {radiusLabel}
+                      </span>
+                      <ChevronDown
+                        className={`h-4 w-4 shrink-0 text-[#94A3B8] transition-transform ${
+                          areaOpen ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+                    {areaOpen ? (
+                      <ul
+                        id="browse-radius-listbox"
+                        role="listbox"
+                        data-testid="browse-radius-listbox"
+                        className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-0 lg:right-auto lg:min-w-[17rem]"
+                        onKeyDown={(e) =>
+                          onListboxKeyDown(e, radiusOptionIds, radius, setRadius, () =>
+                            setAreaOpen(false),
+                          )
+                        }
+                      >
+                        {RADIUS_FILTER_OPTIONS.map((opt) => (
+                          <li key={opt.id}>
+                            <button
+                              type="button"
+                              role="option"
+                              aria-selected={radius === opt.id}
+                              className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                                radius === opt.id
+                                  ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
+                                  : opt.id === 'all'
+                                    ? 'text-[#071330]'
+                                    : 'text-[#475569]'
+                              }`}
+                              onClick={() => setRadius(opt.id)}
+                            >
+                              {opt.label}
+                              {radius === opt.id ? (
+                                <Check className="h-4 w-4 shrink-0" aria-hidden />
+                              ) : null}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </>
+                )}
+              </div>
+
+              <span className="mx-1 hidden h-8 w-px bg-[rgba(7,19,48,0.1)] lg:block" aria-hidden />
+
+              <div className="relative min-w-0 flex-1 lg:w-[10.75rem] lg:flex-none" ref={sortRef}>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left sm:px-4"
+                  aria-expanded={sortOpen}
+                  aria-haspopup="listbox"
+                  aria-controls="browse-sort-listbox"
+                  aria-label="Sort results"
+                  data-testid="browse-sort-trigger"
+                  onClick={() => {
+                    setSortOpen((v) => !v)
+                    setAreaOpen(false)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setSortOpen(true)
+                      setAreaOpen(false)
+                    }
+                  }}
+                >
+                  <ArrowUpDown className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
+                  <span className="min-w-0 flex-1 truncate text-[14.5px] font-medium text-[#071330]">
+                    {sortLabel}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-[#94A3B8] transition-transform ${
+                      sortOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {sortOpen ? (
+                  <ul
+                    id="browse-sort-listbox"
+                    role="listbox"
+                    data-testid="browse-sort-listbox"
+                    className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-y-auto rounded-xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-auto lg:right-0 lg:min-w-[14rem]"
+                    onKeyDown={(e) =>
+                      onListboxKeyDown(e, sortOptionIds, sort, setSort, () => setSortOpen(false))
+                    }
+                  >
+                    {sortOptions.map((opt) => (
+                      <li key={opt.id}>
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={sort === opt.id}
+                          className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                            sort === opt.id
+                              ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
+                              : 'text-[#475569]'
+                          }`}
+                          onClick={() => setSort(opt.id)}
+                        >
+                          {opt.label}
+                          {sort === opt.id ? (
+                            <Check className="h-4 w-4 shrink-0" aria-hidden />
+                          ) : null}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          {hasActiveFilters ? (
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+              {qParam ? (
+                <FilterSummaryPill label={`Search: ${qParam}`} onRemove={clearSearch} />
+              ) : null}
+              {categoryLabel ? (
+                <FilterSummaryPill label={categoryLabel} onRemove={removeCategory} />
+              ) : null}
+              {!isGuest && radius !== 'all' ? (
+                <FilterSummaryPill label={radiusLabel} onRemove={removeRadius} />
+              ) : null}
+              {tab === 'requests' && when !== 'all' ? (
+                <FilterSummaryPill label={whenLabel} onRemove={removeWhen} />
+              ) : null}
+              {tab === 'people' && avail !== 'all' ? (
+                <FilterSummaryPill label={availLabel} onRemove={removeAvail} />
+              ) : null}
+              {freeOnly ? (
+                <FilterSummaryPill label="Afternoons & evenings" onRemove={removeFree} />
+              ) : null}
               <button
                 type="button"
                 onClick={clearFilters}
-                className="inline-flex h-10 items-center justify-center rounded-full bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD]"
-                data-testid="browse-reset-filters"
+                className="inline-flex items-center px-2 py-1 text-[13px] font-semibold text-[#64748B] transition hover:text-[#1D5CE5]"
               >
-                Reset filters
+                Reset all
               </button>
-            ) : (
-              <ButtonLink href="/onboarding/helper" variant="brand">
-                Become a helper
-              </ButtonLink>
-            )
-          }
-        />
-      ) : null}
+            </div>
+          ) : (
+            <div className="mb-5" />
+          )}
+
+          {showFreshMarketplace ? (
+            <div
+              className="rounded-xl border border-[rgba(7,19,48,0.08)] bg-white px-6 py-14 text-center shadow-[0_12px_32px_-16px_rgba(12,42,102,0.1)] sm:px-10"
+              data-testid="browse-fresh-empty"
+            >
+              <span className="inline-flex items-center rounded-full border border-[rgba(7,19,48,0.1)] bg-[#FFF8D6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#071330]">
+                Fresh marketplace
+              </span>
+              <h2 className="mt-4 font-display text-[clamp(1.6rem,3vw,2.1rem)] font-bold tracking-[-0.02em] text-[#071330]">
+                Be the first on Beam
+              </h2>
+              <p className="mx-auto mt-2 max-w-[42ch] text-[15px] leading-[1.55] text-[#64748B]">
+                No requests yet — post a task for neighbors nearby, or set up your helper profile and
+                start earning.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <ButtonLink href="/post" variant="brand">
+                  Post the first request
+                </ButtonLink>
+                <ButtonLink href="/onboarding/helper" variant="secondary">
+                  Become a helper
+                </ButtonLink>
+              </div>
+            </div>
+          ) : showFilteredRequestsEmpty ? (
+            <EmptyState
+              title="No open requests match"
+              body="Try clearing filters or post a request for your neighborhood."
+              action={
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="inline-flex h-10 items-center justify-center rounded-full bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD]"
+                  data-testid="browse-reset-filters"
+                >
+                  Reset filters
+                </button>
+              }
+            />
+          ) : tab === 'requests' ? (
+            <div className="grid auto-rows-fr gap-x-5 gap-y-7 sm:grid-cols-2 2xl:grid-cols-2">
+              {openRequests.map((request) => (
+                <RequestCard key={request.id} request={request} />
+              ))}
+            </div>
+          ) : people.length ? (
+            <div className="grid auto-rows-fr gap-5 sm:grid-cols-2 2xl:grid-cols-2">
+              {people.map((person) => (
+                <PersonCard key={person.id} person={person} />
+              ))}
+            </div>
+          ) : showHelpersEmpty ? (
+            <EmptyState
+              title={hasActiveFilters ? 'No local helpers match' : 'No helpers nearby yet'}
+              body={
+                hasActiveFilters
+                  ? 'Widen category or availability filters, or reset to see everyone nearby.'
+                  : 'Be the first neighbor to set up a helper profile and start earning.'
+              }
+              action={
+                hasActiveFilters ? (
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="inline-flex h-10 items-center justify-center rounded-full bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD]"
+                    data-testid="browse-reset-filters"
+                  >
+                    Reset filters
+                  </button>
+                ) : (
+                  <ButtonLink href="/onboarding/helper" variant="brand">
+                    Become a helper
+                  </ButtonLink>
+                )
+              }
+            />
+          ) : null}
+
+        </div>
+
+        {/* Right rail on xl+; stacks below feed on smaller breakpoints */}
+        <aside className="min-w-0 max-h-none overflow-visible md:max-w-xl lg:col-span-2 xl:col-span-1 xl:sticky xl:top-24 xl:max-h-[calc(100vh-6.5rem)] xl:max-w-none xl:self-start xl:overflow-y-auto xl:overscroll-contain">
+          {renderTrendingHelpers()}
+        </aside>
+      </div>
     </div>
+  )
+}
+
+function CategoryRow({
+  label,
+  active,
+  onClick,
+  icon: Icon,
+  count,
+}: {
+  label: string
+  active: boolean
+  onClick: () => void
+  icon: LucideIcon
+  count: number
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[13.5px] transition ${
+        active
+          ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
+          : 'font-medium text-[#475569] hover:bg-[#F4F8FD] hover:text-[#071330]'
+      }`}
+    >
+      <Icon className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      <span
+        className={`inline-flex min-w-[1.35rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
+          active ? 'bg-white/80 text-[#1D5CE5]' : 'bg-[#F4F8FD] text-[#64748B]'
+        }`}
+      >
+        {count}
+      </span>
+    </button>
   )
 }
 

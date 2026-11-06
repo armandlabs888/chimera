@@ -758,6 +758,50 @@ async function checkLandingBrowser() {
           g.radiusTriggerWidth != null && g.radiusTriggerWidth <= 220,
           `desktop radius/middle trigger compact (<=220px, got ${g.radiusTriggerWidth})`,
         )
+
+        // 3-column marketplace discovery: filters | feed | trending helpers
+        const col = await page.evaluate(() => {
+          const grid = document.querySelector('[data-testid="browse-3col-grid"]')
+          const filters = document.querySelector('[data-testid="browse-filters-sidebar"]')
+          const feed = document.querySelector('[data-testid="browse-feed-main"]')
+          const trending = document.querySelector('[data-testid="browse-trending-helpers"]')
+          const card = document.querySelector(
+            '[data-testid="browse-feed-main"] a, [data-testid="browse-trending-helpers"] a',
+          )
+          const cardRadius = card ? parseFloat(getComputedStyle(card).borderRadius) || 0 : 0
+          const maxCardRadius = Math.max(
+            0,
+            ...[...document.querySelectorAll('[data-testid="browse-filters-sidebar"] > div, [data-testid="browse-trending-helpers"], [data-testid="browse-command-bar"] > div')]
+              .map((el) => parseFloat(getComputedStyle(el).borderRadius) || 0),
+            cardRadius,
+          )
+          return {
+            hasGrid: !!grid,
+            hasFilters: !!filters,
+            hasFeed: !!feed,
+            hasTrending: !!trending,
+            filtersX: filters?.getBoundingClientRect().x ?? null,
+            feedX: feed?.getBoundingClientRect().x ?? null,
+            trendingX: trending?.getBoundingClientRect().x ?? null,
+            maxCardRadius,
+          }
+        })
+        assert.equal(col.hasGrid, true, 'browse-3col-grid present @1440')
+        assert.equal(col.hasFilters, true, 'browse-filters-sidebar present @1440')
+        assert.equal(col.hasFeed, true, 'browse-feed-main present @1440')
+        assert.equal(col.hasTrending, true, 'browse-trending-helpers present @1440')
+        assert.ok(
+          col.filtersX != null && col.feedX != null && col.trendingX != null,
+          '3-col geometry measurable',
+        )
+        assert.ok(
+          col.filtersX < col.feedX && col.feedX < col.trendingX,
+          `3-col x-order filters(${col.filtersX}) < feed(${col.feedX}) < trending(${col.trendingX})`,
+        )
+        assert.ok(
+          col.maxCardRadius > 0 && col.maxCardRadius <= 14,
+          `browse card radius <= 14px (got ${col.maxCardRadius})`,
+        )
       }
     }
 
