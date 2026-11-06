@@ -1446,7 +1446,93 @@ async function checkMarketplaceFlows() {
       assert.ok(px > 0 && px <= 14, `browse card radius subtle (<=14px), got ${px}`)
     }
 
-    console.log('ok marketplace daylight + AI draft + geocode + onboarding + request-detail 2col')
+    // Messages marketplace workspace — 3-pane shell, missing thread, subtle radii
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto(`${BASE_URL}/messages/missing-thread`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('[data-testid="messages-workspace"]', { timeout: 15000 })
+    const missingText = await page.locator('body').innerText()
+    assert.match(missingText, /Thread not found/i, 'missing thread empty state')
+    assert.match(missingText, /Back to inbox/i, 'missing thread back action')
+    assert.doesNotMatch(
+      missingText,
+      /Conversations stay scoped to accepted requests/i,
+      'no inaccurate messages hero subtitle',
+    )
+
+    await page.goto(`${BASE_URL}/messages`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('[data-testid="messages-workspace"]', { timeout: 15000 })
+    const messagesProbe = await page.evaluate(() => {
+      const workspace = document.querySelector('[data-testid="messages-workspace"]')
+      if (!workspace) return null
+      const cs = getComputedStyle(workspace)
+      const radius = parseFloat(cs.borderTopLeftRadius)
+      const inbox = document.querySelector('[data-testid="messages-inbox-rail"]')
+      const conversation = document.querySelector('[data-testid="messages-conversation"]')
+      const rail = document.querySelector('[data-testid="messages-task-rail"]')
+      const list = document.querySelector('[data-testid="messages-thread-list"]')
+      const heroH1 = [...document.querySelectorAll('h1')].some(
+        (h) =>
+          h.textContent?.trim() === 'Messages' &&
+          !h.closest('[data-testid="messages-inbox-rail"]'),
+      )
+      const rawOpenBadge = [...document.querySelectorAll('[data-testid="messages-thread-list"] *')].some(
+        (el) => el.textContent?.trim() === 'open',
+      )
+      const ir = inbox?.getBoundingClientRect()
+      const cr = conversation?.getBoundingClientRect()
+      const rr = rail?.getBoundingClientRect()
+      return {
+        radius,
+        hasList: Boolean(list),
+        hasConversation: Boolean(conversation),
+        hasRail: Boolean(rail),
+        heroH1,
+        rawOpenBadge,
+        threePane:
+          Boolean(ir && cr && rr) &&
+          ir.width > 200 &&
+          cr.width > 280 &&
+          rr.width > 200 &&
+          Math.abs(ir.top - cr.top) < 8 &&
+          Math.abs(cr.top - rr.top) < 8 &&
+          cr.left >= ir.right - 4 &&
+          rr.left >= cr.right - 4,
+        inboxWidth: ir?.width ?? 0,
+      }
+    })
+    assert.ok(messagesProbe, 'messages workspace mounted')
+    assert.equal(messagesProbe.heroH1, false, 'Messages title lives in inbox rail, not page hero')
+    assert.equal(messagesProbe.rawOpenBadge, false, 'no raw lowercase open badge in inbox')
+    assert.ok(messagesProbe.hasList, 'inbox thread list present')
+    assert.ok(messagesProbe.hasConversation, 'desktop auto-selects a conversation on /messages')
+    assert.ok(messagesProbe.hasRail, 'task rail present on xl')
+    assert.ok(messagesProbe.threePane, 'desktop messages is 3-pane marketplace workspace')
+    assert.ok(
+      messagesProbe.inboxWidth > 0 && messagesProbe.inboxWidth <= 380,
+      `inbox rail compact (<=380px, got ${messagesProbe.inboxWidth})`,
+    )
+    assert.ok(
+      messagesProbe.radius > 0 && messagesProbe.radius <= 12,
+      `messages workspace radius <=12px, got ${messagesProbe.radius}`,
+    )
+
+    // Seeded requester thread — incoming offer + chat stream
+    await page.goto(`${BASE_URL}/messages/th-1`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('[data-testid="messages-conversation"]', { timeout: 15000 })
+    assert.ok(await page.getByTestId('messages-incoming-offer').count() >= 1)
+    assert.ok(await page.getByTestId('messages-composer').count() >= 1)
+    assert.equal(
+      await page.evaluate(() => /\bPRICE\b/.test(document.body.innerText)),
+      false,
+      'no uppercase PRICE label in messages',
+    )
+    assert.equal(
+      await page.evaluate(() => /\bETA\b(?!\s)/.test(document.body.innerText) && /PRICE/.test(document.body.innerText)),
+      false,
+      'no ALL-CAPS offer micro-labels',
+    )
+
+    console.log('ok marketplace daylight + AI draft + geocode + onboarding + request-detail 2col + messages workspace')
   } finally {
     await browser.close()
   }
