@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, type ReactNode } from 'react'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { useEffect, useMemo, type ReactNode } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { BeamWordmark } from '@/components/BeamMark'
 import { useBeam } from '@/context/BeamContext'
 import { AuthExperience } from '@/components/auth/AuthExperience'
@@ -11,7 +11,15 @@ import { sanitizeNext } from '@/lib/auth/safeNext'
 /** Routes that stay readable while logged out. */
 const PUBLIC_APP_PREFIXES = ['/browse', '/safety', '/people/', '/requests/']
 
+/** Routes an incomplete onboarder may visit in live mode (exact /onboarding + safety). */
+function isOnboardingAllowedPath(pathname: string) {
+  return pathname === '/onboarding' || pathname === '/safety'
+}
+
 function isPublicAppPath(pathname: string) {
+  // Exact /onboarding is public for ?preview=1 QA and guest redirect-to-signup UX.
+  // /onboarding/helper stays gated for live guests.
+  if (pathname === '/onboarding') return true
   return PUBLIC_APP_PREFIXES.some(
     (p) => pathname === p.replace(/\/$/, '') || pathname.startsWith(p),
   )
@@ -19,19 +27,54 @@ function isPublicAppPath(pathname: string) {
 
 /**
  * Live-mode gate. Public discovery routes pass through; write routes prompt
- * for sign-in with a minimal top header so they are never a dead end.
+ * for sign-in. Authenticated users missing onboarding are forced to /onboarding.
  */
 export function AuthGate({ children }: { children: ReactNode }) {
-  const { mode, authUser } = useBeam()
+  const { mode, authUser, currentUser, ready } = useBeam()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const preview = searchParams.get('preview') === '1'
 
   const nextPath = useMemo(() => {
     const q = searchParams?.toString()
     return sanitizeNext(q ? `${pathname}?${q}` : pathname)
   }, [pathname, searchParams])
 
-  if (mode !== 'live' || authUser) return <>{children}</>
+  const needsOnboarding =
+    mode === 'live' && Boolean(authUser) && !currentUser.onboardingCompletedAt && !preview
+
+  useEffect(() => {
+    if (!ready || !needsOnboarding) return
+    if (isOnboardingAllowedPath(pathname)) return
+    router.replace('/onboarding')
+  }, [ready, needsOnboarding, pathname, router])
+
+  // Already-onboarded users leaving /onboarding (without preview) → browse.
+  useEffect(() => {
+    if (!ready) return
+    if (mode !== 'live' || !authUser) return
+    if (pathname !== '/onboarding') return
+    if (preview) return
+    if (!currentUser.onboardingCompletedAt) return
+    router.replace('/browse')
+  }, [ready, mode, authUser, pathname, preview, currentUser.onboardingCompletedAt, router])
+
+  if (mode !== 'live' || authUser) {
+    if (needsOnboarding && !isOnboardingAllowedPath(pathname)) {
+      return (
+        <div className="flex min-h-dvh items-center justify-center bg-[#F4F8FD]">
+          <p className="text-[22px] font-semibold tracking-tight text-[#071330]" aria-busy="true">
+            Beam
+          </p>
+        </div>
+      )
+    }
+    return <>{children}</>
+  }
+
+  // Guests: /onboarding is public so ?preview=1 QA can walk the flow; the
+  // screen itself redirects live guests without preview to sign-up.
   if (isPublicAppPath(pathname)) return <>{children}</>
 
   return (

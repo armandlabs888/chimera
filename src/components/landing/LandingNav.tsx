@@ -99,6 +99,12 @@ export function LandingNav({
           <Link href="/auth?mode=signin" className={loginClass}>
             Log in
           </Link>
+          <Link
+            href="/auth?mode=signup&next=%2Fonboarding"
+            className={loginClass}
+          >
+            Sign up
+          </Link>
           <Link href="/post" className={ctaClass}>
             Post a task
           </Link>
@@ -152,6 +158,13 @@ export function LandingNav({
               onClick={() => setMobileOpen(false)}
             >
               Log in
+            </Link>
+            <Link
+              href="/auth?mode=signup&next=%2Fonboarding"
+              className="px-4 py-3 text-[15px] text-[#071330]"
+              onClick={() => setMobileOpen(false)}
+            >
+              Sign up
             </Link>
             <Link
               href="/post"
