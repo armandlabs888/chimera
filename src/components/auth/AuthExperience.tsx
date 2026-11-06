@@ -7,7 +7,7 @@ import { BeamWordmark } from '@/components/BeamMark'
 import { useBeam } from '@/context/BeamContext'
 import { Button, Field, TextInput } from '@/components/ui'
 import { friendlyAuthError } from '@/lib/auth/errors'
-import { sanitizeNext } from '@/lib/auth/safeNext'
+import { buildAuthCallbackUrl, sanitizeNext } from '@/lib/auth/safeNext'
 import { GoogleMark } from './GoogleMark'
 import { LIFESTYLE } from '@/data/media'
 
@@ -66,8 +66,8 @@ export function AuthExperience({
 
   const oauthRedirectTo =
     typeof window !== 'undefined'
-      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`
-      : `/auth/callback?next=${encodeURIComponent(safeNext)}`
+      ? buildAuthCallbackUrl(window.location.origin, safeNext)
+      : buildAuthCallbackUrl('', safeNext)
 
   async function onGoogle() {
     setGooglePending(true)
@@ -94,7 +94,7 @@ export function AuthExperience({
       } else {
         const emailRedirectTo =
           typeof window !== 'undefined'
-            ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`
+            ? buildAuthCallbackUrl(window.location.origin, safeNext)
             : undefined
         const result = await signUp(email.trim(), password, name.trim().slice(0, 80), {
           locationLabel: locationLabel.trim(),
@@ -319,8 +319,10 @@ function FormColumn(props: {
           You’re in demo mode
         </h1>
         <p className="mt-3 text-[16px] text-[#64748B]">
-          Local demo skips live sign-in. Continue into Beam with Austin seed data in this browser.
+          Local demo skips live sign-in. Continue into Beam with sample marketplace data in this
+          browser.
         </p>
+        {alertError ? <div className="mt-5"><ErrorBanner message={alertError} /></div> : null}
         <Link href={safeNext} className="cta-primary mt-8 w-full justify-center">
           Continue to Beam
         </Link>
@@ -338,6 +340,7 @@ function FormColumn(props: {
           Set Supabase env vars for live auth, or enable demo with{' '}
           <code className="text-[#1D5CE5]">NEXT_PUBLIC_BEAM_DEMO_MODE=1</code>.
         </p>
+        {alertError ? <div className="mt-5"><ErrorBanner message={alertError} /></div> : null}
         <Link href="/" className="cta-ghost mt-8 w-full justify-center">
           Back to home
         </Link>

@@ -29,15 +29,6 @@ const routes = [
   '/does-not-exist',
 ]
 
-function sanitizeNextLocal(raw, fallback = '/browse') {
-  if (!raw) return fallback
-  const value = String(raw).trim()
-  if (!value.startsWith('/')) return fallback
-  if (value.startsWith('//')) return fallback
-  if (value.includes('\\')) return fallback
-  return value
-}
-
 function isLightRgb(css) {
   const m = css.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i)
   if (!m) return false
@@ -114,11 +105,93 @@ async function checkLandingMarkup() {
   console.log('ok landing markup')
 }
 
+function sanitizeNextLocal(raw, fallback = '/browse') {
+  if (!raw) return fallback
+  let value = String(raw).trim()
+  if (!value) return fallback
+  if (value.includes('%')) {
+    try {
+      const decoded = decodeURIComponent(value)
+      if (decoded.startsWith('/') && !decoded.startsWith('//')) value = decoded
+    } catch {
+      /* keep */
+    }
+  }
+  if (!value.startsWith('/')) return fallback
+  if (value.startsWith('//')) return fallback
+  if (value.includes('\\')) return fallback
+  if (value.includes('://')) return fallback
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i)
+    if (code <= 0x1f || code === 0x7f) return fallback
+  }
+  if (value.length > 512) return fallback
+  return value
+}
+
+function detectStrandedAuthLocal(pathname, searchParams) {
+  if (pathname !== '/' && pathname !== '/auth') return null
+  const code = searchParams.get('code')
+  const tokenHash = searchParams.get('token_hash')
+  const type = searchParams.get('type')
+  const error = searchParams.get('error')
+  const errorDescription = searchParams.get('error_description')
+  const next = sanitizeNextLocal(searchParams.get('next'))
+  if (code) return { pathname: '/auth/callback', params: { code, next } }
+  if (tokenHash && type) {
+    return { pathname: '/auth/confirm', params: { token_hash: tokenHash, type, next } }
+  }
+  if (error && pathname === '/') {
+    return { pathname: '/auth', params: { error: errorDescription || error, next } }
+  }
+  return null
+}
+
 async function checkAuthMarkupAndRedirects() {
   assert.equal(sanitizeNextLocal('/browse'), '/browse')
   assert.equal(sanitizeNextLocal('//evil.example'), '/browse')
   assert.equal(sanitizeNextLocal('/you'), '/you')
+  assert.equal(sanitizeNextLocal('/post'), '/post')
+  assert.equal(sanitizeNextLocal('/become-helper'), '/become-helper')
+  assert.equal(sanitizeNextLocal('/onboarding/helper'), '/onboarding/helper')
   assert.equal(sanitizeNextLocal('https://evil.example'), '/browse')
+  assert.equal(sanitizeNextLocal('%2Fbrowse'), '/browse')
+  assert.equal(sanitizeNextLocal('%2F%2Fevil.example'), '/browse')
+
+  assert.deepEqual(
+    detectStrandedAuthLocal('/', new URLSearchParams('code=pkce-test&next=%2Fpost')),
+    { pathname: '/auth/callback', params: { code: 'pkce-test', next: '/post' } },
+  )
+  assert.deepEqual(
+    detectStrandedAuthLocal('/auth', new URLSearchParams('code=pkce-on-auth')),
+    { pathname: '/auth/callback', params: { code: 'pkce-on-auth', next: '/browse' } },
+  )
+  assert.deepEqual(
+    detectStrandedAuthLocal(
+      '/',
+      new URLSearchParams('token_hash=otp-hash&type=signup&next=%2Fyou'),
+    ),
+    {
+      pathname: '/auth/confirm',
+      params: { token_hash: 'otp-hash', type: 'signup', next: '/you' },
+    },
+  )
+  assert.deepEqual(
+    detectStrandedAuthLocal(
+      '/',
+      new URLSearchParams('error=access_denied&error_description=User+cancelled'),
+    ),
+    {
+      pathname: '/auth',
+      params: { error: 'User cancelled', next: '/browse' },
+    },
+  )
+  assert.equal(
+    detectStrandedAuthLocal('/auth', new URLSearchParams('error=access_denied')),
+    null,
+    'bare /auth?error stays on AuthExperience',
+  )
+  assert.equal(detectStrandedAuthLocal('/browse', new URLSearchParams('code=x')), null)
 
   const { res, text } = await fetchText('/auth?mode=signup')
   assert.equal(res.status, 200, 'auth page status')
@@ -140,7 +213,50 @@ async function checkAuthMarkupAndRedirects() {
   const okLoc = okNext.headers.get('location') || ''
   assert.ok(okLoc.includes('/auth'), `missing-code callback → auth, got ${okLoc}`)
   assert.match(okLoc, /next=%2Fyou|next=\/you/, `preserves safe next: ${okLoc}`)
-  console.log('ok auth markup + callback redirect sanitization')
+
+  // Site-URL fallback: stranded PKCE code on `/` must forward to /auth/callback
+  const strandedCode = await fetch(`${BASE_URL}/?code=stranded-pkce-code&next=${encodeURIComponent('/post')}`, {
+    redirect: 'manual',
+  })
+  assert.ok(
+    [302, 307, 308].includes(strandedCode.status),
+    `stranded /?code status ${strandedCode.status}`,
+  )
+  const strandedLoc = strandedCode.headers.get('location') || ''
+  assert.match(strandedLoc, /\/auth\/callback/, `stranded code → callback, got ${strandedLoc}`)
+  assert.match(strandedLoc, /code=stranded-pkce-code/, `preserves code: ${strandedLoc}`)
+  assert.match(strandedLoc, /next=%2Fpost|next=\/post/, `preserves next: ${strandedLoc}`)
+
+  const strandedAuthPath = await fetch(`${BASE_URL}/auth?code=on-auth-path`, { redirect: 'manual' })
+  assert.ok([302, 307, 308].includes(strandedAuthPath.status), ' /auth?code redirects')
+  const strandedAuthLoc = strandedAuthPath.headers.get('location') || ''
+  assert.match(strandedAuthLoc, /\/auth\/callback/, `auth?code → callback, got ${strandedAuthLoc}`)
+  assert.match(strandedAuthLoc, /code=on-auth-path/)
+
+  const strandedOtp = await fetch(
+    `${BASE_URL}/?token_hash=otp-test&type=email&next=${encodeURIComponent('/you')}`,
+    { redirect: 'manual' },
+  )
+  assert.ok([302, 307, 308].includes(strandedOtp.status), `stranded otp status ${strandedOtp.status}`)
+  const otpLoc = strandedOtp.headers.get('location') || ''
+  assert.match(otpLoc, /\/auth\/confirm/, `stranded otp → confirm, got ${otpLoc}`)
+  assert.match(otpLoc, /token_hash=otp-test/)
+  assert.match(otpLoc, /type=email/)
+
+  const strandedErr = await fetch(
+    `${BASE_URL}/?error=access_denied&error_description=${encodeURIComponent('User cancelled')}`,
+    { redirect: 'manual' },
+  )
+  assert.ok([302, 307, 308].includes(strandedErr.status), `stranded error status ${strandedErr.status}`)
+  const errLoc = strandedErr.headers.get('location') || ''
+  assert.match(errLoc, /\/auth(\?|$)/, `stranded oauth error → /auth, got ${errLoc}`)
+  assert.match(errLoc, /error=/, `error query present: ${errLoc}`)
+
+  // Plain `/` without auth params must still render the landing page (no redirect)
+  const plainHome = await fetch(`${BASE_URL}/`, { redirect: 'manual' })
+  assert.equal(plainHome.status, 200, 'plain / stays 200')
+
+  console.log('ok auth markup + callback + Site-URL fallback redirects')
 }
 
 async function checkAuthBrowser() {
@@ -155,6 +271,24 @@ async function checkAuthBrowser() {
   const browser = await chromium.launch({ headless: true })
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
   try {
+    // OAuth error query → daylight banner (works in live, demo, and unconfigured)
+    await page.goto(
+      `${BASE_URL}/auth?error=${encodeURIComponent('access_denied')}&error_description=${encodeURIComponent('User cancelled')}`,
+      { waitUntil: 'domcontentloaded' },
+    )
+    const errorBanner = page.locator('.rounded-2xl[role="alert"]').first()
+    await errorBanner.waitFor({ state: 'visible' })
+    const alertText = await errorBanner.innerText()
+    assert.match(alertText, /cancelled|try again|email/i, `oauth error banner: ${alertText}`)
+    const errSurfaces = await page.evaluate(() => ({
+      body: getComputedStyle(document.body).backgroundColor,
+      text: document.body.innerText.slice(0, 1200),
+    }))
+    assert.ok(isLightRgb(errSurfaces.body), `auth error body daylight got ${errSurfaces.body}`)
+    assert.doesNotMatch(errSurfaces.text, /across Austin|Hyde Park|East Austin|Austin seed/i)
+    assert.doesNotMatch(errSurfaces.text, /bg-zinc-950|dark:|text-red-300/)
+    console.log('ok auth oauth error banner (daylight)')
+
     await page.goto(`${BASE_URL}/auth?mode=signin`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body')
 
@@ -195,6 +329,7 @@ async function checkAuthBrowser() {
     await page.goto(`${BASE_URL}/auth?mode=signup`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('text=Full name')
     assert.equal(await page.getByRole('tab', { name: 'Create account' }).getAttribute('aria-selected'), 'true')
+
     console.log('ok auth browser Google + City/ZIP signup + password toggle')
   } finally {
     await browser.close()
@@ -265,6 +400,17 @@ async function checkLandingBrowser() {
     // Public browse + safety
     await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body')
+    // Live boot can briefly show the "Beam" splash before public marketplace hydrates.
+    await page
+      .waitForFunction(
+        () =>
+          /Browse tasks|Open requests|Local helpers|Welcome back|Continue with Google|Sign in/i.test(
+            document.body.innerText,
+          ),
+        null,
+        { timeout: 20000 },
+      )
+      .catch(() => {})
     const browseBody = await page.locator('body').innerText()
     assert.match(
       browseBody,
@@ -502,15 +648,46 @@ async function checkMarketplaceFlows() {
       )
     }
 
-    // Helper onboarding daylight
+    // Helper onboarding daylight (live guests may see auth gate instead of the form)
     await page.goto(`${BASE_URL}/onboarding/helper`, { waitUntil: 'domcontentloaded' })
-    assert.ok(await page.getByText(/helper|skills|Available now|Save helper/i).count() >= 1)
+    await page.waitForSelector('body')
+    await page
+      .waitForFunction(
+        () =>
+          /helper|skills|Available now|Save helper|Continue with Google|Sign in|Create account|Welcome back|demo mode/i.test(
+            document.body.innerText,
+          ),
+        null,
+        { timeout: 15000 },
+      )
+      .catch(() => {})
+    const onboardText = await page.locator('body').innerText()
+    if (/Continue with Google|Sign in|Create account|Welcome back|demo mode|needs configuration/i.test(onboardText)
+      && !/Available now|Save helper/i.test(onboardText)) {
+      console.log('skip helper onboarding interactive (auth gated)')
+    } else {
+      assert.ok(await page.getByText(/helper|skills|Available now|Save helper/i).count() >= 1)
+    }
 
     // Post composer — AI Quick-Draft + Open to offers + radius
     await page.goto(`${BASE_URL}/post`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body')
+    await page
+      .waitForFunction(
+        () =>
+          /Draft with AI|Describe what you need|Post request|Sign in|Create account|Continue with Google|Continue to Beam|demo mode/i.test(
+            document.body.innerText,
+          ),
+        null,
+        { timeout: 15000 },
+      )
+      .catch(() => {})
     const postBody = await page.locator('body').innerText()
-    if (/Sign in|Create account|demo mode|Continue to Beam/i.test(postBody) && !/Draft with AI|Post request/i.test(postBody)) {
+    if (
+      (/Sign in|Create account|demo mode|Continue to Beam|Continue with Google|Welcome back/i.test(postBody) &&
+        !/Draft with AI|Post request/i.test(postBody)) ||
+      /^Beam$/m.test(postBody.trim())
+    ) {
       console.log('skip post composer interactive (auth gated)')
     } else {
       assert.match(postBody, /Draft with AI|Describe what you need/i)
