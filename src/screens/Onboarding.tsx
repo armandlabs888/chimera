@@ -362,7 +362,7 @@ export function Onboarding() {
               <p className="inline-flex items-center rounded-full bg-[#F4F8FD] px-3 py-1 text-[12px] font-bold uppercase tracking-[0.08em] text-[#1D5CE5]">
                 Account setup
               </p>
-              <h1 className="mt-4 font-display text-[clamp(1.9rem,4vw,2.45rem)] font-bold leading-[1.08] tracking-[-0.03em] text-balance text-[#071330]">
+              <h1 className="mt-4 font-display text-[clamp(1.9rem,4vw,2.45rem)] font-bold leading-[1.15] tracking-[-0.02em] text-balance text-[#071330]">
                 Welcome to Beam
               </h1>
               <p className="mt-3 max-w-[44ch] text-[15.5px] leading-[1.55] text-[#64748B]">
@@ -484,7 +484,7 @@ export function Onboarding() {
                 </button>
               </div>
 
-              <h1 className="mt-5 font-display text-[clamp(1.85rem,4vw,2.35rem)] font-bold leading-[1.08] tracking-[-0.03em] text-balance text-[#071330]">
+              <h1 className="mt-5 font-display text-[clamp(1.85rem,4vw,2.35rem)] font-bold leading-[1.15] tracking-[-0.02em] text-balance text-[#071330]">
                 Community safety &amp; content rules
               </h1>
               <p className="mt-3 max-w-[46ch] text-[15.5px] leading-[1.55] text-[#64748B]">

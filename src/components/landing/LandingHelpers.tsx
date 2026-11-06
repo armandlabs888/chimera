@@ -53,7 +53,7 @@ export function LandingHelpers() {
           <p className="inline-flex rounded-full bg-[#FFEDD5] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#C2410C]">
             04 People First
           </p>
-          <h2 className="mt-4 font-display text-[clamp(2rem,3.6vw,3.25rem)] font-bold leading-[1.05] tracking-[-0.03em] text-[#071330]">
+          <h2 className="mt-4 font-display text-[clamp(2rem,3.6vw,3.25rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
             Meet local helpers
           </h2>
           <p className="mt-3 text-[16px] text-[#64748B]">

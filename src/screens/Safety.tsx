@@ -65,7 +65,7 @@ export function Safety() {
 
   const body = (
     <div className={publicChrome ? 'beam-container py-16' : 'py-2 sm:py-4'}>
-      <h1 className="font-display text-[clamp(2.5rem,5vw,3.5rem)] font-bold leading-[1.05] tracking-[-0.03em] text-[#071330]">
+      <h1 className="font-display text-[clamp(2.5rem,5vw,3.5rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
         Safety on Beam
       </h1>
       <p className="mt-4 max-w-[48ch] text-[18px] leading-[1.55] text-[#64748B]">

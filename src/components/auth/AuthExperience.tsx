@@ -211,7 +211,7 @@ function AsidePanel() {
         </div>
       </div>
       <div className="absolute inset-x-10 bottom-12 z-10">
-        <p className="max-w-[20ch] font-display text-[32px] font-bold leading-[1.1] tracking-[-0.03em] text-white">
+        <p className="max-w-[20ch] font-display text-[32px] font-bold leading-[1.1] tracking-[-0.02em] text-white">
           Local help, made easy.
         </p>
         <p className="mt-3 text-[14px] text-white/85">
@@ -281,7 +281,7 @@ function FormColumn(props: {
             <BeamWordmark markWidth={24} markHeight={24} wordClassName="text-[22px]" tone="ink" />
           </Link>
         ) : null}
-        <h1 className="font-display text-[36px] font-bold leading-[1.05] tracking-[-0.03em] text-[#071330]">
+        <h1 className="font-display text-[36px] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
           You’re in demo mode
         </h1>
         <p className="mt-3 text-[16px] text-[#64748B]">
@@ -299,7 +299,7 @@ function FormColumn(props: {
   if (mode === 'unconfigured') {
     return (
       <div>
-        <h1 className="font-display text-[36px] font-bold leading-[1.05] text-[#071330]">
+        <h1 className="font-display text-[36px] font-bold leading-[1.15] text-[#071330]">
           Beam needs configuration
         </h1>
         <p className="mt-3 text-[16px] text-[#64748B]">
@@ -317,7 +317,7 @@ function FormColumn(props: {
   if (confirmSent) {
     return (
       <div>
-        <h1 className="font-display text-[36px] font-bold leading-[1.05] text-[#071330]">
+        <h1 className="font-display text-[36px] font-bold leading-[1.15] text-[#071330]">
           Check your inbox
         </h1>
         <div className="mt-5 rounded-2xl border border-[#FDE68A] bg-[#FFF8D6] px-4 py-3 text-[14px] text-[#92400E]">
@@ -347,7 +347,7 @@ function FormColumn(props: {
 
   return (
     <div>
-      <h1 className="font-display text-[36px] font-bold leading-[1.05] tracking-[-0.03em] text-[#071330]">
+      <h1 className="font-display text-[36px] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
         {tab === 'signin' ? 'Welcome back' : 'Join Beam'}
       </h1>
       <p className="mt-3 text-[16px] text-[#64748B]">

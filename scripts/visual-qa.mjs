@@ -84,13 +84,18 @@ async function checkPage(page, route, viewport) {
     const htmlSnippet = document.documentElement.outerHTML
     const remnantHits = darkHexes.filter((hex) => htmlSnippet.includes(hex))
 
+    const fontOf = (el) => (el ? getComputedStyle(el).fontFamily : '')
+    const h1 = document.querySelector('h1')
+    const h2 = document.querySelector('h2')
+    const topnav = document.querySelector('[data-testid="app-topnav"]')
+
     return {
       scrollWidth: html.scrollWidth,
       innerWidth: window.innerWidth,
       visibleImgs,
       remnantHits,
       hasAppSidebar: document.querySelectorAll('[data-testid="app-sidebar"]').length,
-      hasAppTopnav: !!document.querySelector('[data-testid="app-topnav"]'),
+      hasAppTopnav: !!topnav,
       hasLandingNav: !!document.querySelector('[data-testid="landing-nav"]'),
       hasBottomDock: !!document.querySelector('[data-testid="bottom-dock"]'),
       hasAccountMenu: !!document.querySelector('[data-testid="account-menu-trigger"]'),
@@ -100,8 +105,27 @@ async function checkPage(page, route, viewport) {
         bodyText,
       ),
       bodyTextSample: bodyText.slice(0, 2000),
+      fonts: {
+        body: fontOf(document.body),
+        h1: fontOf(h1),
+        h2: fontOf(h2),
+        topnav: fontOf(topnav),
+      },
     }
   }, DARK_REMNANTS)
+
+  const SERIF_RE = /Fraunces|Georgia|ui-serif|(?:^|,\s)serif\s*(?:,|$)/i
+  const GEO_RE = /UberMove|DM Sans|__DM_Sans|UberMoveText|Inter|__Inter|system-ui/i
+  for (const [label, family] of Object.entries(metrics.fonts || {})) {
+    if (!family) continue
+    if (SERIF_RE.test(family)) {
+      entry.ok = false
+      entry.issues.push(`Serif font on ${label}: ${family}`)
+    } else if (!GEO_RE.test(family)) {
+      entry.ok = false
+      entry.issues.push(`Non-geometric font on ${label}: ${family}`)
+    }
+  }
 
   if (metrics.scrollWidth > metrics.innerWidth + 1) {
     entry.ok = false
