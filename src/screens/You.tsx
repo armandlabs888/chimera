@@ -112,7 +112,8 @@ export function You() {
         <div className="min-w-0 flex-1">
           <p className="truncate text-[17px] font-semibold text-beam-cream">{currentUser.name}</p>
           <p className="type-sec text-beam-muted">
-            {getNeighborhood(currentUser.neighborhood).shortName} · {formatMoney(currentUser.hourlyRate)}
+            {getNeighborhood(currentUser.neighborhood)?.shortName ?? 'Nearby'} ·{' '}
+            {formatMoney(currentUser.hourlyRate)}
             /hr
           </p>
         </div>

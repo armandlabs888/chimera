@@ -63,7 +63,7 @@ export function HelperProfile() {
               </h1>
               <p className="mt-1 flex items-center gap-1 text-sm text-beam-muted">
                 <MapPin className="h-4 w-4 text-beam-amber" />
-                {getNeighborhood(person.neighborhood).name}
+                {getNeighborhood(person.neighborhood)?.name ?? 'Nearby'}
               </p>
             </div>
             <div className="text-right">
