@@ -511,7 +511,7 @@ export function Browse() {
       ? `Active near ${cityOrArea}`
       : 'Active near you'
 
-  const filterSurface = 'rounded-xl border border-[#E2E8F0] bg-white'
+  const filterSurface = 'rounded-lg border border-[#E2E8F0] bg-white'
 
   function renderChipGrid(
     label: string,
@@ -723,7 +723,7 @@ export function Browse() {
           </ul>
         )}
 
-        <div className="mt-auto flex items-center justify-between gap-2 rounded-b-xl border-t border-[#F1F5F9] bg-[#FAFBFD] px-4 py-2.5">
+        <div className="mt-auto flex items-center justify-between gap-2 rounded-b-lg border-t border-[#F1F5F9] bg-[#FAFBFD] px-4 py-2.5">
           <p className="truncate text-[12px] text-[#64748B]">Need something done today?</p>
           <Link
             href="/post"
@@ -837,7 +837,7 @@ export function Browse() {
 
             {/* Command bar: search + distance/timing + sort */}
             <div className="relative z-30 mt-2.5" data-testid="browse-command-bar">
-              <div className="flex w-full max-w-[760px] flex-col gap-1 rounded-xl border border-[#E2E8F0] bg-white px-2 py-1 shadow-[0_1px_2px_rgba(7,19,48,0.04)] sm:flex-row sm:items-center sm:gap-0">
+              <div className="flex w-full max-w-[760px] flex-col gap-1 rounded-lg border border-[#E2E8F0] bg-white px-2 py-1 shadow-[0_1px_2px_rgba(7,19,48,0.04)] sm:flex-row sm:items-center sm:gap-0">
                 <label className="relative flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg px-2">
                   <Search className="h-4 w-4 shrink-0 text-[#64748B]" aria-hidden />
                   <span className="sr-only">Search browse</span>
@@ -906,7 +906,7 @@ export function Browse() {
                           id={guestMiddleListboxId}
                           role="listbox"
                           data-testid={guestMiddleListboxId}
-                          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-xl border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:right-auto sm:min-w-[16rem]"
+                          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-lg border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:right-auto sm:min-w-[16rem]"
                           onKeyDown={(e) =>
                             onListboxKeyDown(
                               e,
@@ -982,7 +982,7 @@ export function Browse() {
                           id="browse-radius-listbox"
                           role="listbox"
                           data-testid="browse-radius-listbox"
-                          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-xl border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:right-auto sm:min-w-[16rem]"
+                          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-lg border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:right-auto sm:min-w-[16rem]"
                           onKeyDown={(e) =>
                             onListboxKeyDown(e, radiusOptionIds, radius, setRadius, () =>
                               setAreaOpen(false),
@@ -1058,7 +1058,7 @@ export function Browse() {
                       id="browse-sort-listbox"
                       role="listbox"
                       data-testid="browse-sort-listbox"
-                      className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-y-auto rounded-xl border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:left-auto sm:right-0 sm:min-w-[13rem]"
+                      className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-y-auto rounded-lg border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:left-auto sm:right-0 sm:min-w-[13rem]"
                       onKeyDown={(e) =>
                         onListboxKeyDown(e, sortOptionIds, sort, setSort, () => setSortOpen(false))
                       }
@@ -1142,7 +1142,7 @@ export function Browse() {
           >
             {showFreshMarketplace ? (
               <div
-                className="rounded-xl border border-[#E2E8F0] bg-white px-6 py-14 text-center sm:px-10"
+                className="rounded-lg border border-[#E2E8F0] bg-white px-6 py-14 text-center sm:px-10"
                 data-testid="browse-fresh-empty"
               >
                 <span className="inline-flex items-center rounded-md border border-[#E2E8F0] bg-[#FFF8D6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#071330]">

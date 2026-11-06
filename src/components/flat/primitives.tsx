@@ -58,7 +58,7 @@ export function FlatRow({
   return (
     <Link
       href={href}
-      className={`flat-row group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 transition ${
+      className={`flat-row group flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 transition ${
         active
           ? 'bg-[rgba(29,92,229,0.1)] text-[#1D5CE5]'
           : 'text-[#071330] hover:bg-[#F4F8FD]'
@@ -126,7 +126,7 @@ export function SegmentedControl({
 }) {
   return (
     <div
-      className={`flex rounded-full border border-[rgba(7,19,48,0.1)] bg-[#F4F8FD] p-1 ${className}`}
+      className={`flex rounded-lg border border-[rgba(7,19,48,0.1)] bg-[#F4F8FD] p-1 ${className}`}
       role="tablist"
     >
       {options.map((opt) => {
@@ -138,7 +138,7 @@ export function SegmentedControl({
             role="tab"
             aria-selected={selected}
             onClick={() => onChange(opt.id)}
-            className={`btn-compact flex-1 rounded-full px-3 text-[13px] font-semibold capitalize transition ${
+            className={`btn-compact flex-1 rounded-md px-3 text-[13px] font-semibold capitalize transition ${
               selected
                 ? 'bg-[#1D5CE5] text-white shadow-sm'
                 : 'text-[#64748B] hover:text-[#071330]'
@@ -165,7 +165,7 @@ export function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`btn-compact h-9 shrink-0 rounded-full px-3.5 text-[13px] font-semibold transition ${
+      className={`btn-compact h-9 shrink-0 rounded-lg px-3.5 text-[13px] font-semibold transition ${
         active
           ? 'bg-[#1D5CE5] text-white'
           : 'bg-white text-[#475569] ring-1 ring-[rgba(7,19,48,0.1)] hover:text-[#071330]'

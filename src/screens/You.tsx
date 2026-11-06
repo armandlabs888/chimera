@@ -80,7 +80,7 @@ export function You() {
 
   return (
     <div className="py-1 sm:py-2">
-      <div className="mb-6 flex items-center gap-3 rounded-[20px] border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4 shadow-[0_8px_24px_-14px_rgba(12,42,102,0.1)]">
+      <div className="mb-6 flex items-center gap-3 rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4 shadow-[0_8px_24px_-14px_rgba(12,42,102,0.1)]">
         <Avatar src={currentUser.avatar} name={currentUser.name} size={52} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[17px] font-bold text-[#071330]">{currentUser.name}</p>
@@ -133,7 +133,7 @@ export function You() {
             key={id}
             type="button"
             onClick={() => setTab(id)}
-            className={`touch-target shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold transition ${
+            className={`touch-target shrink-0 rounded-lg px-4 py-2 text-[13px] font-semibold transition ${
               tab === id
                 ? 'bg-[#1D5CE5] text-white'
                 : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#475569] hover:border-[rgba(29,92,229,0.3)]'
@@ -170,7 +170,7 @@ export function You() {
                 <li key={offer.id}>
                   <Link
                     href={`/requests/${request.id}`}
-                    className="block rounded-[20px] border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4 transition hover:border-[rgba(29,92,229,0.28)]"
+                    className="block rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4 transition hover:border-[rgba(29,92,229,0.28)]"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -263,7 +263,7 @@ export function You() {
                 <li key={n.id}>
                   <button
                     type="button"
-                    className={`flex w-full flex-col gap-0.5 rounded-[18px] border px-4 py-3.5 text-left transition hover:border-[rgba(29,92,229,0.28)] ${
+                    className={`flex w-full flex-col gap-0.5 rounded-lg border px-4 py-3.5 text-left transition hover:border-[rgba(29,92,229,0.28)] ${
                       n.readAt
                         ? 'border-[rgba(7,19,48,0.08)] bg-white'
                         : 'border-[rgba(29,92,229,0.18)] bg-[#F4F8FD]'
@@ -292,7 +292,7 @@ export function You() {
       ) : null}
 
       {tab === 'helper' ? (
-        <div className="rounded-xl border border-[rgba(7,19,48,0.08)] bg-white p-5 shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] sm:p-6">
+        <div className="rounded-lg border border-[rgba(7,19,48,0.08)] bg-white p-5 shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] sm:p-6">
           {isHelper ? (
             <div className="space-y-4">
               <div>
@@ -311,7 +311,7 @@ export function You() {
                 {currentUser.skills.map((s) => (
                   <span
                     key={s}
-                    className="inline-flex rounded-full bg-[#F4F8FD] px-3 py-1.5 text-[12.5px] font-semibold text-[#071330]"
+                    className="inline-flex rounded-md bg-[#F4F8FD] px-3 py-1.5 text-[12.5px] font-semibold text-[#071330]"
                   >
                     {getCategory(s).shortLabel}
                   </span>

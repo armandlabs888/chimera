@@ -18,9 +18,9 @@ const variantStyles: Record<ButtonVariant, string> = {
 }
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'btn-compact rounded-full px-3.5 py-1.5 text-[13px] font-semibold',
-  md: 'touch-target rounded-full px-4 py-2 text-[14px] font-semibold',
-  lg: 'touch-target rounded-full px-5 py-2.5 text-[15px] font-semibold',
+  sm: 'btn-compact rounded-lg px-3.5 py-1.5 text-[13px] font-semibold',
+  md: 'touch-target rounded-lg px-4 py-2 text-[14px] font-semibold',
+  lg: 'touch-target rounded-lg px-5 py-2.5 text-[15px] font-semibold',
 }
 
 function Spinner() {

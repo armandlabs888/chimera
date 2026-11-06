@@ -443,8 +443,8 @@ export function MessagesThread({
                   <div
                     className={`max-w-[min(78%,34rem)] px-4 py-2.5 text-[14.5px] leading-[1.5] ${
                       mine
-                        ? 'rounded-xl rounded-br-sm bg-[#1D5CE5] text-white'
-                        : 'rounded-xl rounded-bl-sm border border-[rgba(7,19,48,0.06)] bg-[#F4F8FD] text-[#071330]'
+                        ? 'rounded-lg rounded-br-sm bg-[#1D5CE5] text-white'
+                        : 'rounded-lg rounded-bl-sm border border-[rgba(7,19,48,0.06)] bg-[#F4F8FD] text-[#071330]'
                     }`}
                   >
                     <p>{message.body}</p>
@@ -470,7 +470,7 @@ export function MessagesThread({
         className="shrink-0 border-t border-[#E2E8F0] bg-white px-4 py-3 sm:px-5"
         data-testid="messages-composer"
       >
-        <div className="flex items-center gap-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] py-1.5 pl-3.5 pr-1.5 transition focus-within:border-[#1D5CE5] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1D5CE5]/12">
+        <div className="flex items-center gap-2 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] py-1.5 pl-3.5 pr-1.5 transition focus-within:border-[#1D5CE5] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1D5CE5]/12">
           <input
             value={body}
             onChange={(e) => setBody(e.target.value)}

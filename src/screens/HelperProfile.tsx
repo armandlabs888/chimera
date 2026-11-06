@@ -56,11 +56,11 @@ export function HelperProfile() {
 
   return (
     <div className="py-1 sm:py-2">
-      <div className="overflow-hidden rounded-xl border border-[rgba(7,19,48,0.08)] bg-white shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)]">
+      <div className="overflow-hidden rounded-lg border border-[rgba(7,19,48,0.08)] bg-white shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)]">
         <div className="h-24 bg-gradient-to-br from-[#E8F1FF] via-[#F4F8FD] to-[#FFF8D6] sm:h-28" />
         <div className="relative px-5 pb-6 pt-0 sm:px-7">
           <div className="-mt-12 flex flex-wrap items-end justify-between gap-3">
-            <div className="rounded-full ring-4 ring-white">
+            <div className="rounded-lg ring-4 ring-white">
               <Avatar src={person.avatar} name={person.name} size={88} />
             </div>
             {!isYou && authUser ? (
@@ -68,7 +68,7 @@ export function HelperProfile() {
                 type="button"
                 aria-label={saved ? 'Remove from favorites' : 'Save helper'}
                 onClick={() => void toggleSavedHelper(person.id)}
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(7,19,48,0.1)] bg-white text-[#64748B] transition hover:text-[#1D5CE5]"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-[rgba(7,19,48,0.1)] bg-white text-[#64748B] transition hover:text-[#1D5CE5]"
               >
                 <Heart
                   className={`h-5 w-5 ${saved ? 'fill-[#1D5CE5] text-[#1D5CE5]' : ''}`}
@@ -86,7 +86,7 @@ export function HelperProfile() {
                   {isYou ? ' · You' : ''}
                 </h1>
                 {person.availableNow ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[12px] font-semibold text-emerald-700">
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1 text-[12px] font-semibold text-emerald-700">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     Available now
                   </span>
@@ -134,7 +134,7 @@ export function HelperProfile() {
               {person.skills.map((skill) => (
                 <span
                   key={skill}
-                  className="inline-flex rounded-full bg-[#F4F8FD] px-3 py-1.5 text-[12.5px] font-semibold text-[#071330]"
+                  className="inline-flex rounded-md bg-[#F4F8FD] px-3 py-1.5 text-[12.5px] font-semibold text-[#071330]"
                 >
                   {getCategory(skill).label}
                 </span>
@@ -147,7 +147,7 @@ export function HelperProfile() {
               {person.availability.map((slot) => (
                 <span
                   key={slot}
-                  className="inline-flex rounded-full border border-[rgba(7,19,48,0.1)] px-3 py-1 text-[12px] font-medium text-[#64748B]"
+                  className="inline-flex rounded-md border border-[rgba(7,19,48,0.1)] px-3 py-1 text-[12px] font-medium text-[#64748B]"
                 >
                   {AVAIL_LABELS[slot] ?? slot}
                 </span>
@@ -176,7 +176,7 @@ export function HelperProfile() {
               return (
                 <li
                   key={review.id}
-                  className="rounded-[20px] border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4"
+                  className="rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4"
                 >
                   <div className="flex items-center gap-2 text-[14px]">
                     <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />

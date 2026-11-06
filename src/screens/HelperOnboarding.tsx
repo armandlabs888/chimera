@@ -32,7 +32,7 @@ const SLOTS: { id: AvailabilitySlot; label: string }[] = [
 const RADIUS_OPTIONS = [3, 5, 10, 15, 25] as const
 
 const inputClass =
-  'h-12 w-full rounded-xl border border-[#E2E8F0] bg-white px-3.5 text-[15px] text-[#071330] outline-none transition placeholder:text-[#94A3B8] hover:border-[#CBD5E1] focus:border-[#1D5CE5] focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/15'
+  'h-12 w-full rounded-lg border border-[#E2E8F0] bg-white px-3.5 text-[15px] text-[#071330] outline-none transition placeholder:text-[#94A3B8] hover:border-[#CBD5E1] focus:border-[#1D5CE5] focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/15'
 
 const labelClass = 'mb-2 block text-[13.5px] font-semibold text-[#071330]'
 
@@ -321,7 +321,7 @@ export function HelperOnboarding() {
                   type="button"
                   variant="secondary"
                   size="sm"
-                  className="rounded-full shadow-none"
+                  className="rounded-lg shadow-none"
                   loading={uploading}
                   onClick={() => fileRef.current?.click()}
                   data-testid="helper-upload-photo"
@@ -404,7 +404,7 @@ export function HelperOnboarding() {
                     aria-pressed={on}
                     onClick={() => toggleSkill(c.id)}
                     data-testid={`helper-skill-${c.id}`}
-                    className={`relative flex min-h-[72px] flex-col items-start gap-2 rounded-xl border px-3.5 py-3 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
+                    className={`relative flex min-h-[72px] flex-col items-start gap-2 rounded-lg border px-3.5 py-3 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
                       on
                         ? 'border-[#1D5CE5] bg-[#F5F9FF] text-[#071330] ring-1 ring-[#1D5CE5]/20'
                         : 'border-[#E2E8F0] bg-white text-[#475569] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
@@ -501,7 +501,7 @@ export function HelperOnboarding() {
                       role="radio"
                       aria-checked={on}
                       onClick={() => setServiceRadiusMiles(miles)}
-                      className={`rounded-full px-3.5 py-2 text-[13px] font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
+                      className={`rounded-md px-3.5 py-2 text-[13px] font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
                         on
                           ? 'border border-[#1D5CE5] bg-[#EEF4FF] text-[#1D5CE5]'
                           : 'border border-[#E2E8F0] bg-white text-[#475569] hover:border-[#CBD5E1]'
@@ -527,7 +527,7 @@ export function HelperOnboarding() {
               <p className={labelClass}>Rate</p>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div
-                  className="inline-flex rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-1"
+                  className="inline-flex rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-1"
                   role="radiogroup"
                   aria-label="Rate type"
                   data-testid="helper-rate-type"
@@ -560,7 +560,7 @@ export function HelperOnboarding() {
 
                 {rateType === 'hourly' ? (
                   <div
-                    className="relative inline-flex h-12 w-36 items-center rounded-xl border border-[#E2E8F0] bg-white focus-within:border-[#1D5CE5] focus-within:ring-4 focus-within:ring-[#1D5CE5]/15"
+                    className="relative inline-flex h-12 w-36 items-center rounded-lg border border-[#E2E8F0] bg-white focus-within:border-[#1D5CE5] focus-within:ring-4 focus-within:ring-[#1D5CE5]/15"
                     data-testid="helper-hourly-rate"
                   >
                     <span className="pl-3.5 text-[15px] font-semibold text-[#64748B]" aria-hidden>
@@ -630,7 +630,7 @@ export function HelperOnboarding() {
                       type="button"
                       aria-pressed={on}
                       onClick={() => toggleSlot(slot.id)}
-                      className={`rounded-full px-3.5 py-2 text-[13px] font-semibold transition ${
+                      className={`rounded-md px-3.5 py-2 text-[13px] font-semibold transition ${
                         on
                           ? 'border border-[#1D5CE5] bg-[#EEF4FF] text-[#1D5CE5]'
                           : 'border border-[#E2E8F0] bg-white text-[#475569] hover:border-[#CBD5E1]'
@@ -649,7 +649,7 @@ export function HelperOnboarding() {
           <div className="flex flex-col-reverse gap-3 pt-6 sm:flex-row sm:items-center sm:justify-between">
             <Link
               href="/browse"
-              className="inline-flex h-12 items-center justify-center rounded-full px-5 text-[14px] font-semibold text-[#64748B] transition hover:bg-[#F8FAFC] hover:text-[#071330]"
+              className="inline-flex h-12 items-center justify-center rounded-lg px-5 text-[14px] font-semibold text-[#64748B] transition hover:bg-[#F8FAFC] hover:text-[#071330]"
               data-testid="helper-onboarding-cancel"
             >
               {editing ? 'Cancel' : 'Skip for now'}
@@ -658,7 +658,7 @@ export function HelperOnboarding() {
               type="submit"
               size="lg"
               loading={pending}
-              className="h-[52px] rounded-full bg-[#1D5CE5] px-7 text-white shadow-none hover:bg-[#1649BD] sm:min-w-[220px]"
+              className="h-[52px] rounded-lg bg-[#1D5CE5] px-7 text-white shadow-none hover:bg-[#1649BD] sm:min-w-[220px]"
               data-testid="helper-onboarding-submit"
             >
               {editing ? 'Save helper profile' : 'Publish helper profile'}

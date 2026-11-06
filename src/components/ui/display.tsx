@@ -30,7 +30,7 @@ export function EmptyState({
   action?: ReactNode
 }) {
   return (
-    <div className="elevated px-4 py-12 text-center">
+    <div className="rounded-lg border border-[#E2E8F0] bg-white px-6 py-12 text-center">
       <h3 className="type-h3 text-[#071330]">{title}</h3>
       <p className="mx-auto mt-2 max-w-sm type-sec text-beam-muted">{body}</p>
       {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
@@ -58,7 +58,7 @@ export function Badge({
               ? 'border border-[rgba(7,19,48,0.12)] bg-transparent text-[#64748B]'
               : 'bg-[#F4F8FD] text-[#475569]'
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 type-meta ${toneClass}`}>
+    <span className={`inline-flex items-center gap-1 rounded-md px-2.5 py-0.5 type-meta ${toneClass}`}>
       {children}
     </span>
   )
@@ -98,7 +98,11 @@ export function Card({
   hover?: boolean
 }) {
   return (
-    <Tag className={`elevated ${hover ? 'elevated-hover' : ''} ${className}`}>{children}</Tag>
+    <Tag
+      className={`rounded-lg border border-[#E2E8F0] bg-white p-5 ${hover ? 'elevated-hover' : ''} ${className}`}
+    >
+      {children}
+    </Tag>
   )
 }
 
@@ -122,7 +126,7 @@ export function InlineBanner({
           ? 'bg-[#FFF8D6] text-[#92400E] shadow-[0_0_0_1px_rgba(217,119,6,0.15)]'
           : 'bg-[#F4F8FD] text-[#475569] shadow-[0_0_0_1px_rgba(7,19,48,0.06)]'
   return (
-    <div className={`rounded-xl px-3.5 py-2.5 type-sec ${styles}`} role="status" aria-live="polite">
+    <div className={`rounded-lg px-3.5 py-2.5 type-sec ${styles}`} role="status" aria-live="polite">
       {children}
     </div>
   )
@@ -196,7 +200,7 @@ export function CategoryIconBadge({
 }) {
   return (
     <span
-      className="inline-flex items-center justify-center rounded-xl"
+      className="inline-flex items-center justify-center rounded-lg"
       style={{ width: size, height: size, background: tintBg, color: tintFg }}
     >
       {children}

@@ -25,13 +25,13 @@ export default function Error({
         <button
           type="button"
           onClick={reset}
-          className="touch-target inline-flex items-center rounded-full bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white hover:bg-[#1649BD]"
+          className="touch-target inline-flex items-center rounded-lg bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white hover:bg-[#1649BD]"
         >
           Try again
         </button>
         <Link
           href="/home"
-          className="touch-target inline-flex items-center rounded-full border border-beam-line bg-white px-5 text-[14px] font-semibold text-beam-cream"
+          className="touch-target inline-flex items-center rounded-lg border border-beam-line bg-white px-5 text-[14px] font-semibold text-beam-cream"
         >
           App home
         </Link>

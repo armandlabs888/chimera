@@ -42,7 +42,7 @@ export function PersonCard({
   const ratingLabel = formatPublicRating(person)
 
   return (
-    <div className="group relative flex flex-col rounded-xl border border-[#E2E8F0] bg-white p-3.5 transition-[border-color,box-shadow] duration-150 hover:border-[#CBD5E1] hover:shadow-[0_6px_18px_-6px_rgba(7,19,48,0.08)]">
+    <div className="group relative flex flex-col rounded-lg border border-[#E2E8F0] bg-white p-3.5 transition-[border-color,box-shadow] duration-150 hover:border-[#CBD5E1] hover:shadow-[0_6px_18px_-6px_rgba(7,19,48,0.08)]">
       {authUser ? (
         <button
           type="button"
