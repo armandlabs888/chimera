@@ -107,7 +107,13 @@ export function You() {
             <span className="hidden sm:inline">Reset demo</span>
           </Button>
         ) : authUser ? (
-          <Button type="button" variant="ghost" onClick={() => void signOut()} title="Sign out">
+          <Button
+            type="button"
+            variant="ghost"
+            data-testid="you-sign-out"
+            onClick={() => void signOut()}
+            title="Sign out"
+          >
             Sign out
           </Button>
         ) : null}

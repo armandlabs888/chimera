@@ -37,6 +37,7 @@ import {
 } from '@/lib/beam/liveRepository'
 import { createClient } from '@/lib/supabase/client'
 import { profileSeedFromUser } from '@/lib/auth/profileSeed'
+import { redirectThroughSignOut } from '@/lib/auth/performSignOut'
 import { mapProfile } from '@/lib/beam/mappers'
 import type {
   AccountRole,
@@ -210,6 +211,8 @@ export function BeamProvider({
   const [backendError, setBackendError] = useState<string | null>(null)
   const [booting, setBooting] = useState(true)
   const stateRef = useRef<AppState | null>(null)
+  /** When true, ignore auth-state churn so Layout does not flash public chrome mid-logout. */
+  const signingOutRef = useRef(false)
   stateRef.current = state
 
   const reportError = useCallback((err: unknown, fallback: string) => {
@@ -290,6 +293,9 @@ export function BeamProvider({
 
     const client = createClient()
     const { data: sub } = client.auth.onAuthStateChange(async (_event, session: Session | null) => {
+      // Sign-out navigates away via /auth/signout; skip public-marketplace hydrate
+      // so guests are never stranded on the prior route in landing chrome.
+      if (signingOutRef.current) return
       try {
         setAuthUser(session?.user ?? null)
         if (!session?.user) {
@@ -395,20 +401,27 @@ export function BeamProvider({
   )
 
   const signOut = useCallback(async () => {
-    const client = createClient()
-    const { error } = await client.auth.signOut()
-    if (error) reportError(error, 'Sign out failed')
-    setAuthUser(null)
+    // Freeze auth UI updates, clear the browser session (live), then hard-navigate
+    // through `/auth/signout` so server cookies are cleared and we land on a clean
+    // `/auth` — never left on the prior route in public chrome.
+    signingOutRef.current = true
     if (mode === 'live') {
       try {
-        await refreshPublic()
-      } catch {
-        setState(emptyLiveState('anonymous'))
+        const client = createClient()
+        const { error } = await client.auth.signOut()
+        if (error) {
+          // Still continue to the server sign-out route so cookies + redirect happen.
+          setBackendError(error.message || 'Sign out failed')
+        }
+      } catch (err) {
+        setBackendError(err instanceof Error ? err.message : 'Sign out failed')
       }
-    } else {
+    } else if (mode === 'demo') {
+      setAuthUser(null)
       setState(null)
     }
-  }, [mode, refreshPublic, reportError])
+    redirectThroughSignOut()
+  }, [mode])
 
   const resetDemo = useCallback(() => {
     if (mode !== 'demo') {
