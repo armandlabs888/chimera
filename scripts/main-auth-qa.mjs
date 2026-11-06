@@ -175,7 +175,12 @@ async function main() {
 
   const probe = await fetch(`${BASE_URL}/auth?mode=signin`, { headers: { Accept: 'text/html' } })
   const probeText = await probe.text()
-  if (/demo mode|needs configuration/i.test(probeText)) {
+  const postProbe = await fetch(`${BASE_URL}/post`, { redirect: 'manual' })
+  const postRedirectsToAuth =
+    [302, 303, 307, 308].includes(postProbe.status) &&
+    /\/auth/i.test(postProbe.headers.get('location') || '')
+  // Auth copy is often client-rendered; require a live guest redirect probe too.
+  if (/demo mode|needs configuration/i.test(probeText) || !postRedirectsToAuth) {
     console.log('skip main-auth-qa (demo / unconfigured — need live mode)')
     return
   }

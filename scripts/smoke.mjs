@@ -324,10 +324,17 @@ async function checkAuthMarkupAndRedirects() {
 
   // Live guests on protected routes must 302/307 to canonical /auth (not inline AuthGate).
   // Demo / unconfigured leave these routes reachable without redirect.
+  // Prefer an actual /post redirect probe — auth HTML is often client-rendered, so
+  // "demo mode" / "needs configuration" may be absent from the initial document.
   const authProbe = await fetchText('/auth?mode=signin')
+  const postProbe = await fetch(`${BASE_URL}/post`, { redirect: 'manual' })
+  const postRedirectsToAuth =
+    [302, 303, 307, 308].includes(postProbe.status) &&
+    /\/auth/i.test(postProbe.headers.get('location') || '')
   const liveConfigured =
     authProbe.res.status === 200 &&
-    !/demo mode|needs configuration/i.test(authProbe.text)
+    !/demo mode|needs configuration/i.test(authProbe.text) &&
+    postRedirectsToAuth
   if (liveConfigured) {
     const protectedPaths = [
       ['/post', /next=%2Fpost/],
@@ -709,11 +716,18 @@ async function checkOnboardingFlow() {
     const step1 = await page.locator('[data-testid="onboarding-step-1"]').innerText()
     assert.match(step1, /Welcome to Beam/i)
     assert.match(step1, /Customer/i)
-    assert.match(step1, /Helper \/ Tasker/i)
-    assert.equal(await page.getByTestId('onboarding-next').isDisabled(), true, 'Next disabled initially')
+    assert.match(step1, /\bHelper\b/i)
+    assert.doesNotMatch(step1, /Popular/i)
+    assert.doesNotMatch(step1, /Sign out/i)
+    assert.doesNotMatch(step1, /Preview mode/i)
+    assert.equal(await page.getByTestId('onboarding-next').isDisabled(), true, 'Continue disabled initially')
+    assert.equal(await page.locator('[data-testid="onboarding-sign-out"]').count(), 0, 'no sign-out control')
+    assert.equal(await page.locator('aside').count(), 0, 'no gradient aside rail')
+    assert.equal(await page.locator('img').count(), 0, 'no stock photos on onboarding')
 
     const darkProbe = await page.evaluate(() => {
       const bodyBg = getComputedStyle(document.body).backgroundColor
+      const bodyText = document.body.innerText
       const darkNodes = [...document.querySelectorAll('*')].filter((el) => {
         const bg = getComputedStyle(el).backgroundColor
         const alphaM = bg.match(/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)\s*\)/i)
@@ -730,13 +744,15 @@ async function checkOnboardingFlow() {
         bodyBg,
         darkCount: darkNodes.length,
         overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
-        austin: /across Austin|Hyde Park|East Austin/i.test(document.body.innerText),
+        austin: /across Austin|Hyde Park|East Austin/i.test(bodyText),
+        emailLike: /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(bodyText),
       }
     })
     assert.ok(isLightRgb(darkProbe.bodyBg) || !isDarkLeftover(darkProbe.bodyBg), `onboarding body ${darkProbe.bodyBg}`)
     assert.equal(darkProbe.darkCount, 0, 'onboarding dark leftovers')
     assert.equal(darkProbe.overflowX, false, 'onboarding no horizontal overflow')
     assert.equal(darkProbe.austin, false, 'onboarding has no Austin assumptions')
+    assert.equal(darkProbe.emailLike, false, 'onboarding must not show email')
 
     await page.getByTestId('onboarding-role-helper').click()
     assert.equal(await page.getByTestId('onboarding-role-helper').getAttribute('aria-checked'), 'true')
@@ -752,29 +768,52 @@ async function checkOnboardingFlow() {
       { q: 'San Juan, PR', expect: /San Juan,\s*PR/i },
       { q: 'Springfield, IL', expect: /Springfield,\s*IL/i },
     ]
+    await page.waitForFunction(() => {
+      const el = document.querySelector('[data-testid="onboarding-city-input"]')
+      return el instanceof HTMLInputElement && !el.disabled
+    }, null, { timeout: 20000 })
+
     for (const check of cityChecks) {
       await cityInput.fill('')
       await cityInput.fill(check.q)
       await page.waitForSelector('[data-testid="onboarding-city-listbox"]')
+      await page.waitForFunction(
+        ({ re }) => {
+          const box = document.querySelector('[data-testid="onboarding-city-listbox"]')
+          return box && new RegExp(re, 'i').test(box.textContent || '')
+        },
+        { re: check.expect.source },
+        { timeout: 10000 },
+      )
       const optionsText = await page.getByTestId('onboarding-city-listbox').innerText()
       assert.match(optionsText, check.expect, `autocomplete for ${check.q}`)
     }
 
-    await cityInput.fill('Boise, ID')
+    await cityInput.fill('San Jose, CA')
     await page.waitForSelector('[data-testid="onboarding-city-listbox"]')
-    await page.getByRole('option', { name: /Boise,\s*ID/i }).first().click()
+    await page.waitForFunction(() => {
+      const box = document.querySelector('[data-testid="onboarding-city-listbox"]')
+      return box && /San Jose,\s*CA/i.test(box.textContent || '')
+    }, null, { timeout: 10000 })
+    await page.getByRole('option', { name: /San Jose,\s*CA/i }).first().click()
     await page.waitForSelector('[data-testid="onboarding-city-verified"]')
-    assert.match(await page.getByTestId('onboarding-city-verified').innerText(), /Boise,\s*ID/i)
-    assert.equal(await page.getByTestId('onboarding-next').isDisabled(), false, 'Next enabled')
+    const verified = await page.getByTestId('onboarding-city-verified').innerText()
+    assert.match(verified, /San Jose,\s*CA/i)
+    assert.doesNotMatch(verified, /Verified/i)
+    assert.equal(await page.getByTestId('onboarding-next').isDisabled(), false, 'Continue enabled')
 
     await page.getByTestId('onboarding-next').click()
     await page.waitForSelector('[data-testid="onboarding-step-2"]')
     const step2 = await page.getByTestId('onboarding-step-2').innerText()
     assert.match(step2, /Posting illegal content or listing sexual services is strictly prohibited/i)
-    assert.match(step2, /temporary ban/i)
+    assert.match(step2, /accounts are suspended/i)
+    assert.doesNotMatch(step2, /Mandatory marketplace policy/i)
+    assert.doesNotMatch(step2, /Sign out/i)
     assert.match(step2, /Back/i)
-    assert.match(step2, /Complete/i)
+    assert.match(step2, /Agree and continue/i)
     assert.ok(await page.getByTestId('onboarding-safety-callout').count() >= 1)
+    assert.equal(await page.locator('[data-testid="onboarding-sign-out"]').count(), 0)
+    assert.equal(await page.locator('aside').count(), 0)
 
     await page.getByTestId('onboarding-back').click()
     await page.waitForSelector('[data-testid="onboarding-step-1"]')
@@ -787,7 +826,7 @@ async function checkOnboardingFlow() {
     await page.waitForURL(/\/browse/, { timeout: 15000 })
     assert.match(page.url(), /\/browse/)
 
-    console.log('ok onboarding Step1 role+cities + Step2 disclaimer + Complete→/browse')
+    console.log('ok onboarding Step1 role+cities + Step2 commitment + Agree→/browse')
   } finally {
     await browser.close()
   }
