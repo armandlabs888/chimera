@@ -53,7 +53,7 @@ export function LandingNav({
 
   return (
     <header
-      className={`relative z-30 w-full transition-colors ${
+      className={`relative z-50 w-full transition-colors ${
         light && variant === 'hero'
           ? 'sticky top-0 border-b border-[rgba(7,19,48,0.08)] bg-white/95 backdrop-blur-md'
           : ''
@@ -108,7 +108,10 @@ export function LandingNav({
       </div>
 
       {mobileOpen ? (
-        <div className="obsidian-popover mx-4 mb-3 overflow-hidden lg:hidden">
+        <div
+          className="relative z-50 mx-4 mb-3 overflow-hidden rounded-2xl border border-[rgba(7,19,48,0.12)] bg-white shadow-[0_18px_40px_-12px_rgba(12,42,102,0.28)] lg:hidden"
+          data-testid="landing-mobile-menu"
+        >
           <div className="flex flex-col py-2">
             {NAV_LINKS.map((l) =>
               l.href.startsWith('/#') ? (
