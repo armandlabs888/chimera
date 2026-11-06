@@ -716,12 +716,21 @@ async function checkLandingBrowser() {
           leftGutter = rect.left + padL
           rightGutter = vpWidth - (rect.right - padR)
         }
+        const commandBar =
+          document.querySelector('[data-testid="browse-command-bar"] > div') ||
+          document.querySelector('[data-testid="browse-command-bar"]')
+        const radiusTrigger =
+          document.querySelector('[data-testid="browse-radius-trigger"]') ||
+          document.querySelector('[data-testid="browse-when-trigger"]') ||
+          document.querySelector('[data-testid="browse-availability-trigger"]')
         return {
           overflowX: html.scrollWidth > html.clientWidth + 1,
           scrollWidth: html.scrollWidth,
           clientWidth: html.clientWidth,
           leftGutter,
           rightGutter,
+          commandBarWidth: commandBar?.getBoundingClientRect().width ?? null,
+          radiusTriggerWidth: radiusTrigger?.getBoundingClientRect().width ?? null,
           broken: Array.from(document.images).filter((img) => img.complete && img.naturalWidth === 0 && img.src)
             .length,
         }
@@ -740,6 +749,14 @@ async function checkLandingBrowser() {
         assert.ok(
           Math.abs(g.leftGutter - g.rightGutter) <= 2,
           `desktop gutters symmetric (L=${g.leftGutter}, R=${g.rightGutter})`,
+        )
+        assert.ok(
+          g.commandBarWidth != null && g.commandBarWidth <= 780,
+          `desktop command bar compact (<=780px, got ${g.commandBarWidth})`,
+        )
+        assert.ok(
+          g.radiusTriggerWidth != null && g.radiusTriggerWidth <= 220,
+          `desktop radius/middle trigger compact (<=220px, got ${g.radiusTriggerWidth})`,
         )
       }
     }
@@ -1007,14 +1024,23 @@ async function checkOnboardingFlow() {
     const bannerGeometry = await page.evaluate(() => {
       const banner = document.querySelector('[data-testid="helper-setup-callout"]')
       const nav = document.querySelector('[data-testid="app-topnav"]')
-      if (!banner || !nav) return null
+      const cta = document.querySelector('[data-testid="helper-setup-banner-cta"]')
+      const copy = banner?.querySelector('p')
+      if (!banner || !nav || !cta || !copy) return null
       const bannerBox = banner.getBoundingClientRect()
       const navBox = nav.getBoundingClientRect()
+      const ctaBox = cta.getBoundingClientRect()
+      const copyBox = copy.getBoundingClientRect()
+      const left = Math.min(copyBox.left, ctaBox.left)
+      const right = Math.max(copyBox.right, ctaBox.right)
       return {
         bannerY: bannerBox.y,
         bannerBottom: bannerBox.y + bannerBox.height,
         navY: navBox.y,
         ctaCount: document.querySelectorAll('[data-testid="helper-setup-banner-cta"]').length,
+        contentMidX: (left + right) / 2,
+        textCtaGap: Math.max(0, ctaBox.left - copyBox.right),
+        viewportMidX: window.innerWidth / 2,
       }
     })
     assert.ok(bannerGeometry, 'helper setup banner + topnav present on /browse')
@@ -1027,6 +1053,14 @@ async function checkOnboardingFlow() {
       `banner bottom must meet topnav top (bannerBottom=${bannerGeometry.bannerBottom}, nav.y=${bannerGeometry.navY})`,
     )
     assert.equal(bannerGeometry.ctaCount, 1, 'helper-setup-banner-cta present')
+    assert.ok(
+      Math.abs(bannerGeometry.contentMidX - bannerGeometry.viewportMidX) <= 40,
+      `banner content centered on desktop (mid=${bannerGeometry.contentMidX}, expected≈${bannerGeometry.viewportMidX})`,
+    )
+    assert.ok(
+      bannerGeometry.textCtaGap <= 400,
+      `banner text↔CTA gap not edge-stretched (gap=${bannerGeometry.textCtaGap})`,
+    )
 
     await page.getByTestId('helper-setup-banner-cta').click()
     await page.waitForURL(/\/onboarding\/helper/, { timeout: 15000 })

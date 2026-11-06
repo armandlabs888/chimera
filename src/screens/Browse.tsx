@@ -499,16 +499,16 @@ export function Browse() {
         </div>
       </div>
 
-      {/* Unified command bar */}
-      <div className="relative z-30 mb-3">
-        <div className="flex flex-col gap-2 rounded-[24px] border border-[rgba(7,19,48,0.09)] bg-white p-2 shadow-[0_12px_32px_-12px_rgba(12,42,102,0.08)] lg:flex-row lg:items-center lg:rounded-full lg:gap-0">
-          <label className="relative flex min-w-0 flex-[1.4] items-center gap-2.5 rounded-full px-3 py-2.5 sm:px-4">
+      {/* Unified command bar — compact desktop width (aligned with category pills) */}
+      <div className="relative z-30 mb-3" data-testid="browse-command-bar">
+        <div className="flex w-full flex-col gap-2 rounded-[24px] border border-[rgba(7,19,48,0.09)] bg-white p-2 shadow-[0_12px_32px_-12px_rgba(12,42,102,0.08)] lg:max-w-[45rem] lg:flex-row lg:items-center lg:rounded-full lg:gap-0">
+          <label className="relative flex min-w-0 flex-1 items-center gap-2.5 rounded-full px-3 py-2.5 sm:px-4 lg:flex-1">
             <Search className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
             <span className="sr-only">Search browse</span>
             <input
               value={qDraft}
               onChange={(e) => setQDraft(e.target.value)}
-              placeholder="Search tasks, furniture assembly, cleaning, skills…"
+              placeholder="Search tasks or skills…"
               aria-label="Search browse"
               className="min-w-0 flex-1 bg-transparent text-[14.5px] text-[#071330] outline-none placeholder:text-[#94A3B8]"
             />
@@ -526,7 +526,7 @@ export function Browse() {
 
           <span className="mx-1 hidden h-8 w-px bg-[rgba(7,19,48,0.1)] lg:block" aria-hidden />
 
-          <div className="relative min-w-0 flex-1" ref={areaRef}>
+          <div className="relative min-w-0 flex-1 lg:w-[11.25rem] lg:flex-none" ref={areaRef}>
             {isGuest ? (
               <>
                 <button
@@ -680,7 +680,7 @@ export function Browse() {
 
           <span className="mx-1 hidden h-8 w-px bg-[rgba(7,19,48,0.1)] lg:block" aria-hidden />
 
-          <div className="relative min-w-0 flex-1 lg:max-w-[13.5rem]" ref={sortRef}>
+          <div className="relative min-w-0 flex-1 lg:w-[10.75rem] lg:flex-none" ref={sortRef}>
             <button
               type="button"
               className="flex w-full items-center gap-2.5 rounded-full px-3 py-2.5 text-left sm:px-4"

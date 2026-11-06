@@ -173,8 +173,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             role="region"
             aria-label="Finish your helper profile"
           >
-            <div className="beam-container flex flex-col gap-2.5 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-              <p className="min-w-0 text-[13.5px] leading-[1.4]">
+            <div className="beam-container flex flex-col items-center justify-center gap-2 py-2.5 text-center sm:flex-row sm:flex-wrap sm:gap-3.5">
+              <p className="min-w-0 max-w-[42rem] text-[13.5px] leading-[1.4] sm:max-w-none">
                 <span className="font-semibold text-white">Finish your helper profile</span>
                 <span className="hidden text-white/70 sm:inline" aria-hidden>
                   {' '}
