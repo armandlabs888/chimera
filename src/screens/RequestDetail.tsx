@@ -310,7 +310,12 @@ export function RequestDetail() {
                     {isOwner ? ' (you)' : ''}
                   </p>
                   <p className="truncate text-[13px] text-[#64748B]">
-                    {formatLocation(requester)} · ★ {requester.rating.toFixed(1)} ·{' '}
+                    {formatLocation(requester)}
+                    {' · '}
+                    {requester.rating > 0 && requester.reviewCount > 0
+                      ? `★ ${requester.rating.toFixed(1)}`
+                      : 'New'}
+                    {' · '}
                     {requester.jobsCompleted} jobs
                   </p>
                 </div>
@@ -359,7 +364,11 @@ export function RequestDetail() {
                               <p className="truncate font-semibold text-[#071330]">{person.name}</p>
                               <p className="text-[12.5px] text-[#64748B]">
                                 {authUser ? `${match.distanceMiles.toFixed(1)} mi · ` : ''}
-                                {formatRate(person)} · ★ {person.rating.toFixed(1)}
+                                {formatRate(person)}
+                                {' · '}
+                                {person.rating > 0 && person.reviewCount > 0
+                                  ? `★ ${person.rating.toFixed(1)}`
+                                  : 'New'}
                               </p>
                               {match.reasons.length ? (
                                 <p className="mt-1 line-clamp-1 text-[12px] text-[#94A3B8]">
@@ -480,7 +489,10 @@ export function RequestDetail() {
                             <div className="min-w-0">
                               <p className="truncate font-semibold text-[#071330]">{helper.name}</p>
                               <p className="text-[12.5px] text-[#64748B]">
-                                ★ {helper.rating.toFixed(1)} · ETA {offer.eta}
+                                {helper.rating > 0 && helper.reviewCount > 0
+                                  ? `★ ${helper.rating.toFixed(1)}`
+                                  : 'New'}{' '}
+                                · ETA {offer.eta}
                               </p>
                             </div>
                           </Link>

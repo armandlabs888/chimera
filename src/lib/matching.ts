@@ -76,7 +76,7 @@ export function rankHelpersForRequest(
       else reasons.push(`${miles.toFixed(1)} mi away`)
       if (liveNow) reasons.push('Available now')
       else if (slotFit) reasons.push('Available for timing')
-      if (person.rating >= 4.5) {
+      if (person.rating >= 4.5 && person.reviewCount > 0) {
         reasons.push(`${person.rating.toFixed(1)}★ (${person.reviewCount})`)
       }
 

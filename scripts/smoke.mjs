@@ -802,6 +802,98 @@ async function checkLandingBrowser() {
           col.maxCardRadius > 0 && col.maxCardRadius <= 14,
           `browse card radius <= 14px (got ${col.maxCardRadius})`,
         )
+
+        // Locked-viewport desktop /browse: outer document does not scroll;
+        // only the middle feed scrolls; left/right columns stay pinned.
+        const locked = await page.evaluate(() => {
+          const feedScroll = document.querySelector('[data-testid="browse-feed-scroll"]')
+          const filters = document.querySelector('[data-testid="browse-filters-sidebar"]')
+          const trending = document.querySelector('[data-testid="browse-trending-helpers"]')
+          const feedCards = [
+            ...document.querySelectorAll(
+              '[data-testid="browse-feed-scroll"] a[href^="/requests/"], [data-testid="browse-feed-scroll"] a[href^="/people/"]',
+            ),
+          ]
+          const cardBoxes = feedCards.slice(0, 3).map((el) => {
+            const r = el.getBoundingClientRect()
+            return { top: r.top, left: r.left, width: r.width }
+          })
+          const filtersBefore = filters?.getBoundingClientRect().top ?? null
+          const trendingBefore = trending?.getBoundingClientRect().top ?? null
+          const firstCardBefore = feedCards[0]?.getBoundingClientRect().top ?? null
+          const overflowY = feedScroll ? getComputedStyle(feedScroll).overflowY : null
+          if (feedScroll) feedScroll.scrollTop = 260
+          const filtersAfter = filters?.getBoundingClientRect().top ?? null
+          const trendingAfter = trending?.getBoundingClientRect().top ?? null
+          const firstCardAfter = feedCards[0]?.getBoundingClientRect().top ?? null
+          const scrollTopAfter = feedScroll?.scrollTop ?? 0
+          if (feedScroll) feedScroll.scrollTop = 0
+
+          const sidebarText = filters?.textContent || ''
+          const bodyText = document.body.innerText || ''
+          return {
+            scrollY: window.scrollY,
+            docScrollHeight: document.documentElement.scrollHeight,
+            docClientHeight: document.documentElement.clientHeight,
+            overflowY,
+            filtersBefore,
+            filtersAfter,
+            trendingBefore,
+            trendingAfter,
+            firstCardBefore,
+            firstCardAfter,
+            scrollTopAfter,
+            cardBoxes,
+            hasAnyTiming: /Any timing/i.test(sidebarText),
+            filtersBottom: filters?.getBoundingClientRect().bottom ?? null,
+            viewportHeight: window.innerHeight,
+            hasZeroStar: /★\s*0\.0/.test(bodyText) || /★\s*0\.0/.test(document.body.textContent || ''),
+          }
+        })
+        assert.equal(locked.scrollY, 0, 'desktop /browse window.scrollY === 0')
+        assert.ok(
+          locked.docScrollHeight <= locked.docClientHeight + 1,
+          `desktop /browse document does not vertically overflow (scrollHeight=${locked.docScrollHeight}, clientHeight=${locked.docClientHeight})`,
+        )
+        assert.ok(
+          locked.overflowY === 'auto' || locked.overflowY === 'scroll',
+          `browse-feed-scroll overflowY is auto/scroll (got ${locked.overflowY})`,
+        )
+        assert.ok(
+          locked.filtersBefore != null &&
+            locked.filtersAfter != null &&
+            Math.abs(locked.filtersBefore - locked.filtersAfter) <= 1,
+          `filters sidebar stays pinned while feed scrolls (before=${locked.filtersBefore}, after=${locked.filtersAfter})`,
+        )
+        assert.ok(
+          locked.trendingBefore != null &&
+            locked.trendingAfter != null &&
+            Math.abs(locked.trendingBefore - locked.trendingAfter) <= 1,
+          `trending helpers stay pinned while feed scrolls (before=${locked.trendingBefore}, after=${locked.trendingAfter})`,
+        )
+        if (locked.firstCardBefore != null && locked.scrollTopAfter > 0) {
+          assert.ok(
+            locked.firstCardAfter < locked.firstCardBefore - 20,
+            `listing cards move up inside browse-feed-scroll (before=${locked.firstCardBefore}, after=${locked.firstCardAfter}, scrollTop=${locked.scrollTopAfter})`,
+          )
+        }
+        if (locked.cardBoxes.length >= 3) {
+          const [a, b, c] = locked.cardBoxes
+          assert.ok(
+            Math.abs(a.top - b.top) <= 2 && Math.abs(b.top - c.top) <= 2,
+            `3 listing cards share the same row top @1440 (tops=${a.top},${b.top},${c.top})`,
+          )
+          assert.ok(
+            a.left < b.left && b.left < c.left,
+            `3 listing cards have increasing left x @1440 (lefts=${a.left},${b.left},${c.left})`,
+          )
+        }
+        assert.equal(locked.hasAnyTiming, true, 'filters sidebar includes Any timing')
+        assert.ok(
+          locked.filtersBottom != null && locked.filtersBottom <= locked.viewportHeight + 1,
+          `filters sidebar fits in viewport (bottom=${locked.filtersBottom}, vh=${locked.viewportHeight})`,
+        )
+        assert.equal(locked.hasZeroStar, false, 'no ★ 0.0 star rating text on /browse')
       }
     }
 

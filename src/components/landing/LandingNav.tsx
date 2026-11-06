@@ -61,8 +61,8 @@ export function LandingNav({
     : 'hidden text-[15px] font-medium text-white transition hover:text-white/85 sm:inline'
 
   const ctaClass = light
-    ? 'hidden h-11 items-center justify-center rounded-full bg-[#1D5CE5] px-5 text-[14.5px] font-semibold text-white transition hover:bg-[#1649BD] sm:inline-flex'
-    : 'hidden h-11 items-center justify-center rounded-full bg-white px-5 text-[14.5px] font-semibold text-[#1D5CE5] transition hover:bg-blue-50 sm:inline-flex'
+    ? 'hidden h-9 items-center justify-center rounded-lg bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD] sm:inline-flex'
+    : 'hidden h-9 items-center justify-center rounded-lg bg-white px-4 text-[13.5px] font-semibold text-[#1D5CE5] transition hover:bg-blue-50 sm:inline-flex'
 
   const primaryHref = onboardingDone ? '/browse' : '/onboarding'
   const primaryLabel = onboardingDone ? 'Browse' : 'Continue setup'
@@ -70,19 +70,21 @@ export function LandingNav({
   return (
     <header
       className={`relative z-50 w-full transition-colors ${
-        light && variant === 'hero'
-          ? 'sticky top-0 border-b border-[rgba(7,19,48,0.08)] bg-white/95 backdrop-blur-md'
+        light
+          ? variant === 'hero'
+            ? 'sticky top-0 border-b border-[#E2E8F0] bg-white'
+            : 'border-b border-[#E2E8F0] bg-white'
           : ''
       }`}
       data-testid="landing-nav"
     >
-      <div className="beam-container flex h-20 items-center justify-between lg:h-24">
+      <div className="beam-container flex h-14 items-center justify-between lg:h-16">
         <Link href="/" className="relative z-10">
           <BeamWordmark
             tone={light ? 'ink' : 'white'}
-            markWidth={26}
-            markHeight={26}
-            wordClassName="text-[24px]"
+            markWidth={18}
+            markHeight={18}
+            wordClassName="text-[18px] font-bold tracking-[-0.025em]"
           />
         </Link>
 
@@ -135,9 +137,9 @@ export function LandingNav({
           )}
           <button
             type="button"
-            className={`inline-flex h-11 w-11 items-center justify-center rounded-full border lg:hidden ${
+            className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border lg:hidden ${
               light
-                ? 'border-[rgba(7,19,48,0.12)] text-[#071330]'
+                ? 'border-[#E2E8F0] text-[#071330]'
                 : 'border-white/30 text-white'
             }`}
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
@@ -193,7 +195,7 @@ export function LandingNav({
                 <div className="px-4 pb-3 pt-1">
                   <Link
                     href={primaryHref}
-                    className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[#1D5CE5] px-5 text-[14.5px] font-semibold text-white transition hover:bg-[#1649BD]"
+                    className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white transition hover:bg-[#1649BD]"
                     data-testid="landing-mobile-primary"
                     onClick={() => setMobileOpen(false)}
                   >
@@ -213,7 +215,7 @@ export function LandingNav({
                 <div className="px-4 pb-3 pt-1">
                   <Link
                     href="/auth?mode=signup&next=%2Fonboarding"
-                    className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[#1D5CE5] px-5 text-[14.5px] font-semibold text-white transition hover:bg-[#1649BD]"
+                    className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white transition hover:bg-[#1649BD]"
                     data-testid="landing-mobile-signup"
                     onClick={() => setMobileOpen(false)}
                   >

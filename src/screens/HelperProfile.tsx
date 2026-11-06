@@ -101,11 +101,19 @@ export function HelperProfile() {
                 </span>
               </p>
               <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px] text-[#475569]">
-                <span className="inline-flex items-center gap-1 font-semibold text-[#071330]">
-                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
-                  {person.rating.toFixed(1)}
-                </span>
-                <span className="text-[#94A3B8]">({person.reviewCount} reviews)</span>
+                {person.rating > 0 && person.reviewCount > 0 ? (
+                  <>
+                    <span className="inline-flex items-center gap-1 font-semibold text-[#071330]">
+                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
+                      {person.rating.toFixed(1)}
+                    </span>
+                    <span className="text-[#94A3B8]">({person.reviewCount} reviews)</span>
+                  </>
+                ) : (
+                  <span className="rounded bg-[#F1F5F9] px-1.5 py-0.5 text-[12px] font-medium text-[#64748B]">
+                    New
+                  </span>
+                )}
                 <span className="text-[#CBD5E1]" aria-hidden>
                   ·
                 </span>
