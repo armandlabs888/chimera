@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { CategoryId, WhenOption } from '@/types'
 
-const BLOCKED_PATTERNS: Array<{ re: RegExp; reason?: string }> = [
-  { re: /\b(electrical panel|rewire|wiring|circuit breaker|outlet install)\b/i },
-  { re: /\b(gas line|pipe burst|plumbing|toilet install|water heater|sewer)\b/i },
-  { re: /\b(hvac|refrigerant|ac unit|furnace|ductwork)\b/i },
-  { re: /\b(babysit|babysitting|childcare|nanny|child care)\b/i },
-  { re: /\b(nursing|elder care|medical care|injection|iv drip|wound care)\b/i },
-  { re: /\b(uber|lyft|airport (ride|pickup|drop)|passenger ride|drive me to)\b/i },
-]
-
 const BLOCK_REASON =
   "Beam is for everyday non-licensed local tasks—licensed trades, childcare, medical care, and passenger rides aren't permitted."
 
@@ -27,8 +18,16 @@ type DraftResult = {
 }
 
 function detectBlocked(prompt: string): string | null {
-  for (const p of BLOCKED_PATTERNS) {
-    if (p.re.test(prompt)) return BLOCK_REASON
+  const lower = prompt.toLowerCase()
+  if (
+    /babysitter|babysitting|babysit\b|child\s*care|childcare|\bnanny\b/.test(lower) ||
+    /electrical panel|rewire|\bwiring\b|circuit breaker|outlet install/.test(lower) ||
+    /gas line|pipe burst|\bplumbing\b|toilet install|water heater|\bsewer\b/.test(lower) ||
+    /\bhvac\b|refrigerant|\bac unit\b|\bfurnace\b|ductwork/.test(lower) ||
+    /nursing|elder care|medical care|\binjection\b|iv drip|wound care/.test(lower) ||
+    /\buber\b|\blyft\b|airport (ride|pickup|drop)|passenger ride|drive me to/.test(lower)
+  ) {
+    return BLOCK_REASON
   }
   return null
 }

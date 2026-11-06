@@ -11,10 +11,11 @@ export function LandingNav({
 }: {
   variant?: 'hero' | 'light'
 }) {
-  const { authUser } = useBeam()
+  const { authUser, mode } = useBeam()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const light = variant === 'light' || scrolled
+  const canOnboardHelper = Boolean(authUser) || mode === 'demo'
 
   const navLinks = useMemo(
     () => [
@@ -22,13 +23,13 @@ export function LandingNav({
       { href: '/#how-it-works', label: 'How it works' },
       { href: '/#neighborhoods', label: 'Neighborhoods' },
       {
-        href: authUser
+        href: canOnboardHelper
           ? '/onboarding/helper'
           : '/auth?mode=signup&next=%2Fonboarding%2Fhelper',
         label: 'Become a helper',
       },
     ],
-    [authUser],
+    [canOnboardHelper],
   )
 
   useEffect(() => {
