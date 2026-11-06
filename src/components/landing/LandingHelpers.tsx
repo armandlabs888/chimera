@@ -3,42 +3,42 @@ import Link from 'next/link'
 const HELPERS = [
   {
     name: 'Marcus T.',
-    neighborhood: 'East Austin',
+    trackRecord: '38 tasks completed',
     specialty: 'Moving & Assembly',
     rating: '4.9',
     src: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=320&q=80',
   },
   {
     name: 'Sofia R.',
-    neighborhood: 'South Congress',
+    trackRecord: '54 tasks completed',
     specialty: 'Home Cleaning',
     rating: '5.0',
     src: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=320&q=80',
   },
   {
     name: 'Jordan P.',
-    neighborhood: 'Mueller',
+    trackRecord: '42 tasks completed',
     specialty: 'Handyman',
     rating: '4.8',
     src: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=320&q=80',
   },
   {
     name: 'Aisha K.',
-    neighborhood: 'Hyde Park',
+    trackRecord: '29 tasks completed',
     specialty: 'Tutoring & Tech',
     rating: '4.9',
     src: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=320&q=80',
   },
   {
     name: 'Noah L.',
-    neighborhood: 'Zilker',
+    trackRecord: '31 tasks completed',
     specialty: 'Pet Care',
     rating: '4.9',
     src: 'https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?auto=format&fit=crop&w=320&q=80',
   },
   {
     name: 'Priya M.',
-    neighborhood: 'Clarksville',
+    trackRecord: '26 tasks completed',
     specialty: 'Events & Photo',
     rating: '5.0',
     src: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=320&q=80',
@@ -75,7 +75,7 @@ export function LandingHelpers() {
               </div>
               <p className="mt-3 text-[15px] font-bold text-[#071330]">{h.name}</p>
               <p className="mt-0.5 text-[12.5px] text-[#64748B]">
-                {h.neighborhood}
+                {h.trackRecord}
               </p>
               <p className="mt-1 text-[12.5px] font-medium text-[#1D5CE5]">
                 {h.specialty} · {h.rating}★

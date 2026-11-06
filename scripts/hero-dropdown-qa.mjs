@@ -1,5 +1,6 @@
 /**
- * Visual + hit-target QA for the hero neighborhood dropdown stacking fix.
+ * Visual + hit-target QA for the guest hero Category dropdown stacking fix.
+ * Signed-out guests must never see Austin neighborhood picker options.
  */
 import { chromium } from 'playwright'
 import { mkdirSync, copyFileSync, writeFileSync } from 'node:fs'
@@ -16,6 +17,17 @@ const VIEWPORTS = [
   { name: '390x844', width: 390, height: 844 },
 ]
 
+const AUSTIN_NEIGHBORHOODS = [
+  'East Austin',
+  'Hyde Park',
+  'Mueller',
+  'Zilker',
+  'South Congress',
+  'Travis Heights',
+  'Clarksville',
+  'The Domain',
+]
+
 function saveShot(src, name) {
   const dest = join(OUT, name)
   copyFileSync(src, dest)
@@ -23,14 +35,41 @@ function saveShot(src, name) {
   return dest
 }
 
+async function assertNoAustinNeighborhoodOptions(page, scopeLabel) {
+  const body = await page.locator('body').innerText()
+  // Open dropdown text is checked separately; closed page may still show card metadata.
+  // Specifically assert the hero listbox never exposes Austin neighborhood options.
+  const hasNeighborhoodTrigger = (await page.getByTestId('hero-neighborhood-trigger').count()) > 0
+  if (hasNeighborhoodTrigger) {
+    throw new Error(`Guest hero still exposes neighborhood trigger @ ${scopeLabel}`)
+  }
+  const listboxCount = await page.getByTestId('hero-neighborhood-listbox').count()
+  if (listboxCount > 0) {
+    throw new Error(`Guest hero still exposes neighborhood listbox @ ${scopeLabel}`)
+  }
+  return body
+}
+
 async function assertDropdownOnTop(page, viewportName) {
-  const trigger = page.getByTestId('hero-neighborhood-trigger')
+  await assertNoAustinNeighborhoodOptions(page, viewportName)
+
+  const trigger = page.getByTestId('hero-category-trigger')
   await trigger.click()
-  const listbox = page.getByTestId('hero-neighborhood-listbox')
+  const listbox = page.getByTestId('hero-category-listbox')
   await listbox.waitFor({ state: 'visible' })
 
+  const listText = await listbox.innerText()
+  for (const name of AUSTIN_NEIGHBORHOODS) {
+    if (listText.includes(name)) {
+      throw new Error(`Guest hero category listbox includes Austin neighborhood "${name}"`)
+    }
+  }
+  if (!/All categories/i.test(listText) || !/Moving & lifting/i.test(listText)) {
+    throw new Error(`Guest hero category listbox missing expected options: ${listText.slice(0, 200)}`)
+  }
+
   const hit = await page.evaluate(() => {
-    const box = document.querySelector('[data-testid="hero-neighborhood-listbox"]')
+    const box = document.querySelector('[data-testid="hero-category-listbox"]')
     if (!box) return { ok: false, reason: 'listbox missing' }
     const rect = box.getBoundingClientRect()
     const points = [
@@ -41,7 +80,7 @@ async function assertDropdownOnTop(page, viewportName) {
     const fan = document.querySelector('[data-testid="hero-fan-stack"]')
     const results = points.map(({ label, x, y }) => {
       const el = document.elementFromPoint(x, y)
-      const inListbox = !!(el && (el.closest('[data-testid="hero-neighborhood-listbox"]') || el === box))
+      const inListbox = !!(el && (el.closest('[data-testid="hero-category-listbox"]') || el === box))
       const inFan = !!(el && fan && (fan.contains(el) || el.closest('[data-testid="hero-fan-stack"]')))
       return {
         label,
@@ -61,55 +100,59 @@ async function assertDropdownOnTop(page, viewportName) {
     }
   })
 
-  const tmp = join('/tmp', `hero-dropdown-open-${viewportName}.png`)
+  const shotName =
+    viewportName === '1440x900'
+      ? 'guest-hero-category-open-1440x900.png'
+      : `guest-hero-category-open-${viewportName}.png`
+  const tmp = join('/tmp', shotName)
   await page.screenshot({ path: tmp, fullPage: false })
-  const artifact = saveShot(tmp, `hero-dropdown-open-${viewportName}.png`)
+  const artifact = saveShot(tmp, shotName)
 
   if (!hit.ok) {
     throw new Error(
-      `Dropdown obstructed @ ${viewportName}: ${JSON.stringify(hit, null, 2)} (shot=${artifact})`,
+      `Category dropdown obstructed @ ${viewportName}: ${JSON.stringify(hit, null, 2)} (shot=${artifact})`,
     )
   }
 
-  // Select East Austin and verify trigger label
-  await listbox.getByRole('option', { name: 'East Austin' }).click()
+  await listbox.getByRole('option', { name: 'Moving & lifting' }).click()
   await page.waitForTimeout(150)
   const label = await trigger.innerText()
-  if (!label.includes('East Austin')) {
+  if (!label.includes('Moving & lifting')) {
     throw new Error(`Trigger label not updated after select: "${label}"`)
   }
 
-  // Re-open briefly for escape/outside-click checks on desktop only once later
   return { artifact, hit }
 }
 
 async function assertFindHelpNavigation(page) {
   await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
-  const trigger = page.getByTestId('hero-neighborhood-trigger')
+  const trigger = page.getByTestId('hero-category-trigger')
   await trigger.click()
-  await page.getByTestId('hero-neighborhood-listbox').getByRole('option', { name: 'East Austin' }).click()
+  await page.getByTestId('hero-category-listbox').getByRole('option', { name: 'Home cleaning' }).click()
   await page.getByRole('button', { name: 'Find help' }).click()
-  await page.waitForURL(/\/browse\?.*neighborhood=east-austin/, { timeout: 15000 })
+  await page.waitForURL(/\/browse\?.*category=cleaning/, { timeout: 15000 })
   const url = page.url()
-  if (!url.includes('neighborhood=east-austin')) {
-    throw new Error(`Find help did not navigate with neighborhood filter: ${url}`)
+  if (!url.includes('category=cleaning')) {
+    throw new Error(`Find help did not navigate with category filter: ${url}`)
+  }
+  if (/neighborhood=/.test(url)) {
+    throw new Error(`Guest Find help unexpectedly set neighborhood: ${url}`)
   }
   return url
 }
 
 async function assertDismissBehaviors(page) {
   await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
-  const trigger = page.getByTestId('hero-neighborhood-trigger')
+  const trigger = page.getByTestId('hero-category-trigger')
   await trigger.click()
-  await page.getByTestId('hero-neighborhood-listbox').waitFor({ state: 'visible' })
+  await page.getByTestId('hero-category-listbox').waitFor({ state: 'visible' })
   await page.keyboard.press('Escape')
-  await page.getByTestId('hero-neighborhood-listbox').waitFor({ state: 'hidden', timeout: 3000 })
+  await page.getByTestId('hero-category-listbox').waitFor({ state: 'hidden', timeout: 3000 })
 
   await trigger.click()
-  await page.getByTestId('hero-neighborhood-listbox').waitFor({ state: 'visible' })
-  // Click outside on the headline
+  await page.getByTestId('hero-category-listbox').waitFor({ state: 'visible' })
   await page.locator('h1').click({ position: { x: 10, y: 10 } })
-  await page.getByTestId('hero-neighborhood-listbox').waitFor({ state: 'hidden', timeout: 3000 })
+  await page.getByTestId('hero-category-listbox').waitFor({ state: 'hidden', timeout: 3000 })
 }
 
 const summary = { ok: true, checks: [] }
@@ -125,12 +168,12 @@ try {
     await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
     const result = await assertDropdownOnTop(page, vp.name)
     summary.checks.push({
-      name: `dropdown-on-top-${vp.name}`,
+      name: `category-dropdown-on-top-${vp.name}`,
       ok: true,
       artifact: result.artifact,
       hit: result.hit,
     })
-    console.log(`PASS dropdown-on-top @ ${vp.name} → ${result.artifact}`)
+    console.log(`PASS category-dropdown-on-top @ ${vp.name} → ${result.artifact}`)
     await context.close()
   }
 

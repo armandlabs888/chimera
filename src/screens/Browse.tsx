@@ -25,10 +25,10 @@ import { PersonCard } from '@/components/PersonCard'
 import { RequestCard } from '@/components/RequestCard'
 import { EmptyState, ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import { CATEGORIES } from '@/data/categories'
+import { CATEGORIES, WHEN_OPTIONS } from '@/data/categories'
 import { NEIGHBORHOODS, distanceMiles } from '@/data/neighborhoods'
 import { ALL_CATEGORY_ICON, CATEGORY_ICONS } from '@/lib/categoryIcons'
-import type { NeighborhoodId } from '@/types'
+import type { AvailabilitySlot, NeighborhoodId, WhenOption } from '@/types'
 
 type SortMode = 'nearest' | 'newest' | 'budget'
 
@@ -44,6 +44,38 @@ const PEOPLE_SORT_OPTIONS: { id: SortMode; label: string }[] = [
   { id: 'budget', label: 'Lowest rate' },
 ]
 
+const WHEN_FILTER_OPTIONS: { id: WhenOption | 'all'; label: string }[] = [
+  { id: 'all', label: 'Any timing' },
+  ...WHEN_OPTIONS.map((w) => ({ id: w.id, label: w.label })),
+]
+
+const AVAIL_FILTER_OPTIONS: { id: AvailabilitySlot | 'all'; label: string }[] = [
+  { id: 'all', label: 'Any availability' },
+  { id: 'mornings', label: 'Mornings' },
+  { id: 'afternoons', label: 'Afternoons' },
+  { id: 'evenings', label: 'Evenings' },
+  { id: 'weekends', label: 'Weekends' },
+]
+
+function parseWhen(value: string | null): WhenOption | 'all' {
+  if (value === 'asap' || value === 'today' || value === 'tomorrow' || value === 'this-week') {
+    return value
+  }
+  return 'all'
+}
+
+function parseAvail(value: string | null): AvailabilitySlot | 'all' {
+  if (
+    value === 'mornings' ||
+    value === 'afternoons' ||
+    value === 'evenings' ||
+    value === 'weekends'
+  ) {
+    return value
+  }
+  return 'all'
+}
+
 export function Browse() {
   const { state, currentUser, authUser } = useBeam()
   const isGuest = !authUser
@@ -55,9 +87,15 @@ export function Browse() {
   const tab = params.get('tab') === 'people' ? 'people' : 'requests'
   const category = params.get('category') ?? 'all'
   const neighborhood = (params.get('neighborhood') as NeighborhoodId | null) ?? 'all'
+  const when = parseWhen(params.get('when'))
+  const avail = parseAvail(params.get('avail'))
   const qParam = params.get('q') ?? ''
   const freeOnly = params.get('free') === '1'
-  const sort = (params.get('sort') as SortMode) || 'nearest'
+  const sortParam = params.get('sort') as SortMode | null
+  const sort: SortMode =
+    isGuest && (!sortParam || sortParam === 'nearest')
+      ? 'newest'
+      : sortParam || (isGuest ? 'newest' : 'nearest')
 
   const [qDraft, setQDraft] = useState(qParam)
   const [areaOpen, setAreaOpen] = useState(false)
@@ -115,7 +153,10 @@ export function Browse() {
     let list = state.requests
       .filter((r) => r.status === 'open')
       .filter((r) => (category === 'all' ? true : r.category === category))
-      .filter((r) => (neighborhood === 'all' ? true : r.neighborhood === neighborhood))
+      .filter((r) =>
+        isGuest || neighborhood === 'all' ? true : r.neighborhood === neighborhood,
+      )
+      .filter((r) => (isGuest ? (when === 'all' ? true : r.when === when) : true))
       .filter((r) => {
         if (!q) return true
         return (
@@ -126,21 +167,36 @@ export function Browse() {
       })
 
     list = [...list].sort((a, b) => {
-      // Highest budget first — helpers browse for higher-paying tasks
       if (sort === 'budget') return b.budget - a.budget
-      if (sort === 'newest') return +new Date(b.createdAt) - +new Date(a.createdAt)
+      if (sort === 'newest' || isGuest) {
+        return +new Date(b.createdAt) - +new Date(a.createdAt)
+      }
       const da = distanceMiles(currentUser.neighborhood, a.neighborhood)
       const db = distanceMiles(currentUser.neighborhood, b.neighborhood)
       return da - db || +new Date(b.createdAt) - +new Date(a.createdAt)
     })
     return list
-  }, [state.requests, category, neighborhood, q, sort, currentUser.neighborhood])
+  }, [
+    state.requests,
+    category,
+    neighborhood,
+    when,
+    q,
+    sort,
+    currentUser.neighborhood,
+    isGuest,
+  ])
 
   const people = useMemo(() => {
     let list = state.people
       .filter((p) => !p.isCurrentUser)
       .filter((p) => (category === 'all' ? true : p.skills.includes(category as never)))
-      .filter((p) => (neighborhood === 'all' ? true : p.neighborhood === neighborhood))
+      .filter((p) =>
+        isGuest || neighborhood === 'all' ? true : p.neighborhood === neighborhood,
+      )
+      .filter((p) =>
+        isGuest ? (avail === 'all' ? true : p.availability.includes(avail)) : true,
+      )
       .filter((p) => {
         if (!q) return true
         return (
@@ -154,7 +210,7 @@ export function Browse() {
       )
 
     list = [...list].sort((a, b) => {
-      if (sort === 'newest') return b.rating - a.rating
+      if (sort === 'newest' || (isGuest && sort !== 'budget')) return b.rating - a.rating
       if (sort === 'budget') return a.hourlyRate - b.hourlyRate
       return (
         distanceMiles(currentUser.neighborhood, a.neighborhood) -
@@ -162,7 +218,17 @@ export function Browse() {
       )
     })
     return list
-  }, [state.people, category, neighborhood, q, freeOnly, sort, currentUser.neighborhood])
+  }, [
+    state.people,
+    category,
+    neighborhood,
+    avail,
+    q,
+    freeOnly,
+    sort,
+    currentUser.neighborhood,
+    isGuest,
+  ])
 
   const openRequestCount = useMemo(
     () => state.requests.filter((r) => r.status === 'open').length,
@@ -178,7 +244,12 @@ export function Browse() {
     if (next === 'people') nextParams.set('tab', 'people')
     else nextParams.delete('tab')
     if (next !== 'people') nextParams.delete('free')
+    if (isGuest) {
+      if (next === 'people') nextParams.delete('when')
+      else nextParams.delete('avail')
+    }
     replaceQuery(nextParams)
+    setAreaOpen(false)
   }
 
   function setCategory(id: string) {
@@ -196,9 +267,26 @@ export function Browse() {
     setAreaOpen(false)
   }
 
+  function setWhen(id: string) {
+    const nextParams = new URLSearchParams(params.toString())
+    if (id === 'all') nextParams.delete('when')
+    else nextParams.set('when', id)
+    replaceQuery(nextParams)
+    setAreaOpen(false)
+  }
+
+  function setAvail(id: string) {
+    const nextParams = new URLSearchParams(params.toString())
+    if (id === 'all') nextParams.delete('avail')
+    else nextParams.set('avail', id)
+    replaceQuery(nextParams)
+    setAreaOpen(false)
+  }
+
   function setSort(next: string) {
     const nextParams = new URLSearchParams(params.toString())
-    if (next === 'nearest') nextParams.delete('sort')
+    const defaultSort = isGuest ? 'newest' : 'nearest'
+    if (next === defaultSort) nextParams.delete('sort')
     else nextParams.set('sort', next)
     replaceQuery(nextParams)
     setSortOpen(false)
@@ -232,22 +320,40 @@ export function Browse() {
     setNeighborhood('all')
   }
 
+  function removeWhen() {
+    setWhen('all')
+  }
+
+  function removeAvail() {
+    setAvail('all')
+  }
+
   function removeFree() {
     const nextParams = new URLSearchParams(params.toString())
     nextParams.delete('free')
     replaceQuery(nextParams)
   }
 
-  const sortOptions = tab === 'people' ? PEOPLE_SORT_OPTIONS : REQUEST_SORT_OPTIONS
-  const sortLabel = sortOptions.find((o) => o.id === sort)?.label ?? 'Nearest'
+  const sortOptions = (tab === 'people' ? PEOPLE_SORT_OPTIONS : REQUEST_SORT_OPTIONS).filter(
+    (o) => !(isGuest && o.id === 'nearest'),
+  )
+  const sortLabel = sortOptions.find((o) => o.id === sort)?.label ?? (isGuest ? 'Newest first' : 'Nearest')
   const neighborhoodLabel =
     neighborhood === 'all'
       ? 'All neighborhoods'
       : NEIGHBORHOODS.find((n) => n.id === neighborhood)?.name ?? 'All neighborhoods'
+  const whenLabel = WHEN_FILTER_OPTIONS.find((o) => o.id === when)?.label ?? 'Any timing'
+  const availLabel = AVAIL_FILTER_OPTIONS.find((o) => o.id === avail)?.label ?? 'Any availability'
   const categoryLabel =
     category === 'all' ? null : CATEGORIES.find((c) => c.id === category)?.shortLabel ?? category
 
-  const hasActiveFilters = category !== 'all' || neighborhood !== 'all' || !!qParam || freeOnly
+  const guestMiddleActive =
+    isGuest && ((tab === 'requests' && when !== 'all') || (tab === 'people' && avail !== 'all'))
+  const hasActiveFilters =
+    category !== 'all' ||
+    !!qParam ||
+    freeOnly ||
+    (isGuest ? guestMiddleActive : neighborhood !== 'all')
 
   function onListboxKeyDown(
     e: ReactKeyboardEvent,
@@ -277,8 +383,21 @@ export function Browse() {
     }
   }
 
-  const areaOptionIds = ['all', ...NEIGHBORHOODS.map((n) => n.id)]
+  const neighborhoodOptionIds = ['all', ...NEIGHBORHOODS.map((n) => n.id)]
+  const whenOptionIds = WHEN_FILTER_OPTIONS.map((o) => o.id)
+  const availOptionIds = AVAIL_FILTER_OPTIONS.map((o) => o.id)
   const sortOptionIds = sortOptions.map((o) => o.id)
+
+  const guestMiddleTriggerId =
+    tab === 'people' ? 'browse-availability-trigger' : 'browse-when-trigger'
+  const guestMiddleListboxId =
+    tab === 'people' ? 'browse-availability-listbox' : 'browse-when-listbox'
+  const guestMiddleLabel = tab === 'people' ? availLabel : whenLabel
+  const guestMiddleValue = tab === 'people' ? avail : when
+  const guestMiddleIsDefault = guestMiddleValue === 'all'
+  const guestMiddleOptions = tab === 'people' ? AVAIL_FILTER_OPTIONS : WHEN_FILTER_OPTIONS
+  const guestMiddleOptionIds = tab === 'people' ? availOptionIds : whenOptionIds
+  const guestMiddleSelect = tab === 'people' ? setAvail : setWhen
 
   return (
     <div className={isGuest ? 'py-1 sm:py-0' : 'px-4 py-5 sm:py-6'}>
@@ -382,93 +501,175 @@ export function Browse() {
           <span className="mx-1 hidden h-8 w-px bg-[rgba(7,19,48,0.1)] lg:block" aria-hidden />
 
           <div className="relative min-w-0 flex-1" ref={areaRef}>
-            <button
-              type="button"
-              className="flex w-full items-center gap-2.5 rounded-full px-3 py-2.5 text-left sm:px-4"
-              aria-expanded={areaOpen}
-              aria-haspopup="listbox"
-              aria-controls="browse-neighborhood-listbox"
-              data-testid="browse-neighborhood-trigger"
-              onClick={() => {
-                setAreaOpen((v) => !v)
-                setSortOpen(false)
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  setAreaOpen(true)
-                  setSortOpen(false)
-                }
-              }}
-            >
-              <MapPin className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
-              <span
-                className={`min-w-0 flex-1 truncate text-[14.5px] ${
-                  neighborhood === 'all' ? 'text-[#64748B]' : 'font-medium text-[#071330]'
-                }`}
-              >
-                {neighborhoodLabel}
-              </span>
-              <ChevronDown
-                className={`h-4 w-4 shrink-0 text-[#94A3B8] transition-transform ${
-                  areaOpen ? 'rotate-180' : ''
-                }`}
-              />
-            </button>
-            {areaOpen ? (
-              <ul
-                id="browse-neighborhood-listbox"
-                role="listbox"
-                data-testid="browse-neighborhood-listbox"
-                className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-2xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-0 lg:right-auto lg:min-w-[17rem]"
-                onKeyDown={(e) =>
-                  onListboxKeyDown(
-                    e,
-                    areaOptionIds,
-                    neighborhood,
-                    setNeighborhood,
-                    () => setAreaOpen(false),
-                  )
-                }
-              >
-                <li>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={neighborhood === 'all'}
-                    className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
-                      neighborhood === 'all'
-                        ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
-                        : 'text-[#071330]'
+            {isGuest ? (
+              <>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2.5 rounded-full px-3 py-2.5 text-left sm:px-4"
+                  aria-expanded={areaOpen}
+                  aria-haspopup="listbox"
+                  aria-controls={guestMiddleListboxId}
+                  data-testid={guestMiddleTriggerId}
+                  onClick={() => {
+                    setAreaOpen((v) => !v)
+                    setSortOpen(false)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setAreaOpen(true)
+                      setSortOpen(false)
+                    }
+                  }}
+                >
+                  <Clock className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
+                  <span
+                    className={`min-w-0 flex-1 truncate text-[14.5px] ${
+                      guestMiddleIsDefault ? 'text-[#64748B]' : 'font-medium text-[#071330]'
                     }`}
-                    onClick={() => setNeighborhood('all')}
                   >
-                    All neighborhoods
-                    {neighborhood === 'all' ? <Check className="h-4 w-4 shrink-0" aria-hidden /> : null}
-                  </button>
-                </li>
-                {NEIGHBORHOODS.map((n) => (
-                  <li key={n.id}>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={neighborhood === n.id}
-                      className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
-                        neighborhood === n.id
-                          ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
-                          : 'text-[#475569]'
-                      }`}
-                      onClick={() => setNeighborhood(n.id)}
-                    >
-                      {n.name}
-                      {neighborhood === n.id ? (
-                        <Check className="h-4 w-4 shrink-0" aria-hidden />
-                      ) : null}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+                    {guestMiddleLabel}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-[#94A3B8] transition-transform ${
+                      areaOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {areaOpen ? (
+                  <ul
+                    id={guestMiddleListboxId}
+                    role="listbox"
+                    data-testid={guestMiddleListboxId}
+                    className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-2xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-0 lg:right-auto lg:min-w-[17rem]"
+                    onKeyDown={(e) =>
+                      onListboxKeyDown(
+                        e,
+                        guestMiddleOptionIds,
+                        guestMiddleValue,
+                        guestMiddleSelect,
+                        () => setAreaOpen(false),
+                      )
+                    }
+                  >
+                    {guestMiddleOptions.map((opt) => (
+                      <li key={opt.id}>
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={guestMiddleValue === opt.id}
+                          className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                            guestMiddleValue === opt.id
+                              ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
+                              : opt.id === 'all'
+                                ? 'text-[#071330]'
+                                : 'text-[#475569]'
+                          }`}
+                          onClick={() => guestMiddleSelect(opt.id)}
+                        >
+                          {opt.label}
+                          {guestMiddleValue === opt.id ? (
+                            <Check className="h-4 w-4 shrink-0" aria-hidden />
+                          ) : null}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2.5 rounded-full px-3 py-2.5 text-left sm:px-4"
+                  aria-expanded={areaOpen}
+                  aria-haspopup="listbox"
+                  aria-controls="browse-neighborhood-listbox"
+                  data-testid="browse-neighborhood-trigger"
+                  onClick={() => {
+                    setAreaOpen((v) => !v)
+                    setSortOpen(false)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setAreaOpen(true)
+                      setSortOpen(false)
+                    }
+                  }}
+                >
+                  <MapPin className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
+                  <span
+                    className={`min-w-0 flex-1 truncate text-[14.5px] ${
+                      neighborhood === 'all' ? 'text-[#64748B]' : 'font-medium text-[#071330]'
+                    }`}
+                  >
+                    {neighborhoodLabel}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-[#94A3B8] transition-transform ${
+                      areaOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {areaOpen ? (
+                  <ul
+                    id="browse-neighborhood-listbox"
+                    role="listbox"
+                    data-testid="browse-neighborhood-listbox"
+                    className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-2xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] lg:left-0 lg:right-auto lg:min-w-[17rem]"
+                    onKeyDown={(e) =>
+                      onListboxKeyDown(
+                        e,
+                        neighborhoodOptionIds,
+                        neighborhood,
+                        setNeighborhood,
+                        () => setAreaOpen(false),
+                      )
+                    }
+                  >
+                    <li>
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={neighborhood === 'all'}
+                        className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                          neighborhood === 'all'
+                            ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
+                            : 'text-[#071330]'
+                        }`}
+                        onClick={() => setNeighborhood('all')}
+                      >
+                        All neighborhoods
+                        {neighborhood === 'all' ? (
+                          <Check className="h-4 w-4 shrink-0" aria-hidden />
+                        ) : null}
+                      </button>
+                    </li>
+                    {NEIGHBORHOODS.map((n) => (
+                      <li key={n.id}>
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={neighborhood === n.id}
+                          className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                            neighborhood === n.id
+                              ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
+                              : 'text-[#475569]'
+                          }`}
+                          onClick={() => setNeighborhood(n.id)}
+                        >
+                          {n.name}
+                          {neighborhood === n.id ? (
+                            <Check className="h-4 w-4 shrink-0" aria-hidden />
+                          ) : null}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </>
+            )}
           </div>
 
           <span className="mx-1 hidden h-8 w-px bg-[rgba(7,19,48,0.1)] lg:block" aria-hidden />
@@ -581,13 +782,19 @@ export function Browse() {
           {categoryLabel ? (
             <FilterSummaryPill label={categoryLabel} onRemove={removeCategory} />
           ) : null}
-          {neighborhood !== 'all' ? (
+          {!isGuest && neighborhood !== 'all' ? (
             <FilterSummaryPill
               label={
                 NEIGHBORHOODS.find((n) => n.id === neighborhood)?.shortName ?? neighborhood
               }
               onRemove={removeNeighborhood}
             />
+          ) : null}
+          {isGuest && tab === 'requests' && when !== 'all' ? (
+            <FilterSummaryPill label={whenLabel} onRemove={removeWhen} />
+          ) : null}
+          {isGuest && tab === 'people' && avail !== 'all' ? (
+            <FilterSummaryPill label={availLabel} onRemove={removeAvail} />
           ) : null}
           {freeOnly ? (
             <FilterSummaryPill label="Afternoons & evenings" onRemove={removeFree} />
@@ -631,7 +838,7 @@ export function Browse() {
       ) : (
         <EmptyState
           title="No local helpers match"
-          body="Widen category or neighborhood filters, or turn off the availability chip."
+          body="Widen category or availability filters, or turn off the availability chip."
         />
       )}
     </div>
