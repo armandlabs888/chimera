@@ -40,7 +40,7 @@ export function PersonCard({
   const saved = state.savedHelperIds?.includes(person.id) ?? false
 
   return (
-    <div className="group relative flex h-full flex-col rounded-[26px] border border-[rgba(7,19,48,0.08)] bg-white p-5 shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] transition duration-200 hover:-translate-y-0.5 hover:border-[rgba(29,92,229,0.28)] hover:shadow-[0_18px_38px_-14px_rgba(12,42,102,0.15)]">
+    <div className="group relative flex h-full flex-col rounded-xl border border-[rgba(7,19,48,0.08)] bg-white p-5 shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] transition duration-200 hover:-translate-y-0.5 hover:border-[rgba(29,92,229,0.28)] hover:shadow-[0_18px_38px_-14px_rgba(12,42,102,0.15)]">
       {authUser ? (
         <button
           type="button"

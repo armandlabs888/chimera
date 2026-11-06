@@ -126,7 +126,7 @@ export function LandingWhyBeam() {
 
           {/* Right: visual + live-offer showcase */}
           <div className="lg:col-span-6" data-testid="why-beam-showcase">
-            <div className="relative flex h-full min-h-[420px] flex-col overflow-hidden rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-[#F4F8FD] sm:min-h-[480px]">
+            <div className="relative flex h-full min-h-[420px] flex-col overflow-hidden rounded-xl border border-[rgba(7,19,48,0.08)] bg-[#F4F8FD] sm:min-h-[480px]">
               <div className="relative min-h-[220px] flex-1 sm:min-h-[280px]">
                 <img
                   src={SHOWCASE_PHOTO}
@@ -145,7 +145,7 @@ export function LandingWhyBeam() {
 
               <div className="relative z-10 -mt-16 px-4 pb-5 sm:-mt-20 sm:px-6 sm:pb-6">
                 <div
-                  className="rounded-2xl border border-[rgba(7,19,48,0.08)] bg-white p-4 shadow-[0_20px_45px_-15px_rgba(12,42,102,0.22)] sm:p-5"
+                  className="rounded-xl border border-[rgba(7,19,48,0.08)] bg-white p-4 shadow-[0_20px_45px_-15px_rgba(12,42,102,0.22)] sm:p-5"
                   data-testid="why-beam-live-offers"
                 >
                   <div className="flex items-start justify-between gap-3">

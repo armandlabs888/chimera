@@ -212,6 +212,9 @@ export async function updateLiveProfile(
   if (patch.hourlyRate !== undefined) payload.hourly_rate = patch.hourlyRate
   if (patch.availability !== undefined) payload.availability = patch.availability
   if (patch.locationLabel !== undefined) payload.location_label = patch.locationLabel
+  if (patch.city !== undefined) payload.city = patch.city
+  if (patch.stateCode !== undefined) payload.state_code = patch.stateCode
+  if (patch.cityGeoid !== undefined) payload.city_geoid = patch.cityGeoid
   if (patch.lat !== undefined) payload.lat = patch.lat
   if (patch.lng !== undefined) payload.lng = patch.lng
   if (patch.serviceRadiusMiles !== undefined) payload.service_radius_miles = patch.serviceRadiusMiles

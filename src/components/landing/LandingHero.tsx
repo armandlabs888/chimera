@@ -96,7 +96,7 @@ export function LandingHero() {
           className="animate-fade-up-delay relative z-40 mt-8 w-full max-w-[760px]"
           data-testid="hero-search-pill"
         >
-          <div className="flex flex-col gap-2 rounded-[28px] bg-white p-2 shadow-[0_20px_50px_rgba(12,42,102,0.18)] sm:flex-row sm:items-center sm:rounded-full sm:gap-0">
+          <div className="flex flex-col gap-2 rounded-xl bg-white p-2 shadow-[0_20px_50px_rgba(12,42,102,0.18)] sm:flex-row sm:items-center sm:rounded-full sm:gap-0">
             <label className="flex min-w-0 flex-1 items-center gap-2.5 rounded-full px-4 py-3 sm:py-2.5">
               <Search className="h-5 w-5 shrink-0 text-[#1D5CE5]" aria-hidden />
               <span className="sr-only">What help do you need?</span>
@@ -142,7 +142,7 @@ export function LandingHero() {
                       id="hero-category-listbox"
                       role="listbox"
                       data-testid="hero-category-listbox"
-                      className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(16rem,45vh)] overflow-y-auto overscroll-contain rounded-2xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] sm:left-0 sm:right-auto sm:min-w-[16rem]"
+                      className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(16rem,45vh)] overflow-y-auto overscroll-contain rounded-xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] sm:left-0 sm:right-auto sm:min-w-[16rem]"
                     >
                       <li>
                         <button
@@ -227,7 +227,7 @@ export function LandingHero() {
                       id="hero-neighborhood-listbox"
                       role="listbox"
                       data-testid="hero-neighborhood-listbox"
-                      className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(16rem,45vh)] overflow-y-auto overscroll-contain rounded-2xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] sm:left-0 sm:right-auto sm:min-w-[16rem]"
+                      className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(16rem,45vh)] overflow-y-auto overscroll-contain rounded-xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] sm:left-0 sm:right-auto sm:min-w-[16rem]"
                     >
                       <li>
                         <button
@@ -300,7 +300,7 @@ export function LandingHero() {
                   style={{ transform: `rotate(${helper.rotate}deg)` }}
                 >
                   <div
-                    className={`overflow-hidden rounded-[26px] border-4 border-white shadow-[0_20px_40px_-12px_rgba(15,41,92,0.28)] ${
+                    className={`overflow-hidden rounded-xl border-4 border-white shadow-[0_20px_40px_-12px_rgba(15,41,92,0.28)] ${
                       helper.hero
                         ? 'h-[220px] w-[150px] sm:h-[280px] sm:w-[190px]'
                         : 'h-[190px] w-[130px] sm:h-[240px] sm:w-[164px]'

@@ -109,7 +109,7 @@ function firstName(name: string): string {
 }
 
 function cardClass(extra = '') {
-  return `rounded-[24px] border border-[rgba(7,19,48,0.08)] bg-white p-5 sm:rounded-[28px] sm:p-6 ${extra}`
+  return `rounded-xl border border-[rgba(7,19,48,0.08)] bg-white p-5 sm:p-6 ${extra}`
 }
 
 export function PostRequest() {
@@ -443,7 +443,7 @@ export function PostRequest() {
           <form className="space-y-5" onSubmit={onSubmit}>
             {preferredHelper ? (
               <div
-                className="flex items-center gap-3 rounded-[24px] border border-[rgba(7,19,48,0.08)] px-4 py-3.5"
+                className="flex items-center gap-3 rounded-xl border border-[rgba(7,19,48,0.08)] px-4 py-3.5"
                 style={{ backgroundColor: BUTTER }}
               >
                 <Avatar src={preferredHelper.avatar} name={preferredHelper.name} size={44} />
@@ -528,7 +528,7 @@ export function PostRequest() {
               </div>
 
               {photoUrl ? (
-                <div className="mt-3 overflow-hidden rounded-[16px] border border-[rgba(7,19,48,0.08)]">
+                <div className="mt-3 overflow-hidden rounded-xl border border-[rgba(7,19,48,0.08)]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={photoUrl} alt="" className="h-36 w-full object-cover" />
                 </div>
@@ -536,7 +536,7 @@ export function PostRequest() {
 
               {aiBlocked ? (
                 <p
-                  className="mt-3 rounded-[14px] px-3 py-2 text-[13px] leading-snug"
+                  className="mt-3 rounded-lg px-3 py-2 text-[13px] leading-snug"
                   style={{ backgroundColor: '#FEF2F2', color: '#B91C1C' }}
                   role="alert"
                 >
@@ -562,7 +562,7 @@ export function PostRequest() {
                       key={c.id}
                       type="button"
                       onClick={() => setCategory(c.id)}
-                      className={`relative flex flex-col items-start gap-2 rounded-[18px] border px-3 py-3 text-left transition ${
+                      className={`relative flex flex-col items-start gap-2 rounded-xl border px-3 py-3 text-left transition ${
                         selected
                           ? 'border-[#1D5CE5] bg-[#EEF4FF] ring-2 ring-[#1D5CE5]/30'
                           : 'border-[rgba(7,19,48,0.08)] bg-[#F8FAFC] hover:bg-white'
@@ -698,7 +698,7 @@ export function PostRequest() {
                 </Field>
 
                 {showSuggestions && suggestions.length > 0 ? (
-                  <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-[16px] border border-[rgba(7,19,48,0.1)] bg-white py-1 shadow-[0_12px_28px_-10px_rgba(12,42,102,0.18)]">
+                  <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-[rgba(7,19,48,0.1)] bg-white py-1 shadow-[0_12px_28px_-10px_rgba(12,42,102,0.18)]">
                     {suggestions.map((s) => (
                       <li key={`${s.label}-${s.lat}-${s.lng}`}>
                         <button
@@ -800,7 +800,7 @@ export function PostRequest() {
               </div>
 
               {pickingSchedule || when === 'scheduled' ? (
-                <div className="mt-4 space-y-3 rounded-[18px] bg-[#F4F8FD] p-4">
+                <div className="mt-4 space-y-3 rounded-xl bg-[#F4F8FD] p-4">
                   <Field label="Date">
                     <TextInput
                       type="date"
@@ -927,7 +927,7 @@ export function PostRequest() {
 
             {error ? (
               <p
-                className="rounded-[16px] px-4 py-3 text-[14px]"
+                className="rounded-xl px-4 py-3 text-[14px]"
                 style={{ backgroundColor: '#FEF2F2', color: '#B91C1C' }}
                 role="alert"
               >
@@ -948,7 +948,7 @@ export function PostRequest() {
               <RequestCard request={draft} />
             </div>
             <div
-              className="mt-4 rounded-[20px] border border-[rgba(7,19,48,0.08)] bg-white px-4 py-3.5"
+              className="mt-4 rounded-xl border border-[rgba(7,19,48,0.08)] bg-white px-4 py-3.5"
             >
               <p className="text-[14px] font-semibold" style={{ color: INK }}>
                 {matchCount} helper{matchCount === 1 ? '' : 's'} nearby

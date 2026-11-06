@@ -76,7 +76,7 @@ export function LandingHowItWorks() {
             const Icon = step.icon
             return (
               <li key={step.id} className="flex flex-col">
-                <div className="relative aspect-[4/5] overflow-hidden rounded-[26px] bg-white shadow-[0_16px_40px_-12px_rgba(15,41,92,0.1)]">
+                <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-white shadow-[0_16px_40px_-12px_rgba(15,41,92,0.1)]">
                   <Image
                     src={step.image}
                     alt=""

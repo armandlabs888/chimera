@@ -12,7 +12,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useMemo, useState, type FormEvent } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Avatar, Button, ButtonLink, EmptyState, Field, TextArea, TextInput } from '@/components/ui'
+import { Avatar, Button, ButtonLink, EmptyState, TextArea } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { getCategory } from '@/data/categories'
 import { CATEGORY_ICONS } from '@/lib/categoryIcons'
@@ -27,6 +27,9 @@ import {
 
 const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexible'] as const
 
+const cardClass =
+  'rounded-xl border border-[rgba(7,19,48,0.08)] bg-white shadow-[0_8px_24px_-14px_rgba(12,42,102,0.1)]'
+
 function paramId(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? ''
   return value ?? ''
@@ -38,6 +41,12 @@ function statusLabel(status: string): string {
   if (status === 'completed') return 'Completed'
   if (status === 'cancelled') return 'Cancelled'
   return status
+}
+
+function initialOfferPrice(myPrice: number | undefined, budget: number | undefined): string {
+  if (myPrice && myPrice > 0) return String(myPrice)
+  if (budget && budget > 0) return String(budget)
+  return ''
 }
 
 export function RequestDetail() {
@@ -117,7 +126,9 @@ export function RequestDetail() {
   const helperSaved =
     acceptedHelper != null && (state.savedHelperIds?.includes(acceptedHelper.id) ?? false)
 
-  const [offerPrice, setOfferPrice] = useState(() => myOffer?.price ?? request?.budget ?? 40)
+  const [offerPrice, setOfferPrice] = useState(() =>
+    initialOfferPrice(myOffer?.price, request?.budget),
+  )
   const [offerNote, setOfferNote] = useState(() => myOffer?.note ?? '')
   const [offerEta, setOfferEta] = useState(() => myOffer?.eta ?? 'Within 1 hour')
   const [offerError, setOfferError] = useState('')
@@ -152,7 +163,8 @@ export function RequestDetail() {
 
   async function submitOffer(e: FormEvent) {
     e.preventDefault()
-    if (offerPrice < 5) {
+    const priceNum = Number(offerPrice)
+    if (!Number.isFinite(priceNum) || priceNum < 5) {
       setOfferError('Name a real price before you show up.')
       return
     }
@@ -161,7 +173,7 @@ export function RequestDetail() {
     try {
       await createOffer({
         requestId: activeRequest.id,
-        price: offerPrice,
+        price: priceNum,
         note: offerNote.trim() || 'Happy to help — message me to coordinate.',
         eta: offerEta,
       })
@@ -193,537 +205,618 @@ export function RequestDetail() {
   async function onInvite(helperId: string) {
     setInvitePendingId(helperId)
     try {
-      const { threadId } = await inviteHelper(activeRequest.id, helperId)
-      if (threadId) {
-        // Stay on page; CTA flips to Invited ✓ · Open chat
-      }
+      await inviteHelper(activeRequest.id, helperId)
     } finally {
       setInvitePendingId(null)
     }
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5 py-2 pb-16 sm:py-4">
-      {/* 1. Top summary card */}
-      <article className="overflow-hidden rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)]">
-        {request.image ? (
-          <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#F4F8FD]">
-            <Image
-              src={request.image}
-              alt=""
-              fill
-              sizes="(min-width:768px) 768px, 100vw"
-              className="object-cover"
-              priority
-            />
-          </div>
-        ) : null}
+    <div
+      className="mx-auto max-w-[1160px] space-y-5 py-2 pb-16 sm:py-4"
+      data-testid="request-detail-root"
+    >
+      <Link
+        href="/browse"
+        className="inline-flex items-center text-[13.5px] font-medium text-[#64748B] transition hover:text-[#071330]"
+        data-testid="request-detail-back"
+      >
+        ← Back to browse
+      </Link>
 
-        <div className="space-y-4 p-5 sm:p-6">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F8FD] px-3 py-1.5 text-[12.5px] font-semibold text-[#071330]">
-              {CategoryIcon ? (
-                <CategoryIcon className="h-3.5 w-3.5 text-[#1D5CE5]" strokeWidth={2} aria-hidden />
+      <div
+        className="lg:grid lg:grid-cols-[minmax(0,1.45fr)_minmax(360px,420px)] lg:items-start lg:gap-8 xl:gap-10"
+        data-testid="request-detail-grid"
+      >
+        {/* Left column — task overview */}
+        <div className="space-y-5" data-testid="request-detail-left">
+          <article className={`overflow-hidden ${cardClass}`}>
+            <div className="space-y-4 p-5 sm:p-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F8FD] px-3 py-1.5 text-[12.5px] font-semibold text-[#071330]">
+                  {CategoryIcon ? (
+                    <CategoryIcon
+                      className="h-3.5 w-3.5 text-[#1D5CE5]"
+                      strokeWidth={2}
+                      aria-hidden
+                    />
+                  ) : null}
+                  {category.shortLabel}
+                </span>
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-1 text-[12px] font-semibold capitalize ${
+                    request.status === 'open'
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : request.status === 'accepted'
+                        ? 'bg-[#EEF4FF] text-[#1D5CE5]'
+                        : request.status === 'completed'
+                          ? 'bg-[#F4F8FD] text-[#475569]'
+                          : 'bg-[#F4F8FD] text-[#64748B]'
+                  }`}
+                >
+                  {statusLabel(request.status)}
+                </span>
+                <span className="text-[12.5px] text-[#94A3B8]">
+                  Posted {relativeTime(request.createdAt)}
+                </span>
+              </div>
+
+              <h1 className="font-display text-[26px] font-bold leading-[1.15] tracking-[-0.025em] text-[#071330] sm:text-[32px]">
+                {request.title}
+              </h1>
+
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[14px] text-[#475569]">
+                <span className="inline-flex items-center gap-1.5 font-medium text-[#071330]">
+                  {request.whenLabel}
+                </span>
+                <span aria-hidden className="text-[#CBD5E1]">
+                  ·
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5 shrink-0 text-[#94A3B8]" aria-hidden />
+                  {locationLabel}
+                </span>
+                <span aria-hidden className="text-[#CBD5E1]">
+                  ·
+                </span>
+                <span>Within {radiusMiles} mi</span>
+              </div>
+
+              {request.image ? (
+                <div className="relative mt-1 aspect-[16/10] max-h-[380px] w-full overflow-hidden rounded-xl bg-[#F4F8FD]">
+                  <Image
+                    src={request.image}
+                    alt=""
+                    fill
+                    sizes="(min-width:1024px) 640px, 100vw"
+                    className="object-cover"
+                    priority
+                  />
+                </div>
               ) : null}
-              {category.shortLabel}
-            </span>
-            <span
-              className={`inline-flex items-center rounded-full px-2.5 py-1 text-[12px] font-semibold capitalize ${
-                request.status === 'open'
-                  ? 'bg-emerald-50 text-emerald-700'
-                  : request.status === 'accepted'
-                    ? 'bg-[#EEF4FF] text-[#1D5CE5]'
-                    : request.status === 'completed'
-                      ? 'bg-[#F4F8FD] text-[#475569]'
-                      : 'bg-[#F4F8FD] text-[#64748B]'
+
+              <div className="border-t border-[#E2E8F0] pt-5">
+                <h2 className="text-[13.5px] font-semibold text-[#071330]">About this task</h2>
+                <p className="mt-2 whitespace-pre-wrap text-[15px] leading-[1.6] text-[#475569]">
+                  {request.details}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 border-t border-[#E2E8F0] pt-5">
+                <Avatar src={requester.avatar} name={requester.name} size={44} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[15px] font-semibold text-[#071330]">
+                    {requester.name}
+                    {isOwner ? ' (you)' : ''}
+                  </p>
+                  <p className="truncate text-[13px] text-[#64748B]">
+                    {formatLocation(requester)} · ★ {requester.rating.toFixed(1)} ·{' '}
+                    {requester.jobsCompleted} jobs
+                  </p>
+                </div>
+                <Link
+                  href={`/people/${requester.id}`}
+                  className="shrink-0 text-[13px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
+                >
+                  View profile →
+                </Link>
+              </div>
+            </div>
+          </article>
+
+          {/* Nearby matches for owner — left column */}
+          {isOwner && request.status === 'open' ? (
+            <section className={`${cardClass} p-5 sm:p-6`} data-testid="request-nearby-matches">
+              <h2 className="text-[18px] font-bold text-[#071330]">Instant Nearby Matches</h2>
+              <p className="mt-1 text-[14px] text-[#64748B]">
+                Ranked by skill, distance, and availability for this task.
+              </p>
+
+              {matches.length === 0 ? (
+                <div className="mt-5 rounded-lg bg-[#F8FAFC] px-4 py-8 text-center">
+                  <p className="text-[15px] font-semibold text-[#071330]">No matches in range</p>
+                  <p className="mt-1 text-[13px] text-[#64748B]">
+                    Helpers will appear as they come online nearby.
+                  </p>
+                </div>
+              ) : (
+                <ul className="mt-5 space-y-3">
+                  {matches.map((match) => {
+                    const { person } = match
+                    const invited = invitedHelperIds.has(person.id)
+                    return (
+                      <li
+                        key={person.id}
+                        className="rounded-lg border border-[rgba(7,19,48,0.08)] bg-white p-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <Link
+                            href={`/people/${person.id}`}
+                            className="flex min-w-0 items-center gap-3"
+                          >
+                            <Avatar src={person.avatar} name={person.name} size={44} />
+                            <div className="min-w-0">
+                              <p className="truncate font-semibold text-[#071330]">{person.name}</p>
+                              <p className="text-[12.5px] text-[#64748B]">
+                                {authUser ? `${match.distanceMiles.toFixed(1)} mi · ` : ''}
+                                {formatRate(person)} · ★ {person.rating.toFixed(1)}
+                              </p>
+                              {match.reasons.length ? (
+                                <p className="mt-1 line-clamp-1 text-[12px] text-[#94A3B8]">
+                                  {match.reasons.slice(0, 3).join(' · ')}
+                                </p>
+                              ) : null}
+                            </div>
+                          </Link>
+                        </div>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {invited ? (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              onClick={() => void openThreadWith(person.id)}
+                            >
+                              Invited ✓ · Open chat
+                            </Button>
+                          ) : (
+                            <Button
+                              type="button"
+                              loading={invitePendingId === person.id}
+                              onClick={() => void onInvite(person.id)}
+                            >
+                              Invite to offer
+                            </Button>
+                          )}
+                          {!invited ? (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              onClick={() => void openThreadWith(person.id)}
+                            >
+                              <MessageCircle className="h-4 w-4" />
+                              Message
+                            </Button>
+                          ) : null}
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </section>
+          ) : null}
+        </div>
+
+        {/* Right column — sticky action rail */}
+        <aside
+          className="mt-5 space-y-4 lg:sticky lg:top-24 lg:mt-0"
+          data-testid="request-detail-right"
+        >
+          {/* Budget strip card (always) */}
+          <div className={`${cardClass} p-5`} data-testid="request-budget-card">
+            <p className="text-[13.5px] font-semibold text-[#071330]">Budget</p>
+            <p
+              className={`mt-1 font-display font-bold leading-none text-[#071330] ${
+                isOpenBudget ? 'text-[20px]' : 'text-[28px] tabular-nums'
               }`}
             >
-              {statusLabel(request.status)}
-            </span>
-            <span className="text-[12.5px] text-[#94A3B8]">
-              Posted {relativeTime(request.createdAt)}
-            </span>
+              {budgetLabel}
+            </p>
+            <p className="mt-2 text-[13px] leading-[1.45] text-[#64748B]">
+              No lead fees · Agree in chat
+            </p>
           </div>
 
-          <h1 className="font-display text-[28px] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330] sm:text-[32px]">
-            {request.title}
-          </h1>
-
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[14px] text-[#475569]">
-            <span className="inline-flex items-center gap-1.5 font-medium text-[#071330]">
-              {request.whenLabel}
-            </span>
-            <span aria-hidden className="text-[#CBD5E1]">
-              ·
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5 shrink-0 text-[#94A3B8]" aria-hidden />
-              {locationLabel}
-            </span>
-            <span aria-hidden className="text-[#CBD5E1]">
-              ·
-            </span>
-            <span>Within {radiusMiles} mi</span>
-          </div>
-
-          <div className="flex items-end justify-between gap-3 border-t border-[rgba(7,19,48,0.07)] pt-4">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748B]">
-                Budget
-              </p>
-              <p
-                className={`font-display font-bold leading-none text-[#071330] ${
-                  isOpenBudget ? 'text-[18px]' : 'text-[28px] tabular-nums'
-                }`}
-              >
-                {budgetLabel}
+          {justPosted && isOwner && request.status === 'open' ? (
+            <div
+              className="rounded-lg border border-[rgba(217,119,6,0.2)] bg-[#FFF8D6] px-4 py-3.5 text-[14px] leading-relaxed text-[#92400E]"
+              role="status"
+            >
+              <p className="font-semibold text-[#071330]">Your request is live nearby.</p>
+              <p className="mt-1">
+                Nearby helpers can send offers now. Invite strong matches to speed things up.
               </p>
             </div>
-          </div>
+          ) : null}
 
-          <p className="whitespace-pre-wrap text-[15px] leading-[1.6] text-[#475569]">
-            {request.details}
-          </p>
-
-          <Link
-            href={`/people/${requester.id}`}
-            className="flex items-center gap-3 rounded-2xl border border-[rgba(7,19,48,0.08)] bg-[#F4F8FD] px-3 py-3 transition hover:border-[rgba(29,92,229,0.25)]"
-          >
-            <Avatar src={requester.avatar} name={requester.name} size={44} />
-            <div className="min-w-0">
-              <p className="truncate text-[15px] font-semibold text-[#071330]">
-                {requester.name}
-                {isOwner ? ' (you)' : ''}
-              </p>
-              <p className="truncate text-[13px] text-[#64748B]">
-                {formatLocation(requester)} · ★ {requester.rating.toFixed(1)} ·{' '}
-                {requester.jobsCompleted} jobs
-              </p>
-            </div>
-          </Link>
-        </div>
-      </article>
-
-      {/* justPosted warm confirmation */}
-      {justPosted && isOwner && request.status === 'open' ? (
-        <div
-          className="rounded-[28px] border border-[rgba(217,119,6,0.2)] bg-[#FFF8D6] px-5 py-4 text-[14px] leading-relaxed text-[#92400E]"
-          role="status"
-        >
-          <p className="font-semibold text-[#071330]">Your request is live nearby.</p>
-          <p className="mt-1">
-            Nearby helpers can send offers now. Invite strong matches below to speed things up.
-          </p>
-        </div>
-      ) : null}
-
-      {/* 2. Requester + status open */}
-      {isOwner && request.status === 'open' ? (
-        <>
-          <section className="rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white p-5 shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] sm:p-6">
-            <h2 className="text-[18px] font-bold text-[#071330]">Incoming offers</h2>
-            <p className="mt-1 text-[14px] text-[#64748B]">
-              Accept when the price and timing feel right — then coordinate in chat.
-            </p>
-
-            {offers.length === 0 ? (
-              <div className="mt-5 rounded-2xl bg-[#F4F8FD] px-4 py-8 text-center">
-                <p className="text-[15px] font-semibold text-[#071330]">No offers yet</p>
-                <p className="mt-1 text-[13px] text-[#64748B]">
-                  Invite nearby matches below — they’ll show up here when they name a price.
-                </p>
+          {/* Owner open — incoming offers */}
+          {isOwner && request.status === 'open' ? (
+            <section className={`${cardClass} p-5`} data-testid="request-incoming-offers">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-[18px] font-bold text-[#071330]">Incoming offers</h2>
+                {offers.length > 0 ? (
+                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#EEF4FF] px-2 text-[12px] font-bold text-[#1D5CE5]">
+                    {offers.length}
+                  </span>
+                ) : null}
               </div>
-            ) : (
-              <ul className="mt-5 space-y-3">
-                {offers.map((offer) => {
-                  const helper = getPerson(offer.helperId)
-                  if (!helper) return null
-                  return (
-                    <li
-                      key={offer.id}
-                      className="rounded-2xl border border-[rgba(7,19,48,0.08)] bg-[#F4F8FD]/60 p-4"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <Link href={`/people/${helper.id}`} className="flex min-w-0 items-center gap-3">
-                          <Avatar src={helper.avatar} name={helper.name} size={44} />
-                          <div className="min-w-0">
-                            <p className="truncate font-semibold text-[#071330]">{helper.name}</p>
-                            <p className="text-[12.5px] text-[#64748B]">
-                              {formatRate(helper)} · ETA {offer.eta} · {relativeTime(offer.createdAt)}
-                            </p>
-                          </div>
-                        </Link>
-                        <div className="shrink-0 text-right">
-                          <p className="font-display text-[22px] font-bold tabular-nums text-[#071330]">
-                            {formatMoney(offer.price)}
-                          </p>
-                          <p className="text-[12px] font-semibold capitalize text-[#64748B]">
-                            {offer.status}
-                          </p>
-                        </div>
-                      </div>
-                      {offer.note ? (
-                        <p className="mt-3 text-[14px] leading-relaxed text-[#475569]">{offer.note}</p>
-                      ) : null}
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {offer.status === 'pending' ? (
-                          <Button type="button" onClick={() => void acceptOffer(offer.id)}>
-                            Accept offer
-                          </Button>
-                        ) : null}
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={() => void openThreadWith(offer.helperId)}
-                        >
-                          <MessageCircle className="h-4 w-4" />
-                          Message
-                        </Button>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </section>
+              <p className="mt-1 text-[14px] text-[#64748B]">
+                Accept when the price and timing feel right.
+              </p>
 
-          <section className="rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white p-5 shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] sm:p-6">
-            <h2 className="text-[18px] font-bold text-[#071330]">Instant Nearby Matches</h2>
-            <p className="mt-1 text-[14px] text-[#64748B]">
-              Ranked by skill, distance, and availability for this task.
-            </p>
-
-            {matches.length === 0 ? (
-              <div className="mt-5 rounded-2xl bg-[#F4F8FD] px-4 py-8 text-center">
-                <p className="text-[15px] font-semibold text-[#071330]">No matches in range</p>
-                <p className="mt-1 text-[13px] text-[#64748B]">
-                  Helpers will appear as they come online nearby.
-                </p>
-              </div>
-            ) : (
-              <ul className="mt-5 space-y-3">
-                {matches.map((match) => {
-                  const { person } = match
-                  const invited = invitedHelperIds.has(person.id)
-                  return (
-                    <li
-                      key={person.id}
-                      className="rounded-2xl border border-[rgba(7,19,48,0.08)] bg-[#F4F8FD]/60 p-4"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <Link
-                          href={`/people/${person.id}`}
-                          className="flex min-w-0 items-center gap-3"
-                        >
-                          <Avatar src={person.avatar} name={person.name} size={44} />
-                          <div className="min-w-0">
-                            <p className="truncate font-semibold text-[#071330]">{person.name}</p>
-                            <p className="text-[12.5px] text-[#64748B]">
-                              {authUser
-                                ? `${match.distanceMiles.toFixed(1)} mi · `
-                                : ''}
-                              {formatRate(person)} · ★ {person.rating.toFixed(1)}
-                            </p>
-                            {match.reasons.length ? (
-                              <p className="mt-1 line-clamp-1 text-[12px] text-[#94A3B8]">
-                                {match.reasons.slice(0, 3).join(' · ')}
+              {offers.length === 0 ? (
+                <div className="mt-5 rounded-lg bg-[#F8FAFC] px-4 py-8 text-center">
+                  <p className="text-[15px] font-semibold text-[#071330]">No offers yet</p>
+                  <p className="mt-1 text-[13px] text-[#64748B]">
+                    Invite nearby matches — they’ll show up here when they name a price.
+                  </p>
+                </div>
+              ) : (
+                <ul className="mt-5 space-y-3">
+                  {offers.map((offer) => {
+                    const helper = getPerson(offer.helperId)
+                    if (!helper) return null
+                    return (
+                      <li
+                        key={offer.id}
+                        className="rounded-lg border border-[rgba(7,19,48,0.08)] bg-white p-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <Link
+                            href={`/people/${helper.id}`}
+                            className="flex min-w-0 items-center gap-3"
+                          >
+                            <Avatar src={helper.avatar} name={helper.name} size={40} />
+                            <div className="min-w-0">
+                              <p className="truncate font-semibold text-[#071330]">{helper.name}</p>
+                              <p className="text-[12.5px] text-[#64748B]">
+                                ★ {helper.rating.toFixed(1)} · ETA {offer.eta}
                               </p>
-                            ) : null}
+                            </div>
+                          </Link>
+                          <div className="shrink-0 text-right">
+                            <p className="font-display text-[20px] font-bold tabular-nums text-[#071330]">
+                              {formatMoney(offer.price)}
+                            </p>
+                            <p className="text-[12px] font-semibold capitalize text-[#64748B]">
+                              {offer.status}
+                            </p>
                           </div>
-                        </Link>
-                      </div>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {invited ? (
+                        </div>
+                        {offer.note ? (
+                          <p className="mt-3 text-[14px] leading-relaxed text-[#475569]">
+                            {offer.note}
+                          </p>
+                        ) : null}
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {offer.status === 'pending' ? (
+                            <Button type="button" onClick={() => void acceptOffer(offer.id)}>
+                              Accept offer
+                            </Button>
+                          ) : null}
                           <Button
                             type="button"
                             variant="secondary"
-                            onClick={() => void openThreadWith(person.id)}
-                          >
-                            Invited ✓ · Open chat
-                          </Button>
-                        ) : (
-                          <Button
-                            type="button"
-                            loading={invitePendingId === person.id}
-                            onClick={() => void onInvite(person.id)}
-                          >
-                            Invite to offer
-                          </Button>
-                        )}
-                        {!invited ? (
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() => void openThreadWith(person.id)}
+                            onClick={() => void openThreadWith(offer.helperId)}
                           >
                             <MessageCircle className="h-4 w-4" />
                             Message
                           </Button>
-                        ) : null}
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </section>
-        </>
-      ) : null}
-
-      {/* 3. Helper + status open */}
-      {!isOwner && request.status === 'open' ? (
-        <section className="space-y-4">
-          {myInvite ? (
-            <div className="rounded-[28px] border border-[rgba(217,119,6,0.2)] bg-[#FFF8D6] px-5 py-3.5 text-[14px] font-semibold text-[#071330]">
-              You were invited to offer on this task
-            </div>
-          ) : null}
-
-          <div className="rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white p-5 shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] sm:p-6">
-            <h2 className="text-[18px] font-bold text-[#071330]">
-              {myOffer ? 'Update your offer' : 'Send an offer'}
-            </h2>
-            <p className="mt-1 text-[14px] text-[#64748B]">
-              Name a price and ETA before you show up. No lead fees.
-            </p>
-
-            <form className="mt-5 space-y-4" onSubmit={(e) => void submitOffer(e)}>
-              <Field label="Your price (USD)" required>
-                <TextInput
-                  type="number"
-                  min={5}
-                  value={offerPrice}
-                  onChange={(e) => setOfferPrice(Number(e.target.value))}
-                  required
-                />
-              </Field>
-
-              <div>
-                <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64748B]">
-                  When you can start
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {ETA_CHIPS.map((chip) => {
-                    const selected = offerEta === chip
-                    return (
-                      <button
-                        key={chip}
-                        type="button"
-                        onClick={() => setOfferEta(chip)}
-                        className={`rounded-full px-3.5 py-2 text-[13px] font-semibold transition ${
-                          selected
-                            ? 'bg-[#1D5CE5] text-white'
-                            : 'border border-[rgba(7,19,48,0.12)] bg-white text-[#071330] hover:bg-[#F4F8FD]'
-                        }`}
-                      >
-                        {chip}
-                      </button>
+                        </div>
+                      </li>
                     )
                   })}
-                </div>
+                </ul>
+              )}
+
+              <div className="mt-5 border-t border-[#E2E8F0] pt-4">
+                <ButtonLink href="/post" variant="secondary" className="w-full">
+                  Post another request
+                </ButtonLink>
               </div>
+            </section>
+          ) : null}
 
-              <Field label="Note">
-                <TextArea
-                  value={offerNote}
-                  onChange={(e) => setOfferNote(e.target.value)}
-                  placeholder="Experience, what you’ll bring, questions…"
-                />
-              </Field>
-
-              {offerError ? (
-                <p className="text-[14px] text-[#DC2626]" role="alert">
-                  {offerError}
-                </p>
+          {/* Helper open — send offer */}
+          {!isOwner && request.status === 'open' ? (
+            <section className="space-y-3" data-testid="request-offer-panel">
+              {myInvite ? (
+                <div className="rounded-lg border border-[rgba(217,119,6,0.2)] bg-[#FFF8D6] px-4 py-3 text-[14px] font-semibold text-[#071330]">
+                  You were invited to offer on this task
+                </div>
               ) : null}
 
-              <div className="flex flex-wrap gap-2">
-                <Button type="submit" loading={offerPending}>
-                  <Send className="h-4 w-4" />
-                  {myOffer ? 'Update offer' : 'Submit offer'}
-                </Button>
+              <div className={`${cardClass} p-5`}>
+                <h2 className="text-[18px] font-bold text-[#071330]">
+                  {myOffer ? 'Update your offer' : 'Send an offer'}
+                </h2>
+                <p className="mt-1 text-[14px] text-[#64748B]">
+                  Name a price and ETA before you show up.
+                </p>
+
+                <form className="mt-5 space-y-4" onSubmit={(e) => void submitOffer(e)}>
+                  <div>
+                    <label
+                      htmlFor="offer-price"
+                      className="mb-2 block text-[13.5px] font-semibold text-[#071330]"
+                    >
+                      Your offer
+                    </label>
+                    <div className="relative flex h-12 items-center rounded-xl border border-[#E2E8F0] bg-white focus-within:border-[#1D5CE5] focus-within:ring-4 focus-within:ring-[#1D5CE5]/15">
+                      <span className="pl-3.5 text-[15px] font-semibold text-[#64748B]" aria-hidden>
+                        $
+                      </span>
+                      <input
+                        id="offer-price"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={offerPrice}
+                        onChange={(e) =>
+                          setOfferPrice(e.target.value.replace(/[^\d]/g, '').slice(0, 5))
+                        }
+                        placeholder="60"
+                        required
+                        data-testid="offer-price-input"
+                        className="h-full w-full min-w-0 bg-transparent px-2 pr-3.5 text-[15px] font-semibold tabular-nums text-[#071330] outline-none placeholder:font-normal placeholder:text-[#94A3B8]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="mb-2 text-[13.5px] font-semibold text-[#071330]">
+                      Arrival / start window
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {ETA_CHIPS.map((chip) => {
+                        const selected = offerEta === chip
+                        return (
+                          <button
+                            key={chip}
+                            type="button"
+                            onClick={() => setOfferEta(chip)}
+                            className={`rounded-lg px-3 py-2.5 text-[13px] font-semibold transition ${
+                              selected
+                                ? 'border border-[#1D5CE5] bg-[#EEF4FF] text-[#1D5CE5]'
+                                : 'border border-[#E2E8F0] bg-white text-[#071330] hover:bg-[#F8FAFC]'
+                            }`}
+                          >
+                            {chip}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="offer-note"
+                      className="mb-2 block text-[13.5px] font-semibold text-[#071330]"
+                    >
+                      Message to requester{' '}
+                      <span className="font-normal text-[#64748B]">(optional)</span>
+                    </label>
+                    <TextArea
+                      id="offer-note"
+                      value={offerNote}
+                      onChange={(e) => setOfferNote(e.target.value)}
+                      rows={3}
+                      placeholder="Experience, what you’ll bring, questions…"
+                      className="rounded-xl"
+                    />
+                  </div>
+
+                  {offerError ? (
+                    <p className="text-[14px] text-[#DC2626]" role="alert">
+                      {offerError}
+                    </p>
+                  ) : null}
+
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      type="submit"
+                      loading={offerPending}
+                      className="h-12 w-full rounded-full bg-[#1D5CE5] text-white shadow-none hover:bg-[#1649BD]"
+                    >
+                      <Send className="h-4 w-4" />
+                      {myOffer ? 'Update offer' : 'Submit offer'}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="h-11 w-full rounded-full"
+                      onClick={() => void openThreadWith(request.requesterId)}
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      Ask a question first
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </section>
+          ) : null}
+
+          {/* Accepted — booked summary */}
+          {request.status === 'accepted' && (isOwner || isAcceptedHelper) ? (
+            <section className={`${cardClass} p-5`} data-testid="request-booked-panel">
+              <p className="text-[13.5px] font-semibold text-[#071330]">You’re booked</p>
+              <p className="mt-1 text-[14px] text-[#64748B]">
+                Coordinate in chat and agree how you’ll pay peer-to-peer.
+              </p>
+
+              <dl className="mt-5 space-y-4">
+                <div>
+                  <dt className="text-[13px] font-semibold text-[#64748B]">Confirmed helper</dt>
+                  <dd className="mt-1.5 flex items-center gap-2.5">
+                    {acceptedHelper ? (
+                      <>
+                        <Avatar src={acceptedHelper.avatar} name={acceptedHelper.name} size={36} />
+                        <span className="font-semibold text-[#071330]">{acceptedHelper.name}</span>
+                      </>
+                    ) : (
+                      <span className="text-[#64748B]">—</span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[13px] font-semibold text-[#64748B]">Agreed price</dt>
+                  <dd className="mt-1.5 font-display text-[24px] font-bold tabular-nums text-[#071330]">
+                    {acceptedOffer ? formatMoney(acceptedOffer.price) : '—'}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[13px] font-semibold text-[#64748B]">ETA</dt>
+                  <dd className="mt-1.5 font-semibold text-[#071330]">
+                    {acceptedOffer?.eta ?? request.whenLabel}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[13px] font-semibold text-[#64748B]">Service area</dt>
+                  <dd className="mt-1.5 font-semibold text-[#071330]">
+                    {locationLabel}
+                    <span className="font-normal text-[#64748B]"> · Within {radiusMiles} mi</span>
+                  </dd>
+                </div>
+                {canSeeExactAddress && request.exactAddress ? (
+                  <div>
+                    <dt className="text-[13px] font-semibold text-[#64748B]">Exact address</dt>
+                    <dd className="mt-1.5 font-semibold text-[#071330]">{request.exactAddress}</dd>
+                  </div>
+                ) : null}
+              </dl>
+
+              <div className="mt-5 rounded-lg border border-[rgba(217,119,6,0.2)] bg-[#FFF8D6] px-4 py-3 text-[13.5px] leading-relaxed text-[#92400E]">
+                Pay your helper peer-to-peer (Venmo, cash, Zelle, etc.). Beam doesn’t process
+                payments yet — agree on the method in chat before you start.
+              </div>
+
+              <div className="mt-5 flex flex-col gap-2">
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => void openThreadWith(request.requesterId)}
+                  className="w-full"
+                  onClick={() =>
+                    void openThreadWith(isOwner ? request.helperId! : request.requesterId)
+                  }
                 >
                   <MessageCircle className="h-4 w-4" />
-                  Ask a question first
+                  Open chat
+                </Button>
+                <Button
+                  type="button"
+                  className="w-full"
+                  onClick={() => void markComplete(request.id)}
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  Mark job complete
                 </Button>
               </div>
-            </form>
-          </div>
-        </section>
-      ) : null}
-
-      {/* 4. status accepted — Pinned Job Agreement */}
-      {request.status === 'accepted' && (isOwner || isAcceptedHelper) ? (
-        <section className="rounded-[28px] border-2 border-[#FFF8D6] bg-[#F4F8FD] p-5 sm:p-6">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#64748B]">
-            Pinned Job Agreement
-          </p>
-          <h2 className="mt-1 text-[20px] font-bold text-[#071330]">You’re booked</h2>
-
-          <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-            <div>
-              <dt className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64748B]">
-                Confirmed Helper
-              </dt>
-              <dd className="mt-1.5 flex items-center gap-2.5">
-                {acceptedHelper ? (
-                  <>
-                    <Avatar src={acceptedHelper.avatar} name={acceptedHelper.name} size={36} />
-                    <span className="font-semibold text-[#071330]">{acceptedHelper.name}</span>
-                  </>
-                ) : (
-                  <span className="text-[#64748B]">—</span>
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64748B]">
-                Agreed Price
-              </dt>
-              <dd className="mt-1.5 font-display text-[24px] font-bold tabular-nums text-[#071330]">
-                {acceptedOffer ? formatMoney(acceptedOffer.price) : '—'}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64748B]">
-                ETA
-              </dt>
-              <dd className="mt-1.5 font-semibold text-[#071330]">
-                {acceptedOffer?.eta ?? request.whenLabel}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64748B]">
-                Service Area
-              </dt>
-              <dd className="mt-1.5 font-semibold text-[#071330]">
-                {locationLabel}
-                <span className="font-normal text-[#64748B]"> · Within {radiusMiles} mi</span>
-              </dd>
-            </div>
-            {canSeeExactAddress && request.exactAddress ? (
-              <div className="sm:col-span-2">
-                <dt className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64748B]">
-                  Exact address
-                </dt>
-                <dd className="mt-1.5 font-semibold text-[#071330]">{request.exactAddress}</dd>
-              </div>
-            ) : null}
-          </dl>
-
-          <div className="mt-5 rounded-2xl border border-[rgba(217,119,6,0.2)] bg-[#FFF8D6] px-4 py-3 text-[13.5px] leading-relaxed text-[#92400E]">
-            Pay your helper peer-to-peer (Venmo, cash, Zelle, etc.). Beam doesn’t process payments
-            yet — agree on the method in chat before you start.
-          </div>
-
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() =>
-                void openThreadWith(isOwner ? request.helperId! : request.requesterId)
-              }
-            >
-              <MessageCircle className="h-4 w-4" />
-              Open chat
-            </Button>
-            <Button type="button" onClick={() => void markComplete(request.id)}>
-              <CheckCircle2 className="h-4 w-4" />
-              Mark job complete
-            </Button>
-          </div>
-        </section>
-      ) : null}
-
-      {/* 5. status completed — Mutual review */}
-      {request.status === 'completed' ? (
-        <section className="rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white p-5 shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] sm:p-6">
-          <h2 className="text-[18px] font-bold text-[#071330]">Mutual review</h2>
-          <p className="mt-1 text-[14px] text-[#64748B]">
-            Rate your experience so neighbors know who to trust next time.
-          </p>
-
-          {existingReview ? (
-            <div className="mt-5 rounded-2xl bg-[#F4F8FD] px-4 py-4">
-              <div className="flex items-center gap-1 text-[#1D5CE5]">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-5 w-5 ${
-                      i < existingReview.rating ? 'fill-[#1D5CE5] text-[#1D5CE5]' : 'text-[#CBD5E1]'
-                    }`}
-                  />
-                ))}
-              </div>
-              <p className="mt-2 text-[14px] text-[#475569]">“{existingReview.comment}”</p>
-            </div>
-          ) : isOwner || isAcceptedHelper ? (
-            <form className="mt-5 space-y-4" onSubmit={(e) => void submitReview(e)}>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => setReviewRating(n)}
-                    className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition ${
-                      reviewRating >= n
-                        ? 'border-[#1D5CE5] bg-[#EEF4FF] text-[#1D5CE5]'
-                        : 'border-[rgba(7,19,48,0.12)] bg-white text-[#94A3B8]'
-                    }`}
-                    aria-label={`${n} stars`}
-                  >
-                    <Star className={`h-5 w-5 ${reviewRating >= n ? 'fill-current' : ''}`} />
-                  </button>
-                ))}
-              </div>
-              <Field label="Comment">
-                <TextArea
-                  value={reviewComment}
-                  onChange={(e) => setReviewComment(e.target.value)}
-                  placeholder="How did it go?"
-                />
-              </Field>
-              <Button type="submit" loading={reviewPending}>
-                Submit review
-              </Button>
-            </form>
-          ) : (
-            <p className="mt-4 text-[14px] text-[#64748B]">Only the people on this job can review.</p>
-          )}
-
-          {isOwner && acceptedHelper ? (
-            <div className="mt-6 flex flex-wrap gap-2 border-t border-[rgba(7,19,48,0.07)] pt-5">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => void toggleSavedHelper(acceptedHelper.id)}
-              >
-                <Heart
-                  className={`h-4 w-4 ${helperSaved ? 'fill-[#1D5CE5] text-[#1D5CE5]' : ''}`}
-                />
-                {helperSaved ? 'Saved to favorites' : 'Save to favorites'}
-              </Button>
-              <ButtonLink
-                href={`/post?rebook=${acceptedHelper.id}&category=${request.category}`}
-              >
-                Book again
-              </ButtonLink>
-            </div>
+            </section>
           ) : null}
-        </section>
-      ) : null}
 
-      {isOwner && request.status === 'open' ? (
-        <div className="pt-1">
-          <ButtonLink href="/post" variant="secondary" className="w-full sm:w-auto">
-            Post another request
-          </ButtonLink>
-        </div>
-      ) : null}
+          {/* Completed — mutual review */}
+          {request.status === 'completed' ? (
+            <section className={`${cardClass} p-5`} data-testid="request-review-panel">
+              <h2 className="text-[18px] font-bold text-[#071330]">Mutual review</h2>
+              <p className="mt-1 text-[14px] text-[#64748B]">
+                Rate your experience so neighbors know who to trust next time.
+              </p>
+
+              {existingReview ? (
+                <div className="mt-5 rounded-lg bg-[#F8FAFC] px-4 py-4">
+                  <div className="flex items-center gap-1 text-[#1D5CE5]">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-5 w-5 ${
+                          i < existingReview.rating
+                            ? 'fill-[#1D5CE5] text-[#1D5CE5]'
+                            : 'text-[#CBD5E1]'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[14px] text-[#475569]">“{existingReview.comment}”</p>
+                </div>
+              ) : isOwner || isAcceptedHelper ? (
+                <form className="mt-5 space-y-4" onSubmit={(e) => void submitReview(e)}>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setReviewRating(n)}
+                        className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition ${
+                          reviewRating >= n
+                            ? 'border-[#1D5CE5] bg-[#EEF4FF] text-[#1D5CE5]'
+                            : 'border-[rgba(7,19,48,0.12)] bg-white text-[#94A3B8]'
+                        }`}
+                        aria-label={`${n} stars`}
+                      >
+                        <Star className={`h-5 w-5 ${reviewRating >= n ? 'fill-current' : ''}`} />
+                      </button>
+                    ))}
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="review-comment"
+                      className="mb-2 block text-[13.5px] font-semibold text-[#071330]"
+                    >
+                      Comment <span className="font-normal text-[#64748B]">(optional)</span>
+                    </label>
+                    <TextArea
+                      id="review-comment"
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      placeholder="How did it go?"
+                      className="rounded-xl"
+                    />
+                  </div>
+                  <Button type="submit" loading={reviewPending} className="w-full">
+                    Submit review
+                  </Button>
+                </form>
+              ) : (
+                <p className="mt-4 text-[14px] text-[#64748B]">
+                  Only the people on this job can review.
+                </p>
+              )}
+
+              {isOwner && acceptedHelper ? (
+                <div className="mt-6 flex flex-col gap-2 border-t border-[#E2E8F0] pt-5">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="w-full"
+                    onClick={() => void toggleSavedHelper(acceptedHelper.id)}
+                  >
+                    <Heart
+                      className={`h-4 w-4 ${helperSaved ? 'fill-[#1D5CE5] text-[#1D5CE5]' : ''}`}
+                    />
+                    {helperSaved ? 'Saved to favorites' : 'Save to favorites'}
+                  </Button>
+                  <ButtonLink
+                    href={`/post?rebook=${acceptedHelper.id}&category=${request.category}`}
+                    className="w-full"
+                  >
+                    Book again
+                  </ButtonLink>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+        </aside>
+      </div>
     </div>
   )
 }

@@ -83,7 +83,7 @@ export function Safety() {
       </dl>
 
       <div className="mt-14 grid gap-6 sm:grid-cols-2">
-        <div className="rounded-[26px] border border-[rgba(7,19,48,0.08)] bg-white p-6">
+        <div className="rounded-xl border border-[rgba(7,19,48,0.08)] bg-white p-6">
           <h2 className="text-[15px] font-bold uppercase tracking-[0.08em] text-[#1D5CE5]">
             Permitted
           </h2>
@@ -96,7 +96,7 @@ export function Safety() {
             ))}
           </ul>
         </div>
-        <div className="rounded-[26px] border border-[#FDE68A] bg-[#FFF8D6] p-6">
+        <div className="rounded-xl border border-[#FDE68A] bg-[#FFF8D6] p-6">
           <h2 className="text-[15px] font-bold uppercase tracking-[0.08em] text-[#92400E]">
             Not on Beam
           </h2>

@@ -292,7 +292,7 @@ export function You() {
       ) : null}
 
       {tab === 'helper' ? (
-        <div className="rounded-[26px] border border-[rgba(7,19,48,0.08)] bg-white p-5 shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] sm:p-6">
+        <div className="rounded-xl border border-[rgba(7,19,48,0.08)] bg-white p-5 shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] sm:p-6">
           {isHelper ? (
             <div className="space-y-4">
               <div>

@@ -265,7 +265,7 @@ export function Onboarding() {
                         }
                       }}
                       data-testid={`onboarding-role-${item.id}`}
-                      className={`flex items-center gap-3.5 rounded-2xl border px-4 py-4 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
+                      className={`flex items-center gap-3.5 rounded-xl border px-4 py-4 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
                         selected
                           ? 'border-[#1D5CE5] bg-[#F5F9FF] ring-1 ring-[#1D5CE5]/20'
                           : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
@@ -355,7 +355,7 @@ export function Onboarding() {
             </p>
 
             <div
-              className="mt-8 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-5 py-5"
+              className="mt-8 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-5 py-5"
               data-testid="onboarding-safety-callout"
             >
               <p className="text-[16px] font-bold leading-[1.4] text-[#071330]">
@@ -382,7 +382,7 @@ export function Onboarding() {
             {error ? (
               <div
                 role="alert"
-                className="mt-6 rounded-2xl border border-red-500/25 bg-red-50 px-4 py-3 text-[14px] text-red-700"
+                className="mt-6 rounded-xl border border-red-500/25 bg-red-50 px-4 py-3 text-[14px] text-red-700"
                 data-testid="onboarding-error"
               >
                 {error}

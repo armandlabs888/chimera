@@ -394,7 +394,7 @@ async function checkAuthBrowser() {
       `${BASE_URL}/auth?error=${encodeURIComponent('access_denied')}&error_description=${encodeURIComponent('User cancelled')}`,
       { waitUntil: 'domcontentloaded' },
     )
-    const errorBanner = page.locator('.rounded-2xl[role="alert"]').first()
+    const errorBanner = page.locator('[role="alert"]').first()
     await errorBanner.waitFor({ state: 'visible' })
     const alertText = await errorBanner.innerText()
     assert.match(alertText, /cancelled|try again|email/i, `oauth error banner: ${alertText}`)
@@ -1181,7 +1181,7 @@ async function checkMarketplaceFlows() {
     await page
       .waitForFunction(
         () =>
-          /helper|skills|Available now|Save helper|Continue with Google|Sign in|Create account|Welcome back|demo mode/i.test(
+          /helper|tasks you take|Publish helper|Save helper|Continue with Google|Sign in|Create account|Welcome back|demo mode/i.test(
             document.body.innerText,
           ) || /\/auth/.test(location.pathname),
         null,
@@ -1195,7 +1195,7 @@ async function checkMarketplaceFlows() {
       (/Continue with Google|Sign in|Create account|Welcome back|demo mode|needs configuration/i.test(
         onboardText,
       ) &&
-        !/Available now|Save helper/i.test(onboardText))
+        !/Publish helper|Save helper|tasks you take/i.test(onboardText))
     ) {
       console.log('skip helper onboarding interactive (auth gated → /auth)')
       if (onboardUrl.pathname.replace(/\/$/, '') === '/auth') {
@@ -1210,7 +1210,111 @@ async function checkMarketplaceFlows() {
         assert.equal(gateHeader, false, 'no AuthGate Browse/Safety header on /auth')
       }
     } else {
-      assert.ok(await page.getByText(/helper|skills|Available now|Save helper/i).count() >= 1)
+      await page.waitForSelector('[data-testid="helper-onboarding-root"]', { timeout: 15000 })
+      assert.ok(await page.getByTestId('helper-onboarding-root').count() >= 1)
+      assert.equal(
+        await page.locator('[data-testid="topnav-post-cta"]').count(),
+        0,
+        'topnav-post-cta hidden on /onboarding/helper',
+      )
+      assert.equal(
+        await page.locator('legend').count(),
+        0,
+        'no uppercase legend clutter on helper onboarding',
+      )
+      assert.doesNotMatch(onboardText, /\bHELPER SETUP\b/)
+      assert.doesNotMatch(onboardText, /\bSKILLS\b/)
+      assert.doesNotMatch(onboardText, /\bSERVICE RADIUS\b/)
+      const helperChrome = await page.evaluate(() => {
+        const shell = document.querySelector('.app-shell')
+        const form = document.querySelector('[data-testid="helper-onboarding-form"]')
+        const shellBg = shell ? getComputedStyle(shell).backgroundColor : ''
+        const formShadow = form ? getComputedStyle(form).boxShadow : ''
+        const overflow =
+          document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
+        return { shellBg, formShadow, overflow }
+      })
+      assert.equal(helperChrome.overflow, false, 'helper onboarding no horizontal overflow')
+      assert.ok(
+        /rgba?\(\s*255\s*,\s*255\s*,\s*255/i.test(helperChrome.shellBg) ||
+          helperChrome.shellBg === 'rgb(255, 255, 255)',
+        `helper onboarding shell should be white, got ${helperChrome.shellBg}`,
+      )
+      assert.ok(
+        !helperChrome.formShadow ||
+          helperChrome.formShadow === 'none' ||
+          /rgba?\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\)/.test(helperChrome.formShadow),
+        `helper form must not use outer card box-shadow, got ${helperChrome.formShadow}`,
+      )
+      assert.ok(await page.getByTestId('helper-skills-grid').count() >= 1)
+      assert.ok(
+        (await page.getByTestId('onboarding-city-input').count()) +
+          (await page.getByTestId('onboarding-city-verified').count()) >=
+          1,
+        'UsCityCombobox present on helper onboarding',
+      )
+
+      // Completing helper setup dismisses the helper-setup banner.
+      await page.evaluate((key) => {
+        const state = JSON.parse(localStorage.getItem(key) || '{}')
+        state.people = (state.people || []).map((p) =>
+          p.id === state.currentUserId
+            ? {
+                ...p,
+                accountRole: 'helper',
+                isHelper: false,
+                skills: [],
+                onboardingCompletedAt: p.onboardingCompletedAt || new Date().toISOString(),
+                safetyDisclaimerAcceptedAt:
+                  p.safetyDisclaimerAcceptedAt || new Date().toISOString(),
+                city: p.city || 'San Jose',
+                stateCode: p.stateCode || 'CA',
+                locationLabel: p.locationLabel || 'San Jose, CA',
+              }
+            : p,
+        )
+        localStorage.setItem(key, JSON.stringify(state))
+      }, STORAGE_KEY)
+      await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
+      await page.waitForSelector('[data-testid="helper-setup-callout"]', { timeout: 15000 })
+      await page.goto(`${BASE_URL}/onboarding/helper`, { waitUntil: 'domcontentloaded' })
+      await page.waitForSelector('[data-testid="helper-onboarding-root"]', { timeout: 15000 })
+      // Ensure at least one skill selected, then publish.
+      const skillBtn = page.getByTestId('helper-skill-moving')
+      if ((await skillBtn.getAttribute('aria-pressed')) !== 'true') {
+        await skillBtn.click()
+      }
+      // Wait for UsCityCombobox to finish loading (verified chip or enabled input).
+      await page.waitForFunction(
+        () => {
+          const verified = document.querySelector('[data-testid="onboarding-city-verified"]')
+          const input = document.querySelector('[data-testid="onboarding-city-input"]')
+          return Boolean(verified) || Boolean(input && !input.disabled)
+        },
+        null,
+        { timeout: 30000 },
+      )
+      // City may already be hydrated from profile; if not, type San Jose.
+      if ((await page.getByTestId('onboarding-city-verified').count()) === 0) {
+        const cityInput = page.getByTestId('onboarding-city-input')
+        await cityInput.fill('San Jose')
+        await page.waitForSelector('[data-testid="onboarding-city-listbox"]', { timeout: 10000 })
+        await page.locator('[data-testid="onboarding-city-listbox"] [role="option"]').first().click()
+        await page.waitForSelector('[data-testid="onboarding-city-verified"]', { timeout: 10000 })
+      }
+      await page.getByTestId('helper-onboarding-submit').click()
+      await page.waitForURL(/\/browse/, { timeout: 15000 })
+      assert.equal(
+        await page.locator('[data-testid="helper-setup-callout"]').count(),
+        0,
+        'helper-setup-callout dismissed after completing helper profile',
+      )
+      const helperFlag = await page.evaluate((key) => {
+        const state = JSON.parse(localStorage.getItem(key) || '{}')
+        const me = (state.people || []).find((p) => p.id === state.currentUserId)
+        return Boolean(me?.isHelper)
+      }, STORAGE_KEY)
+      assert.equal(helperFlag, true, 'isHelper true after publish')
     }
 
     // Post composer — AI Quick-Draft + Open to offers + radius
@@ -1270,14 +1374,79 @@ async function checkMarketplaceFlows() {
       assert.ok(await page.getByText(/Invite to offer|matched|preview|Post request/i).count() >= 1)
     }
 
-    // Request detail ranked matches
+    // Request detail — 2-column desktop layout + subtle card radii + open-budget price
+    await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto(`${BASE_URL}/requests/req-1`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('[data-testid="request-detail-root"]', { timeout: 15000 })
     const reqText = await page.locator('body').innerText()
-    if (/Invite to offer|Nearby matches|Send an offer|Accept offer/i.test(reqText)) {
+    if (/Invite to offer|Nearby matches|Send an offer|Accept offer|Incoming offers/i.test(reqText)) {
       assert.ok(true)
     }
+    assert.equal(
+      await page.evaluate(() => /WHEN YOU CAN START/.test(document.body.innerText)),
+      false,
+      'no uppercase WHEN YOU CAN START',
+    )
+    assert.equal(
+      await page.evaluate(() => /\bBUDGET\b/.test(document.body.innerText)),
+      false,
+      'no uppercase BUDGET label',
+    )
+    const twoCol = await page.evaluate(() => {
+      const left = document.querySelector('[data-testid="request-detail-left"]')
+      const right = document.querySelector('[data-testid="request-detail-right"]')
+      if (!left || !right) return null
+      const lr = left.getBoundingClientRect()
+      const rr = right.getBoundingClientRect()
+      return {
+        leftRight: lr.right,
+        rightLeft: rr.left,
+        bothVisible: lr.width > 100 && rr.width > 100 && lr.top < window.innerHeight,
+        sideBySide: rr.left >= lr.right - 4,
+      }
+    })
+    assert.ok(twoCol, 'request detail left+right columns present')
+    assert.equal(twoCol.sideBySide, true, 'desktop request detail is 2-column')
+    assert.equal(twoCol.bothVisible, true, 'both columns visible above the fold')
 
-    console.log('ok marketplace daylight + AI draft + geocode + onboarding')
+    const cardRadii = await page.evaluate(() => {
+      const cards = [
+        ...document.querySelectorAll(
+          '[data-testid="request-budget-card"], [data-testid="request-detail-left"] article, [data-testid="request-offer-panel"] > div, [data-testid="request-incoming-offers"]',
+        ),
+      ]
+      return cards.map((el) => {
+        const r = getComputedStyle(el).borderTopLeftRadius
+        const n = parseFloat(r)
+        return { tag: el.getAttribute('data-testid') || el.tagName, px: n, raw: r }
+      })
+    })
+    for (const c of cardRadii) {
+      assert.ok(c.px > 0 && c.px <= 14, `request card radius subtle (<=14px), got ${c.raw} on ${c.tag}`)
+    }
+
+    // Open-budget request must not prefill literal "0" in offer price.
+    await page.goto(`${BASE_URL}/requests/req-3`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('[data-testid="request-detail-root"]', { timeout: 15000 })
+    if ((await page.getByTestId('offer-price-input').count()) > 0) {
+      const priceVal = await page.getByTestId('offer-price-input').inputValue()
+      assert.notEqual(priceVal, '0', 'open-budget offer price must not prefill 0')
+      assert.equal(priceVal, '', 'open-budget offer price starts empty')
+    }
+
+    // Browse cards also use subtle corners.
+    await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('a[href^="/requests/"]', { timeout: 15000 })
+    const browseRadii = await page.evaluate(() => {
+      const cards = [...document.querySelectorAll('a[href^="/requests/"]')].slice(0, 4)
+      return cards.map((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius))
+    })
+    assert.ok(browseRadii.length > 0, 'browse request cards present')
+    for (const px of browseRadii) {
+      assert.ok(px > 0 && px <= 14, `browse card radius subtle (<=14px), got ${px}`)
+    }
+
+    console.log('ok marketplace daylight + AI draft + geocode + onboarding + request-detail 2col')
   } finally {
     await browser.close()
   }
