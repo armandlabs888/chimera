@@ -15,7 +15,8 @@ import type { NeighborhoodId } from '@/types'
 type SortMode = 'nearest' | 'newest' | 'budget'
 
 export function Browse() {
-  const { state, currentUser } = useBeam()
+  const { state, currentUser, authUser } = useBeam()
+  const isGuest = !authUser
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -157,7 +158,11 @@ export function Browse() {
     <div className="px-4 py-5 sm:py-6">
       <SectionHeader
         title="Browse"
-        subtitle="Open requests and nearby helpers across Austin neighborhoods."
+        subtitle={
+          isGuest
+            ? 'Open requests and nearby helpers across local neighborhoods.'
+            : 'Open requests and nearby helpers across Austin neighborhoods.'
+        }
         action={
           <p className="tabular-nums type-sec font-medium text-beam-muted">
             {count} {tab === 'requests' ? 'open requests' : 'people'}

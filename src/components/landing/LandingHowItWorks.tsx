@@ -6,7 +6,7 @@ const STEPS = [
   {
     id: '01',
     title: 'Post your task',
-    body: 'Describe what you need, pick your Austin neighborhood, and set a fair budget.',
+    body: 'Describe what you need, pick your neighborhood, and set a fair budget.',
     image:
       LIFESTYLE.stepPost,
     badgeBg: '#DBEAFE',

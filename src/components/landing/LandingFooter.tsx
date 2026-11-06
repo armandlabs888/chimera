@@ -15,8 +15,8 @@ export function LandingFooter() {
         <div>
           <BeamWordmark markWidth={26} markHeight={26} wordClassName="text-[26px]" tone="ink" />
           <p className="mt-4 max-w-[40ch] text-[15px] leading-[1.55] text-[#64748B]">
-            Peer-to-peer everyday local help in Austin, TX. Excludes licensed trades, childcare,
-            medical/senior care, and passenger driving.
+            Peer-to-peer everyday local help, right in your neighborhood. Excludes licensed trades,
+            childcare, medical/senior care, and passenger driving.
           </p>
         </div>
         <nav
@@ -31,7 +31,7 @@ export function LandingFooter() {
         </nav>
       </div>
       <div className="beam-container pb-10 text-[13px] text-[#94A3B8]">
-        © 2026 Beam · Austin, TX · Payments are arranged directly between neighbors.
+        © 2026 Beam · Payments are arranged directly between neighbors.
       </div>
     </footer>
   )

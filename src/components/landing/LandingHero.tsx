@@ -20,8 +20,8 @@ export function LandingHero() {
 
   const neighborhoodLabel =
     neighborhood === 'all'
-      ? 'Select Austin neighborhood'
-      : NEIGHBORHOODS.find((n) => n.id === neighborhood)?.name ?? 'Austin'
+      ? 'Select neighborhood'
+      : NEIGHBORHOODS.find((n) => n.id === neighborhood)?.name ?? 'Select neighborhood'
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
@@ -56,12 +56,12 @@ export function LandingHero() {
       <div className="beam-container relative z-20 flex flex-col items-center px-4 pb-8 pt-10 text-center sm:pb-10 sm:pt-14">
         <p className="animate-fade-up inline-flex items-center gap-2 text-[13px] font-medium text-white/95">
           <LaurelIcon />
-          <span>4.9★ Rated · Trusted across Austin neighborhoods</span>
+          <span>4.9★ Rated · Trusted across local neighborhoods</span>
           <LaurelIcon mirror />
         </p>
 
         <h1 className="landing-headline animate-fade-up mt-5 max-w-[16ch]">
-          Local help in Austin, made easy.
+          Local help, made easy.
         </h1>
 
         <p className="animate-fade-up-delay mt-5 max-w-[46ch] text-[17px] leading-[1.55] text-white/90 sm:text-[18px]">
@@ -140,7 +140,7 @@ export function LandingHero() {
                         setLocOpen(false)
                       }}
                     >
-                      All Austin
+                      All neighborhoods
                     </button>
                   </li>
                   {NEIGHBORHOODS.map((n) => (

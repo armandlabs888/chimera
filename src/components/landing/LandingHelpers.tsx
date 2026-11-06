@@ -57,7 +57,7 @@ export function LandingHelpers() {
             Meet local helpers
           </h2>
           <p className="mt-3 text-[16px] text-[#64748B]">
-            Friendly, reviewed Austin neighbors ready to lend a hand today.
+            Friendly, reviewed local neighbors ready to lend a hand today.
           </p>
         </div>
 
