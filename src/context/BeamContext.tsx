@@ -401,22 +401,13 @@ export function BeamProvider({
   )
 
   const signOut = useCallback(async () => {
-    // Freeze auth UI updates, clear the browser session (live), then hard-navigate
-    // through `/auth/signout` so server cookies are cleared and we land on a clean
-    // `/auth` — never left on the prior route in public chrome.
+    // Freeze auth UI updates, then hard-navigate immediately through `/auth/signout`.
+    // The server route clears Supabase cookies and 303s to a clean `/auth`.
+    // Do not await client.auth.signOut() first — that can clear authUser / re-render
+    // AuthGate on the prior protected route and flash a secondary auth UI before
+    // navigation finishes.
     signingOutRef.current = true
-    if (mode === 'live') {
-      try {
-        const client = createClient()
-        const { error } = await client.auth.signOut()
-        if (error) {
-          // Still continue to the server sign-out route so cookies + redirect happen.
-          setBackendError(error.message || 'Sign out failed')
-        }
-      } catch (err) {
-        setBackendError(err instanceof Error ? err.message : 'Sign out failed')
-      }
-    } else if (mode === 'demo') {
+    if (mode === 'demo') {
       setAuthUser(null)
       setState(null)
     }

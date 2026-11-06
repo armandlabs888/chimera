@@ -30,6 +30,11 @@ const SIGNOUT_CASES = [
     trigger: 'account-menu',
   },
   {
+    id: 'home',
+    path: '/home',
+    trigger: 'account-menu',
+  },
+  {
     id: 'you',
     path: '/you',
     trigger: 'you-button',
@@ -73,7 +78,7 @@ async function clickYouSignOut(page) {
   await btn.click()
 }
 
-async function assertLandedOnAuth(page, { priorPath }) {
+async function assertLandedOnAuth(page, { priorPath, viewport }) {
   await page.waitForURL((url) => {
     const u = typeof url === 'string' ? new URL(url) : url
     return u.pathname === '/auth' || u.pathname === '/auth/'
@@ -88,10 +93,28 @@ async function assertLandedOnAuth(page, { priorPath }) {
   const body = await page.locator('body').innerText()
   assert.match(body, /Welcome back/i)
   assert.match(body, /Sign in/i)
+  assert.match(body, /Continue with Google/i)
 
   // Must not still show signed-out stranded chrome for the prior marketplace page.
   assert.doesNotMatch(body, /Send an offer|Submit offer/i)
-  assert.doesNotMatch(url.pathname, /\/requests\/|\/browse|\/you/)
+  assert.doesNotMatch(url.pathname, /\/requests\/|\/browse|\/you|\/home/)
+
+  // Must land on the MAIN AuthExperience — never the removed AuthGate compact chrome
+  // (white top bar with Browse + Safety).
+  const gateHeader = await page.evaluate(() =>
+    [...document.querySelectorAll('header')].some((h) => {
+      const t = h.innerText || ''
+      return /Browse/i.test(t) && /Safety/i.test(t)
+    }),
+  )
+  assert.equal(gateHeader, false, 'must NOT show AuthGate Browse/Safety header after sign-out')
+
+  if (viewport?.width >= 1024) {
+    const aside = page.locator('aside').first()
+    await aside.waitFor({ state: 'visible', timeout: 10000 })
+    const box = await aside.boundingBox()
+    assert.ok(box && box.width > 200, 'desktop main auth aside showcase missing')
+  }
 
   // Give any bounce a moment — stay on /auth.
   await page.waitForTimeout(1500)
@@ -126,11 +149,11 @@ async function runCase(browser, viewport, testCase) {
       await clickYouSignOut(page)
     }
 
-    await assertLandedOnAuth(page, { priorPath: testCase.path })
+    await assertLandedOnAuth(page, { priorPath: testCase.path, viewport })
 
     const shotPath = join(ARTIFACT_DIR, `after-signout-${label}.png`)
     await page.screenshot({ path: shotPath, fullPage: true })
-    console.log(`ok sign-out ${label} → /auth (${shotPath})`)
+    console.log(`ok sign-out ${label} → main /auth (${shotPath})`)
   } finally {
     await context.close()
   }

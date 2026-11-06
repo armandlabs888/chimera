@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "test:smoke": "node scripts/smoke.mjs",
     "test:signout": "node scripts/signout-qa.mjs",
+    "test:main-auth": "node scripts/main-auth-qa.mjs",
     "test:live": "node --env-file=.env.local scripts/live-persistence.mjs"
   },
   "dependencies": {

@@ -149,6 +149,25 @@ function detectStrandedAuthLocal(pathname, searchParams) {
   return null
 }
 
+function isProtectedAppPathLocal(pathname) {
+  if (pathname === '/home' || pathname === '/post' || pathname === '/you') return true
+  if (pathname === '/messages' || pathname.startsWith('/messages/')) return true
+  if (pathname === '/onboarding/helper' || pathname.startsWith('/onboarding/helper/')) return true
+  return false
+}
+
+function guestAuthRedirectPathLocal(pathname, search = '') {
+  const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search)
+  if (pathname === '/onboarding') {
+    if (params.get('preview') === '1') return null
+    return '/auth?mode=signup&next=%2Fonboarding'
+  }
+  if (!isProtectedAppPathLocal(pathname)) return null
+  const q = params.toString()
+  const next = sanitizeNextLocal(q ? `${pathname}?${q}` : pathname)
+  return `/auth?next=${encodeURIComponent(next)}`
+}
+
 async function checkAuthMarkupAndRedirects() {
   assert.equal(sanitizeNextLocal('/browse'), '/browse')
   assert.equal(sanitizeNextLocal('//evil.example'), '/browse')
@@ -194,6 +213,27 @@ async function checkAuthMarkupAndRedirects() {
     'bare /auth?error stays on AuthExperience',
   )
   assert.equal(detectStrandedAuthLocal('/browse', new URLSearchParams('code=x')), null)
+
+  assert.equal(guestAuthRedirectPathLocal('/browse'), null)
+  assert.equal(guestAuthRedirectPathLocal('/safety'), null)
+  assert.equal(guestAuthRedirectPathLocal('/requests/abc'), null)
+  assert.equal(guestAuthRedirectPathLocal('/onboarding', 'preview=1'), null)
+  assert.equal(
+    guestAuthRedirectPathLocal('/onboarding'),
+    '/auth?mode=signup&next=%2Fonboarding',
+  )
+  assert.equal(guestAuthRedirectPathLocal('/post'), '/auth?next=%2Fpost')
+  assert.equal(guestAuthRedirectPathLocal('/home'), '/auth?next=%2Fhome')
+  assert.equal(guestAuthRedirectPathLocal('/you'), '/auth?next=%2Fyou')
+  assert.equal(guestAuthRedirectPathLocal('/messages'), '/auth?next=%2Fmessages')
+  assert.equal(
+    guestAuthRedirectPathLocal('/messages/thread-1'),
+    '/auth?next=%2Fmessages%2Fthread-1',
+  )
+  assert.equal(
+    guestAuthRedirectPathLocal('/onboarding/helper'),
+    '/auth?next=%2Fonboarding%2Fhelper',
+  )
 
   const { res, text } = await fetchText('/auth?mode=signup')
   assert.equal(res.status, 200, 'auth page status')
@@ -281,6 +321,44 @@ async function checkAuthMarkupAndRedirects() {
   )
   const signOutPostLoc = signOutPost.headers.get('location') || ''
   assert.match(signOutPostLoc, /\/auth\/?(\?|$)/, `POST signout → /auth, got ${signOutPostLoc}`)
+
+  // Live guests on protected routes must 302/307 to canonical /auth (not inline AuthGate).
+  // Demo / unconfigured leave these routes reachable without redirect.
+  const authProbe = await fetchText('/auth?mode=signin')
+  const liveConfigured =
+    authProbe.res.status === 200 &&
+    !/demo mode|needs configuration/i.test(authProbe.text)
+  if (liveConfigured) {
+    const protectedPaths = [
+      ['/post', /next=%2Fpost/],
+      ['/home', /next=%2Fhome/],
+      ['/you', /next=%2Fyou/],
+      ['/messages', /next=%2Fmessages/],
+      ['/onboarding/helper', /next=%2Fonboarding%2Fhelper/],
+      ['/onboarding', /mode=signup/],
+    ]
+    for (const [pathName, nextRe] of protectedPaths) {
+      const gate = await fetch(`${BASE_URL}${pathName}`, { redirect: 'manual' })
+      assert.ok(
+        [302, 303, 307, 308].includes(gate.status),
+        `live guest ${pathName} should redirect, got ${gate.status}`,
+      )
+      const loc = gate.headers.get('location') || ''
+      assert.match(loc, /\/auth/, `live guest ${pathName} → /auth, got ${loc}`)
+      assert.match(loc, nextRe, `live guest ${pathName} preserves next/mode: ${loc}`)
+      // Must not serve the secondary AuthGate compact chrome as HTML.
+      assert.doesNotMatch(loc, /Browse.*Safety/)
+      console.log(`ok live guest ${pathName} → ${loc}`)
+    }
+    // Public discovery stays open
+    for (const openPath of ['/browse', '/safety', '/onboarding?preview=1']) {
+      const openRes = await fetch(`${BASE_URL}${openPath}`, { redirect: 'manual' })
+      assert.equal(openRes.status, 200, `public ${openPath} stays 200, got ${openRes.status}`)
+      console.log(`ok public guest ${openPath} stays open`)
+    }
+  } else {
+    console.log('skip live guest protected redirects (demo / unconfigured)')
+  }
 
   console.log('ok auth markup + callback + Site-URL fallback redirects + signout')
 }
@@ -800,7 +878,7 @@ async function checkMarketplaceFlows() {
       )
     }
 
-    // Helper onboarding daylight (live guests may see auth gate instead of the form)
+    // Helper onboarding daylight (live guests redirect to canonical /auth)
     await page.goto(`${BASE_URL}/onboarding/helper`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body')
     await page
@@ -808,15 +886,32 @@ async function checkMarketplaceFlows() {
         () =>
           /helper|skills|Available now|Save helper|Continue with Google|Sign in|Create account|Welcome back|demo mode/i.test(
             document.body.innerText,
-          ),
+          ) || /\/auth/.test(location.pathname),
         null,
         { timeout: 15000 },
       )
       .catch(() => {})
+    const onboardUrl = new URL(page.url())
     const onboardText = await page.locator('body').innerText()
-    if (/Continue with Google|Sign in|Create account|Welcome back|demo mode|needs configuration/i.test(onboardText)
-      && !/Available now|Save helper/i.test(onboardText)) {
-      console.log('skip helper onboarding interactive (auth gated)')
+    if (
+      onboardUrl.pathname.replace(/\/$/, '') === '/auth' ||
+      (/Continue with Google|Sign in|Create account|Welcome back|demo mode|needs configuration/i.test(
+        onboardText,
+      ) &&
+        !/Available now|Save helper/i.test(onboardText))
+    ) {
+      console.log('skip helper onboarding interactive (auth gated → /auth)')
+      if (onboardUrl.pathname.replace(/\/$/, '') === '/auth') {
+        assert.match(onboardText, /Welcome back|Join Beam|Continue with Google|demo mode/i)
+        // Main AuthExperience — not the removed AuthGate compact header.
+        const gateHeader = await page.evaluate(() =>
+          [...document.querySelectorAll('header')].some((h) => {
+            const t = h.innerText || ''
+            return /Browse/i.test(t) && /Safety/i.test(t)
+          }),
+        )
+        assert.equal(gateHeader, false, 'no AuthGate Browse/Safety header on /auth')
+      }
     } else {
       assert.ok(await page.getByText(/helper|skills|Available now|Save helper/i).count() >= 1)
     }
@@ -827,20 +922,33 @@ async function checkMarketplaceFlows() {
     await page
       .waitForFunction(
         () =>
-          /Draft with AI|Describe what you need|Post request|Sign in|Create account|Continue with Google|Continue to Beam|demo mode/i.test(
+          /Draft with AI|Describe what you need|Post request|Sign in|Create account|Continue with Google|Continue to Beam|demo mode|Welcome back/i.test(
             document.body.innerText,
-          ),
+          ) || /\/auth/.test(location.pathname),
         null,
         { timeout: 15000 },
       )
       .catch(() => {})
+    const postUrl = new URL(page.url())
     const postBody = await page.locator('body').innerText()
     if (
+      postUrl.pathname.replace(/\/$/, '') === '/auth' ||
       (/Sign in|Create account|demo mode|Continue to Beam|Continue with Google|Welcome back/i.test(postBody) &&
         !/Draft with AI|Post request/i.test(postBody)) ||
       /^Beam$/m.test(postBody.trim())
     ) {
-      console.log('skip post composer interactive (auth gated)')
+      console.log('skip post composer interactive (auth gated → /auth)')
+      if (postUrl.pathname.replace(/\/$/, '') === '/auth') {
+        assert.match(postUrl.search, /next=%2Fpost|next=\/post/)
+        assert.match(postBody, /Welcome back|Continue with Google|demo mode/i)
+        const gateHeader = await page.evaluate(() =>
+          [...document.querySelectorAll('header')].some((h) => {
+            const t = h.innerText || ''
+            return /Browse/i.test(t) && /Safety/i.test(t)
+          }),
+        )
+        assert.equal(gateHeader, false, 'no AuthGate Browse/Safety header on /auth from /post')
+      }
     } else {
       assert.match(postBody, /Draft with AI|Describe what you need/i)
       assert.match(postBody, /Open to offers/i)
