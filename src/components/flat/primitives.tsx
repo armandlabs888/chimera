@@ -5,11 +5,11 @@ import { ArrowRight } from 'lucide-react'
 type Tone = 'base' | 'raised' | 'panel' | 'ink' | 'canvas'
 
 const toneClass: Record<Tone, string> = {
-  base: 'bg-white',
-  raised: 'bg-white',
-  panel: 'bg-beam-canvas',
-  ink: 'bg-beam-canvas',
-  canvas: 'bg-beam-canvas',
+  base: 'bg-[#0E0F12]',
+  raised: 'bg-[#16181D]',
+  panel: 'bg-[#1D2026]',
+  ink: 'bg-[#0E0F12]',
+  canvas: 'bg-[#0E0F12]',
 }
 
 export function MetaLabel({
@@ -19,10 +19,10 @@ export function MetaLabel({
   children: ReactNode
   className?: string
 }) {
-  return <p className={`flat-meta text-beam-muted ${className}`}>{children}</p>
+  return <p className={`flat-meta ${className}`}>{children}</p>
 }
 
-/** Raised white surface with elevation physics. */
+/** Elevated dark surface. */
 export function FlatSurface({
   tone = 'raised',
   className = '',
@@ -37,9 +37,7 @@ export function FlatSurface({
   bordered?: boolean
 }) {
   return (
-    <Tag
-      className={`${bordered ? 'elevated' : ''} ${toneClass[tone]} ${className}`}
-    >
+    <Tag className={`${bordered ? 'elevated' : ''} ${toneClass[tone]} ${className}`}>
       {children}
     </Tag>
   )
@@ -62,13 +60,15 @@ export function FlatRow({
     <Link
       href={href}
       className={`flat-row group flex min-h-11 items-center gap-3 rounded-[12px] px-3 py-2.5 transition ${
-        active ? 'bg-beam-amber-soft text-beam-amber-deep' : 'hover:bg-beam-surface-3'
+        active
+          ? 'bg-[rgba(221,163,82,0.14)] text-[#E7B567]'
+          : 'hover:bg-white/[0.04] text-[#F7F4EE]'
       } ${className}`}
     >
       <div className="min-w-0 flex-1">{children}</div>
       {arrow ? (
         <ArrowRight
-          className="h-4 w-4 shrink-0 text-beam-muted transition duration-150 group-hover:translate-x-0.5 group-hover:text-beam-amber"
+          className="h-4 w-4 shrink-0 text-[#7E7A73] transition duration-150 group-hover:translate-x-0.5 group-hover:text-[#DDA352]"
           aria-hidden
         />
       ) : null}
@@ -112,14 +112,14 @@ export function LandingSection({
   return (
     <section
       id={id}
-      className={`section ${toneClass[tone]} ${band ? 'section-band' : ''} ${className}`}
+      className={`section ${band ? 'section-band' : toneClass[tone]} ${className}`}
     >
       {children}
     </section>
   )
 }
 
-/** Recessed track + floating white active pill. */
+/** Dark track + amber-selected pill. */
 export function SegmentedControl({
   options,
   value,
@@ -133,7 +133,7 @@ export function SegmentedControl({
 }) {
   return (
     <div
-      className={`flex rounded-[12px] bg-[#eef0f4] p-1 shadow-[inset_0_1px_2px_rgba(15,23,42,0.06)] ${className}`}
+      className={`flex rounded-[12px] border border-white/[0.1] bg-[#121317] p-1 ${className}`}
       role="tablist"
     >
       {options.map((opt) => {
@@ -147,8 +147,8 @@ export function SegmentedControl({
             onClick={() => onChange(opt.id)}
             className={`btn-compact flex-1 rounded-[9px] px-3 text-[13px] font-semibold capitalize transition ${
               selected
-                ? 'bg-white text-beam-cream shadow-[0_1px_2px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.95)]'
-                : 'text-beam-muted hover:text-beam-cream'
+                ? 'bg-[#1D2026] text-[#FAF8F4] shadow-[inset_0_0_0_1px_rgba(221,163,82,0.35)]'
+                : 'text-[#A7A39C] hover:text-[#F7F4EE]'
             }`}
           >
             {opt.label}
@@ -174,8 +174,8 @@ export function FilterChip({
       onClick={onClick}
       className={`btn-compact shrink-0 rounded-full px-3.5 text-[13px] font-semibold transition ${
         active
-          ? 'bg-beam-charcoal text-white shadow-[0_1px_2px_rgba(15,23,42,0.14),inset_0_1px_0_rgba(255,255,255,0.12)]'
-          : 'bg-white text-beam-cream-dim shadow-[0_0_0_1px_rgba(15,23,42,0.08)] hover:text-beam-cream'
+          ? 'bg-[rgba(221,163,82,0.18)] text-[#E7B567] border border-[#DDA352]/40'
+          : 'border border-white/[0.12] bg-[#16181D] text-[#A7A39C] hover:text-[#F7F4EE] hover:border-white/[0.2]'
       }`}
     >
       {label}
@@ -184,9 +184,10 @@ export function FilterChip({
 }
 
 export function FlatDivider({ className = '' }: { className?: string }) {
-  return <hr className={`border-0 border-t border-black/[0.06] ${className}`} />
+  return <hr className={`border-0 border-t border-white/[0.08] ${className}`} />
 }
 
+/** Soft elevated preview frame — no macOS traffic lights. */
 export function AppWindow({
   url = 'yariapp.com',
   children,
@@ -199,14 +200,9 @@ export function AppWindow({
   toolbar?: ReactNode
 }) {
   return (
-    <div className={`window-chrome ${className}`}>
-      <div className="window-chrome-bar">
-        <div className="traffic-lights" aria-hidden>
-          <span />
-          <span />
-          <span />
-        </div>
-        <div className="window-url">{url}</div>
+    <div className={`elevated overflow-hidden ${className}`}>
+      <div className="flex items-center justify-between gap-3 border-b border-white/[0.08] bg-[#121317] px-3.5 py-2.5">
+        <p className="truncate type-meta text-[#7E7A73]">{url}</p>
         {toolbar}
       </div>
       {children}

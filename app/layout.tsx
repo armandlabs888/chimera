@@ -1,11 +1,18 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist } from 'next/font/google'
+import { Geist, Playfair_Display } from 'next/font/google'
 import type { ReactNode } from 'react'
 import './globals.css'
 
 const geist = Geist({
   subsets: ['latin'],
   variable: '--font-geist',
+  display: 'swap',
+})
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-serif',
   display: 'swap',
 })
 
@@ -32,10 +39,10 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/images/beam-hero-gig-work.jpg',
-        width: 1152,
-        height: 864,
-        alt: 'Neighbors helping with moving and light handyman work in a living room',
+        url: '/images/beam-hero-moving-bg.jpg',
+        width: 1810,
+        height: 1216,
+        alt: 'Neighbor carrying a moving box — Beam same-day help nearby',
       },
     ],
   },
@@ -43,7 +50,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title,
     description,
-    images: ['/images/beam-hero-gig-work.jpg'],
+    images: ['/images/beam-hero-moving-bg.jpg'],
   },
 }
 
@@ -51,12 +58,12 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#ffffff',
+  themeColor: '#0E0F12',
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={geist.variable}>
+    <html lang="en" className={`${geist.variable} ${playfair.variable}`}>
       <body className="font-body antialiased">{children}</body>
     </html>
   )

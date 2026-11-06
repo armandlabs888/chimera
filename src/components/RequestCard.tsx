@@ -66,7 +66,7 @@ export function RequestCard({
           </span>
           <span className="price-pill ml-auto">{formatMoney(request.budget)}</span>
         </div>
-        <div className="mt-2 flex items-center justify-between border-t border-black/[0.05] pt-2">
+        <div className="mt-2 flex items-center justify-between border-t border-white/[0.08] pt-2">
           <p className="type-meta text-beam-muted">Posted {relativeTime(request.createdAt)}</p>
           <span className="type-meta font-semibold text-beam-amber-deep opacity-0 transition group-hover:opacity-100">
             View

@@ -8,7 +8,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <Suspense
         fallback={
           <div className="flex min-h-dvh items-center justify-center bg-beam-base text-beam-cream">
-            <p className="text-[22px] font-semibold tracking-tight text-beam-charcoal">Beam</p>
+            <p className="text-[22px] font-semibold tracking-tight text-[#FAF8F4]">Beam</p>
           </div>
         }
       >
