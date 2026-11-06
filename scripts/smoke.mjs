@@ -1582,7 +1582,7 @@ async function checkMarketplaceFlows() {
       assert.ok(px > 0 && px <= 14, `browse card radius subtle (<=14px), got ${px}`)
     }
 
-    // Messages marketplace workspace — 3-pane shell, missing thread, subtle radii
+    // Messages marketplace workspace — 2-pane split, missing thread, subtle radii
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto(`${BASE_URL}/messages/missing-thread`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('[data-testid="messages-workspace"]', { timeout: 15000 })
@@ -1616,7 +1616,7 @@ async function checkMarketplaceFlows() {
       )
       const ir = inbox?.getBoundingClientRect()
       const cr = conversation?.getBoundingClientRect()
-      const rr = rail?.getBoundingClientRect()
+      const workspaceWidth = workspace.getBoundingClientRect().width
       return {
         radius,
         hasList: Boolean(list),
@@ -1624,16 +1624,17 @@ async function checkMarketplaceFlows() {
         hasRail: Boolean(rail),
         heroH1,
         rawOpenBadge,
-        threePane:
-          Boolean(ir && cr && rr) &&
-          ir.width > 200 &&
-          cr.width > 280 &&
-          rr.width > 200 &&
+        twoPane:
+          Boolean(ir && cr) &&
+          ir.width >= 280 &&
+          ir.width <= 380 &&
+          cr.width >= 600 &&
           Math.abs(ir.top - cr.top) < 8 &&
-          Math.abs(cr.top - rr.top) < 8 &&
           cr.left >= ir.right - 4 &&
-          rr.left >= cr.right - 4,
+          Math.abs(ir.width + cr.width - workspaceWidth) <= 6,
         inboxWidth: ir?.width ?? 0,
+        conversationWidth: cr?.width ?? 0,
+        workspaceWidth,
       }
     })
     assert.ok(messagesProbe, 'messages workspace mounted')
@@ -1641,11 +1642,11 @@ async function checkMarketplaceFlows() {
     assert.equal(messagesProbe.rawOpenBadge, false, 'no raw lowercase open badge in inbox')
     assert.ok(messagesProbe.hasList, 'inbox thread list present')
     assert.ok(messagesProbe.hasConversation, 'desktop auto-selects a conversation on /messages')
-    assert.ok(messagesProbe.hasRail, 'task rail present on xl')
-    assert.ok(messagesProbe.threePane, 'desktop messages is 3-pane marketplace workspace')
+    assert.equal(messagesProbe.hasRail, false, 'task rail removed — 2-column split only')
+    assert.ok(messagesProbe.twoPane, 'desktop messages is 2-pane inbox | conversation split')
     assert.ok(
-      messagesProbe.inboxWidth > 0 && messagesProbe.inboxWidth <= 380,
-      `inbox rail compact (<=380px, got ${messagesProbe.inboxWidth})`,
+      messagesProbe.inboxWidth >= 280 && messagesProbe.inboxWidth <= 380,
+      `inbox rail compact (280–380px, got ${messagesProbe.inboxWidth})`,
     )
     assert.ok(
       messagesProbe.radius > 0 && messagesProbe.radius <= 12,
@@ -1668,7 +1669,7 @@ async function checkMarketplaceFlows() {
       'no ALL-CAPS offer micro-labels',
     )
 
-    console.log('ok marketplace daylight + AI draft + geocode + onboarding + request-detail 2col + messages workspace')
+    console.log('ok marketplace daylight + AI draft + geocode + onboarding + request-detail 2col + messages 2-pane workspace')
   } finally {
     await browser.close()
   }

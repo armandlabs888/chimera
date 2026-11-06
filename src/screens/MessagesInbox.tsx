@@ -64,9 +64,9 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
           'shadow-[0_8px_24px_-14px_rgba(12,42,102,0.08)]',
           // Mobile thread route: lock height so composer sits above BottomNav
           hasExplicitThread ? 'flex h-[calc(100dvh-9.75rem)] min-h-[420px] flex-col' : '',
-          'md:grid md:h-[calc(100dvh-11.5rem)] md:min-h-[560px] md:max-h-[820px]',
-          'md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[336px_minmax(0,1fr)]',
-          'xl:grid-cols-[340px_minmax(0,1fr)_360px]',
+          'md:grid md:h-[calc(100dvh-10rem)] md:min-h-[560px] md:max-h-[840px]',
+          'md:grid-cols-[308px_minmax(0,1fr)] lg:grid-cols-[348px_minmax(0,1fr)]',
+          'xl:grid-cols-[364px_minmax(0,1fr)]',
         ].join(' ')}
       >
         <aside
@@ -76,14 +76,14 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
             hasExplicitThread ? 'hidden md:flex md:flex-col' : 'flex flex-col',
           ].join(' ')}
         >
-          <div className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-[#E2E8F0] px-4">
+          <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-[#E2E8F0] px-4">
             <div className="flex min-w-0 items-center gap-2.5">
-              <h1 className="font-display text-[20px] font-bold tracking-[-0.02em] text-[#071330]">
+              <h1 className="text-[18px] font-bold tracking-[-0.02em] text-[#071330]">
                 Messages
               </h1>
               {threads.length > 0 ? (
                 <span
-                  className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#F4F8FD] px-2 text-[12px] font-bold tabular-nums text-[#475569]"
+                  className="inline-flex items-center justify-center rounded-md bg-[#F1F5F9] px-2 py-0.5 text-[12px] font-semibold tabular-nums text-[#334155]"
                   data-testid="messages-count"
                 >
                   {threads.length}
@@ -92,7 +92,7 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
             </div>
             {threads.length > 1 ? (
               <div
-                className="flex shrink-0 items-center gap-1 rounded-lg bg-[#F4F8FD] p-0.5"
+                className="flex shrink-0 items-center gap-0.5 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-0.5"
                 role="tablist"
                 aria-label="Filter conversations"
               >
@@ -149,21 +149,21 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
                       <Link
                         href={`/messages/${thread.id}`}
                         data-testid={`messages-thread-row-${thread.id}`}
-                        className={`flex gap-3 px-4 py-3.5 transition hover:bg-[#F4F8FD] ${
-                          selected ? 'bg-[#EEF4FF]/70' : 'bg-white'
+                        className={`flex gap-3 px-4 py-3.5 transition ${
+                          selected ? 'bg-[#EFF6FF]/75' : 'bg-white hover:bg-[#F8FAFC]'
                         }`}
                       >
-                        <Avatar src={other?.avatar} name={other?.name ?? 'Neighbor'} size={42} />
+                        <Avatar src={other?.avatar} name={other?.name ?? 'Neighbor'} size={40} />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between gap-2">
-                            <p className="truncate text-[14.5px] font-semibold text-[#071330]">
+                            <p className="truncate text-[14px] font-semibold text-[#071330]">
                               {other?.name ?? 'Neighbor'}
                             </p>
                             <span className="shrink-0 text-[12px] tabular-nums text-[#94A3B8]">
                               {relativeTime(thread.lastMessageAt)}
                             </span>
                           </div>
-                          <p className="truncate text-[13px] font-medium text-[#475569]">
+                          <p className="truncate text-[12.5px] font-medium text-[#475569]">
                             {request?.title ?? 'Request'}
                           </p>
                           <div className="mt-1 flex items-center gap-2">
@@ -199,7 +199,6 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
             className={[
               'min-h-[50vh] items-center justify-center bg-[#FAFBFD] p-8',
               hasExplicitThread ? 'flex' : 'hidden md:flex',
-              'xl:col-span-2',
             ].join(' ')}
           >
             <EmptyState
