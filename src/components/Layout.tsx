@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  ArrowRight,
   Bell,
   Compass,
   Home,
@@ -153,14 +154,51 @@ export function AppShell({ children }: { children: ReactNode }) {
   const locationText = ready ? formatLocationLabel(currentUser) : '…'
   const showPostCta = pathname !== '/post' && !pathname.startsWith('/post/')
   const canSignOut = Boolean(authUser)
+  const showHelperSetupBanner =
+    ready &&
+    !isLiveGuest &&
+    currentUser.accountRole === 'helper' &&
+    !currentUser.isHelper &&
+    !pathname.startsWith('/onboarding/helper')
 
   return (
     <div className="app-shell relative min-h-dvh bg-[#F4F8FD] text-[#071330]">
-      <header
-        className="sticky top-0 z-40 border-b border-[rgba(7,19,48,0.08)] bg-white/95 backdrop-blur-md"
-        data-testid="app-topnav"
-      >
-        <div className="beam-container flex h-16 items-center gap-3 sm:h-[4.25rem]">
+      <div className="sticky top-0 z-40">
+        {showHelperSetupBanner ? (
+          <div
+            className="bg-[#1D5CE5] text-white"
+            data-testid="helper-setup-callout"
+            role="region"
+            aria-label="Finish your helper profile"
+          >
+            <div className="beam-container flex flex-col gap-2.5 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+              <p className="min-w-0 text-[13.5px] leading-[1.4]">
+                <span className="font-semibold text-white">Finish your helper profile</span>
+                <span className="hidden text-white/70 sm:inline" aria-hidden>
+                  {' '}
+                  ·{' '}
+                </span>
+                <span className="mt-0.5 block text-white/90 sm:mt-0 sm:inline">
+                  Add your skills and rate whenever you’re ready to appear in the Helpers directory.
+                </span>
+              </p>
+              <Link
+                href="/onboarding/helper"
+                data-testid="helper-setup-banner-cta"
+                className="inline-flex h-8 w-fit shrink-0 items-center gap-1.5 rounded-full bg-white px-3.5 text-[13px] font-semibold text-[#1D5CE5] transition hover:bg-[#EEF4FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+              >
+                Add skills &amp; rate
+                <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
+              </Link>
+            </div>
+          </div>
+        ) : null}
+
+        <header
+          className="border-b border-[rgba(7,19,48,0.08)] bg-white/95 backdrop-blur-md"
+          data-testid="app-topnav"
+        >
+          <div className="beam-container flex h-16 items-center gap-3 sm:h-[4.25rem]">
           {/* Left: wordmark + location */}
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <Link href="/browse" className="shrink-0 focus-visible:outline-none">
@@ -387,7 +425,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           </div>
         </div>
-      </header>
+        </header>
+      </div>
 
       <main className="beam-container relative flex-1 pb-24 pt-6 sm:pt-8 md:pb-10">
         {children}

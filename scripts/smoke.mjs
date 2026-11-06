@@ -920,13 +920,56 @@ async function checkOnboardingFlow() {
     await page.waitForURL(/\/browse/, { timeout: 15000 })
     assert.match(page.url(), /\/browse/)
 
+    // Helper role + incomplete helper profile → sticky top banner above app-topnav.
+    await page.waitForSelector('[data-testid="helper-setup-callout"]', { timeout: 15000 })
+    await page.waitForSelector('[data-testid="app-topnav"]')
+    const bannerGeometry = await page.evaluate(() => {
+      const banner = document.querySelector('[data-testid="helper-setup-callout"]')
+      const nav = document.querySelector('[data-testid="app-topnav"]')
+      if (!banner || !nav) return null
+      const bannerBox = banner.getBoundingClientRect()
+      const navBox = nav.getBoundingClientRect()
+      return {
+        bannerY: bannerBox.y,
+        bannerBottom: bannerBox.y + bannerBox.height,
+        navY: navBox.y,
+        ctaCount: document.querySelectorAll('[data-testid="helper-setup-banner-cta"]').length,
+      }
+    })
+    assert.ok(bannerGeometry, 'helper setup banner + topnav present on /browse')
+    assert.ok(
+      bannerGeometry.bannerY < bannerGeometry.navY,
+      `banner must sit above topnav (banner.y=${bannerGeometry.bannerY}, nav.y=${bannerGeometry.navY})`,
+    )
+    assert.ok(
+      bannerGeometry.bannerBottom <= bannerGeometry.navY + 1,
+      `banner bottom must meet topnav top (bannerBottom=${bannerGeometry.bannerBottom}, nav.y=${bannerGeometry.navY})`,
+    )
+    assert.equal(bannerGeometry.ctaCount, 1, 'helper-setup-banner-cta present')
+
+    await page.getByTestId('helper-setup-banner-cta').click()
+    await page.waitForURL(/\/onboarding\/helper/, { timeout: 15000 })
+    assert.match(page.url(), /\/onboarding\/helper/)
+    await page.waitForSelector('[data-testid="app-topnav"]', { timeout: 15000 })
+    assert.equal(
+      await page.locator('[data-testid="helper-setup-callout"]').count(),
+      0,
+      'banner hidden on /onboarding/helper',
+    )
+
+    // Return to /browse — banner still visible until helper setup is completed.
+    await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('[data-testid="helper-setup-callout"]', { timeout: 15000 })
+
     // ?edit=1 keeps returning users on /onboarding (no redirect away).
     await page.goto(`${BASE_URL}/onboarding?preview=1&edit=1`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('[data-testid="onboarding-root"]', { timeout: 15000 })
     assert.ok(await page.getByTestId('onboarding-step-1').count() >= 1, 'edit=1 shows step 1')
     assert.match(page.url(), /edit=1/)
 
-    console.log('ok onboarding Step1 validation+city commit + Step2 + edit=1 + Agree→/browse')
+    console.log(
+      'ok onboarding Step1 validation+city commit + Step2 + helper top banner + edit=1 + Agree→/browse',
+    )
   } finally {
     await browser.close()
   }

@@ -508,6 +508,8 @@ export function BeamProvider({
       }
 
       // Demo / preview: persist locally and continue to browse.
+      // Mirror live defaults: main onboarding never lists you as a helper —
+      // /onboarding/helper sets isHelper after skills & rate are saved.
       withState(setState, (prev) => ({
         ...prev,
         people: prev.people.map((p) =>
@@ -521,6 +523,7 @@ export function BeamProvider({
                 onboardingCompletedAt: p.onboardingCompletedAt ?? now,
                 safetyDisclaimerAcceptedAt: now,
                 safetyDisclaimerVersion: safetyVersion,
+                isHelper: false,
                 isCurrentUser: true,
               }
             : p,

@@ -11,7 +11,6 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react'
-import Link from 'next/link'
 import {
   useEffect,
   useMemo,
@@ -428,9 +427,6 @@ export function Browse() {
   const guestMiddleOptionIds = tab === 'people' ? availOptionIds : whenOptionIds
   const guestMiddleSelect = tab === 'people' ? setAvail : setWhen
 
-  const showHelperSetupCallout =
-    !isGuest && currentUser.accountRole === 'helper' && !currentUser.isHelper
-
   const showFreshMarketplace =
     tab === 'requests' && !hasActiveFilters && openRequests.length === 0
   const showFilteredRequestsEmpty =
@@ -439,28 +435,6 @@ export function Browse() {
 
   return (
     <div className="py-1 sm:py-0">
-      {showHelperSetupCallout ? (
-        <div
-          className="mb-5 rounded-[20px] border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4 shadow-[0_10px_28px_-18px_rgba(12,42,102,0.18)] sm:px-5"
-          data-testid="helper-setup-callout"
-        >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-[15px] font-bold text-[#071330]">Finish your helper profile</p>
-              <p className="mt-1 text-[14px] leading-[1.5] text-[#64748B]">
-                Add your skills and rate whenever you’re ready to appear in the Helpers directory.
-              </p>
-            </div>
-            <Link
-              href="/onboarding/helper"
-              className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD]"
-            >
-              Add skills &amp; rate
-            </Link>
-          </div>
-        </div>
-      ) : null}
-
       {/* Editorial marketplace header */}
       <div className="mb-6 flex flex-col gap-5 lg:mb-8 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
