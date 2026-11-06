@@ -151,7 +151,7 @@ export function HelperOnboarding() {
   }
 
   return (
-    <div className="px-4 py-6 sm:py-10">
+    <div className="py-2 sm:py-4">
       <div className="mx-auto max-w-xl">
         <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-[#1D5CE5]">
           Helper setup

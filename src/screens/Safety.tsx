@@ -64,7 +64,7 @@ export function Safety() {
   const publicChrome = mode === 'live' && !authUser
 
   const body = (
-    <div className={publicChrome ? 'beam-container py-16' : 'px-4 py-8 sm:py-10'}>
+    <div className={publicChrome ? 'beam-container py-16' : 'py-2 sm:py-4'}>
       <h1 className="font-display text-[clamp(2.5rem,5vw,3.5rem)] font-bold leading-[1.05] tracking-[-0.03em] text-[#071330]">
         Safety on Beam
       </h1>

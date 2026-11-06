@@ -27,8 +27,8 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
   }, [state.threads, state.messages, currentUser.id, getPerson, getRequest])
 
   return (
-    <div className="px-0 py-0 md:px-4 md:py-6">
-      <div className="hidden px-4 pt-6 md:block md:px-0 md:pt-0">
+    <div className="px-0 py-0 md:py-2">
+      <div className="hidden pt-2 md:block md:pt-0">
         <SectionHeader
           title="Messages"
           subtitle="Conversations stay scoped to accepted requests."

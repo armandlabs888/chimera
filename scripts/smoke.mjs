@@ -421,7 +421,11 @@ async function checkLandingBrowser() {
     assert.doesNotMatch(browseBody, /across Austin neighborhoods/i)
     assert.doesNotMatch(browseBody, /\bfree=1\b|\bq:\s/)
     const browseChrome = await page.evaluate(() => ({
-      sidebar: !!document.querySelector('[data-testid="app-sidebar"]'),
+      sidebar: document.querySelectorAll('[data-testid="app-sidebar"]').length,
+      asideRail: [...document.querySelectorAll('aside')].filter((el) =>
+        el.className?.includes?.('app-sidebar'),
+      ).length,
+      topnav: !!document.querySelector('[data-testid="app-topnav"]'),
       guest: /\bGuest\b/.test(document.body.innerText),
       landingNav: !!document.querySelector('[data-testid="landing-nav"]'),
       commandSearch: !!document.querySelector('#app-command-search'),
@@ -441,8 +445,10 @@ async function checkLandingBrowser() {
         ),
       ).length,
     }))
+    assert.equal(browseChrome.sidebar, 0, 'browse has zero app-sidebar')
+    assert.equal(browseChrome.asideRail, 0, 'browse has zero sidebar rail')
     if (browseChrome.landingNav) {
-      assert.equal(browseChrome.sidebar, false, 'guest browse has no app sidebar')
+      assert.equal(browseChrome.topnav, false, 'guest browse uses landing nav, not app topnav')
       assert.equal(browseChrome.guest, false, 'guest browse has no Guest label')
       assert.equal(browseChrome.commandSearch, false, 'guest browse has no command search')
       assert.ok(browseChrome.browseSearch <= 1, `guest browse search count ${browseChrome.browseSearch}`)
@@ -451,6 +457,16 @@ async function checkLandingBrowser() {
       assert.match(browseChrome.sortDefault, /Newest first/i, 'guest default sort is Newest first')
       assert.equal(browseChrome.nativeSelects, 0, 'browse has no native select')
       assert.equal(browseChrome.neighborhoodChipButtons, 0, 'no Austin neighborhood chip wall')
+    } else if (browseChrome.topnav) {
+      assert.equal(browseChrome.commandSearch, false, 'signed-in topnav has no command search')
+      assert.ok(
+        (await page.locator('[data-testid="account-menu-trigger"]').count()) >= 1,
+        'signed-in topnav has account menu',
+      )
+      assert.ok(
+        (await page.locator('[data-testid="notifications-bell"]').count()) >= 1,
+        'signed-in topnav has notifications',
+      )
     }
 
     await page.goto(`${BASE_URL}/safety`, { waitUntil: 'domcontentloaded' })

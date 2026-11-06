@@ -105,8 +105,9 @@ function milesTo(entity: { lat?: number | null; lng?: number | null; neighborhoo
 }
 
 export function Browse() {
-  const { state, currentUser, authUser } = useBeam()
-  const isGuest = !authUser
+  const { state, currentUser, authUser, mode } = useBeam()
+  // Demo uses the seed user chrome; only live signed-out visitors are guests.
+  const isGuest = mode === 'live' && !authUser
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -266,8 +267,6 @@ export function Browse() {
       ).length,
     [state.people, currentUser.id],
   )
-
-  const marketplaceEmpty = state.requests.length === 0
 
   function setTab(next: string) {
     const nextParams = new URLSearchParams(params.toString())
@@ -432,8 +431,14 @@ export function Browse() {
   const showHelperSetupCallout =
     !isGuest && currentUser.accountRole === 'helper' && !currentUser.isHelper
 
+  const showFreshMarketplace =
+    tab === 'requests' && !hasActiveFilters && openRequests.length === 0
+  const showFilteredRequestsEmpty =
+    tab === 'requests' && hasActiveFilters && openRequests.length === 0
+  const showHelpersEmpty = tab === 'people' && people.length === 0
+
   return (
-    <div className={isGuest ? 'py-1 sm:py-0' : 'px-4 py-5 sm:py-6'}>
+    <div className="py-1 sm:py-0">
       {showHelperSetupCallout ? (
         <div
           className="mb-5 rounded-[20px] border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4 shadow-[0_10px_28px_-18px_rgba(12,42,102,0.18)] sm:px-5"
@@ -472,59 +477,51 @@ export function Browse() {
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div
-            className="inline-flex rounded-full border border-[rgba(7,19,48,0.1)] bg-white p-1 shadow-[0_8px_20px_-12px_rgba(12,42,102,0.12)]"
-            role="tablist"
-            aria-label="Browse mode"
+        <div
+          className="inline-flex self-start rounded-full border border-[rgba(7,19,48,0.1)] bg-white p-1 shadow-[0_8px_20px_-12px_rgba(12,42,102,0.12)] lg:self-auto"
+          role="tablist"
+          aria-label="Browse mode"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'requests'}
+            onClick={() => setTab('requests')}
+            className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition sm:px-4 ${
+              tab === 'requests'
+                ? 'bg-[#1D5CE5] text-white shadow-sm'
+                : 'text-[#64748B] hover:text-[#071330]'
+            }`}
           >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'requests'}
-              onClick={() => setTab('requests')}
-              className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition sm:px-4 ${
-                tab === 'requests'
-                  ? 'bg-[#1D5CE5] text-white shadow-sm'
-                  : 'text-[#64748B] hover:text-[#071330]'
+            Open requests
+            <span
+              className={`inline-flex min-w-[1.5rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
+                tab === 'requests' ? 'bg-white/20 text-white' : 'bg-[#F4F8FD] text-[#475569]'
               }`}
             >
-              Open requests
-              <span
-                className={`inline-flex min-w-[1.5rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
-                  tab === 'requests' ? 'bg-white/20 text-white' : 'bg-[#F4F8FD] text-[#475569]'
-                }`}
-              >
-                {openRequestCount}
-              </span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'people'}
-              onClick={() => setTab('people')}
-              className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition sm:px-4 ${
-                tab === 'people'
-                  ? 'bg-[#1D5CE5] text-white shadow-sm'
-                  : 'text-[#64748B] hover:text-[#071330]'
+              {openRequestCount}
+            </span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'people'}
+            onClick={() => setTab('people')}
+            className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition sm:px-4 ${
+              tab === 'people'
+                ? 'bg-[#1D5CE5] text-white shadow-sm'
+                : 'text-[#64748B] hover:text-[#071330]'
+            }`}
+          >
+            Local helpers
+            <span
+              className={`inline-flex min-w-[1.5rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
+                tab === 'people' ? 'bg-white/20 text-white' : 'bg-[#F4F8FD] text-[#475569]'
               }`}
             >
-              Local helpers
-              <span
-                className={`inline-flex min-w-[1.5rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
-                  tab === 'people' ? 'bg-white/20 text-white' : 'bg-[#F4F8FD] text-[#475569]'
-                }`}
-              >
-                {helperCount}
-              </span>
-            </button>
-          </div>
-          <Link
-            href="/post"
-            className="inline-flex h-10 items-center justify-center rounded-full border border-[#1D5CE5]/30 px-4 text-[13.5px] font-semibold text-[#1D5CE5] transition hover:bg-[#EEF4FF]"
-          >
-            Post a task
-          </Link>
+              {helperCount}
+            </span>
+          </button>
         </div>
       </div>
 
@@ -841,8 +838,11 @@ export function Browse() {
         <div className="mb-5" />
       )}
 
-      {marketplaceEmpty ? (
-        <div className="rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white px-6 py-14 text-center shadow-[0_12px_32px_-16px_rgba(12,42,102,0.1)] sm:px-10">
+      {showFreshMarketplace ? (
+        <div
+          className="rounded-[28px] border border-[rgba(7,19,48,0.08)] bg-white px-6 py-14 text-center shadow-[0_12px_32px_-16px_rgba(12,42,102,0.1)] sm:px-10"
+          data-testid="browse-fresh-empty"
+        >
           <span className="inline-flex items-center rounded-full border border-[rgba(7,19,48,0.1)] bg-[#FFF8D6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#071330]">
             Fresh marketplace
           </span>
@@ -862,36 +862,59 @@ export function Browse() {
             </ButtonLink>
           </div>
         </div>
+      ) : showFilteredRequestsEmpty ? (
+        <EmptyState
+          title="No open requests match"
+          body="Try clearing filters or post a request for your neighborhood."
+          action={
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex h-10 items-center justify-center rounded-full bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD]"
+              data-testid="browse-reset-filters"
+            >
+              Reset filters
+            </button>
+          }
+        />
       ) : tab === 'requests' ? (
-        openRequests.length ? (
-          <div className="grid auto-rows-fr gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-            {openRequests.map((request) => (
-              <RequestCard key={request.id} request={request} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            title="No open requests match"
-            body="Try clearing filters or post a request for your neighborhood."
-            action={
-              <ButtonLink href="/post" variant="brand">
-                Post a request
-              </ButtonLink>
-            }
-          />
-        )
+        <div className="grid auto-rows-fr gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+          {openRequests.map((request) => (
+            <RequestCard key={request.id} request={request} />
+          ))}
+        </div>
       ) : people.length ? (
         <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {people.map((person) => (
             <PersonCard key={person.id} person={person} />
           ))}
         </div>
-      ) : (
+      ) : showHelpersEmpty ? (
         <EmptyState
-          title="No local helpers match"
-          body="Widen category or availability filters, or turn off the availability chip."
+          title={hasActiveFilters ? 'No local helpers match' : 'No helpers nearby yet'}
+          body={
+            hasActiveFilters
+              ? 'Widen category or availability filters, or reset to see everyone nearby.'
+              : 'Be the first neighbor to set up a helper profile and start earning.'
+          }
+          action={
+            hasActiveFilters ? (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="inline-flex h-10 items-center justify-center rounded-full bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD]"
+                data-testid="browse-reset-filters"
+              >
+                Reset filters
+              </button>
+            ) : (
+              <ButtonLink href="/onboarding/helper" variant="brand">
+                Become a helper
+              </ButtonLink>
+            )
+          }
         />
-      )}
+      ) : null}
     </div>
   )
 }
