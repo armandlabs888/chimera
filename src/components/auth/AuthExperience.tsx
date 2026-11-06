@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useMemo, useState, type FormEvent } from 'react'
-import { Zap } from 'lucide-react'
+import { BeamWordmark } from '@/components/BeamMark'
 import { useBeam } from '@/context/BeamContext'
 import { Button, Field, TextInput } from '@/components/ui'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
@@ -54,13 +54,16 @@ export function AuthExperience({
   const [resendPending, setResendPending] = useState(false)
   const [info, setInfo] = useState('')
 
-  const switchTab = useCallback((next: AuthMode) => {
-    setTab(next)
-    setLocalError('')
-    setInfo('')
-    setConfirmSent(false)
-    clearBackendError()
-  }, [clearBackendError])
+  const switchTab = useCallback(
+    (next: AuthMode) => {
+      setTab(next)
+      setLocalError('')
+      setInfo('')
+      setConfirmSent(false)
+      clearBackendError()
+    },
+    [clearBackendError],
+  )
 
   const oauthRedirectTo =
     typeof window !== 'undefined'
@@ -129,14 +132,13 @@ export function AuthExperience({
 
   const alertError = localError || (backendError ? friendlyAuthError(backendError) : '')
 
-  // Demo / unconfigured: offer a clear path forward without fake OAuth.
   if (mode === 'demo') {
     return (
       <Shell compact={compact}>
         <Card>
           <BrandLink />
-          <h1 className="mt-5 type-h2 text-beam-charcoal">You’re in demo mode</h1>
-          <p className="mt-2 type-sec text-beam-muted">
+          <h1 className="mt-5 font-serif type-h2 text-[#FAF8F4]">You’re in demo mode</h1>
+          <p className="mt-2 type-sec text-[#A7A39C]">
             Local demo skips live sign-in. Continue into Beam with the Austin seed data in this
             browser only.
           </p>
@@ -153,10 +155,10 @@ export function AuthExperience({
       <Shell compact={compact}>
         <Card>
           <BrandLink />
-          <h1 className="mt-5 type-h2 text-beam-charcoal">Beam needs configuration</h1>
-          <p className="mt-2 type-sec text-beam-muted">
+          <h1 className="mt-5 font-serif type-h2 text-[#FAF8F4]">Beam needs configuration</h1>
+          <p className="mt-2 type-sec text-[#A7A39C]">
             Set Supabase env vars for live auth, or enable demo mode with{' '}
-            <code className="text-[13px]">NEXT_PUBLIC_BEAM_DEMO_MODE=1</code>.
+            <code className="text-[13px] text-[#E7B567]">NEXT_PUBLIC_BEAM_DEMO_MODE=1</code>.
           </p>
           <ButtonLinkSafe href="/" className="mt-6 w-full" variant="secondary">
             Back to home
@@ -171,14 +173,12 @@ export function AuthExperience({
       <Shell compact={compact}>
         <Card>
           <BrandLink />
-          <h1 className="mt-5 type-h2 text-beam-charcoal">Check your inbox</h1>
-          <div className="mt-4 rounded-[10px] border border-amber-200 bg-amber-50 px-3.5 py-3 text-[14px] leading-5 text-amber-950">
-            We sent a confirmation link to <strong>{email}</strong>. Confirm your email, then sign
-            in to continue.
+          <h1 className="mt-5 font-serif type-h2 text-[#FAF8F4]">Check your inbox</h1>
+          <div className="mt-4 rounded-[10px] border border-[#DDA352]/30 bg-[rgba(221,163,82,0.12)] px-3.5 py-3 text-[14px] leading-5 text-[#E7B567]">
+            We sent a confirmation link to <strong className="text-[#FAF8F4]">{email}</strong>. Confirm
+            your email, then sign in to continue.
           </div>
-          {info ? (
-            <p className="mt-3 type-sec text-beam-muted">{info}</p>
-          ) : null}
+          {info ? <p className="mt-3 type-sec text-[#A7A39C]">{info}</p> : null}
           {alertError ? <ErrorBanner message={alertError} /> : null}
           <div className="mt-6 flex flex-col gap-2.5">
             <Button type="button" onClick={onResend} disabled={resendPending} className="w-full">
@@ -206,10 +206,10 @@ export function AuthExperience({
     <Shell compact={compact}>
       <Card>
         <BrandLink />
-        <h1 className="mt-5 type-h2 text-beam-charcoal">
+        <h1 className="mt-5 font-serif type-h2 text-[#FAF8F4]">
           {tab === 'signin' ? 'Welcome back' : 'Create your Beam account'}
         </h1>
-        <p className="mt-2 type-sec text-beam-muted">
+        <p className="mt-2 type-sec text-[#A7A39C]">
           {tab === 'signin'
             ? 'Sign in to post requests, send offers, and message neighbors nearby.'
             : 'Join Beam to post practical jobs or help neighbors around Austin.'}
@@ -219,19 +219,22 @@ export function AuthExperience({
           type="button"
           onClick={onGoogle}
           disabled={pending || googlePending}
-          className="touch-target mt-6 inline-flex w-full items-center justify-center gap-2.5 rounded-[10px] border border-beam-line bg-white px-4 text-[15px] font-medium text-beam-cream transition hover:border-beam-cream/30 disabled:opacity-50"
+          className="touch-target mt-6 inline-flex w-full items-center justify-center gap-2.5 rounded-[12px] border border-white/[0.14] bg-[#131416]/90 px-4 text-[15px] font-medium text-[#F7F4EE] transition hover:border-white/[0.24] hover:bg-white/[0.06] disabled:opacity-50"
         >
           <GoogleMark />
           {googlePending ? 'Redirecting…' : 'Continue with Google'}
         </button>
 
         <div className="my-5 flex items-center gap-3" aria-hidden>
-          <span className="h-px flex-1 bg-beam-line" />
-          <span className="type-meta text-beam-muted">or continue with email</span>
-          <span className="h-px flex-1 bg-beam-line" />
+          <span className="h-px flex-1 bg-white/[0.1]" />
+          <span className="type-meta text-[#7E7A73]">or continue with email</span>
+          <span className="h-px flex-1 bg-white/[0.1]" />
         </div>
 
-        <div className="flex rounded-[10px] border border-beam-line bg-beam-ink p-0.5" role="tablist">
+        <div
+          className="flex rounded-[12px] border border-white/[0.1] bg-[#121317] p-0.5"
+          role="tablist"
+        >
           {(['signin', 'signup'] as const).map((t) => (
             <button
               key={t}
@@ -239,10 +242,10 @@ export function AuthExperience({
               role="tab"
               aria-selected={tab === t}
               onClick={() => switchTab(t)}
-              className={`btn-compact flex-1 rounded-[8px] px-3 text-[13px] font-medium ${
+              className={`btn-compact flex-1 rounded-[9px] px-3 text-[13px] font-medium transition ${
                 tab === t
-                  ? 'bg-beam-base text-beam-cream shadow-sm'
-                  : 'text-beam-muted hover:text-beam-cream'
+                  ? 'bg-[#1D2026] text-[#FAF8F4] shadow-[inset_0_0_0_1px_rgba(221,163,82,0.35)]'
+                  : 'text-[#A7A39C] hover:text-[#F7F4EE]'
               }`}
             >
               {t === 'signin' ? 'Sign in' : 'Create account'}
@@ -265,7 +268,7 @@ export function AuthExperience({
               </Field>
               <Field label="Austin neighborhood">
                 <select
-                  className="touch-target w-full rounded-[10px] border border-beam-line bg-beam-base px-3 text-[15px] text-beam-cream outline-none focus:border-beam-amber"
+                  className="touch-target w-full rounded-[12px] border border-white/[0.12] bg-[#212225]/90 px-3 text-[15px] text-[#F5F2EC] outline-none focus:border-[#DDA352]/65"
                   value={neighborhood}
                   onChange={(e) => setNeighborhood(e.target.value as NeighborhoodId)}
                   required
@@ -303,7 +306,7 @@ export function AuthExperience({
               />
               <button
                 type="button"
-                className="btn-compact absolute right-1.5 top-1/2 -translate-y-1/2 rounded-[8px] px-2.5 text-[13px] font-medium text-beam-muted hover:text-beam-cream"
+                className="btn-compact absolute right-1.5 top-1/2 -translate-y-1/2 rounded-[8px] px-2.5 text-[13px] font-medium text-[#A7A39C] hover:text-[#F7F4EE]"
                 onClick={() => setShowPassword((v) => !v)}
                 aria-pressed={showPassword}
               >
@@ -314,7 +317,7 @@ export function AuthExperience({
 
           {alertError ? <ErrorBanner message={alertError} /> : null}
           {info ? (
-            <div className="rounded-[10px] border border-emerald-200 bg-emerald-50 px-3.5 py-3 text-[14px] leading-5 text-emerald-950">
+            <div className="rounded-[10px] border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-3 text-[14px] leading-5 text-emerald-300">
               {info}
             </div>
           ) : null}
@@ -324,13 +327,13 @@ export function AuthExperience({
           </Button>
         </form>
 
-        <p className="mt-5 text-center type-sec text-beam-muted">
+        <p className="mt-5 text-center type-sec text-[#A7A39C]">
           {tab === 'signin' ? (
             <>
               New to Beam?{' '}
               <button
                 type="button"
-                className="font-medium text-beam-cream underline-offset-2 hover:underline"
+                className="font-medium text-[#DDA352] underline-offset-2 hover:underline"
                 onClick={() => switchTab('signup')}
               >
                 Create an account
@@ -341,7 +344,7 @@ export function AuthExperience({
               Already have an account?{' '}
               <button
                 type="button"
-                className="font-medium text-beam-cream underline-offset-2 hover:underline"
+                className="font-medium text-[#DDA352] underline-offset-2 hover:underline"
                 onClick={() => switchTab('signin')}
               >
                 Sign in
@@ -357,7 +360,7 @@ export function AuthExperience({
 
 function Shell({ children, compact }: { children: React.ReactNode; compact?: boolean }) {
   return (
-    <div className="min-h-dvh canvas-dotfield text-beam-cream">
+    <div className="min-h-dvh bg-[#0E0F12] text-[#F7F4EE]">
       <div
         className={`mx-auto grid min-h-dvh max-w-[72rem] items-center gap-8 px-4 py-10 sm:px-6 ${
           compact ? 'max-w-md' : 'lg:grid-cols-2 lg:gap-12'
@@ -371,7 +374,7 @@ function Shell({ children, compact }: { children: React.ReactNode; compact?: boo
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="elevated-md w-full max-w-md justify-self-center bg-white/95 p-6 backdrop-blur-sm sm:p-8 lg:justify-self-end">
+    <div className="elevated-md w-full max-w-md justify-self-center p-6 sm:p-8 lg:justify-self-end">
       {children}
     </div>
   )
@@ -379,12 +382,9 @@ function Card({ children }: { children: React.ReactNode }) {
 
 function BrandLink() {
   return (
-    <Link href="/" className="inline-flex items-center gap-2 text-beam-charcoal">
-      <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-beam-amber/15 text-beam-amber">
-        <Zap className="h-4 w-4" fill="currentColor" aria-hidden />
-      </span>
-      <span className="text-[17px] font-semibold tracking-tight">Beam</span>
-      <span className="ml-1 type-meta text-beam-muted">Back to home</span>
+    <Link href="/" className="inline-flex items-center gap-3">
+      <BeamWordmark markSize={28} />
+      <span className="type-meta text-[#7E7A73]">Back to home</span>
     </Link>
   )
 }
@@ -392,28 +392,21 @@ function BrandLink() {
 function AsidePanel() {
   return (
     <aside className="hidden max-w-md justify-self-start lg:block">
-      <div className="window-chrome">
-        <div className="window-chrome-bar">
-          <div className="traffic-lights" aria-hidden>
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="window-url">yariapp.com · Example</div>
-        </div>
+      <div className="elevated overflow-hidden">
         <Image
-          src="/images/beam-hero-gig-work.jpg"
-          alt="Neighbors helping with a bookshelf and boxed armchair in a sunlit living room"
-          width={1152}
-          height={864}
+          src="/images/beam-hero-moving-bg.jpg"
+          alt="Neighbor carrying a moving box through a warmly lit interior"
+          width={1810}
+          height={1216}
           className="h-auto w-full object-cover"
           sizes="28rem"
+          priority
         />
       </div>
-      <p className="mt-3 type-meta text-beam-muted">
+      <p className="mt-3 type-meta text-[#7E7A73]">
         Example — Austin neighbors helping with moving &amp; light handyman tasks
       </p>
-      <p className="mt-4 type-intro text-beam-cream">
+      <p className="mt-4 font-serif text-[22px] leading-snug text-[#FAF8F4]">
         Post a practical job nearby. Get priced offers. Coordinate in thread.
       </p>
     </aside>
@@ -424,7 +417,7 @@ function ErrorBanner({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="rounded-[10px] border border-red-200 bg-red-50 px-3.5 py-3 text-[14px] leading-5 text-red-800"
+      className="rounded-[10px] border border-red-500/30 bg-red-500/10 px-3.5 py-3 text-[14px] leading-5 text-red-300"
     >
       {message}
     </div>
@@ -445,10 +438,10 @@ function ButtonLinkSafe({
   return (
     <Link
       href={href}
-      className={`touch-target inline-flex items-center justify-center rounded-[10px] px-4 text-[15px] font-semibold transition ${
+      className={`touch-target inline-flex items-center justify-center rounded-[12px] px-4 text-[15px] font-semibold transition ${
         variant === 'primary'
-          ? 'bg-beam-amber text-beam-charcoal hover:bg-beam-amber-deep'
-          : 'border border-beam-line bg-beam-base text-beam-cream hover:border-beam-cream/30'
+          ? 'bg-gradient-to-b from-[#D5A455] via-[#C6944B] to-[#B88842] text-[#FDFBF7] shadow-[0_8px_20px_rgba(198,148,75,0.22)]'
+          : 'border border-white/[0.15] bg-[#131416]/90 text-[#ECE8E1] hover:bg-white/[0.06]'
       } ${className}`}
     >
       {children}

@@ -1,77 +1,41 @@
 import Link from 'next/link'
-import { Zap } from 'lucide-react'
+import { BeamWordmark } from '@/components/BeamMark'
 
-const PRODUCT = [
-  { href: '#product', label: 'How it works' },
-  { href: '#categories', label: 'Categories' },
-  { href: '#coverage', label: 'Neighborhoods' },
+const LINKS = [
   { href: '/browse', label: 'Browse' },
-  { href: '/post', label: 'Post a request' },
-]
-
-const ACCOUNT = [
-  { href: '/auth?mode=signin', label: 'Sign in' },
-  { href: '/auth?mode=signup', label: 'Create account' },
-  { href: '/you', label: 'Your account' },
-  { href: '/messages', label: 'Messages' },
-  { href: '/home', label: 'App home' },
-]
-
-const TRUST = [
-  { href: '#trust', label: 'Trust & FAQ' },
+  { href: '/post', label: 'Post' },
   { href: '/safety', label: 'Safety' },
+  { href: '/auth?mode=signin', label: 'Log in' },
+  { href: '/auth?mode=signup', label: 'Sign up' },
 ]
 
 export function LandingFooter() {
   return (
-    <footer className="border-t border-black/[0.06] bg-beam-canvas">
-      <div className="section-inner py-10 sm:py-12">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <Link href="/" className="inline-flex items-center gap-2 text-beam-charcoal">
-              <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-beam-amber-soft text-beam-amber-deep shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                <Zap className="h-4 w-4" fill="currentColor" />
-              </span>
-              <span className="text-[17px] font-semibold tracking-tight">Beam</span>
-            </Link>
-            <p className="mt-3 max-w-xs type-sec text-beam-muted">
-              Help nearby. Done today. Austin peer-to-peer marketplace for practical same-day help.
-            </p>
-          </div>
-          <FooterCol title="Product" links={PRODUCT} />
-          <FooterCol title="Account" links={ACCOUNT} />
-          <FooterCol title="Trust" links={TRUST} />
-        </div>
-        <div className="mt-10 flex flex-col gap-2 border-t border-black/[0.06] pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="type-sec text-beam-muted">
-            Scoped to eight Austin neighborhoods · Payments arranged peer-to-peer
+    <footer className="border-t border-white/[0.07] bg-[#0E0F12]">
+      <div className="section-inner flex flex-col gap-8 py-10 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <BeamWordmark />
+          <p className="mt-3 max-w-xs text-[14px] leading-relaxed text-[#A7A39C]">
+            Peer-to-peer help, locally. Structured requests and priced offers across central Austin.
           </p>
-          <p className="type-meta text-beam-muted">© 2026 Beam</p>
         </div>
-      </div>
-    </footer>
-  )
-}
-
-function FooterCol({
-  title,
-  links,
-}: {
-  title: string
-  links: { href: string; label: string }[]
-}) {
-  return (
-    <div>
-      <p className="type-meta text-beam-muted">{title}</p>
-      <ul className="mt-3 space-y-2">
-        {links.map((l) => (
-          <li key={l.href + l.label}>
-            <Link href={l.href} className="type-sec font-medium text-beam-cream-dim hover:text-beam-cream">
+        <nav className="flex flex-wrap gap-x-6 gap-y-2" aria-label="Footer">
+          {LINKS.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="text-[14px] text-[#A7A39C] hover:text-white transition"
+            >
               {l.label}
             </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
+          ))}
+        </nav>
+      </div>
+      <div className="section-inner border-t border-white/[0.07] py-5">
+        <p className="text-[12.5px] text-[#7E7A73]">
+          © 2026 Beam · Austin, TX · Peer-to-peer payments · Not escrow
+        </p>
+      </div>
+    </footer>
   )
 }

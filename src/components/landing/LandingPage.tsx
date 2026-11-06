@@ -1,4 +1,3 @@
-import { LandingNav } from './LandingNav'
 import { LandingHero } from './LandingHero'
 import { LandingTrustStrip } from './LandingTrustStrip'
 import { LandingWorkflow } from './LandingWorkflow'
@@ -10,11 +9,10 @@ import { LandingTrustFaq } from './LandingTrustFaq'
 import { LandingFinalCta } from './LandingFinalCta'
 import { LandingFooter } from './LandingFooter'
 
-/** Dense enterprise marketing page — ordinary vertical document flow. */
+/** Warm-obsidian editorial marketing page. */
 export function LandingPage() {
   return (
-    <div className="landing-root relative min-h-dvh bg-beam-base text-beam-cream">
-      <LandingNav />
+    <div className="landing-root relative min-h-dvh bg-[#0E0F12] text-[#F7F4EE]">
       <main>
         <LandingHero />
         <LandingTrustStrip />

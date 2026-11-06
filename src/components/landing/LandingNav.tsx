@@ -1,80 +1,150 @@
 'use client'
 
-import { Search, Zap } from 'lucide-react'
+import { ChevronDown, Menu, X } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-
-const anchors = [
-  { href: '#product', label: 'Product' },
-  { href: '#categories', label: 'Categories' },
-  { href: '#coverage', label: 'Coverage' },
-  { href: '#trust', label: 'Trust' },
-]
+import { useEffect, useRef, useState } from 'react'
+import { BeamWordmark } from '@/components/BeamMark'
+import { CATEGORIES } from '@/data/categories'
 
 export function LandingNav() {
-  const [active, setActive] = useState('')
+  const [browseOpen, setBrowseOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const browseRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const onHash = () => setActive(window.location.hash || '')
-    onHash()
-    window.addEventListener('hashchange', onHash)
-    return () => window.removeEventListener('hashchange', onHash)
+    function onDoc(e: MouseEvent) {
+      if (!browseRef.current?.contains(e.target as Node)) setBrowseOpen(false)
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setBrowseOpen(false)
+        setMobileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('keydown', onKey)
+    }
   }, [])
 
   return (
-    <header className="landing-nav" data-testid="landing-nav-capsule">
-      <div className="landing-nav-inner">
-        <Link href="/" className="landing-nav-brand flex items-center gap-2">
-          <span className="landing-nav-mark flex h-8 w-8 items-center justify-center rounded-full">
-            <Zap className="h-4 w-4" fill="currentColor" />
-          </span>
-          <span className="text-[16px] font-semibold tracking-tight">Beam</span>
+    <header className="relative z-30 w-full" data-testid="landing-nav-obsidian">
+      <div className="mx-auto flex w-full max-w-[82rem] items-center justify-between px-6 pb-3 pt-6 sm:px-10 lg:px-14">
+        <Link href="/" className="relative z-10">
+          <BeamWordmark />
         </Link>
 
-        <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Marketing">
-          {anchors.map((a) => (
-            <a
-              key={a.href}
-              href={a.href}
-              data-active={active === a.href ? 'true' : 'false'}
-              className="landing-nav-link btn-compact inline-flex items-center rounded-full px-3 text-[13px] font-semibold"
+        <nav className="hidden items-center gap-9 md:flex" aria-label="Marketing">
+          <div className="relative" ref={browseRef}>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 text-[14.5px] font-normal text-[#D4D0C8] transition hover:text-white"
+              aria-expanded={browseOpen}
+              aria-haspopup="menu"
+              onClick={() => setBrowseOpen((v) => !v)}
             >
-              {a.label}
-            </a>
-          ))}
-          <Link
-            href="/browse"
-            className="landing-nav-link btn-compact inline-flex items-center rounded-full px-3 text-[13px] font-semibold"
+              Browse
+              <ChevronDown className="h-3.5 w-3.5 opacity-80" />
+            </button>
+            {browseOpen ? (
+              <div
+                role="menu"
+                className="obsidian-popover absolute left-0 top-[calc(100%+10px)] z-50 min-w-[15rem] py-2"
+              >
+                <Link
+                  href="/browse"
+                  role="menuitem"
+                  className="block px-4 py-2.5 text-[14px] text-[#EDE9E2] hover:bg-white/[0.06]"
+                  onClick={() => setBrowseOpen(false)}
+                >
+                  All open requests
+                </Link>
+                <Link
+                  href="/browse?tab=people"
+                  role="menuitem"
+                  className="block px-4 py-2.5 text-[14px] text-[#EDE9E2] hover:bg-white/[0.06]"
+                  onClick={() => setBrowseOpen(false)}
+                >
+                  Helpers nearby
+                </Link>
+                <div className="my-1 border-t border-white/[0.08]" />
+                {CATEGORIES.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/browse?category=${c.id}`}
+                    role="menuitem"
+                    className="block px-4 py-2.5 text-[14px] text-[#D4D0C8] hover:bg-white/[0.06] hover:text-white"
+                    onClick={() => setBrowseOpen(false)}
+                  >
+                    {c.label}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <a
+            href="#how-it-works"
+            className="text-[14.5px] font-normal text-[#D4D0C8] transition hover:text-white"
           >
-            Browse
+            How it works
+          </a>
+          <Link
+            href="/safety"
+            className="text-[14.5px] font-normal text-[#D4D0C8] transition hover:text-white"
+          >
+            Safety
           </Link>
         </nav>
 
-        <div className="flex items-center gap-1">
-          <Link
-            href="/browse"
-            className="btn-compact inline-flex items-center justify-center rounded-full text-beam-muted hover:bg-beam-surface-3 hover:text-beam-cream"
-            aria-label="Search browse"
-          >
-            <Search className="h-4 w-4" />
-          </Link>
+        <div className="flex items-center gap-5 sm:gap-7">
           <Link
             href="/auth?mode=signin"
-            className="landing-nav-signin btn-compact hidden items-center rounded-full px-3 text-[13px] font-semibold sm:inline-flex"
+            className="hidden text-[14.5px] font-normal text-[#D4D0C8] transition hover:text-white sm:inline"
           >
-            Sign in
+            Log in
           </Link>
           <Link
             href="/auth?mode=signup"
-            className="btn-compact hidden items-center rounded-full bg-white px-3 text-[13px] font-semibold text-beam-cream shadow-[0_0_0_1px_rgba(15,23,42,0.08)] hover:bg-beam-surface-2 md:inline-flex"
+            className="hidden h-[42px] items-center justify-center rounded-full border border-[#C8A675]/45 bg-[#13171B]/65 px-6 text-[14.5px] font-medium text-[#F7F4EE] shadow-[inset_0_1px_0_rgba(255,240,210,0.12)] transition hover:border-[#E0B87E]/75 hover:bg-white/[0.07] sm:inline-flex"
           >
-            Create account
+            Sign up
           </Link>
-          <Link href="/post" className="landing-nav-cta btn-compact inline-flex items-center rounded-full px-3.5 text-[13px] font-semibold">
-            Post a request
-          </Link>
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-[#EDE9E2] md:hidden"
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((v) => !v)}
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
+
+      {mobileOpen ? (
+        <div className="obsidian-popover mx-4 mb-3 overflow-hidden md:hidden">
+          <div className="flex flex-col py-2">
+            <Link href="/browse" className="px-4 py-3 text-[15px] text-[#EDE9E2]" onClick={() => setMobileOpen(false)}>
+              Browse
+            </Link>
+            <a href="#how-it-works" className="px-4 py-3 text-[15px] text-[#EDE9E2]" onClick={() => setMobileOpen(false)}>
+              How it works
+            </a>
+            <Link href="/safety" className="px-4 py-3 text-[15px] text-[#EDE9E2]" onClick={() => setMobileOpen(false)}>
+              Safety
+            </Link>
+            <div className="my-1 border-t border-white/[0.08]" />
+            <Link href="/auth?mode=signin" className="px-4 py-3 text-[15px] text-[#EDE9E2]" onClick={() => setMobileOpen(false)}>
+              Log in
+            </Link>
+            <Link href="/auth?mode=signup" className="px-4 py-3 text-[15px] font-medium text-[#DDA352]" onClick={() => setMobileOpen(false)}>
+              Sign up
+            </Link>
+          </div>
+        </div>
+      ) : null}
     </header>
   )
 }

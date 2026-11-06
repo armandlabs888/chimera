@@ -2,6 +2,7 @@
 /**
  * Headless smoke checks for Beam on Next.js (no screenshots).
  * Expects a server at BASE_URL (default http://127.0.0.1:43123).
+ * Asserts warm-obsidian dark surfaces (r/g/b ≤ 32/34/40).
  */
 import assert from 'node:assert/strict'
 
@@ -37,6 +38,16 @@ function sanitizeNextLocal(raw, fallback = '/browse') {
   return value
 }
 
+/** Dark-obsidian surface: #0E0F12 ≈ rgb(14,15,18); allow slight elevated variants. */
+function isDarkRgb(css) {
+  const m = css.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i)
+  if (!m) return false
+  const r = Number(m[1])
+  const g = Number(m[2])
+  const b = Number(m[3])
+  return r <= 32 && g <= 34 && b <= 40
+}
+
 async function fetchText(pathName) {
   const res = await fetch(`${BASE_URL}${pathName}`, {
     headers: { Accept: 'text/html' },
@@ -62,32 +73,38 @@ async function checkRoutes() {
 async function checkLandingMarkup() {
   const { res, text } = await fetchText('/')
   assert.equal(res.status, 200, 'landing status')
-  assert.match(text, /Help nearby\. Done today\./, 'landing headline')
+  assert.match(text, /Help nearby\./, 'landing headline line 1')
+  assert.match(text, /Done today\./, 'landing headline line 2')
+  assert.match(text, /PEER-TO-PEER HELP\. LOCALLY\./, 'hero eyebrow')
   assert.match(text, /Post a request/, 'landing primary CTA')
-  assert.match(text, /Browse requests/, 'landing secondary CTA')
+  assert.match(text, /Browse nearby help/, 'landing secondary CTA')
+  assert.match(text, /What do you need help with\?/, 'hero search placeholder')
   assert.match(text, /href="\/post"/, 'post route wired')
   assert.match(text, /href="\/browse"/, 'browse route wired')
   assert.match(text, /href="\/browse\?category=moving"/, 'moving category browse link')
   assert.match(text, /href="\/browse\?category=handyman"/, 'handyman category browse link')
-  assert.match(text, /href="\/auth\?mode=signin"/, 'landing sign-in links to /auth')
+  assert.match(text, /href="\/auth\?mode=signin"/, 'landing Log in')
+  assert.match(text, /href="\/auth\?mode=signup"/, 'landing Sign up')
+  assert.match(text, /How it works/, 'nav How it works')
+  assert.match(text, /Safety/, 'nav Safety')
   assert.match(text, /Example/, 'example badges present')
-  assert.match(text, /beam-hero-gig-work/, 'hero gig-work image referenced')
-  assert.match(text, /id="product"|Product/, 'workflow product section')
+  assert.match(text, /beam-hero-moving-bg/, 'hero moving-bg image referenced')
+  assert.match(text, /id="how-it-works"/, 'how-it-works section')
   assert.match(text, /id="coverage"|Austin neighborhood/i, 'neighborhood coverage')
   assert.match(text, /id="categories"/, 'categories section')
   assert.match(text, /id="trust"/, 'trust section')
-  assert.match(text, /landing-nav-inner|data-testid="landing-nav-capsule"/, 'floating capsule nav')
-  assert.match(text, /window-chrome|traffic-lights|yariapp\.com/, 'app window chrome')
+  assert.match(text, /landing-nav-obsidian|data-testid="landing-nav-obsidian"/, 'obsidian nav')
+  assert.doesNotMatch(text, /window-chrome|traffic-lights/, 'no macOS window chrome')
   assert.match(text, /Lady Bird Lake|austin-map|data-testid="austin-map"/, 'Austin SVG map')
   assert.doesNotMatch(text, /landing-section-full/, 'no sparse full-viewport section class')
-  assert.doesNotMatch(text, /hero-stage|HeroProofStage|hero-beam-art|beam-stack|scrim-hero/i, 'no experimental/dark scrim markup')
+  assert.doesNotMatch(text, /hero-stage|HeroProofStage|hero-beam-art|beam-stack|scrim-hero/i, 'no experimental markup')
   assert.doesNotMatch(
     text,
-    /Y Combinator|backed by|guaranteed same-day|try free for 14 days|payius|Sequoia/i,
-    'no invented claims / brand clone',
+    /Y Combinator|backed by|guaranteed same-day|try free for 14 days|payius|Sequoia|\+2,300 more/i,
+    'no invented claims / fake social proof',
   )
-  const imgRes = await fetch(`${BASE_URL}/images/beam-hero-gig-work.jpg`)
-  assert.equal(imgRes.status, 200, 'hero image asset HTTP 200')
+  const imgRes = await fetch(`${BASE_URL}/images/beam-hero-moving-bg.jpg`)
+  assert.equal(imgRes.status, 200, 'hero moving-bg asset HTTP 200')
   console.log('ok landing markup')
 }
 
@@ -99,11 +116,9 @@ async function checkAuthMarkupAndRedirects() {
 
   const { res, text } = await fetchText('/auth?mode=signup')
   assert.equal(res.status, 200, 'auth page status')
-  // Auth UI is client-rendered after BeamProvider ready; SSR shell should still be Beam auth layout.
   assert.match(text, /Beam|auth/, 'auth route shell present')
   assert.doesNotMatch(text, /text-red-300|Live mode uses Supabase email\/password auth/i, 'no legacy developer auth copy')
 
-  // Open-redirect rejection on callback (no code → auth error page with sanitized next)
   const evil = await fetch(`${BASE_URL}/auth/callback?next=${encodeURIComponent('//evil.example')}`, {
     redirect: 'manual',
   })
@@ -149,17 +164,11 @@ async function checkAuthBrowser() {
     const googleSvg = await page.locator('button:has-text("Continue with Google") svg').count()
     assert.ok(googleSvg >= 1, 'Google SVG mark present')
 
-    // Theme surfaces stay light
-    const surfaces = await page.evaluate(() => {
-      const card = document.querySelector('form')?.closest('div')
-      return {
-        body: getComputedStyle(document.body).backgroundColor,
-        card: card ? getComputedStyle(card).backgroundColor : '',
-      }
-    })
-    assert.ok(isLightRgb(surfaces.body), `auth body light got ${surfaces.body}`)
+    const surfaces = await page.evaluate(() => ({
+      body: getComputedStyle(document.body).backgroundColor,
+    }))
+    assert.ok(isDarkRgb(surfaces.body), `auth body dark got ${surfaces.body}`)
 
-    // Switch to Create account — neighborhood + show password
     await page.getByRole('tab', { name: 'Create account' }).click()
     await page.waitForSelector('text=Full name')
     assert.equal(await page.locator('select').count(), 1, 'neighborhood select on signup')
@@ -176,12 +185,10 @@ async function checkAuthBrowser() {
     })
     assert.equal(revealed, true, 'password revealed after Show')
 
-    // Switch back to Sign in clears signup-only fields from tab UX
     await page.getByRole('tab', { name: 'Sign in' }).click()
     assert.equal(await page.locator('text=Full name').count(), 0, 'name field hidden on sign-in')
     assert.equal(await page.locator('select').count(), 0, 'neighborhood hidden on sign-in')
 
-    // Signup deep link
     await page.goto(`${BASE_URL}/auth?mode=signup`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('text=Full name')
     assert.equal(await page.getByRole('tab', { name: 'Create account' }).getAttribute('aria-selected'), 'true')
@@ -190,16 +197,6 @@ async function checkAuthBrowser() {
   } finally {
     await browser.close()
   }
-}
-
-function isLightRgb(css) {
-  const m = css.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i)
-  if (!m) return false
-  const r = Number(m[1])
-  const g = Number(m[2])
-  const b = Number(m[3])
-  // Soft enterprise canvases (#F6F7F9 ≈ 246) still count as light
-  return r >= 230 && g >= 230 && b >= 230
 }
 
 async function checkLandingBrowser() {
@@ -219,8 +216,21 @@ async function checkLandingBrowser() {
     await page.waitForSelector('a[href="/post"]')
 
     const headline = await page.locator('h1').innerText()
-    assert.match(headline, /Help nearby\. Done today\./i)
-    assert.equal(headline.trim().split('\n').filter(Boolean).length, 1, 'single h1 line')
+    assert.match(headline, /Help nearby\./i)
+    assert.match(headline, /Done today\./i)
+    const h1Lines = headline.trim().split('\n').filter(Boolean)
+    assert.equal(h1Lines.length, 2, `two-line serif h1 got ${h1Lines.length}`)
+
+    assert.equal(await page.getByText('PEER-TO-PEER HELP. LOCALLY.').count() >= 1, true, 'eyebrow')
+    assert.equal(await page.getByPlaceholder('What do you need help with?').count(), 1, 'hero search')
+    assert.equal(await page.getByRole('link', { name: /Post a request/i }).count() >= 1, true)
+    assert.equal(await page.getByRole('link', { name: /Browse nearby help/i }).count() >= 1, true)
+    assert.equal(await page.getByRole('button', { name: /Austin/i }).count() >= 1, true, 'Austin pill')
+    assert.equal(await page.getByRole('link', { name: 'Log in' }).count() >= 1, true)
+    assert.equal(await page.getByRole('link', { name: 'Sign up' }).count() >= 1, true)
+    assert.equal(await page.getByRole('button', { name: /Browse/i }).count() >= 1, true)
+    assert.equal(await page.getByRole('link', { name: 'How it works' }).count() >= 1, true)
+    assert.equal(await page.getByRole('link', { name: 'Safety' }).count() >= 1, true)
 
     const themeAndScale = await page.evaluate(() => {
       const body = getComputedStyle(document.body)
@@ -230,8 +240,8 @@ async function checkLandingBrowser() {
       const h1Cs = h1 ? getComputedStyle(h1) : null
       const heroCta = document.querySelector('.landing-cta-row a[href="/post"]')
       const heroRect = heroCta?.getBoundingClientRect()
-      const navCta = document.querySelector('.landing-nav a[href="/post"]')
-      const navRect = navCta?.getBoundingClientRect()
+      const signup = document.querySelector('a[href="/auth?mode=signup"]')
+      const signupRect = signup?.getBoundingClientRect()
       const footer = document.querySelector('footer')
       const footerCs = footer ? getComputedStyle(footer) : null
       const sections = [...document.querySelectorAll('main > section')]
@@ -239,44 +249,41 @@ async function checkLandingBrowser() {
         bg: body.backgroundColor,
         color: body.color,
         font: body.fontFamily,
+        h1Font: h1Cs?.fontFamily ?? '',
         rootBg: rootCs?.backgroundColor ?? '',
         footerBg: footerCs?.backgroundColor ?? '',
         h1Px: h1Cs ? parseFloat(h1Cs.fontSize) : 0,
         heroCtaH: heroRect ? Math.round(heroRect.height) : 0,
-        navCtaH: navRect ? Math.round(navRect.height) : 0,
+        signupH: signupRect ? Math.round(signupRect.height) : 0,
         sectionPositions: sections.map((el) => getComputedStyle(el).position),
         sectionCount: sections.length,
         hasStage: !!document.querySelector('.hero-stage, .landing-stage, .beam-stack'),
         transforms: sections.map((el) => getComputedStyle(el).transform),
       }
     })
-    // Canvas may be soft grey (#F6F7F9) — still light enterprise, not dark
-    assert.ok(isLightRgb(themeAndScale.bg), `light canvas got ${themeAndScale.bg}`)
-    assert.match(themeAndScale.color, /rgb\(23,\s*23,\s*23\)|rgb\(34,\s*34,\s*34\)/, 'dark primary text')
+    assert.ok(isDarkRgb(themeAndScale.bg), `dark canvas got ${themeAndScale.bg}`)
+    assert.match(themeAndScale.color, /rgb\((247|250|246|245)/, 'ivory primary text')
     assert.match(themeAndScale.font, /Geist|geist/i, 'Geist family loaded')
-    assert.ok(isLightRgb(themeAndScale.rootBg), `landing-root light got ${themeAndScale.rootBg}`)
-    assert.ok(isLightRgb(themeAndScale.footerBg), `footer light got ${themeAndScale.footerBg}`)
-    assert.ok(await page.locator('[data-testid="landing-nav-capsule"], .landing-nav-inner').count() >= 1, 'capsule nav')
-    assert.ok(await page.locator('.window-chrome, .traffic-lights').count() >= 1, 'window chrome present')
+    assert.match(themeAndScale.h1Font, /Playfair|Newsreader|serif/i, 'serif display on h1')
+    assert.ok(isDarkRgb(themeAndScale.rootBg), `landing-root dark got ${themeAndScale.rootBg}`)
+    assert.ok(isDarkRgb(themeAndScale.footerBg), `footer dark got ${themeAndScale.footerBg}`)
+    assert.ok(await page.locator('[data-testid="landing-nav-obsidian"]').count() >= 1, 'obsidian nav')
+    assert.equal(await page.locator('.window-chrome, .traffic-lights').count(), 0, 'no window chrome')
     assert.ok(await page.locator('[data-testid="austin-map"]').count() >= 1, 'Austin map present')
-    assert.ok(themeAndScale.h1Px >= 34 && themeAndScale.h1Px <= 64, `hero size ${themeAndScale.h1Px}`)
-    assert.ok(themeAndScale.heroCtaH >= 36 && themeAndScale.heroCtaH <= 52, `hero CTA h ${themeAndScale.heroCtaH}`)
-    assert.ok(themeAndScale.navCtaH >= 36 && themeAndScale.navCtaH <= 48, `nav CTA h ${themeAndScale.navCtaH}`)
+    assert.ok(themeAndScale.h1Px >= 48 && themeAndScale.h1Px <= 96, `hero size ${themeAndScale.h1Px}`)
+    assert.ok(themeAndScale.heroCtaH >= 44 && themeAndScale.heroCtaH <= 56, `hero CTA h ${themeAndScale.heroCtaH}`)
+    assert.ok(themeAndScale.signupH >= 36 && themeAndScale.signupH <= 48, `signup h ${themeAndScale.signupH}`)
     assert.ok(themeAndScale.sectionCount >= 6, 'landing sections present')
     assert.equal(themeAndScale.hasStage, false, 'no experimental stage DOM')
     assert.ok(
       themeAndScale.sectionPositions.every((p) => p === 'static' || p === 'relative'),
       'marketing sections non-sticky',
     )
-    assert.ok(
-      themeAndScale.transforms.every((t) => t === 'none'),
-      'no section transforms',
-    )
+    assert.ok(themeAndScale.transforms.every((t) => t === 'none'), 'no section transforms')
 
-    assert.equal(await page.locator('.scrim-hero').count(), 0, 'no dark hero scrim on marketing')
+    assert.equal(await page.locator('.scrim-hero').count(), 0, 'no dark hero scrim class')
     assert.equal(await page.locator('.landing-section-full').count(), 0, 'no full-viewport slabs')
 
-    // Hero image loaded (no screenshots — DOM/network only)
     await page.waitForSelector('.landing-hero-media img')
     await page.waitForFunction(
       () => {
@@ -297,11 +304,10 @@ async function checkLandingBrowser() {
       }
     })
     assert.ok(heroImg, 'hero img present')
-    assert.match(heroImg.src, /beam-hero-gig-work/, `hero src ${heroImg.src}`)
+    assert.match(heroImg.src, /beam-hero-moving-bg/, `hero src ${heroImg.src}`)
     assert.ok(heroImg.naturalWidth > 0, `hero naturalWidth ${heroImg.naturalWidth}`)
-    assert.match(heroImg.alt, /bookshelf|armchair|neighbor|living room/i, 'meaningful alt')
+    assert.match(heroImg.alt, /moving|box|neighbor|warm/i, 'meaningful alt')
 
-    // Dense enterprise rhythm — sections should NOT force full viewport min-height
     const densityGeo = await page.evaluate(() => {
       const vh = window.innerHeight
       const sections = [...document.querySelectorAll('main > section')]
@@ -311,20 +317,23 @@ async function checkLandingBrowser() {
         positions: sections.map((el) => getComputedStyle(el).position),
         vh,
         hasCoverage: !!document.querySelector('#coverage'),
-        hasProduct: !!document.querySelector('#product'),
+        hasHow: !!document.querySelector('#how-it-works'),
+        hasCategories: !!document.querySelector('#categories'),
+        hasTrust: !!document.querySelector('#trust'),
       }
     })
     assert.ok(densityGeo.count >= 6, `dense sections ${densityGeo.count}`)
-    assert.equal(densityGeo.hasCoverage, true, 'coverage matrix present')
-    assert.equal(densityGeo.hasProduct, true, 'product workflow present')
+    assert.equal(densityGeo.hasCoverage, true, 'coverage present')
+    assert.equal(densityGeo.hasHow, true, 'how-it-works present')
+    assert.equal(densityGeo.hasCategories, true, 'categories present')
+    assert.equal(densityGeo.hasTrust, true, 'trust present')
     assert.ok(
       densityGeo.positions.every((p) => p === 'static' || p === 'relative'),
       'sections non-sticky',
     )
-    // At least some content sections are shorter than a full viewport (density, not theater)
     assert.ok(
       densityGeo.heights.some((h) => h < densityGeo.vh - 40),
-      'has non-full-viewport sections (enterprise density)',
+      'has non-full-viewport sections',
     )
 
     const postVisible = await page.locator('a[href="/post"]').first().isVisible()
@@ -345,12 +354,11 @@ async function checkLandingBrowser() {
     })
     assert.equal(inView, true, 'hero CTAs in first desktop viewport')
 
-    // Interactive workflow tabs (Example-labeled) — after first-viewport checks (tabs may scroll)
-    await page.locator('#product').scrollIntoViewIfNeeded()
+    await page.locator('#how-it-works').scrollIntoViewIfNeeded()
     await page.getByRole('tab', { name: /Offers/i }).click()
     assert.match(await page.locator('[role="tabpanel"]').innerText(), /\$55|Within 1 hour|Example|\$60/i)
     await page.getByRole('tab', { name: /Message/i }).click()
-    assert.match(await page.locator('[role="tabpanel"]').innerText(), /Example|Thread/i)
+    assert.match(await page.locator('[role="tabpanel"]').innerText(), /Example|Thread|coordinate/i)
     await page.evaluate(() => window.scrollTo(0, 0))
 
     assert.equal(
@@ -359,30 +367,29 @@ async function checkLandingBrowser() {
       'no horizontal overflow desktop',
     )
 
-    // Vertical scroll down/up — sections move with the document
     const scrollProbe = await page.evaluate(() => {
-      const product = document.querySelector('#product')
+      const how = document.querySelector('#how-it-works')
       const cats = document.querySelector('#categories')
       const cta = document.querySelector('main > section:last-of-type')
       const footer = document.querySelector('footer')
-      if (!product || !cats || !footer) return null
+      if (!how || !cats || !footer) return null
       const before = {
         scrollY: window.scrollY,
-        productTop: product.getBoundingClientRect().top,
+        howTop: how.getBoundingClientRect().top,
         catsTop: cats.getBoundingClientRect().top,
       }
       window.scrollBy(0, 500)
-      const midProductTop = product.getBoundingClientRect().top
+      const midHowTop = how.getBoundingClientRect().top
       const midCatsTop = cats.getBoundingClientRect().top
       const mid = {
         scrollY: window.scrollY,
-        productTop: midProductTop,
+        howTop: midHowTop,
         catsTop: midCatsTop,
-        overlap: midProductTop < midCatsTop && product.getBoundingClientRect().bottom > midCatsTop + 2,
+        overlap: midHowTop < midCatsTop && how.getBoundingClientRect().bottom > midCatsTop + 2,
       }
       window.scrollBy(0, -500)
       const after = {
-        productTop: product.getBoundingClientRect().top,
+        howTop: how.getBoundingClientRect().top,
       }
       window.scrollTo(0, document.body.scrollHeight)
       const end = {
@@ -396,22 +403,21 @@ async function checkLandingBrowser() {
     assert.ok(scrollProbe, 'scroll probe sections found')
     assert.ok(scrollProbe.mid.scrollY > scrollProbe.before.scrollY, 'scroll down advances')
     assert.ok(
-      scrollProbe.mid.productTop < scrollProbe.before.productTop - 100,
-      'product moves up with scroll (not pinned)',
+      scrollProbe.mid.howTop < scrollProbe.before.howTop - 100,
+      'how-it-works moves up with scroll',
     )
     assert.ok(
       scrollProbe.mid.catsTop < scrollProbe.before.catsTop - 100,
-      'categories move up with scroll (not pinned)',
+      'categories move up with scroll',
     )
     assert.equal(scrollProbe.mid.overlap, false, 'no section overlap while scrolling')
     assert.ok(
-      Math.abs(scrollProbe.after.productTop - scrollProbe.before.productTop) < 8,
+      Math.abs(scrollProbe.after.howTop - scrollProbe.before.howTop) < 8,
       'scroll up restores position',
     )
     assert.ok(scrollProbe.end.footerTop < 900, 'footer reachable')
     assert.equal(scrollProbe.end.overflowX, false, 'no x-overflow at page end')
 
-    // Anchor
     await page.evaluate(() => {
       location.hash = '#categories'
     })
@@ -429,14 +435,12 @@ async function checkLandingBrowser() {
     await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body')
     const browseBody = await page.locator('body').innerText()
-    // Live mode gates behind AuthExperience; demo shows Browse. Either is healthy.
     assert.match(
       browseBody,
       /Browse|Welcome back|Continue with Google|Sign in to help nearby/i,
       'browse runtime reachable',
     )
 
-    // App shell chrome — sidebar on desktop when authenticated/demo; auth gate still healthy in live
     await page.setViewportSize({ width: 1280, height: 800 })
     await page.goto(`${BASE_URL}/home`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body')
@@ -444,13 +448,14 @@ async function checkLandingBrowser() {
       sidebar: !!document.querySelector('[data-testid="app-sidebar"]'),
       dock: !!document.querySelector('[data-testid="bottom-dock"]'),
       text: document.body.innerText.slice(0, 400),
+      bodyBg: getComputedStyle(document.body).backgroundColor,
     }))
     assert.match(
       homeChrome.text,
       /Home|Browse|Messages|Continue with Google|Welcome back|Search/i,
       'home/app shell reachable',
     )
-    // If not gated, desktop sidebar must exist
+    assert.ok(isDarkRgb(homeChrome.bodyBg), `app body dark got ${homeChrome.bodyBg}`)
     if (!/Continue with Google|Welcome back/i.test(homeChrome.text)) {
       assert.equal(homeChrome.sidebar, true, 'desktop app sidebar present')
     }
@@ -486,8 +491,8 @@ async function checkLandingBrowser() {
         }
         const img = document.querySelector('.landing-hero-media img')
         const surfaces = [
+          document.body,
           document.querySelector('.landing-root'),
-          document.querySelector('#product'),
           document.querySelector('footer'),
         ].map((el) => (el ? getComputedStyle(el).backgroundColor : ''))
         return {
@@ -506,13 +511,12 @@ async function checkLandingBrowser() {
         `non-sticky sections @${width}`,
       )
       assert.ok(geo.transforms.every((t) => t === 'none'), `no transforms @${width}`)
-      assert.ok(geo.surfaces.every(isLightRgb), `light surfaces @${width}: ${geo.surfaces.join(' | ')}`)
+      assert.ok(geo.surfaces.every(isDarkRgb), `dark surfaces @${width}: ${geo.surfaces.join(' | ')}`)
       assert.ok(geo.imgW > 0, `hero image loaded @${width}`)
       assert.equal(geo.fullPageCount, 0, `no full-page slabs @${width}`)
       if (width === 375 || width >= 1280) {
         assert.equal(geo.ctasInView, true, `hero CTAs in first viewport @${width}`)
       }
-      // Short viewport: content grows; footer still reachable by scroll
       await page.setViewportSize({ width, height: 500 })
       const short = await page.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight)
@@ -522,12 +526,11 @@ async function checkLandingBrowser() {
       assert.equal(short, true, `footer reachable short viewport @${width}`)
     }
 
-    // Reduced motion: still normal vertical light flow
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.setViewportSize({ width: 1280, height: 800 })
     await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
     const reduced = await page.evaluate(() => {
-      const el = document.querySelector('#product')
+      const el = document.querySelector('#how-it-works')
       return {
         pos: el ? getComputedStyle(el).position : null,
         text: el?.innerText ?? '',
@@ -543,7 +546,7 @@ async function checkLandingBrowser() {
     await page.keyboard.press('Tab')
     const focusedTag = await page.evaluate(() => document.activeElement?.tagName ?? '')
     assert.ok(focusedTag === 'A' || focusedTag === 'BUTTON', 'tab reaches interactive control')
-    console.log('ok landing browser DOM + dense enterprise SaaS flow')
+    console.log('ok landing browser DOM + warm-obsidian flow')
   } finally {
     await browser.close()
   }

@@ -55,7 +55,7 @@ export function Badge({
           : tone === 'danger'
             ? 'bg-beam-danger-soft text-beam-danger'
             : tone === 'outline'
-              ? 'bg-white text-beam-cream-dim shadow-[0_0_0_1px_rgba(15,23,42,0.08)]'
+              ? 'border border-white/[0.12] bg-transparent text-[#A7A39C]'
               : 'bg-beam-surface-3 text-beam-cream-dim'
   return (
     <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 type-meta ${toneClass}`}>
@@ -150,14 +150,14 @@ export function Avatar({
         alt=""
         width={size}
         height={size}
-        className="rounded-full object-cover shadow-[0_0_0_2px_#fff,0_0_0_3px_rgba(15,23,42,0.08)]"
+        className="rounded-full object-cover ring-2 ring-[#111215]"
         style={{ width: size, height: size }}
       />
     )
   }
   return (
     <span
-      className="inline-flex items-center justify-center rounded-full bg-beam-surface-3 type-meta font-semibold text-beam-cream-dim shadow-[0_0_0_2px_#fff,0_0_0_3px_rgba(15,23,42,0.08)]"
+      className="inline-flex items-center justify-center rounded-full bg-beam-surface-3 type-meta font-semibold text-beam-cream-dim ring-2 ring-[#111215]"
       style={{ width: size, height: size }}
       aria-hidden
     >

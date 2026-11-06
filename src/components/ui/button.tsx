@@ -6,21 +6,21 @@ export type ButtonSize = 'sm' | 'md' | 'lg'
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    'bg-beam-charcoal text-white shadow-[0_1px_2px_rgba(15,23,42,0.12),inset_0_1px_0_rgba(255,255,255,0.12)] hover:bg-black active:translate-y-px disabled:opacity-40',
+    'bg-gradient-to-b from-[#D5A455] via-[#C6944B] to-[#B88842] text-[#FDFBF7] shadow-[0_8px_20px_rgba(198,148,75,0.22),inset_0_1px_0_rgba(255,235,195,0.3)] hover:brightness-105 active:translate-y-px disabled:opacity-40',
   brand:
-    'bg-beam-amber text-beam-charcoal shadow-[0_1px_2px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.35)] hover:bg-beam-amber-deep hover:text-white active:translate-y-px disabled:opacity-40',
+    'bg-gradient-to-b from-[#D5A455] via-[#C6944B] to-[#B88842] text-[#FDFBF7] shadow-[0_8px_20px_rgba(198,148,75,0.22),inset_0_1px_0_rgba(255,235,195,0.3)] hover:brightness-105 active:translate-y-px disabled:opacity-40',
   secondary:
-    'bg-white text-beam-cream shadow-[0_1px_2px_rgba(15,23,42,0.04),0_0_0_1px_rgba(15,23,42,0.08)] hover:bg-beam-surface-2 disabled:opacity-40',
+    'bg-[#131416]/90 text-[#ECE8E1] border border-white/[0.15] hover:bg-white/[0.06] hover:border-white/[0.24] disabled:opacity-40',
   ghost:
-    'bg-transparent text-beam-cream-dim hover:bg-beam-surface-3 hover:text-beam-cream disabled:opacity-40',
+    'bg-transparent text-[#A7A39C] hover:bg-white/[0.06] hover:text-[#F7F4EE] disabled:opacity-40',
   danger:
-    'bg-beam-danger-soft text-beam-danger shadow-[0_0_0_1px_rgba(185,28,28,0.2)] hover:bg-red-100 disabled:opacity-40',
+    'bg-beam-danger-soft text-beam-danger border border-red-500/30 hover:bg-red-500/20 disabled:opacity-40',
 }
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'btn-compact rounded-[10px] px-3.5 py-1.5 text-[13px] font-semibold',
-  md: 'touch-target rounded-[11px] px-4 py-2 text-[14px] font-semibold',
-  lg: 'touch-target rounded-[12px] px-5 py-2.5 text-[15px] font-semibold',
+  sm: 'btn-compact rounded-[10px] px-3.5 py-1.5 text-[13px] font-medium',
+  md: 'touch-target rounded-[11px] px-4 py-2 text-[14px] font-medium',
+  lg: 'touch-target rounded-[12px] px-5 py-2.5 text-[15px] font-medium',
 }
 
 function Spinner() {

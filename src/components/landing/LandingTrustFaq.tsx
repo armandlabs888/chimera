@@ -1,30 +1,25 @@
 'use client'
 
-import Link from 'next/link'
 import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, ShieldCheck } from 'lucide-react'
 import { LandingSection } from '@/components/flat'
 
 const FAQS = [
   {
-    q: 'What kinds of help are in scope?',
-    a: 'Moving & lifting, cleaning, tutoring, pet care, light handyman (not licensed trades), and events & photo. Beam does not cover childcare, senior care, delivery/driving, or licensed electrical/plumbing/HVAC.',
+    q: 'How does payment work?',
+    a: 'Beam never holds your money. After you accept an offer, you and the helper arrange payment peer-to-peer (Venmo, cash, etc.). The agreed price lives in the offer so expectations stay clear.',
   },
   {
-    q: 'Does Beam hold payments or offer escrow?',
-    a: 'No. Helpers and requesters arrange payment peer-to-peer after agreeing in-thread. Beam does not process cards or guarantee funds today.',
+    q: 'Is Beam available outside Austin?',
+    a: 'Not yet. Beam launches in eight central Austin neighborhoods so same-day help stays dense and useful. We’ll expand carefully.',
   },
   {
-    q: 'Is same-day help guaranteed?',
-    a: 'No. Beam surfaces nearby open requests and priced offers with arrival windows, but availability depends on neighbors who choose to respond.',
+    q: 'What if something goes wrong?',
+    a: 'Use in-thread reporting, review both ways after completion, and follow community safety rules on the Safety page. Beam is peer-to-peer — use judgment and meet in public when it makes sense.',
   },
   {
-    q: 'How does ranking work?',
-    a: 'Browse prefers closer Austin neighborhoods first using approximate distances, then recency. It is not live GPS tracking.',
-  },
-  {
-    q: 'What safety practices should I follow?',
-    a: 'Meet in public when practical, share plans with someone you trust, keep coordination in the request thread, and use Beam’s Safety checklist.',
+    q: 'Do I need an account to browse?',
+    a: 'You can browse open requests without signing in. Posting, offering, messaging, and reviewing require an account so reputation stays accountable.',
   },
 ]
 
@@ -32,43 +27,47 @@ export function LandingTrustFaq() {
   const [open, setOpen] = useState<number | null>(0)
 
   return (
-    <LandingSection id="trust" className="border-b border-black/[0.05] bg-white">
-      <div className="section-inner grid gap-10 lg:grid-cols-[1fr_1.2fr]">
+    <LandingSection id="trust">
+      <div className="section-inner grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
         <div>
-          <span className="eyebrow-pill">Trust &amp; scope</span>
-          <h2 className="mt-3 type-h1 text-beam-charcoal">Honest boundaries</h2>
-          <p className="mt-2 type-intro text-beam-cream-dim">
-            Beam coordinates practical neighborhood help — not a guarantee, not escrow, not licensed
-            trades.
+          <p className="flat-meta">Trust &amp; safety</p>
+          <h2 className="mt-3 font-serif text-[clamp(2rem,3.6vw,3rem)] font-normal text-[#FAF8F4]">
+            Clear rules. Honest scope.
+          </h2>
+          <p className="mt-2 text-[17px] text-[#A7A39C]">
+            Beam is a coordination layer — not escrow, not a staffing agency. Safety starts with scoped
+            categories, reviews, and community norms.
           </p>
-          <Link
+          <a
             href="/safety"
-            className="mt-5 inline-flex touch-target items-center rounded-[12px] bg-white px-4 text-[14px] font-semibold text-beam-cream shadow-[0_0_0_1px_rgba(15,23,42,0.08)] hover:bg-beam-surface-2"
+            className="mt-5 inline-flex items-center gap-2 text-[14px] font-medium text-[#DDA352] hover:text-[#E7B567] transition"
           >
-            Read Safety practices
-          </Link>
+            <ShieldCheck className="h-4 w-4" />
+            Read safety guidelines
+          </a>
         </div>
 
-        <div className="elevated divide-y divide-black/[0.06] overflow-hidden">
-          {FAQS.map((item, index) => {
-            const isOpen = open === index
+        <div className="space-y-2">
+          {FAQS.map((item, i) => {
+            const isOpen = open === i
             return (
-              <div key={item.q}>
-                <h3>
-                  <button
-                    type="button"
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left text-[15px] font-semibold text-beam-cream hover:bg-beam-canvas"
-                    aria-expanded={isOpen}
-                    onClick={() => setOpen(isOpen ? null : index)}
-                  >
-                    {item.q}
-                    <ChevronDown
-                      className={`h-4 w-4 shrink-0 text-beam-muted transition ${isOpen ? 'rotate-180' : ''}`}
-                      aria-hidden
-                    />
-                  </button>
-                </h3>
-                {isOpen ? <p className="px-4 pb-4 type-sec text-beam-cream-dim">{item.a}</p> : null}
+              <div key={item.q} className="elevated overflow-hidden">
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left"
+                  aria-expanded={isOpen}
+                  onClick={() => setOpen(isOpen ? null : i)}
+                >
+                  <span className="text-[15px] font-medium text-[#F7F4EE]">{item.q}</span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-[#A7A39C] transition ${isOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                {isOpen ? (
+                  <p className="border-t border-white/[0.07] px-4 py-3.5 text-[14.5px] leading-relaxed text-[#A7A39C]">
+                    {item.a}
+                  </p>
+                ) : null}
               </div>
             )
           })}
