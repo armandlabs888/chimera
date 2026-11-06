@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { Check, Clock, MessageSquare } from 'lucide-react'
+import { LIFESTYLE } from '@/data/media'
 
 const STEPS = [
   {
@@ -7,7 +8,7 @@ const STEPS = [
     title: 'Post your task',
     body: 'Describe what you need, pick your Austin neighborhood, and set a fair budget.',
     image:
-      'https://images.unsplash.com/photo-1600518464441-9154a4dea21b?auto=format&fit=crop&w=900&q=80',
+      LIFESTYLE.stepPost,
     badgeBg: '#DBEAFE',
     badgeFg: '#1D5CE5',
     icon: MessageSquare,
@@ -22,7 +23,7 @@ const STEPS = [
     title: 'Compare fast offers',
     body: 'Review priced offers with arrival times and neighbor ratings in minutes.',
     image:
-      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80',
+      LIFESTYLE.stepOffers,
     badgeBg: '#FFE4E6',
     badgeFg: '#E11D48',
     icon: Clock,
@@ -46,7 +47,7 @@ const STEPS = [
     title: 'Chat, finish & review',
     body: 'Message in one thread, mark complete when done, and leave a two-way review.',
     image:
-      'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=80',
+      LIFESTYLE.stepDone,
     badgeBg: '#D1FAE5',
     badgeFg: '#059669',
     icon: Check,

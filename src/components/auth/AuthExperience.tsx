@@ -11,6 +11,7 @@ import { friendlyAuthError } from '@/lib/auth/errors'
 import { sanitizeNext } from '@/lib/auth/safeNext'
 import type { NeighborhoodId } from '@/types'
 import { GoogleMark } from './GoogleMark'
+import { LIFESTYLE } from '@/data/media'
 
 export type AuthMode = 'signin' | 'signup'
 
@@ -174,7 +175,7 @@ export function AuthExperience({
           </Link>
           <div className="relative mt-5 h-[180px] overflow-hidden rounded-[26px] bg-gradient-to-br from-[#1D5CE5] to-[#7CC9FA]">
             <Image
-              src="https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=900&q=80"
+              src={LIFESTYLE.authShowcase}
               alt=""
               fill
               className="object-cover object-[60%_30%] opacity-90"
@@ -206,7 +207,7 @@ function AsidePanel() {
       <div className="absolute inset-x-10 top-[28%] z-10">
         <div className="relative mx-auto h-[280px] w-[200px] overflow-hidden rounded-[26px] border-4 border-white shadow-[0_24px_50px_-12px_rgba(12,42,102,0.35)]">
           <Image
-            src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=640&q=80"
+            src={LIFESTYLE.authShowcase}
             alt="Austin helper ready to help"
             fill
             className="object-cover"

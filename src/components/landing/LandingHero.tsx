@@ -5,48 +5,11 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, MapPin, Search } from 'lucide-react'
 import { LandingNav } from './LandingNav'
+import { HERO_HELPERS } from '@/data/media'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import type { NeighborhoodId } from '@/types'
 
-const FAN_HELPERS: {
-  name: string
-  specialty: string
-  rotate: number
-  src: string
-  hero?: boolean
-}[] = [
-  {
-    name: 'Maya',
-    specialty: 'Home Cleaning',
-    rotate: -8,
-    src: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=640&q=80',
-  },
-  {
-    name: 'Devon',
-    specialty: 'Moving',
-    rotate: -4,
-    src: 'https://images.unsplash.com/photo-1600518464441-9154a4dea21b?auto=format&fit=crop&w=640&q=80',
-  },
-  {
-    name: 'Mateo',
-    specialty: 'Assembly',
-    rotate: 0,
-    src: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=640&q=80',
-    hero: true,
-  },
-  {
-    name: 'Chloe',
-    specialty: 'Pet Care',
-    rotate: 4,
-    src: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=640&q=80',
-  },
-  {
-    name: 'Liam',
-    specialty: 'Events',
-    rotate: 8,
-    src: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=640&q=80',
-  },
-]
+const FAN_HELPERS = HERO_HELPERS
 
 export function LandingHero() {
   const router = useRouter()
@@ -219,7 +182,7 @@ export function LandingHero() {
                     <img
                       src={helper.src}
                       alt={`${helper.name} · ${helper.specialty}`}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-cover object-top"
                       loading="eager"
                       decoding="async"
                     />

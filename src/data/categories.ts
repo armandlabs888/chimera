@@ -1,7 +1,5 @@
 import type { Category, CategoryId } from '../types'
-
-const unsplash = (id: string, w = 1200) =>
-  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`
+import { LIFESTYLE } from './media'
 
 export const CATEGORIES: Category[] = [
   {
@@ -9,7 +7,7 @@ export const CATEGORIES: Category[] = [
     label: 'Moving & lifting',
     shortLabel: 'Moving',
     description: 'Furniture, boxes, loading, unloading',
-    image: unsplash('photo-1600518464441-9154a4dea21b'),
+    image: LIFESTYLE.moving,
     tintBg: '#DBEAFE',
     typicalRange: '$45–$120',
     arrival: 'Often same day',
@@ -34,7 +32,7 @@ export const CATEGORIES: Category[] = [
     label: 'Home cleaning',
     shortLabel: 'Cleaning',
     description: 'Deep cleans, turnover resets, kitchen & bath',
-    image: unsplash('photo-1581578731548-c64695cc6952'),
+    image: LIFESTYLE.cleaning,
     tintBg: '#E0F2FE',
     typicalRange: '$60–$140',
     arrival: 'Same day or next',
@@ -59,7 +57,7 @@ export const CATEGORIES: Category[] = [
     label: 'Handyman & assembly',
     shortLabel: 'Handyman',
     description: 'Assembly, mounting, small fixes — non-licensed',
-    image: unsplash('photo-1504148455328-c376907d081c'),
+    image: LIFESTYLE.handyman,
     tintBg: '#FFEDD5',
     typicalRange: '$45–$110',
     arrival: 'Often same day',
@@ -84,7 +82,7 @@ export const CATEGORIES: Category[] = [
     label: 'Pet care',
     shortLabel: 'Pets',
     description: 'Walks, sitting, drop-ins',
-    image: unsplash('photo-1548199973-03cce0bbc87b'),
+    image: LIFESTYLE.petcare,
     tintBg: '#FFE4E6',
     typicalRange: '$25–$65',
     arrival: 'Walks within hours',
@@ -109,7 +107,7 @@ export const CATEGORIES: Category[] = [
     label: 'Tutoring & tech help',
     shortLabel: 'Tutoring',
     description: 'Homework help, language practice, Wi-Fi/laptop setup',
-    image: unsplash('photo-1503676260728-1c00da094a0b'),
+    image: LIFESTYLE.tutoring,
     tintBg: '#D1FAE5',
     typicalRange: '$35–$85',
     arrival: 'Tonight or this week',
@@ -134,7 +132,7 @@ export const CATEGORIES: Category[] = [
     label: 'Events & photo',
     shortLabel: 'Events',
     description: 'Setup help, candid photos, teardown',
-    image: unsplash('photo-1511795409834-ef04bbd61622'),
+    image: LIFESTYLE.events,
     tintBg: '#CCFBF1',
     typicalRange: '$50–$150',
     arrival: 'Book ahead',
