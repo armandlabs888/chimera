@@ -11,8 +11,33 @@ import { chromium } from 'playwright'
 const BASE = process.env.BASE_URL ?? 'http://127.0.0.1:43123'
 const OUT = '/opt/cursor/artifacts/browse-3col-visual-qa'
 const LOCAL = '/workspace/artifacts/browse-3col-visual-qa'
+const STORAGE_KEY = 'beam-demo-v1'
 mkdirSync(OUT, { recursive: true })
 mkdirSync(LOCAL, { recursive: true })
+
+/** Seed customer so 3-col peer discovery chrome is exercised (helpers use 2-col jobs). */
+async function seedCustomerDiscovery(page) {
+  await page.goto(`${BASE}/browse`, { waitUntil: 'domcontentloaded', timeout: 60000 })
+  await page.waitForFunction(() => !!localStorage.getItem('beam-demo-v1'), null, {
+    timeout: 20000,
+  })
+  await page.evaluate((key) => {
+    const state = JSON.parse(localStorage.getItem(key) || '{}')
+    const me = state.currentUserId || 'user-you'
+    for (const p of state.people || []) {
+      if (p.id === me) {
+        p.accountRole = 'customer'
+        p.isHelper = false
+        p.skills = []
+      } else if (!(p.isHelper || (p.skills || []).length)) {
+        p.isHelper = true
+        p.skills = ['moving', 'cleaning']
+      }
+    }
+    localStorage.setItem(key, JSON.stringify(state))
+  }, STORAGE_KEY)
+  await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
+}
 
 function save(src, name) {
   copyFileSync(src, join(OUT, name))
@@ -73,7 +98,7 @@ async function main() {
     // Desktop 1440 — requests
     {
       const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
-      await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
+      await seedCustomerDiscovery(page)
       await page.waitForSelector('text=Browse Local Jobs', { timeout: 15000 })
       await page.waitForSelector('[data-testid="browse-3col-grid"]')
       await page.waitForTimeout(400)
@@ -114,22 +139,48 @@ async function main() {
     // Tablet 768
     {
       const page = await browser.newPage({ viewport: { width: 768, height: 1024 } })
-      await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
+      await seedCustomerDiscovery(page)
       await page.waitForSelector('text=Browse Local Jobs')
       await page.waitForTimeout(300)
       const m = await measure(page)
       assert.equal(m.overflowX, false, 'no x-overflow tablet')
       assert.equal(m.filtersVisible, false, 'filters sidebar hidden < lg')
-      assert.ok(m.trendingY == null || m.trendingY >= (m.feedY ?? 0), 'trending below/near feed on tablet')
+      // Desktop trending column is xl-only; stacked copy remains for customers.
+      const tabletTrending = await page.evaluate(() => {
+        const aside = document.querySelector('[data-testid="browse-trending-aside"]')
+        const asideDisplay = aside ? getComputedStyle(aside).display : 'none'
+        const feed = document.querySelector('[data-testid="browse-feed-main"]')
+        const headings = [...document.querySelectorAll('h2')].filter((el) =>
+          /Trending helpers/i.test(el.textContent || ''),
+        )
+        const stacked = headings.find((el) => {
+          const box = el.getBoundingClientRect()
+          return box.height > 0 && box.width > 0
+        })
+        return {
+          asideDisplay,
+          hasStackedCopy: /Trending helpers/i.test(document.body.innerText || ''),
+          stackedY: stacked?.getBoundingClientRect().y ?? null,
+          feedY: feed?.getBoundingClientRect().y ?? null,
+        }
+      })
+      assert.equal(tabletTrending.asideDisplay, 'none', 'desktop trending aside hidden on tablet')
+      assert.equal(tabletTrending.hasStackedCopy, true, 'customer tablet keeps stacked trending copy')
+      assert.ok(
+        tabletTrending.stackedY == null ||
+          tabletTrending.feedY == null ||
+          tabletTrending.stackedY >= tabletTrending.feedY - 1,
+        'stacked trending below/near feed on tablet',
+      )
       await shot(page, 'browse-3col-tablet-768x1024.png')
-      summary.checks.push({ name: 'tablet-768', ok: true, metrics: m })
+      summary.checks.push({ name: 'tablet-768', ok: true, metrics: { ...m, tabletTrending } })
       await page.close()
     }
 
     // Mobile 390
     {
       const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
-      await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
+      await seedCustomerDiscovery(page)
       await page.waitForSelector('text=Browse Local Jobs')
       await page.waitForTimeout(300)
       const m = await measure(page)

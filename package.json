@@ -8,6 +8,7 @@
     "start": "next start --hostname 0.0.0.0 --port 43123",
     "lint": "oxlint",
     "test:smoke": "node scripts/smoke.mjs",
+    "test:helper-browse-role": "node scripts/helper-browse-role-qa.mjs",
     "test:signout": "node scripts/signout-qa.mjs",
     "test:main-auth": "node scripts/main-auth-qa.mjs",
     "test:live": "node --env-file=.env.local scripts/live-persistence.mjs"

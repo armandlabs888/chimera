@@ -17,6 +17,7 @@ import { useBeam } from '@/context/BeamContext'
 import { getCategory } from '@/data/categories'
 import { formatLocationLabel } from '@/lib/location'
 import { formatRate, relativeTime } from '@/lib/matching'
+import { hidesPeerHelperDiscovery } from '@/lib/roles'
 
 const TABS = ['requests', 'offers', 'saved', 'notifications', 'helper'] as const
 type YouTab = (typeof TABS)[number]
@@ -76,6 +77,9 @@ export function You() {
 
   const unreadCount = myNotifications.filter((n) => !n.readAt).length
   const isHelper = Boolean(currentUser.isHelper || currentUser.skills.length > 0)
+  const isGuest = mode === 'live' && !authUser
+  const hidePeerDiscovery = hidesPeerHelperDiscovery(currentUser, isGuest)
+  const helpersBrowseHref = hidePeerDiscovery ? '/browse' : '/browse?tab=people'
   const locationText = formatLocationLabel(currentUser)
 
   return (
@@ -241,7 +245,11 @@ export function You() {
           <EmptyState
             title="No saved helpers"
             body="Tap the heart on a helper profile to save them for next time."
-            action={<ButtonLink href="/browse?tab=people">Browse helpers</ButtonLink>}
+            action={
+              <ButtonLink href={helpersBrowseHref}>
+                {hidePeerDiscovery ? 'Browse open jobs' : 'Browse helpers'}
+              </ButtonLink>
+            }
           />
         )
       ) : null}

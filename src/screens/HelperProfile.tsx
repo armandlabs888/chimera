@@ -8,6 +8,7 @@ import { useBeam } from '@/context/BeamContext'
 import { getCategory } from '@/data/categories'
 import { formatLocation } from '@/lib/location'
 import { formatRate, relativeTime } from '@/lib/matching'
+import { hidesPeerHelperDiscovery } from '@/lib/roles'
 
 const AVAIL_LABELS: Record<string, string> = {
   mornings: 'Mornings',
@@ -24,8 +25,11 @@ function paramId(value: string | string[] | undefined): string {
 export function HelperProfile() {
   const params = useParams()
   const id = paramId(params.id)
-  const { getPerson, state, currentUser, authUser, toggleSavedHelper } = useBeam()
+  const { getPerson, state, currentUser, authUser, mode, toggleSavedHelper } = useBeam()
   const person = getPerson(id)
+  const isGuest = mode === 'live' && !authUser
+  const hidePeerDiscovery = hidesPeerHelperDiscovery(currentUser, isGuest)
+  const browseFallbackHref = hidePeerDiscovery ? '/browse' : '/browse?tab=people'
 
   if (!person) {
     return (
@@ -33,7 +37,11 @@ export function HelperProfile() {
         <EmptyState
           title="Person not found"
           body="They may not be in this demo seed."
-          action={<ButtonLink href="/browse?tab=people">Browse people</ButtonLink>}
+          action={
+            <ButtonLink href={browseFallbackHref}>
+              {hidePeerDiscovery ? 'Browse open jobs' : 'Browse people'}
+            </ButtonLink>
+          }
         />
       </div>
     )
