@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * Playwright visual QA for /onboarding across desktop / tablet / mobile.
- * Saves screenshots to /opt/cursor/artifacts/onboarding-qa/ and prints probes.
+ * Saves screenshots to /opt/cursor/artifacts/onboarding-clean-qa/ and prints probes.
  *
  * Covers:
- * - step1-initial (split layout on desktop, popular chips, crisp disabled Next)
+ * - step1-empty (clean single-column, no aside/email/sign-out/Popular chips)
  * - step1-autocomplete-open (dropdown never clipped by overflow)
- * - step1-ready (role + verified city + active Next + live preview)
- * - step2-disclaimer (safety callout + Complete CTA)
+ * - step1-filled (role + city + active Continue)
+ * - step2-commitment (safety callout + Agree and continue CTA)
  */
 import assert from 'node:assert/strict'
 import { mkdirSync } from 'node:fs'
@@ -15,7 +15,7 @@ import { join } from 'node:path'
 import { chromium } from 'playwright'
 
 const BASE_URL = process.env.BASE_URL ?? 'http://127.0.0.1:43123'
-const OUT = '/opt/cursor/artifacts/onboarding-qa'
+const OUT = '/opt/cursor/artifacts/onboarding-clean-qa'
 mkdirSync(OUT, { recursive: true })
 
 const VIEWPORTS = [
@@ -37,7 +37,7 @@ async function probe(page) {
   return page.evaluate(() => {
     const darkNodes = [...document.querySelectorAll('*')].filter((el) => {
       const bg = getComputedStyle(el).backgroundColor
-      const alphaM = bg.match(/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)\s*\)/i)
+      const alphaM = bg.match(/rgba\(\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)\s*\)/i)
       if (alphaM && Number(alphaM[1]) < 0.05) return false
       if (bg === 'transparent' || bg === 'rgba(0, 0, 0, 0)') return false
       const m = bg.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i)
@@ -47,15 +47,41 @@ async function probe(page) {
       const b = Number(m[3])
       return (r <= 14 && g <= 14 && b <= 16) || (r === 20 && g === 20 && b === 24)
     })
+    const bodyText = document.body.innerText
     return {
       bodyBg: getComputedStyle(document.body).backgroundColor,
       darkCount: darkNodes.length,
       horizontalOverflow:
         document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
-      textSample: document.body.innerText.slice(0, 400),
-      hasAustin: /Austin/i.test(document.body.innerText),
+      textSample: bodyText.slice(0, 500),
+      hasAustin: /Austin/i.test(bodyText),
+      hasSignOut: /Sign out/i.test(bodyText),
+      hasEmailLike: /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(bodyText),
+      hasPopular: /\bPopular\b/i.test(bodyText),
+      hasVerifiedBadge: /\bVerified\b/i.test(bodyText),
+      hasPreviewMode: /Preview mode/i.test(bodyText),
+      asideCount: document.querySelectorAll('aside').length,
+      imgCount: document.querySelectorAll('img').length,
+      signOutTestIdCount: document.querySelectorAll('[data-testid="onboarding-sign-out"]').length,
     }
   })
+}
+
+async function assertCleanChrome(page, label) {
+  const p = await probe(page)
+  assert.equal(p.darkCount, 0, `${label} dark=${p.darkCount}`)
+  assert.equal(p.horizontalOverflow, false, `${label} overflow`)
+  assert.ok(!isDarkLeftover(p.bodyBg), `${label} body ${p.bodyBg}`)
+  assert.equal(p.hasAustin, false, `${label} must not mention Austin`)
+  assert.equal(p.hasSignOut, false, `${label} must not show Sign out`)
+  assert.equal(p.hasEmailLike, false, `${label} must not show email`)
+  assert.equal(p.hasPopular, false, `${label} must not show Popular chips`)
+  assert.equal(p.hasVerifiedBadge, false, `${label} must not show Verified badge`)
+  assert.equal(p.hasPreviewMode, false, `${label} must not show Preview mode`)
+  assert.equal(p.asideCount, 0, `${label} must have zero <aside>`)
+  assert.equal(p.imgCount, 0, `${label} must have zero <img> stock photos`)
+  assert.equal(p.signOutTestIdCount, 0, `${label} must not render onboarding-sign-out`)
+  return p
 }
 
 async function assertDropdownNotClipped(page) {
@@ -104,31 +130,28 @@ async function runViewport(browser, vp) {
     await page.goto(`${BASE_URL}/onboarding?preview=1`, { waitUntil: 'networkidle' })
     await page.waitForSelector('[data-testid="onboarding-step-1"]')
 
-    let p = await probe(page)
-    assert.equal(p.darkCount, 0, `${prefix} step1 dark=${p.darkCount}`)
-    assert.equal(p.horizontalOverflow, false, `${prefix} step1 overflow`)
-    assert.ok(!isDarkLeftover(p.bodyBg), `${prefix} step1 body ${p.bodyBg}`)
-    assert.equal(p.hasAustin, false, `${prefix} step1 must not mention Austin`)
+    let p = await assertCleanChrome(page, `${prefix} step1-empty`)
     assert.match(p.textSample, /Welcome to Beam/i)
-    assert.match(await page.getByTestId('onboarding-step-1').innerText(), /Popular/i)
+    assert.doesNotMatch(await page.getByTestId('onboarding-step-1').innerText(), /Popular/i)
     assert.equal(await page.getByTestId('onboarding-next').isDisabled(), true)
-    await shot(page, `${prefix}-step1-initial`)
+    await shot(page, `${prefix}-step1-empty`)
 
     await page.getByTestId('onboarding-role-customer').click()
     await page.waitForSelector('[data-testid="onboarding-city-input"]')
     await page.getByTestId('onboarding-city-input').click()
     await page.waitForSelector('[data-testid="onboarding-city-listbox"]')
     await assertDropdownNotClipped(page)
-    await page.getByTestId('onboarding-city-input').fill('Boise')
+    await page.getByTestId('onboarding-city-input').fill('San Jose')
     await page.waitForTimeout(200)
     await assertDropdownNotClipped(page)
-    p = await probe(page)
-    assert.equal(p.darkCount, 0, `${prefix} dropdown dark`)
-    assert.equal(p.horizontalOverflow, false, `${prefix} dropdown overflow`)
+    await assertCleanChrome(page, `${prefix} dropdown`)
     await shot(page, `${prefix}-step1-autocomplete-open`)
 
-    await page.getByRole('option', { name: /Boise,\s*ID/i }).first().click()
+    await page.getByRole('option', { name: /San Jose,\s*CA/i }).first().click()
     await page.waitForSelector('[data-testid="onboarding-city-verified"]')
+    const verifiedText = await page.getByTestId('onboarding-city-verified').innerText()
+    assert.match(verifiedText, /San Jose,\s*CA/i)
+    assert.doesNotMatch(verifiedText, /Verified/i)
     assert.equal(await page.getByTestId('onboarding-next').isDisabled(), false)
     // Let enabled CTA styles settle (avoid mid-transition muted blue in screenshots).
     await page.waitForTimeout(250)
@@ -148,22 +171,20 @@ async function runViewport(browser, vp) {
       'rgb(255, 255, 255)',
       `${prefix} next text expected white, got ${nextStyles.color}`,
     )
-    p = await probe(page)
-    assert.equal(p.darkCount, 0, `${prefix} ready dark`)
-    assert.equal(p.horizontalOverflow, false, `${prefix} ready overflow`)
-    await shot(page, `${prefix}-step1-ready`)
+    await assertCleanChrome(page, `${prefix} step1-filled`)
+    await shot(page, `${prefix}-step1-filled`)
 
     await page.getByTestId('onboarding-next').click()
     await page.waitForSelector('[data-testid="onboarding-step-2"]')
     const step2 = await page.getByTestId('onboarding-step-2').innerText()
     assert.match(step2, /Posting illegal content or listing sexual services is strictly prohibited/i)
-    assert.match(step2, /temporary ban/i)
-    assert.match(step2, /Mandatory marketplace policy/i)
+    assert.match(step2, /accounts are suspended/i)
+    assert.doesNotMatch(step2, /Mandatory marketplace policy/i)
+    assert.doesNotMatch(step2, /Helper \/ Tasker ·/i)
+    assert.match(step2, /Agree and continue/i)
     assert.doesNotMatch(step2, /no extra checkbox/i)
-    p = await probe(page)
-    assert.equal(p.darkCount, 0, `${prefix} step2 dark`)
-    assert.equal(p.horizontalOverflow, false, `${prefix} step2 overflow`)
-    await shot(page, `${prefix}-step2-disclaimer`)
+    await assertCleanChrome(page, `${prefix} step2`)
+    await shot(page, `${prefix}-step2-commitment`)
 
     console.log(`ok visual QA ${prefix}`)
   } finally {
