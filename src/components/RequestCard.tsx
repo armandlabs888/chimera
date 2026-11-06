@@ -7,9 +7,9 @@ import { useMemo } from 'react'
 import { Avatar } from './ui'
 import { useBeam } from '@/context/BeamContext'
 import { getCategory } from '../data/categories'
-import { formatBudget, formatLocation, relativeTime } from '../lib/matching'
+import { formatLocation, relativeTime } from '../lib/matching'
+import { formatPublicRating } from '@/lib/ratingDisplay'
 import type { HelpRequest } from '../types'
-import { CATEGORY_ICONS } from '@/lib/categoryIcons'
 
 export function RequestCard({
   request,
@@ -20,9 +20,7 @@ export function RequestCard({
 }) {
   const { state } = useBeam()
   const category = getCategory(request.category)
-  const CategoryIcon = CATEGORY_ICONS[request.category]
   const location = formatLocation(request)
-  const budgetLabel = formatBudget(request)
 
   const requester = useMemo(
     () => state.people.find((p) => p.id === request.requesterId),
@@ -38,87 +36,89 @@ export function RequestCard({
   const requesterFirstName = requester?.name?.split(/\s+/)[0] ?? 'Neighbor'
   const isAsap = request.when === 'asap'
   const timingLabel = isAsap ? 'ASAP' : request.whenLabel
-  const isOpenBudget = request.budgetType === 'open' || request.budget === 0
+  const isOpenBudget = request.budgetType === 'open' || !request.budget || request.budget <= 0
+  const ratingLabel = requester ? formatPublicRating(requester) : null
+  const neighborhood = location.split(',')[0]?.trim() || location
 
   return (
     <Link
       href={`/requests/${request.id}`}
-      className="group flex h-full flex-col overflow-hidden rounded-xl border border-[rgba(7,19,48,0.08)] bg-white shadow-[0_10px_28px_-12px_rgba(12,42,102,0.08)] transition duration-200 hover:-translate-y-0.5 hover:border-[rgba(29,92,229,0.28)] hover:shadow-[0_18px_38px_-14px_rgba(12,42,102,0.15)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1D5CE5]"
+      className="group flex flex-col overflow-hidden rounded-xl border border-[#E2E8F0] bg-white transition-[border-color,box-shadow] duration-150 hover:border-[#CBD5E1] hover:shadow-[0_6px_18px_-6px_rgba(7,19,48,0.08)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1D5CE5]"
     >
-      <div className="relative aspect-[16/10] overflow-hidden">
+      <div className="relative aspect-[16/9] max-h-[140px] w-full overflow-hidden bg-[#F1F5F9]">
         <Image
           src={request.image}
           alt=""
           fill
-          sizes="(min-width:1024px) 360px, 50vw"
+          sizes="(min-width:1280px) 320px, (min-width:640px) 45vw, 100vw"
           className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
         />
+        <span className="absolute left-2.5 top-2.5 inline-flex items-center rounded-md bg-white/95 px-2 py-0.5 text-[11px] font-semibold text-[#071330] shadow-xs">
+          {category.shortLabel}
+        </span>
         <span
-          className={`absolute right-3 top-3 inline-flex items-center rounded-full px-2.5 py-1 text-[11.5px] font-semibold tracking-wide ${
+          className={`absolute right-2.5 top-2.5 inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold ${
             isAsap
-              ? 'border border-[rgba(7,19,48,0.12)] bg-[#FFF8D6] text-[#071330]'
-              : 'bg-white/92 text-[#071330] backdrop-blur-sm'
+              ? 'border border-[#FDE047]/80 bg-[#FEF08A] text-[#071330]'
+              : 'bg-[#071330]/80 text-white'
           }`}
         >
           {timingLabel}
         </span>
-        <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[12.5px] font-semibold text-[#071330] shadow-sm backdrop-blur-sm">
-          <CategoryIcon className="h-3.5 w-3.5 text-[#1D5CE5]" strokeWidth={2} aria-hidden />
-          {category.shortLabel}
-        </span>
       </div>
 
-      <div className="flex flex-1 flex-col p-5">
-        <h3 className="line-clamp-2 text-[17px] font-bold leading-[1.35] text-[#071330]">
+      <div className="flex flex-1 flex-col p-3.5">
+        <h3 className="line-clamp-1 text-[14.5px] font-semibold leading-[1.32] tracking-[-0.01em] text-[#071330] group-hover:text-[#1D5CE5]">
           {request.title}
         </h3>
         {!compact ? (
-          <p className="mt-2 line-clamp-2 text-[14px] leading-[1.5] text-[#475569]">{request.details}</p>
+          <p className="mt-1 line-clamp-2 text-[12.5px] leading-[1.45] text-[#64748B]">
+            {request.details}
+          </p>
         ) : null}
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] text-[#64748B]">
-          <span className="inline-flex items-center gap-1">
-            <MapPin className="h-3.5 w-3.5 shrink-0 text-[#94A3B8]" aria-hidden />
-            {location}
-          </span>
+        <div className="mt-2.5 flex items-center gap-1.5 text-[11.5px] font-medium text-[#64748B]">
+          <MapPin className="h-3 w-3 shrink-0 text-[#94A3B8]" aria-hidden />
+          <span className="min-w-0 truncate">{neighborhood}</span>
           <span aria-hidden>·</span>
-          <span>{relativeTime(request.createdAt)}</span>
-          <span
-            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-semibold ${
-              offerCount > 0 ? 'bg-[#EEF4FF] text-[#1D5CE5]' : 'bg-[#F4F8FD] text-[#64748B]'
-            }`}
-          >
-            {offerCount > 0
-              ? `${offerCount} offer${offerCount === 1 ? '' : 's'}`
-              : 'Open for offers'}
-          </span>
+          <span className="shrink-0">{relativeTime(request.createdAt)}</span>
+          {offerCount > 0 ? (
+            <span className="ml-auto inline-flex shrink-0 items-center rounded-md bg-[#EFF6FF] px-1.5 py-0.5 text-[11px] font-semibold text-[#1D5CE5]">
+              {offerCount} offer{offerCount === 1 ? '' : 's'}
+            </span>
+          ) : null}
         </div>
 
         {request.status !== 'open' ? (
-          <p className="mt-2 text-[13px] capitalize text-[#64748B]">{request.status}</p>
+          <p className="mt-2 text-[12px] capitalize text-[#64748B]">{request.status}</p>
         ) : null}
 
-        <div className="mt-auto flex items-center justify-between gap-3 border-t border-[rgba(7,19,48,0.07)] pt-4">
-          <div className="flex min-w-0 items-center gap-2">
-            <Avatar src={requester?.avatar} name={requester?.name ?? 'Neighbor'} size={26} />
-            <div className="min-w-0">
-              <p className="truncate text-[13px] font-semibold text-[#071330]">{requesterFirstName}</p>
-              <p className="truncate text-[11.5px] text-[#64748B]">
-                {requester ? `★ ${requester.rating.toFixed(1)}` : 'Neighbor'}
-              </p>
-            </div>
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-[#F1F5F9] pt-2.5">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <Avatar src={requester?.avatar} name={requester?.name ?? 'Neighbor'} size={22} />
+            <span className="truncate text-[12px] font-medium text-[#334155]">
+              {requesterFirstName}
+            </span>
+            {ratingLabel ? (
+              <span className="shrink-0 text-[11.5px] font-medium text-[#64748B]">
+                ★ {ratingLabel}
+              </span>
+            ) : (
+              <span className="shrink-0 rounded bg-[#F1F5F9] px-1.5 py-0.5 text-[10.5px] font-medium text-[#64748B]">
+                New
+              </span>
+            )}
           </div>
-          <div className="shrink-0 text-right">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748B]">
-              Budget
-            </p>
-            <p
-              className={`font-display font-bold leading-none text-[#071330] ${
-                isOpenBudget ? 'text-[15px]' : 'text-[24px] tabular-nums'
-              }`}
-            >
-              {budgetLabel}
-            </p>
+          <div className="shrink-0">
+            {isOpenBudget ? (
+              <span className="inline-flex rounded-md border border-[#E2E8F0] bg-[#F8FAFC] px-2 py-0.5 text-[11.5px] font-semibold text-[#334155]">
+                Open to offers
+              </span>
+            ) : (
+              <span className="font-display text-[15px] font-bold tabular-nums text-[#071330]">
+                ${Math.round(request.budget)}
+              </span>
+            )}
           </div>
         </div>
       </div>

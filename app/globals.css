@@ -223,6 +223,26 @@
     display: none;
   }
 
+  .browse-feed-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  .browse-feed-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .browse-feed-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .browse-feed-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
   @keyframes pulse-dot {
     0%,
     100% {
