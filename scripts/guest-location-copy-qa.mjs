@@ -267,7 +267,7 @@ try {
 
     // ——— Guest browse ———
     await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
-    await page.waitForSelector('text=Browse tasks', { timeout: 15000 })
+    await page.waitForSelector('text=Browse Local Jobs', { timeout: 15000 })
     const browseBody = await page.locator('body').innerText()
     if (/across Austin neighborhoods/i.test(browseBody)) {
       throw new Error(`Guest /browse still assumes Austin @ ${vp.name}`)

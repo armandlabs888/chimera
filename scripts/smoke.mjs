@@ -569,7 +569,7 @@ async function checkLandingBrowser() {
     await page
       .waitForFunction(
         () =>
-          /Browse tasks|Open requests|Local helpers|Welcome back|Continue with Google|Sign in/i.test(
+          /Browse Local Jobs|Open requests|Local helpers|Welcome back|Continue with Google|Sign in/i.test(
             document.body.innerText,
           ),
         null,
@@ -579,7 +579,7 @@ async function checkLandingBrowser() {
     const browseBody = await page.locator('body').innerText()
     assert.match(
       browseBody,
-      /Browse tasks|Open requests|Local helpers|Welcome back|Continue with Google|Sign in/i,
+      /Browse Local Jobs|Open requests|Local helpers|Welcome back|Continue with Google|Sign in/i,
       'browse reachable',
     )
     assert.doesNotMatch(browseBody.slice(0, 80), /^Beam\nSign in to help nearby$/m)
@@ -675,7 +675,7 @@ async function checkLandingBrowser() {
         'signed-in /safety keeps app-footer',
       )
       await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
-      await page.waitForSelector('text=Browse tasks')
+      await page.waitForSelector('text=Browse Local Jobs')
     }
 
     await page.goto(`${BASE_URL}/safety`, { waitUntil: 'domcontentloaded' })
@@ -697,7 +697,7 @@ async function checkLandingBrowser() {
     ]) {
       await page.setViewportSize({ width, height })
       await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
-      await page.waitForSelector('text=Browse tasks')
+      await page.waitForSelector('text=Browse Local Jobs')
       const g = await page.evaluate((vpWidth) => {
         const html = document.documentElement
         const topnavInner =

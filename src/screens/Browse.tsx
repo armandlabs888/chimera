@@ -764,7 +764,7 @@ export function Browse() {
           <div className="mb-4 flex flex-col gap-4 sm:mb-5">
             <div className="max-w-2xl">
               <h1 className="font-display text-[clamp(1.75rem,3.2vw,2.35rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330] text-balance">
-                Browse tasks &amp; local helpers
+                Browse Local Jobs
               </h1>
               <p className="mt-1.5 max-w-[52ch] text-[14.5px] leading-[1.55] text-[#64748B] sm:text-[15px]">
                 {isGuest

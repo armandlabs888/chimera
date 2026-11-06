@@ -74,7 +74,7 @@ async function main() {
     {
       const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
       await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
-      await page.waitForSelector('text=Browse tasks', { timeout: 15000 })
+      await page.waitForSelector('text=Browse Local Jobs', { timeout: 15000 })
       await page.waitForSelector('[data-testid="browse-3col-grid"]')
       await page.waitForTimeout(400)
       const m = await measure(page)
@@ -101,7 +101,7 @@ async function main() {
 
       // Helpers tab
       await page.goto(`${BASE}/browse?tab=people`, { waitUntil: 'networkidle', timeout: 60000 })
-      await page.waitForSelector('text=Browse tasks')
+      await page.waitForSelector('text=Browse Local Jobs')
       await page.waitForTimeout(300)
       const mh = await measure(page)
       assert.equal(mh.overflowX, false, 'no x-overflow helpers')
@@ -115,7 +115,7 @@ async function main() {
     {
       const page = await browser.newPage({ viewport: { width: 768, height: 1024 } })
       await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
-      await page.waitForSelector('text=Browse tasks')
+      await page.waitForSelector('text=Browse Local Jobs')
       await page.waitForTimeout(300)
       const m = await measure(page)
       assert.equal(m.overflowX, false, 'no x-overflow tablet')
@@ -130,7 +130,7 @@ async function main() {
     {
       const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
       await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
-      await page.waitForSelector('text=Browse tasks')
+      await page.waitForSelector('text=Browse Local Jobs')
       await page.waitForTimeout(300)
       const m = await measure(page)
       assert.equal(m.overflowX, false, 'no x-overflow mobile')
