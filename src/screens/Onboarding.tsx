@@ -451,20 +451,17 @@ export function Onboarding() {
               </div>
 
               <div className="mt-9">
-                <button
+                <Button
                   type="button"
+                  size="lg"
                   disabled={!canNext}
                   onClick={() => setStep(2)}
                   data-testid="onboarding-next"
-                  className={
-                    canNext
-                      ? 'inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-full bg-[#1D5CE5] px-7 text-[15.5px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(29,92,229,0.4)] transition hover:bg-[#1649BD] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25'
-                      : 'inline-flex h-[54px] w-full cursor-not-allowed items-center justify-center gap-2 rounded-full bg-[#E2E8F0] px-7 text-[15.5px] font-semibold text-[#94A3B8] transition'
-                  }
+                  className="h-[54px] w-full rounded-full bg-[#1D5CE5] px-7 text-[15.5px] text-white shadow-[0_10px_24px_-8px_rgba(29,92,229,0.4)] !transition-[transform,box-shadow] hover:bg-[#1649BD] disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#94A3B8] disabled:shadow-none disabled:!opacity-100 disabled:hover:bg-[#E2E8F0]"
                 >
                   Next
                   <ArrowRight className="h-4 w-4" aria-hidden />
-                </button>
+                </Button>
               </div>
             </div>
           ) : (

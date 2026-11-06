@@ -130,6 +130,24 @@ async function runViewport(browser, vp) {
     await page.getByRole('option', { name: /Boise,\s*ID/i }).first().click()
     await page.waitForSelector('[data-testid="onboarding-city-verified"]')
     assert.equal(await page.getByTestId('onboarding-next').isDisabled(), false)
+    // Let enabled CTA styles settle (avoid mid-transition muted blue in screenshots).
+    await page.waitForTimeout(250)
+    const nextStyles = await page.getByTestId('onboarding-next').evaluate((btn) => {
+      const s = getComputedStyle(btn)
+      return { bg: s.backgroundColor, color: s.color, opacity: s.opacity, disabled: btn.disabled }
+    })
+    assert.equal(nextStyles.disabled, false, `${prefix} next still disabled`)
+    assert.equal(
+      nextStyles.bg,
+      'rgb(29, 92, 229)',
+      `${prefix} next bg expected royal #1D5CE5, got ${nextStyles.bg}`,
+    )
+    assert.equal(nextStyles.opacity, '1', `${prefix} next opacity=${nextStyles.opacity}`)
+    assert.equal(
+      nextStyles.color,
+      'rgb(255, 255, 255)',
+      `${prefix} next text expected white, got ${nextStyles.color}`,
+    )
     p = await probe(page)
     assert.equal(p.darkCount, 0, `${prefix} ready dark`)
     assert.equal(p.horizontalOverflow, false, `${prefix} ready overflow`)
