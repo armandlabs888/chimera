@@ -162,7 +162,7 @@ export function HomeDashboard() {
     <div className="py-2 sm:py-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-[clamp(2rem,4vw,2.5rem)] font-bold leading-[1.05] tracking-[-0.02em] text-[#071330]">
+          <h1 className="font-display text-[clamp(2rem,4vw,2.5rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
             {greeting()}, {first}
           </h1>
           <p className="mt-2 text-[16px] text-[#64748B]">

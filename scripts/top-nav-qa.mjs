@@ -87,8 +87,32 @@ async function measureChrome(page) {
         .length,
       freshEmpty: !!document.querySelector('[data-testid="browse-fresh-empty"]'),
       bodySample: bodyText.slice(0, 400),
+      fonts: (() => {
+        const fontOf = (el) => (el ? getComputedStyle(el).fontFamily : '')
+        return {
+          body: fontOf(document.body),
+          h1: fontOf(document.querySelector('h1')),
+          h2: fontOf(document.querySelector('h2')),
+          topnav: fontOf(document.querySelector('[data-testid="app-topnav"]')),
+        }
+      })(),
     }
   }, DARK_REMNANTS)
+}
+
+const SERIF_FONT_RE = /Fraunces|Georgia|ui-serif|(?:^|,\s)serif\s*(?:,|$)/i
+const GEO_FONT_RE = /UberMove|DM Sans|__DM_Sans|UberMoveText|Inter|__Inter|system-ui/i
+
+function assertGeometricFonts(fonts, label) {
+  for (const [slot, family] of Object.entries(fonts || {})) {
+    if (!family) continue
+    record(
+      !SERIF_FONT_RE.test(family),
+      `${label}: ${slot} has no serif faces`,
+      family,
+    )
+    record(GEO_FONT_RE.test(family), `${label}: ${slot} uses geometric sans stack`, family)
+  }
 }
 
 const browser = await chromium.launch({ headless: true })
@@ -120,6 +144,7 @@ try {
         `${label}: no dark-mode leftovers`,
         m.remnantHits.join(',') || null,
       )
+      assertGeometricFonts(m.fonts, label)
 
       // Auth/demo shell expectations when not gated to marketing auth
       const gated =

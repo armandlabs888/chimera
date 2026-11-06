@@ -467,7 +467,7 @@ export function Browse() {
           <span className="inline-flex items-center rounded-full border border-[rgba(7,19,48,0.1)] bg-[#FFF8D6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#071330]">
             Marketplace
           </span>
-          <h1 className="mt-3 font-display text-[clamp(2rem,4vw,2.75rem)] font-bold leading-[1.08] tracking-[-0.03em] text-[#071330] text-balance">
+          <h1 className="mt-3 font-display text-[clamp(2rem,4vw,2.75rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330] text-balance">
             Browse tasks &amp; local helpers
           </h1>
           <p className="mt-2 max-w-[52ch] text-[15px] leading-[1.55] text-[#64748B] sm:text-[16px]">
@@ -846,7 +846,7 @@ export function Browse() {
           <span className="inline-flex items-center rounded-full border border-[rgba(7,19,48,0.1)] bg-[#FFF8D6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#071330]">
             Fresh marketplace
           </span>
-          <h2 className="mt-4 font-display text-[clamp(1.6rem,3vw,2.1rem)] font-bold tracking-[-0.03em] text-[#071330]">
+          <h2 className="mt-4 font-display text-[clamp(1.6rem,3vw,2.1rem)] font-bold tracking-[-0.02em] text-[#071330]">
             Be the first on Beam
           </h2>
           <p className="mx-auto mt-2 max-w-[42ch] text-[15px] leading-[1.55] text-[#64748B]">

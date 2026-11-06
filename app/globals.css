@@ -34,9 +34,16 @@
   --color-beam-butter: #fff8d6;
   --color-beam-butter-deep: #fef0a8;
   --color-beam-sky: #f4f8fd;
-  --font-display: var(--font-display), ui-serif, Georgia, serif;
-  --font-serif: var(--font-display), ui-serif, Georgia, serif;
-  --font-body: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Uber Move (display) → DM Sans stand-in. Uber Move Text (UI) → Inter stand-in. */
+  --font-display: 'UberMove', 'Uber Move', var(--font-dm-sans), system-ui, -apple-system,
+    BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-sans: 'UberMoveText', 'Uber Move Text', var(--font-inter), system-ui, -apple-system,
+    BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-body: 'UberMoveText', 'Uber Move Text', var(--font-inter), system-ui, -apple-system,
+    BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  /* Safe alias — never resolves to a serif face. */
+  --font-serif: 'UberMove', 'Uber Move', var(--font-dm-sans), system-ui, -apple-system,
+    BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --beam-nav-offset: 6rem;
   --beam-radius-sm: 12px;
   --beam-radius-md: 18px;
@@ -79,6 +86,7 @@
     font-size: 15px;
     line-height: 1.5;
     font-weight: 400;
+    letter-spacing: normal;
     background: var(--canvas);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
@@ -88,7 +96,9 @@
   h1,
   h2,
   h3 {
-    line-height: 1.08;
+    font-family: var(--font-display);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
     text-wrap: balance;
   }
 
@@ -153,33 +163,33 @@
 
   .type-h3 {
     font-size: 26px;
-    line-height: 1.12;
-    font-weight: 600;
-    letter-spacing: -0.02em;
+    line-height: 1.28;
+    font-weight: 700;
+    letter-spacing: -0.01em;
     font-family: var(--font-display);
   }
 
   .type-h2 {
     font-size: clamp(2rem, 3.6vw, 3.25rem);
-    line-height: 1.05;
+    line-height: 1.18;
     font-weight: 700;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.015em;
     font-family: var(--font-display);
   }
 
   .type-h1 {
     font-size: clamp(2.25rem, 4vw, 3.5rem);
-    line-height: 1.05;
+    line-height: 1.15;
     font-weight: 700;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
     font-family: var(--font-display);
   }
 
   .type-hero {
-    font-size: clamp(2.85rem, 5.6vw, 4.85rem);
-    line-height: 1.02;
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    line-height: 1.12;
     font-weight: 700;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
     font-family: var(--font-display);
   }
 
@@ -394,9 +404,9 @@
 
   .landing-headline {
     font-family: var(--font-display);
-    font-size: clamp(2.85rem, 5.6vw, 4.85rem);
-    line-height: 1.02;
-    letter-spacing: -0.03em;
+    font-size: clamp(2.5rem, 5vw, 4.25rem);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
     font-weight: 700;
     color: #ffffff;
     text-wrap: balance;

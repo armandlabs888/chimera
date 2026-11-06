@@ -389,7 +389,16 @@ async function checkLandingBrowser() {
     assert.equal(geo.hasCategories, true)
     assert.equal(geo.hasNeighborhoods, true)
     assert.equal(geo.mapCount, 0, 'no cartoon map')
-    assert.match(geo.h1Font, /Fraunces|serif/i, 'display serif on h1')
+    assert.equal(
+      /Fraunces|Georgia|ui-serif|(?:^|,\s)serif\s*(?:,|$)/i.test(geo.h1Font),
+      false,
+      `h1 must not use serif faces: ${geo.h1Font}`,
+    )
+    assert.match(
+      geo.h1Font,
+      /UberMove|DM Sans|__DM_Sans|system-ui/i,
+      `h1 geometric display stack: ${geo.h1Font}`,
+    )
     assert.ok(geo.h1Px >= 40 && geo.h1Px <= 110, `hero size ${geo.h1Px}`)
     assert.equal(geo.overflowX, false, 'no horizontal overflow desktop')
 

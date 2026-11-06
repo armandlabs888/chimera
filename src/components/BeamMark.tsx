@@ -49,7 +49,7 @@ export function BeamWordmark({
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       <BeamMark width={markWidth} height={markHeight} color={colors.mark} />
       <span
-        className={`font-display text-[26px] font-bold leading-none tracking-[-0.03em] ${colors.word} ${wordClassName}`}
+        className={`font-display text-[26px] font-bold leading-none tracking-[-0.025em] ${colors.word} ${wordClassName}`}
       >
         Beam
       </span>

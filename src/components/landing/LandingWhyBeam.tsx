@@ -81,7 +81,7 @@ export function LandingWhyBeam() {
             <p className="inline-flex w-fit rounded-full border border-[rgba(7,19,48,0.1)] bg-[#FFF8D6] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#071330]">
               03 Why Beam
             </p>
-            <h2 className="mt-4 max-w-[14ch] font-display text-[clamp(2rem,3.6vw,3.25rem)] font-bold leading-[1.05] tracking-[-0.03em] text-[#071330] text-balance">
+            <h2 className="mt-4 max-w-[14ch] font-display text-[clamp(2rem,3.6vw,3.25rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330] text-balance">
               Why choose Beam
             </h2>
             <p className="mt-3 max-w-[42ch] text-[16px] leading-[1.55] text-[#64748B]">

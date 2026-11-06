@@ -1,17 +1,21 @@
 import type { Metadata, Viewport } from 'next'
-import { Fraunces, Plus_Jakarta_Sans } from 'next/font/google'
+import { DM_Sans, Inter } from 'next/font/google'
 import type { ReactNode } from 'react'
 import './globals.css'
 
-const plusJakarta = Plus_Jakarta_Sans({
+/* Uber Move Text role → UI/body. Inter is the licensed geometric stand-in. */
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-sans',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-inter',
   display: 'swap',
 })
 
-const fraunces = Fraunces({
+/* Uber Move role → display/headlines. DM Sans mirrors circular transit bowls. */
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  variable: '--font-display',
+  weight: ['500', '700'],
+  variable: '--font-dm-sans',
   display: 'swap',
 })
 
@@ -62,7 +66,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${plusJakarta.variable} ${fraunces.variable}`}>
+    <html lang="en" className={`${inter.variable} ${dmSans.variable}`}>
       <body className="font-body antialiased">{children}</body>
     </html>
   )

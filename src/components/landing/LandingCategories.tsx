@@ -19,7 +19,7 @@ export function LandingCategories() {
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1D5CE5]">
               01 Discover
             </p>
-            <h2 className="mt-2 font-display text-[clamp(2rem,3.6vw,3.25rem)] font-bold leading-[1.05] tracking-[-0.03em] text-[#071330]">
+            <h2 className="mt-2 font-display text-[clamp(2rem,3.6vw,3.25rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
               Popular services
             </h2>
             <p className="mt-2 max-w-[42ch] text-[16px] text-[#64748B]">
