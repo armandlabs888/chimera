@@ -221,7 +221,12 @@ export function BeamProvider({
         ? err.message
         : err instanceof Error
           ? err.message
-          : fallback
+          : typeof err === 'object' &&
+              err !== null &&
+              'message' in err &&
+              typeof (err as { message: unknown }).message === 'string'
+            ? (err as { message: string }).message
+            : fallback
     setBackendError(message)
     throw err instanceof Error ? err : new Error(message)
   }, [])

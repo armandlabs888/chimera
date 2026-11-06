@@ -6,14 +6,18 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import {
   useEffect,
   useId,
+  useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
-import { UsCityCombobox } from '@/components/onboarding/UsCityCombobox'
+import {
+  UsCityCombobox,
+  type UsCityComboboxHandle,
+} from '@/components/onboarding/UsCityCombobox'
 import { Button } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import type { UsCity } from '@/lib/usPlaces'
+import { loadUsPlacesIndex, searchUsCities, type UsCity } from '@/lib/usPlaces'
 import type { AccountRole } from '@/types'
 
 const SAFETY_VERSION = 'v1'
@@ -59,25 +63,31 @@ export function Onboarding() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const preview = searchParams.get('preview') === '1'
-  const { mode, ready, authUser, currentUser, completeOnboarding } = useBeam()
+  const edit = searchParams.get('edit') === '1'
+  const { mode, ready, authUser, currentUser, completeOnboarding, signOut } = useBeam()
 
   const roleGroupId = useId()
+  const cityRef = useRef<UsCityComboboxHandle>(null)
+  const hydratedRef = useRef(false)
   const [step, setStep] = useState<1 | 2>(1)
   const [role, setRole] = useState<AccountRole | null>(null)
   const [city, setCity] = useState<UsCity | null>(null)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+  const [step1Error, setStep1Error] = useState('')
 
   const isPreviewOrDemo = mode === 'demo' || preview
   const alreadyOnboarded = Boolean(currentUser.onboardingCompletedAt)
+  const showAccountEscape =
+    mode === 'live' && Boolean(authUser) && !edit && !alreadyOnboarded
 
   useEffect(() => {
     if (!ready) return
-    // Live users who finished onboarding leave /onboarding unless previewing.
-    if (mode === 'live' && authUser && alreadyOnboarded && !preview) {
+    // Live users who finished onboarding leave /onboarding unless previewing or editing.
+    if (mode === 'live' && authUser && alreadyOnboarded && !preview && !edit) {
       router.replace('/browse')
     }
-  }, [ready, mode, authUser, alreadyOnboarded, preview, router])
+  }, [ready, mode, authUser, alreadyOnboarded, preview, edit, router])
 
   useEffect(() => {
     if (!ready) return
@@ -86,6 +96,39 @@ export function Onboarding() {
       router.replace('/auth?mode=signup&next=%2Fonboarding')
     }
   }, [ready, mode, authUser, preview, router])
+
+  useEffect(() => {
+    if (!ready || hydratedRef.current) return
+    const savedRole = currentUser.accountRole
+    const savedCity = currentUser.city
+    const savedState = currentUser.stateCode
+    if (!savedRole && !savedCity) return
+    hydratedRef.current = true
+
+    if (savedRole === 'customer' || savedRole === 'helper') {
+      setRole(savedRole)
+    }
+
+    if (savedCity && savedState) {
+      void loadUsPlacesIndex()
+        .then(() => {
+          const q = `${savedCity}, ${savedState}`
+          const results = searchUsCities(q, 8)
+          const match =
+            results.find(
+              (c) =>
+                c.name.toLowerCase() === savedCity.toLowerCase() &&
+                c.stateCode.toUpperCase() === savedState.toUpperCase(),
+            ) ??
+            results.find((c) => c.label.toLowerCase() === q.toLowerCase()) ??
+            null
+          if (match) setCity(match)
+        })
+        .catch(() => {
+          /* city index optional for hydrate */
+        })
+    }
+  }, [ready, currentUser.accountRole, currentUser.city, currentUser.stateCode])
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -104,6 +147,34 @@ export function Onboarding() {
 
   const canNext = Boolean(role && city)
 
+  function onStep1Continue() {
+    if (!role) {
+      setStep1Error('Choose Customer or Helper to continue.')
+      return
+    }
+
+    const resolvedCity = city ?? cityRef.current?.tryCommitQuery() ?? null
+    if (!resolvedCity) {
+      setStep1Error('Select your US city to continue.')
+      cityRef.current?.focusAndOpen()
+      return
+    }
+
+    setCity(resolvedCity)
+    setStep1Error('')
+    setStep(2)
+  }
+
+  function handleCityChange(next: UsCity | null) {
+    setCity(next)
+    if (next) setStep1Error('')
+  }
+
+  function handleRoleSelect(next: AccountRole) {
+    setRole(next)
+    setStep1Error('')
+  }
+
   async function onComplete() {
     if (!role || !city) return
     setPending(true)
@@ -120,7 +191,16 @@ export function Onboarding() {
       }
       router.replace('/browse')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not finish onboarding')
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'object' &&
+              err !== null &&
+              'message' in err &&
+              typeof (err as { message: unknown }).message === 'string'
+            ? (err as { message: string }).message
+            : 'Could not finish onboarding'
+      setError(message)
       setPending(false)
     }
   }
@@ -176,12 +256,12 @@ export function Onboarding() {
                       role="radio"
                       aria-checked={selected}
                       tabIndex={role === null ? 0 : selected ? 0 : -1}
-                      onClick={() => setRole(item.id)}
+                      onClick={() => handleRoleSelect(item.id)}
                       onKeyDown={(e) => {
                         if (role) onRoleKeyDown(e, role)
                         else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
                           e.preventDefault()
-                          setRole(item.id === 'customer' ? 'helper' : 'customer')
+                          handleRoleSelect(item.id === 'customer' ? 'helper' : 'customer')
                         }
                       }}
                       data-testid={`onboarding-role-${item.id}`}
@@ -214,21 +294,56 @@ export function Onboarding() {
             </div>
 
             <div className="mt-8">
-              <UsCityCombobox value={city} onChange={setCity} />
+              <UsCityCombobox
+                ref={cityRef}
+                value={city}
+                onChange={handleCityChange}
+                error={
+                  step1Error && role && !city ? step1Error : undefined
+                }
+              />
             </div>
+
+            {step1Error && !role ? (
+              <p
+                className="mt-3 text-[13px] font-medium text-red-600"
+                role="alert"
+                data-testid="onboarding-step1-error"
+              >
+                {step1Error}
+              </p>
+            ) : null}
 
             <div className="mt-9">
               <Button
                 type="button"
                 size="lg"
-                disabled={!canNext}
-                onClick={() => setStep(2)}
+                aria-disabled={!canNext}
+                onClick={onStep1Continue}
                 data-testid="onboarding-next"
-                className="h-[52px] w-full rounded-full bg-[#1D5CE5] px-7 text-[15px] text-white shadow-none !transition-[background-color] hover:bg-[#1649BD] disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#94A3B8] disabled:shadow-none disabled:!opacity-100 disabled:hover:bg-[#E2E8F0]"
+                className={`h-[52px] w-full rounded-full px-7 text-[15px] shadow-none !transition-[background-color] disabled:opacity-100 ${
+                  canNext
+                    ? 'bg-[#1D5CE5] text-white hover:bg-[#1649BD]'
+                    : 'bg-[#E2E8F0] text-[#64748B] hover:bg-[#CBD5E1]'
+                }`}
               >
                 Continue
               </Button>
             </div>
+
+            {showAccountEscape ? (
+              <p className="mt-6 text-center text-[13px] text-[#64748B]">
+                Not your account?{' '}
+                <button
+                  type="button"
+                  className="font-medium text-[#64748B] underline-offset-2 transition hover:text-[#071330] hover:underline"
+                  data-testid="onboarding-sign-out"
+                  onClick={() => void signOut()}
+                >
+                  Sign out
+                </button>
+              </p>
+            ) : null}
           </div>
         ) : (
           <div data-testid="onboarding-step-2" className="animate-fade-up">

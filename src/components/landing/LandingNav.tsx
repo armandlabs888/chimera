@@ -11,10 +11,12 @@ export function LandingNav({
 }: {
   variant?: 'hero' | 'light'
 }) {
-  const { authUser, mode } = useBeam()
+  const { authUser, mode, currentUser, signOut } = useBeam()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const light = variant === 'light' || scrolled
+  const signedInLive = mode === 'live' && Boolean(authUser)
+  const onboardingDone = Boolean(currentUser?.onboardingCompletedAt)
   const canOnboardHelper = Boolean(authUser) || mode === 'demo'
 
   const navLinks = useMemo(
@@ -62,6 +64,9 @@ export function LandingNav({
     ? 'hidden h-11 items-center justify-center rounded-full bg-[#1D5CE5] px-5 text-[14.5px] font-semibold text-white transition hover:bg-[#1649BD] sm:inline-flex'
     : 'hidden h-11 items-center justify-center rounded-full bg-white px-5 text-[14.5px] font-semibold text-[#1D5CE5] transition hover:bg-blue-50 sm:inline-flex'
 
+  const primaryHref = onboardingDone ? '/browse' : '/onboarding'
+  const primaryLabel = onboardingDone ? 'Browse' : 'Continue setup'
+
   return (
     <header
       className={`relative z-50 w-full transition-colors ${
@@ -96,18 +101,38 @@ export function LandingNav({
         </nav>
 
         <div className="flex items-center gap-4 sm:gap-5">
-          <Link href="/auth?mode=signin" className={loginClass}>
-            Log in
-          </Link>
-          <Link
-            href="/auth?mode=signup&next=%2Fonboarding"
-            className={loginClass}
-          >
-            Sign up
-          </Link>
-          <Link href="/post" className={ctaClass}>
-            Post a task
-          </Link>
+          {signedInLive ? (
+            <>
+              <button
+                type="button"
+                className={loginClass}
+                data-testid="landing-sign-out"
+                onClick={() => void signOut()}
+              >
+                Sign out
+              </button>
+              <Link
+                href={primaryHref}
+                className={ctaClass}
+                data-testid="landing-nav-primary"
+              >
+                {primaryLabel}
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link href="/auth?mode=signin" className={loginClass}>
+                Log in
+              </Link>
+              <Link
+                href="/auth?mode=signup&next=%2Fonboarding"
+                className={ctaClass}
+                data-testid="landing-nav-signup"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
           <button
             type="button"
             className={`inline-flex h-11 w-11 items-center justify-center rounded-full border lg:hidden ${
@@ -152,27 +177,51 @@ export function LandingNav({
               ),
             )}
             <div className="my-1 border-t border-[rgba(7,19,48,0.08)]" />
-            <Link
-              href="/auth?mode=signin"
-              className="px-4 py-3 text-[15px] text-[#071330]"
-              onClick={() => setMobileOpen(false)}
-            >
-              Log in
-            </Link>
-            <Link
-              href="/auth?mode=signup&next=%2Fonboarding"
-              className="px-4 py-3 text-[15px] text-[#071330]"
-              onClick={() => setMobileOpen(false)}
-            >
-              Sign up
-            </Link>
-            <Link
-              href="/post"
-              className="px-4 py-3 text-[15px] font-semibold text-[#1D5CE5]"
-              onClick={() => setMobileOpen(false)}
-            >
-              Post a task
-            </Link>
+            {signedInLive ? (
+              <>
+                <button
+                  type="button"
+                  className="px-4 py-3 text-left text-[15px] text-[#071330]"
+                  data-testid="landing-mobile-sign-out"
+                  onClick={() => {
+                    setMobileOpen(false)
+                    void signOut()
+                  }}
+                >
+                  Sign out
+                </button>
+                <div className="px-4 pb-3 pt-1">
+                  <Link
+                    href={primaryHref}
+                    className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[#1D5CE5] px-5 text-[14.5px] font-semibold text-white transition hover:bg-[#1649BD]"
+                    data-testid="landing-mobile-primary"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {primaryLabel}
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/auth?mode=signin"
+                  className="px-4 py-3 text-[15px] text-[#071330]"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Log in
+                </Link>
+                <div className="px-4 pb-3 pt-1">
+                  <Link
+                    href="/auth?mode=signup&next=%2Fonboarding"
+                    className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[#1D5CE5] px-5 text-[14.5px] font-semibold text-white transition hover:bg-[#1649BD]"
+                    data-testid="landing-mobile-signup"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Sign up
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </div>
       ) : null}
