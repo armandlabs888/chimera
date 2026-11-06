@@ -93,6 +93,13 @@ async function checkLandingMarkup() {
   assert.match(text, /id="neighborhoods"/, 'neighborhoods section')
   assert.match(text, /id="categories"/, 'categories section')
   assert.match(text, /data-testid="landing-nav"/, 'daylight landing nav')
+  assert.match(text, /data-testid="landing-nav-signup"/, 'landing nav Sign up pill')
+  // LandingNav must not ship a Post a task CTA — Sign up is the primary right-side action.
+  assert.doesNotMatch(
+    text,
+    /data-testid="landing-nav"[\s\S]*?>[\s\S]*?Post a task[\s\S]*?<\/header>/i,
+    'landing nav has no Post a task button',
+  )
   assert.doesNotMatch(text, /window-chrome|traffic-lights/, 'no macOS window chrome')
   assert.doesNotMatch(text, /data-testid="austin-map"/, 'no cartoon map')
   assert.doesNotMatch(text, /landing-section-full/, 'no sparse full-viewport section class')
@@ -470,6 +477,46 @@ async function checkLandingBrowser() {
     assert.equal(await page.getByTestId('hero-neighborhood-trigger').count(), 0)
     assert.ok(await page.getByRole('link', { name: 'Log in' }).count() >= 1)
 
+    // Uber-style landing nav: Log in text + Sign up pill; no Post a task in the nav.
+    const nav = page.getByTestId('landing-nav')
+    assert.equal(await nav.count(), 1, 'landing-nav present')
+    assert.ok((await nav.getByRole('link', { name: 'Log in' }).count()) >= 1, 'nav Log in')
+    assert.ok((await nav.getByRole('link', { name: 'Sign up' }).count()) >= 1, 'nav Sign up')
+    assert.equal(
+      await nav.getByRole('link', { name: /^Post a task$/i }).count(),
+      0,
+      'nav has no Post a task',
+    )
+    assert.equal(await page.getByTestId('landing-nav-signup').count(), 1, 'Sign up pill testid')
+
+    // Scrolled / light sticky state keeps the same auth hierarchy.
+    await page.evaluate(() => window.scrollTo(0, 600))
+    await page.waitForTimeout(350)
+    assert.equal(
+      await nav.getByRole('link', { name: /^Post a task$/i }).count(),
+      0,
+      'scrolled nav has no Post a task',
+    )
+    assert.ok((await nav.getByRole('link', { name: 'Log in' }).count()) >= 1, 'scrolled Log in')
+    assert.ok((await nav.getByRole('link', { name: 'Sign up' }).count()) >= 1, 'scrolled Sign up')
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await page.waitForTimeout(200)
+
+    // Mobile menu: Sign up primary pill, no Post a task.
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.getByRole('button', { name: /Open menu/i }).click()
+    const mobileMenu = page.getByTestId('landing-mobile-menu')
+    assert.equal(await mobileMenu.count(), 1, 'mobile menu open')
+    assert.ok((await mobileMenu.getByRole('link', { name: 'Log in' }).count()) >= 1, 'mobile Log in')
+    assert.equal(await page.getByTestId('landing-mobile-signup').count(), 1, 'mobile Sign up pill')
+    assert.equal(
+      await mobileMenu.getByRole('link', { name: /^Post a task$/i }).count(),
+      0,
+      'mobile menu has no Post a task',
+    )
+    await page.getByRole('button', { name: /Close menu/i }).click()
+    await page.setViewportSize({ width: 1440, height: 900 })
+
     const tight = await page.$$eval('h1,h2,h3', (els) =>
       els
         .filter((e) => {
@@ -720,10 +767,28 @@ async function checkOnboardingFlow() {
     assert.doesNotMatch(step1, /Popular/i)
     assert.doesNotMatch(step1, /Sign out/i)
     assert.doesNotMatch(step1, /Preview mode/i)
-    assert.equal(await page.getByTestId('onboarding-next').isDisabled(), true, 'Continue disabled initially')
-    assert.equal(await page.locator('[data-testid="onboarding-sign-out"]').count(), 0, 'no sign-out control')
+    assert.equal(
+      await page.getByTestId('onboarding-next').getAttribute('aria-disabled'),
+      'true',
+      'Continue aria-disabled initially',
+    )
+    // Native disabled must stay false so the click handler can show validation.
+    assert.equal(
+      await page.getByTestId('onboarding-next').evaluate((el) => el.hasAttribute('disabled')),
+      false,
+      'Continue has no native disabled attr',
+    )
+    assert.equal(await page.locator('[data-testid="onboarding-sign-out"]').count(), 0, 'no sign-out control in preview')
     assert.equal(await page.locator('aside').count(), 0, 'no gradient aside rail')
     assert.equal(await page.locator('img').count(), 0, 'no stock photos on onboarding')
+
+    // Clicking Continue with no role shows inline validation (never a dead button).
+    await page.getByTestId('onboarding-next').click({ force: true })
+    await page.waitForSelector('[data-testid="onboarding-step1-error"]')
+    assert.match(
+      await page.getByTestId('onboarding-step1-error').innerText(),
+      /Choose Customer or Helper/i,
+    )
 
     const darkProbe = await page.evaluate(() => {
       const bodyBg = getComputedStyle(document.body).backgroundColor
@@ -757,6 +822,15 @@ async function checkOnboardingFlow() {
     await page.getByTestId('onboarding-role-helper').click()
     assert.equal(await page.getByTestId('onboarding-role-helper').getAttribute('aria-checked'), 'true')
 
+    // Helper selected + no city → Continue focuses city + shows validation.
+    await page.getByTestId('onboarding-next').click({ force: true })
+    await page.waitForSelector('[data-testid="onboarding-city-error"]')
+    assert.match(
+      await page.getByTestId('onboarding-city-error').innerText(),
+      /Select your US city/i,
+    )
+    await page.waitForSelector('[data-testid="onboarding-city-listbox"]', { timeout: 5000 })
+
     await page.waitForSelector('[data-testid="onboarding-city-input"]', { timeout: 15000 })
     const cityInput = page.getByTestId('onboarding-city-input')
     await cityInput.click()
@@ -789,6 +863,22 @@ async function checkOnboardingFlow() {
       assert.match(optionsText, check.expect, `autocomplete for ${check.q}`)
     }
 
+    // Exact "City, ST" text commits on Enter without clicking a dropdown row.
+    await cityInput.fill('Austin, TX')
+    await page.waitForFunction(() => {
+      const box = document.querySelector('[data-testid="onboarding-city-listbox"]')
+      return box && /Austin,\s*TX/i.test(box.textContent || '')
+    }, null, { timeout: 10000 })
+    await cityInput.press('Enter')
+    await page.waitForSelector('[data-testid="onboarding-city-verified"]', { timeout: 5000 })
+    assert.match(
+      await page.getByTestId('onboarding-city-verified').innerText(),
+      /Austin,\s*TX/i,
+      'Enter commits exact City, ST',
+    )
+    // Change city and commit San Jose via option click (existing path).
+    await page.getByRole('button', { name: /Change city/i }).click()
+    await page.waitForSelector('[data-testid="onboarding-city-input"]')
     await cityInput.fill('San Jose, CA')
     await page.waitForSelector('[data-testid="onboarding-city-listbox"]')
     await page.waitForFunction(() => {
@@ -800,7 +890,11 @@ async function checkOnboardingFlow() {
     const verified = await page.getByTestId('onboarding-city-verified').innerText()
     assert.match(verified, /San Jose,\s*CA/i)
     assert.doesNotMatch(verified, /Verified/i)
-    assert.equal(await page.getByTestId('onboarding-next').isDisabled(), false, 'Continue enabled')
+    assert.equal(
+      await page.getByTestId('onboarding-next').getAttribute('aria-disabled'),
+      'false',
+      'Continue enabled',
+    )
 
     await page.getByTestId('onboarding-next').click()
     await page.waitForSelector('[data-testid="onboarding-step-2"]')
@@ -826,7 +920,13 @@ async function checkOnboardingFlow() {
     await page.waitForURL(/\/browse/, { timeout: 15000 })
     assert.match(page.url(), /\/browse/)
 
-    console.log('ok onboarding Step1 role+cities + Step2 commitment + Agree→/browse')
+    // ?edit=1 keeps returning users on /onboarding (no redirect away).
+    await page.goto(`${BASE_URL}/onboarding?preview=1&edit=1`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('[data-testid="onboarding-root"]', { timeout: 15000 })
+    assert.ok(await page.getByTestId('onboarding-step-1').count() >= 1, 'edit=1 shows step 1')
+    assert.match(page.url(), /edit=1/)
+
+    console.log('ok onboarding Step1 validation+city commit + Step2 + edit=1 + Agree→/browse')
   } finally {
     await browser.close()
   }
