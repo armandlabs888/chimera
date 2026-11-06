@@ -760,6 +760,23 @@ async function checkLandingBrowser() {
     const safetyNav = await page.locator('[data-testid="landing-nav"]').count()
     assert.ok(safetyNav >= 0, 'safety nav probe')
 
+    // Customer seed so 3-col peer discovery chrome is exercised (helpers use jobs-only 2-col).
+    await page.evaluate((key) => {
+      const state = JSON.parse(localStorage.getItem(key) || '{}')
+      const me = state.currentUserId || 'user-you'
+      for (const p of state.people || []) {
+        if (p.id === me) {
+          p.accountRole = 'customer'
+          p.isHelper = false
+          p.skills = []
+        } else if (!(p.isHelper || (p.skills || []).length)) {
+          p.isHelper = true
+          p.skills = ['moving', 'cleaning']
+        }
+      }
+      localStorage.setItem(key, JSON.stringify(state))
+    }, STORAGE_KEY)
+
     for (const { width, height } of [
       { width: 390, height: 844 },
       { width: 768, height: 1024 },
@@ -1772,19 +1789,33 @@ async function checkSubtleRadii() {
         .catch(() => {})
 
       if (pathName === '/browse?tab=people') {
-        // Demo seed has helpers; clear helper flags so EmptyState + Become a helper render.
+        // Customer role + clear other helper flags so EmptyState + Become a helper render.
+        // Seed before navigation: helper accountRole would otherwise strip tab=people.
+        await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
+        await page.waitForFunction(() => !!localStorage.getItem('beam-demo-v1'), null, {
+          timeout: 15000,
+        })
         await page.evaluate((key) => {
           const raw = localStorage.getItem(key)
           if (!raw) return
           const state = JSON.parse(raw)
-          state.people = (state.people || []).map((p) => ({
-            ...p,
-            isHelper: false,
-            skills: [],
-          }))
+          state.people = (state.people || []).map((p) =>
+            p.id === state.currentUserId
+              ? {
+                  ...p,
+                  accountRole: 'customer',
+                  isHelper: false,
+                  skills: [],
+                }
+              : {
+                  ...p,
+                  isHelper: false,
+                  skills: [],
+                },
+          )
           localStorage.setItem(key, JSON.stringify(state))
         }, STORAGE_KEY)
-        await page.reload({ waitUntil: 'domcontentloaded' })
+        await page.goto(`${BASE_URL}/browse?tab=people`, { waitUntil: 'domcontentloaded' })
         await page.waitForSelector('text=No helpers nearby yet', { timeout: 15000 })
       }
 

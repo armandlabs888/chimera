@@ -83,8 +83,9 @@ async function seedMultiCards(page) {
     const me = state.currentUserId || 'user-you'
     const self = (state.people || []).find((p) => p.id === me)
     if (self) {
-      self.accountRole = 'seeker'
+      self.accountRole = 'customer'
       self.isHelper = false
+      self.skills = []
       self.city = self.city || 'San Jose'
       self.locationLabel = self.locationLabel || 'San Jose, CA'
     }
@@ -158,9 +159,12 @@ async function main() {
         const filters = document.querySelector('[data-testid="browse-filters-sidebar"]')
         const trending = document.querySelector('[data-testid="browse-trending-helpers"]')
         const banner = document.querySelector('[data-testid="helper-setup-callout"]')
+        const tabs = document.querySelector('[data-testid="browse-mode-tabs"]')
+        const grid = document.querySelector('[data-testid="browse-3col-grid"]')
         const cards = [
           ...document.querySelectorAll('[data-testid="browse-feed-scroll"] a[href^="/requests/"]'),
         ]
+        const body = document.body.innerText || ''
         return {
           scrollY: window.scrollY,
           scrollHeight: document.documentElement.scrollHeight,
@@ -172,12 +176,21 @@ async function main() {
           cardCount: cards.length,
           hasZeroStar: /★\s*0\.0/.test(document.body.innerText || ''),
           hasNewBadge: /New/.test(document.body.innerText || ''),
+          layout: grid?.getAttribute('data-browse-layout') || null,
+          hasTabs: !!tabs,
+          hasLocalHelpersTab: !!document.querySelector('[data-testid="browse-tab-local-helpers"]'),
+          hasTrending: /Trending helpers/i.test(body),
         }
       })
       assert.equal(m.scrollY, 0, '01 window.scrollY === 0')
       assert.ok(m.scrollHeight <= m.clientHeight + 1, '01 no document overflow')
       assert.ok(m.hasBanner, '01 helper banner visible')
       assert.equal(m.hasZeroStar, false, '01 no ★ 0.0')
+      assert.equal(m.layout, 'helper-jobs', '01 helper-jobs layout (no peer discovery)')
+      assert.equal(m.hasTabs, false, '01 no Local helpers tabs for helper role')
+      assert.equal(m.hasLocalHelpersTab, false, '01 no Local helpers tab')
+      assert.equal(m.hasTrending, false, '01 no Trending helpers for helper role')
+      assert.equal(m.trendingTop, null, '01 no trending column')
       report.metrics['01'] = m
       await shot(page, '01-desktop-1440x900-signed-in-helper-banner-1card.png')
       report.shots.push('01-desktop-1440x900-signed-in-helper-banner-1card.png')

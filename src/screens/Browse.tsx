@@ -32,6 +32,7 @@ import { ALL_CATEGORY_ICON, CATEGORY_ICONS } from '@/lib/categoryIcons'
 import { distanceBetween, formatLocation } from '@/lib/location'
 import { formatBudget, formatRate } from '@/lib/matching'
 import { formatPublicRating } from '@/lib/ratingDisplay'
+import { hidesPeerHelperDiscovery, stripHelperDiscoveryParams } from '@/lib/roles'
 import type { AvailabilitySlot, Person, WhenOption } from '@/types'
 
 type SortMode = 'nearest' | 'newest' | 'budget'
@@ -151,13 +152,16 @@ export function Browse() {
   const params = useSearchParams()
   const [, startTransition] = useTransition()
 
-  const tab = params.get('tab') === 'people' ? 'people' : 'requests'
+  const hidePeerDiscovery = hidesPeerHelperDiscovery(currentUser, isGuest)
+  const urlTab = params.get('tab') === 'people' ? 'people' : 'requests'
+  // Synchronous guard — never flash peer helpers while URL/history still says people.
+  const tab = hidePeerDiscovery ? 'requests' : urlTab
   const category = params.get('category') ?? 'all'
   const radius = parseRadius(params.get('radius'))
   const when = parseWhen(params.get('when'))
-  const avail = parseAvail(params.get('avail'))
+  const avail = hidePeerDiscovery ? 'all' : parseAvail(params.get('avail'))
   const qParam = params.get('q') ?? ''
-  const freeOnly = params.get('free') === '1'
+  const freeOnly = hidePeerDiscovery ? false : params.get('free') === '1'
   const sortParam = params.get('sort') as SortMode | null
   const sort: SortMode =
     isGuest && (!sortParam || sortParam === 'nearest')
@@ -174,6 +178,19 @@ export function Browse() {
   useEffect(() => {
     setQDraft(qParam)
   }, [qParam])
+
+  // Role-aware deep-link / history guard: normalize helper-discovery URLs to jobs.
+  useEffect(() => {
+    if (!hidePeerDiscovery) return
+    const hasDiscovery =
+      params.get('tab') === 'people' || params.get('free') === '1' || params.has('avail')
+    if (!hasDiscovery) return
+    const nextParams = stripHelperDiscoveryParams(params)
+    const qs = nextParams.toString()
+    startTransition(() => {
+      router.replace(qs ? `${pathname}?${qs}` : pathname)
+    })
+  }, [hidePeerDiscovery, params, pathname, router, startTransition])
 
   useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -345,6 +362,7 @@ export function Browse() {
   }, [state.people, currentUser, isGuest])
 
   function setTab(next: string) {
+    if (hidePeerDiscovery && next === 'people') return
     const nextParams = new URLSearchParams(params.toString())
     if (next === 'people') nextParams.set('tab', 'people')
     else nextParams.delete('tab')
@@ -397,6 +415,7 @@ export function Browse() {
   }
 
   function toggleFree() {
+    if (hidePeerDiscovery) return
     const nextParams = new URLSearchParams(params.toString())
     if (freeOnly) nextParams.delete('free')
     else nextParams.set('free', '1')
@@ -503,7 +522,8 @@ export function Browse() {
     tab === 'requests' && !hasActiveFilters && openRequests.length === 0
   const showFilteredRequestsEmpty =
     tab === 'requests' && hasActiveFilters && openRequests.length === 0
-  const showHelpersEmpty = tab === 'people' && people.length === 0
+  const showHelpersEmpty = !hidePeerDiscovery && tab === 'people' && people.length === 0
+  const showDiscoveryChrome = !hidePeerDiscovery
 
   const trendingSubtitle = isGuest
     ? 'Top-rated neighbors'
@@ -742,7 +762,12 @@ export function Browse() {
     <div className="xl:flex xl:h-full xl:min-h-0 xl:flex-col">
       <div
         data-testid="browse-3col-grid"
-        className="grid grid-cols-1 gap-5 xl:h-full xl:min-h-0 xl:grid-cols-[248px_minmax(0,1fr)_292px] xl:items-stretch xl:gap-5"
+        data-browse-layout={showDiscoveryChrome ? 'discovery' : 'helper-jobs'}
+        className={`grid grid-cols-1 gap-5 xl:h-full xl:min-h-0 xl:items-stretch xl:gap-5 ${
+          showDiscoveryChrome
+            ? 'xl:grid-cols-[248px_minmax(0,1fr)_292px]'
+            : 'xl:grid-cols-[248px_minmax(0,1fr)]'
+        }`}
       >
         <aside
           data-testid="browse-filters-sidebar"
@@ -766,52 +791,56 @@ export function Browse() {
                 </span>
               </div>
 
-              <div
-                className="inline-flex h-9 shrink-0 self-start rounded-lg border border-[#E2E8F0] bg-white p-0.5 sm:self-auto"
-                role="tablist"
-                aria-label="Browse mode"
-              >
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === 'requests'}
-                  onClick={() => setTab('requests')}
-                  className={`inline-flex h-full items-center gap-1.5 rounded-md px-3 text-[12.5px] font-semibold transition ${
-                    tab === 'requests'
-                      ? 'bg-[#1D5CE5] text-white'
-                      : 'text-[#64748B] hover:text-[#071330]'
-                  }`}
+              {showDiscoveryChrome ? (
+                <div
+                  className="inline-flex h-9 shrink-0 self-start rounded-lg border border-[#E2E8F0] bg-white p-0.5 sm:self-auto"
+                  role="tablist"
+                  aria-label="Browse mode"
+                  data-testid="browse-mode-tabs"
                 >
-                  Open requests
-                  <span
-                    className={`tabular-nums ${
-                      tab === 'requests' ? 'text-white/85' : 'text-[#94A3B8]'
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === 'requests'}
+                    onClick={() => setTab('requests')}
+                    className={`inline-flex h-full items-center gap-1.5 rounded-md px-3 text-[12.5px] font-semibold transition ${
+                      tab === 'requests'
+                        ? 'bg-[#1D5CE5] text-white'
+                        : 'text-[#64748B] hover:text-[#071330]'
                     }`}
                   >
-                    {openRequestCount}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === 'people'}
-                  onClick={() => setTab('people')}
-                  className={`inline-flex h-full items-center gap-1.5 rounded-md px-3 text-[12.5px] font-semibold transition ${
-                    tab === 'people'
-                      ? 'bg-[#1D5CE5] text-white'
-                      : 'text-[#64748B] hover:text-[#071330]'
-                  }`}
-                >
-                  Local helpers
-                  <span
-                    className={`tabular-nums ${
-                      tab === 'people' ? 'text-white/85' : 'text-[#94A3B8]'
+                    Open requests
+                    <span
+                      className={`tabular-nums ${
+                        tab === 'requests' ? 'text-white/85' : 'text-[#94A3B8]'
+                      }`}
+                    >
+                      {openRequestCount}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === 'people'}
+                    onClick={() => setTab('people')}
+                    data-testid="browse-tab-local-helpers"
+                    className={`inline-flex h-full items-center gap-1.5 rounded-md px-3 text-[12.5px] font-semibold transition ${
+                      tab === 'people'
+                        ? 'bg-[#1D5CE5] text-white'
+                        : 'text-[#64748B] hover:text-[#071330]'
                     }`}
                   >
-                    {helperCount}
-                  </span>
-                </button>
-              </div>
+                    Local helpers
+                    <span
+                      className={`tabular-nums ${
+                        tab === 'people' ? 'text-white/85' : 'text-[#94A3B8]'
+                      }`}
+                    >
+                      {helperCount}
+                    </span>
+                  </button>
+                </div>
+              ) : null}
             </div>
 
             {/* Compact category + filters access on < xl */}
@@ -1149,19 +1178,22 @@ export function Browse() {
                   Fresh marketplace
                 </span>
                 <h2 className="mt-4 font-display text-[clamp(1.6rem,3vw,2.1rem)] font-bold tracking-[-0.02em] text-[#071330]">
-                  Be the first on Beam
+                  {hidePeerDiscovery ? 'No open jobs nearby yet' : 'Be the first on Beam'}
                 </h2>
                 <p className="mx-auto mt-2 max-w-[42ch] text-[15px] leading-[1.55] text-[#64748B]">
-                  No requests yet — post a task for neighbors nearby, or set up your helper profile
-                  and start earning.
+                  {hidePeerDiscovery
+                    ? 'Check back soon for neighbor requests in your area, or post a task if you need help yourself.'
+                    : 'No requests yet — post a task for neighbors nearby, or set up your helper profile and start earning.'}
                 </p>
                 <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                   <ButtonLink href="/post" variant="brand">
-                    Post the first request
+                    {hidePeerDiscovery ? 'Post a task' : 'Post the first request'}
                   </ButtonLink>
-                  <ButtonLink href="/onboarding/helper" variant="secondary">
-                    Become a helper
-                  </ButtonLink>
+                  {!hidePeerDiscovery ? (
+                    <ButtonLink href="/onboarding/helper" variant="secondary">
+                      Become a helper
+                    </ButtonLink>
+                  ) : null}
                 </div>
               </div>
             ) : showFilteredRequestsEmpty ? (
@@ -1220,14 +1252,21 @@ export function Browse() {
           </div>
         </div>
 
-        <aside className="hidden min-w-0 xl:flex xl:h-full xl:min-h-0 xl:flex-col">
-          {renderTrendingHelpers()}
-        </aside>
+        {showDiscoveryChrome ? (
+          <aside
+            className="hidden min-w-0 xl:flex xl:h-full xl:min-h-0 xl:flex-col"
+            data-testid="browse-trending-aside"
+          >
+            {renderTrendingHelpers()}
+          </aside>
+        ) : null}
 
         {/* Stacked trending rail below feed on < xl (no duplicate test id) */}
-        <div className="min-w-0 md:max-w-xl xl:hidden" aria-hidden={false}>
-          {renderTrendingHelpers({ omitTestId: true })}
-        </div>
+        {showDiscoveryChrome ? (
+          <div className="min-w-0 md:max-w-xl xl:hidden" aria-hidden={false}>
+            {renderTrendingHelpers({ omitTestId: true })}
+          </div>
+        ) : null}
       </div>
     </div>
   )

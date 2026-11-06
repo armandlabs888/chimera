@@ -4,6 +4,10 @@ import { useEffect, type ReactNode } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useBeam } from '@/context/BeamContext'
 import { guestAuthRedirectPath, isPublicAppPath } from '@/lib/auth/appRoutes'
+import {
+  browsePathWithoutHelperDiscovery,
+  hidesPeerHelperDiscovery,
+} from '@/lib/roles'
 
 /** Routes an incomplete onboarder may visit in live mode (exact /onboarding + safety). */
 function isOnboardingAllowedPath(pathname: string) {
@@ -31,6 +35,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const preview = searchParams.get('preview') === '1'
+  // Demo uses seed chrome; only live signed-out visitors are guests.
+  const isGuest = mode === 'live' && !authUser
+  const hidePeerDiscovery = hidesPeerHelperDiscovery(currentUser, isGuest)
 
   const needsOnboarding =
     mode === 'live' && Boolean(authUser) && !currentUser.onboardingCompletedAt && !preview
@@ -38,6 +45,16 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const search = searchParams?.toString() ?? ''
   const guestAuthHref =
     mode === 'live' && !authUser ? guestAuthRedirectPath(pathname, search) : null
+
+  const helperDiscoveryRedirect =
+    ready &&
+    hidePeerDiscovery &&
+    pathname === '/browse' &&
+    (searchParams.get('tab') === 'people' ||
+      searchParams.get('free') === '1' ||
+      searchParams.has('avail'))
+      ? browsePathWithoutHelperDiscovery(search)
+      : null
 
   useEffect(() => {
     if (!ready || !needsOnboarding) return
@@ -60,6 +77,12 @@ export function AuthGate({ children }: { children: ReactNode }) {
     if (!ready || !guestAuthHref) return
     router.replace(guestAuthHref)
   }, [ready, guestAuthHref, router])
+
+  // Helpers must not land on peer-helper discovery deep links.
+  useEffect(() => {
+    if (!helperDiscoveryRedirect) return
+    router.replace(helperDiscoveryRedirect)
+  }, [helperDiscoveryRedirect, router])
 
   if (!ready) return <BootSplash />
 
