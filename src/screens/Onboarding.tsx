@@ -172,10 +172,10 @@ export function Onboarding() {
 
   async function onSignOut() {
     try {
+      // signOut hard-navigates through /auth/signout → /auth (no prior-route linger).
       await signOut()
-      router.replace('/auth?mode=signin')
     } catch {
-      // BeamContext already surfaces auth errors.
+      // BeamContext already surfaces auth errors; redirect still proceeds.
     }
   }
 
@@ -303,6 +303,7 @@ export function Onboarding() {
               {showAccountChrome ? (
                 <button
                   type="button"
+                  data-testid="onboarding-sign-out"
                   onClick={() => void onSignOut()}
                   className="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[12.5px] font-semibold text-[#64748B] transition hover:bg-[#F4F8FD] hover:text-[#071330]"
                 >
@@ -342,6 +343,7 @@ export function Onboarding() {
                   </span>
                   <button
                     type="button"
+                    data-testid="onboarding-sign-out"
                     onClick={() => void onSignOut()}
                     className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold text-[#64748B] transition hover:bg-[#F4F8FD] hover:text-[#071330]"
                   >

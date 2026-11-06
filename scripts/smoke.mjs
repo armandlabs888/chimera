@@ -258,7 +258,31 @@ async function checkAuthMarkupAndRedirects() {
   const plainHome = await fetch(`${BASE_URL}/`, { redirect: 'manual' })
   assert.equal(plainHome.status, 200, 'plain / stays 200')
 
-  console.log('ok auth markup + callback + Site-URL fallback redirects')
+  // Sign-out route always clears session cookies and lands on clean `/auth`
+  const signOutGet = await fetch(`${BASE_URL}/auth/signout`, { redirect: 'manual' })
+  assert.ok(
+    [302, 303, 307, 308].includes(signOutGet.status),
+    `GET /auth/signout status ${signOutGet.status}`,
+  )
+  const signOutLoc = signOutGet.headers.get('location') || ''
+  assert.match(signOutLoc, /\/auth\/?(\?|$)/, `signout → /auth, got ${signOutLoc}`)
+  assert.doesNotMatch(signOutLoc, /next=/, `signout must not preserve next=: ${signOutLoc}`)
+  // Path must be exactly /auth (not /auth/callback or stranded prior route)
+  const signOutPath = new URL(signOutLoc, BASE_URL).pathname.replace(/\/$/, '') || '/'
+  assert.equal(signOutPath, '/auth', `signout pathname must be /auth, got ${signOutPath}`)
+
+  const signOutPost = await fetch(`${BASE_URL}/auth/signout`, {
+    method: 'POST',
+    redirect: 'manual',
+  })
+  assert.ok(
+    [302, 303, 307, 308].includes(signOutPost.status),
+    `POST /auth/signout status ${signOutPost.status}`,
+  )
+  const signOutPostLoc = signOutPost.headers.get('location') || ''
+  assert.match(signOutPostLoc, /\/auth\/?(\?|$)/, `POST signout → /auth, got ${signOutPostLoc}`)
+
+  console.log('ok auth markup + callback + Site-URL fallback redirects + signout')
 }
 
 async function checkAuthBrowser() {
