@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  Bell,
   Compass,
   Home,
   MessageCircle,
@@ -11,13 +12,14 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { BottomNav } from './BottomNav'
 import { BeamWordmark } from '@/components/BeamMark'
 import { LandingFooter } from '@/components/landing/LandingFooter'
 import { LandingNav } from '@/components/landing/LandingNav'
 import { useBeam } from '@/context/BeamContext'
-import { getNeighborhood } from '@/data/neighborhoods'
+import { formatLocationLabel } from '@/lib/location'
+import { relativeTime } from '@/lib/matching'
 import { Avatar } from '@/components/ui'
 
 const primaryNav = [
@@ -43,17 +45,49 @@ function isPublicGuestPath(pathname: string) {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
-  const { currentUser, mode, ready, authUser } = useBeam()
+  const {
+    currentUser,
+    mode,
+    ready,
+    authUser,
+    state,
+    markNotificationRead,
+    markAllNotificationsRead,
+  } = useBeam()
   const hideChrome = shouldHideAppChrome(pathname)
   const [q, setQ] = useState('')
-  // Unauthenticated discovery: marketing chrome (no Guest sidebar / duplicate command search)
+  const [notifOpen, setNotifOpen] = useState(false)
+  const notifRef = useRef<HTMLDivElement>(null)
   const isGuest = !authUser
+
+  const notifications = state.notifications ?? []
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => !n.readAt && n.userId === currentUser.id).length,
+    [notifications, currentUser.id],
+  )
+  const myNotifications = useMemo(
+    () =>
+      notifications
+        .filter((n) => n.userId === currentUser.id || mode === 'demo')
+        .slice(0, 12),
+    [notifications, currentUser.id, mode],
+  )
+
+  useEffect(() => {
+    if (!notifOpen) return
+    function onDoc(e: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [notifOpen])
 
   if (hideChrome) {
     return <div className="app-shell relative min-h-dvh text-[#071330]">{children}</div>
   }
 
-  // Logged-out public discovery: marketing chrome (no Guest sidebar / duplicate search)
   if (isGuest && isPublicGuestPath(pathname)) {
     if (pathname === '/safety') {
       return <div className="app-shell relative min-h-dvh text-[#071330]">{children}</div>
@@ -62,7 +96,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     return (
       <div className="app-shell relative min-h-dvh bg-[#F4F8FD] text-[#071330]">
         <LandingNav variant="light" />
-        {/* Browse owns its own vertical rhythm; other guest pages keep section padding */}
         <main
           className={
             pathname === '/browse'
@@ -77,7 +110,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     )
   }
 
-  const neighborhood = ready ? getNeighborhood(currentUser.neighborhood) : null
+  const locationText = ready ? formatLocationLabel(currentUser) : '…'
   const showCommandSearch = pathname !== '/browse'
 
   function onSearch(e: FormEvent) {
@@ -87,9 +120,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="app-shell relative min-h-dvh text-[#071330] lg:flex">
+    <div className="app-shell relative min-h-dvh bg-[#F4F8FD] text-[#071330] lg:flex">
       <aside
-        className="app-sidebar sticky top-0 hidden h-dvh shrink-0 flex-col lg:flex"
+        className="app-sidebar sticky top-0 hidden h-dvh shrink-0 flex-col bg-white lg:flex"
         data-testid="app-sidebar"
       >
         <div className="flex h-16 items-center px-4">
@@ -139,15 +172,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             <p className="truncate text-[14px] font-semibold text-[#071330]">
               {ready ? currentUser.name : '…'}
             </p>
-            <p className="truncate text-[12px] text-[#64748B]">
-              {neighborhood?.shortName ?? 'Austin'}
-            </p>
+            <p className="truncate text-[12px] text-[#64748B]">{locationText}</p>
           </div>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="app-command sticky top-0 z-30">
+        <header className="app-command sticky top-0 z-30 border-b border-[rgba(7,19,48,0.06)] bg-white/90 backdrop-blur">
           <div className="flex h-16 items-center gap-3 px-4">
             <Link href="/" className="lg:hidden">
               <BeamWordmark markWidth={22} markHeight={22} wordClassName="text-[20px]" tone="ink" />
@@ -174,19 +205,84 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
 
             <div className="ml-auto flex items-center gap-2">
-              {neighborhood ? (
-                <Link
-                  href={`/browse?neighborhood=${currentUser.neighborhood}`}
-                  className="hidden items-center rounded-full px-3 py-2 text-[13px] font-semibold text-[#64748B] transition hover:text-[#071330] sm:inline-flex"
-                >
-                  {neighborhood.shortName} ▾
-                </Link>
-              ) : null}
+              <Link
+                href="/browse"
+                className="hidden items-center rounded-full px-3 py-2 text-[13px] font-semibold text-[#64748B] transition hover:text-[#071330] sm:inline-flex"
+              >
+                {locationText} ▾
+              </Link>
               {process.env.NODE_ENV !== 'production' ? (
                 <span className="hidden rounded-full border border-[rgba(7,19,48,0.1)] px-2.5 py-1 text-[12px] text-[#64748B] md:inline-flex">
                   {mode === 'live' ? 'Live' : 'Demo'}
                 </span>
               ) : null}
+
+              <div className="relative" ref={notifRef}>
+                <button
+                  type="button"
+                  data-testid="notifications-bell"
+                  aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`}
+                  onClick={() => setNotifOpen((o) => !o)}
+                  className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(7,19,48,0.1)] bg-white text-[#475569] transition hover:bg-[#F4F8FD] hover:text-[#071330]"
+                >
+                  <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                  {unreadCount > 0 ? (
+                    <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#1D5CE5] px-1 text-[10px] font-bold text-white">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  ) : null}
+                </button>
+                {notifOpen ? (
+                  <div className="absolute right-0 top-12 z-50 w-[340px] overflow-hidden rounded-[24px] border border-[rgba(7,19,48,0.1)] bg-white shadow-[0_20px_50px_-16px_rgba(15,41,92,0.2)]">
+                    <div className="flex items-center justify-between border-b border-[rgba(7,19,48,0.06)] px-4 py-3">
+                      <p className="text-[14px] font-bold text-[#071330]">Notifications</p>
+                      <button
+                        type="button"
+                        className="text-[12px] font-semibold text-[#1D5CE5] hover:underline"
+                        onClick={() => void markAllNotificationsRead()}
+                      >
+                        Mark all read
+                      </button>
+                    </div>
+                    <ul className="max-h-[360px] overflow-y-auto">
+                      {myNotifications.length === 0 ? (
+                        <li className="px-4 py-8 text-center text-[13px] text-[#64748B]">
+                          You’re all caught up.
+                        </li>
+                      ) : (
+                        myNotifications.map((n) => (
+                          <li key={n.id}>
+                            <button
+                              type="button"
+                              className={`flex w-full flex-col gap-0.5 px-4 py-3 text-left transition hover:bg-[#F4F8FD] ${
+                                !n.readAt ? 'bg-[#F4F8FD]/60' : ''
+                              }`}
+                              onClick={() => {
+                                void markNotificationRead(n.id)
+                                setNotifOpen(false)
+                                router.push(n.href)
+                              }}
+                            >
+                              <span className="text-[13px] font-semibold text-[#071330]">
+                                {n.title}
+                              </span>
+                              {n.body ? (
+                                <span className="line-clamp-2 text-[12px] text-[#64748B]">
+                                  {n.body}
+                                </span>
+                              ) : null}
+                              <span className="text-[11px] text-[#94A3B8]">
+                                {relativeTime(n.createdAt)}
+                              </span>
+                            </button>
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+
               <Link
                 href="/post"
                 className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#1D5CE5] px-3.5 text-[13px] font-semibold text-white hover:bg-[#1649BD]"

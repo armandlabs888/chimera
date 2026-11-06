@@ -7,8 +7,7 @@ import { useMemo } from 'react'
 import { Avatar } from './ui'
 import { useBeam } from '@/context/BeamContext'
 import { getCategory } from '../data/categories'
-import { getNeighborhood } from '../data/neighborhoods'
-import { formatMoney, relativeTime } from '../lib/matching'
+import { formatBudget, formatLocation, relativeTime } from '../lib/matching'
 import type { HelpRequest } from '../types'
 import { CATEGORY_ICONS } from '@/lib/categoryIcons'
 
@@ -21,22 +20,25 @@ export function RequestCard({
 }) {
   const { state } = useBeam()
   const category = getCategory(request.category)
-  const neighborhood = getNeighborhood(request.neighborhood)
   const CategoryIcon = CATEGORY_ICONS[request.category]
+  const location = formatLocation(request)
+  const budgetLabel = formatBudget(request)
 
   const requester = useMemo(
     () => state.people.find((p) => p.id === request.requesterId),
     [state.people, request.requesterId],
   )
 
-  const offerCount = useMemo(
-    () => state.offers.filter((o) => o.requestId === request.id && o.status !== 'withdrawn').length,
-    [state.offers, request.id],
-  )
+  const offerCount = useMemo(() => {
+    if (typeof request.publicOfferCount === 'number') return request.publicOfferCount
+    return state.offers.filter((o) => o.requestId === request.id && o.status !== 'withdrawn')
+      .length
+  }, [state.offers, request.id, request.publicOfferCount])
 
   const requesterFirstName = requester?.name?.split(/\s+/)[0] ?? 'Neighbor'
   const isAsap = request.when === 'asap'
   const timingLabel = isAsap ? 'ASAP' : request.whenLabel
+  const isOpenBudget = request.budgetType === 'open' || request.budget === 0
 
   return (
     <Link
@@ -77,15 +79,13 @@ export function RequestCard({
         <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] text-[#64748B]">
           <span className="inline-flex items-center gap-1">
             <MapPin className="h-3.5 w-3.5 shrink-0 text-[#94A3B8]" aria-hidden />
-            {neighborhood.shortName}
+            {location}
           </span>
           <span aria-hidden>·</span>
           <span>{relativeTime(request.createdAt)}</span>
           <span
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-semibold ${
-              offerCount > 0
-                ? 'bg-[#EEF4FF] text-[#1D5CE5]'
-                : 'bg-[#F4F8FD] text-[#64748B]'
+              offerCount > 0 ? 'bg-[#EEF4FF] text-[#1D5CE5]' : 'bg-[#F4F8FD] text-[#64748B]'
             }`}
           >
             {offerCount > 0
@@ -112,8 +112,12 @@ export function RequestCard({
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748B]">
               Budget
             </p>
-            <p className="font-display text-[24px] font-bold leading-none tabular-nums text-[#071330]">
-              {formatMoney(request.budget)}
+            <p
+              className={`font-display font-bold leading-none text-[#071330] ${
+                isOpenBudget ? 'text-[15px]' : 'text-[24px] tabular-nums'
+              }`}
+            >
+              {budgetLabel}
             </p>
           </div>
         </div>

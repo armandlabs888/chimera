@@ -1,10 +1,54 @@
-import type { AppState } from '../types'
+import type { AppState, Person, HelpRequest } from '../types'
 import { createSeedState } from './seed'
 
 export const STORAGE_KEY = 'beam-demo-v1'
 
 function canUseStorage(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+}
+
+function normalizePerson(p: Person): Person {
+  return {
+    ...p,
+    locationLabel: p.locationLabel ?? '',
+    lat: p.lat ?? null,
+    lng: p.lng ?? null,
+    serviceRadiusMiles: p.serviceRadiusMiles ?? 5,
+    rateType: p.rateType ?? 'hourly',
+    availableNow: p.availableNow ?? false,
+    isHelper: p.isHelper ?? p.skills.length > 0,
+  }
+}
+
+function normalizeRequest(r: HelpRequest): HelpRequest {
+  return {
+    ...r,
+    locationLabel: r.locationLabel ?? '',
+    lat: r.lat ?? null,
+    lng: r.lng ?? null,
+    radiusMiles: r.radiusMiles ?? 5,
+    budgetType: r.budgetType ?? (r.budget === 0 ? 'open' : 'fixed'),
+    scheduledFor: r.scheduledFor ?? null,
+    preferredHelperId: r.preferredHelperId ?? null,
+  }
+}
+
+/** Migration-safe hydrate: fill missing invites/saved/notifications arrays (version stays 1). */
+export function hydrateAppState(raw: Partial<AppState> & { people?: Person[] }): AppState {
+  const seed = createSeedState()
+  return {
+    version: 1,
+    currentUserId: raw.currentUserId ?? seed.currentUserId,
+    people: (raw.people?.length ? raw.people : seed.people).map(normalizePerson),
+    requests: (raw.requests ?? seed.requests).map(normalizeRequest),
+    offers: raw.offers ?? seed.offers,
+    threads: raw.threads ?? seed.threads,
+    messages: raw.messages ?? seed.messages,
+    reviews: raw.reviews ?? seed.reviews,
+    invites: raw.invites ?? [],
+    savedHelperIds: raw.savedHelperIds ?? [],
+    notifications: raw.notifications ?? [],
+  }
 }
 
 export function loadState(): AppState {
@@ -19,13 +63,15 @@ export function loadState(): AppState {
       saveState(seed)
       return seed
     }
-    const parsed = JSON.parse(raw) as AppState
+    const parsed = JSON.parse(raw) as Partial<AppState>
     if (!parsed.version || !parsed.people?.length) {
       const seed = createSeedState()
       saveState(seed)
       return seed
     }
-    return parsed
+    const hydrated = hydrateAppState(parsed)
+    saveState(hydrated)
+    return hydrated
   } catch {
     const seed = createSeedState()
     saveState(seed)
