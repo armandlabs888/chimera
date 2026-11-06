@@ -69,9 +69,14 @@ export function LandingHero() {
           neighbors nearby.
         </p>
 
+        {/*
+          Search must own a higher stacking context than the fan cards.
+          Fan portraits use transform + local z-index; without elevating this
+          form, the open listbox paints underneath those cards.
+        */}
         <form
           onSubmit={onSearch}
-          className="animate-fade-up-delay mt-8 w-full max-w-[760px]"
+          className="animate-fade-up-delay relative z-40 mt-8 w-full max-w-[760px]"
           data-testid="hero-search-pill"
         >
           <div className="flex flex-col gap-2 rounded-[28px] bg-white p-2 shadow-[0_20px_50px_rgba(12,42,102,0.18)] sm:flex-row sm:items-center sm:rounded-full sm:gap-0">
@@ -95,6 +100,8 @@ export function LandingHero() {
                 className="flex w-full items-center gap-2.5 rounded-full px-4 py-3 text-left sm:py-2.5"
                 aria-expanded={locOpen}
                 aria-haspopup="listbox"
+                aria-controls="hero-neighborhood-listbox"
+                data-testid="hero-neighborhood-trigger"
                 onClick={() => setLocOpen((v) => !v)}
               >
                 <MapPin className="h-5 w-5 shrink-0 text-[#1D5CE5]" aria-hidden />
@@ -105,19 +112,29 @@ export function LandingHero() {
                 >
                   {neighborhoodLabel}
                 </span>
-                <ChevronDown className="h-4 w-4 shrink-0 text-[#94A3B8]" />
+                <ChevronDown
+                  className={`h-4 w-4 shrink-0 text-[#94A3B8] transition-transform ${
+                    locOpen ? 'rotate-180' : ''
+                  }`}
+                />
               </button>
               {locOpen ? (
                 <ul
+                  id="hero-neighborhood-listbox"
                   role="listbox"
-                  className="obsidian-popover absolute left-0 right-0 top-[calc(100%+8px)] z-40 max-h-64 overflow-y-auto py-2 sm:left-0 sm:right-auto sm:min-w-[16rem]"
+                  data-testid="hero-neighborhood-listbox"
+                  className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(16rem,45vh)] overflow-y-auto overscroll-contain rounded-2xl border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35),0_4px_12px_rgba(12,42,102,0.12)] sm:left-0 sm:right-auto sm:min-w-[16rem]"
                 >
                   <li>
                     <button
                       type="button"
                       role="option"
                       aria-selected={neighborhood === 'all'}
-                      className="w-full px-4 py-2.5 text-left text-[14px] text-[#071330] hover:bg-[#F4F8FD]"
+                      className={`w-full px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                        neighborhood === 'all'
+                          ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
+                          : 'text-[#071330]'
+                      }`}
                       onClick={() => {
                         setNeighborhood('all')
                         setLocOpen(false)
@@ -132,7 +149,11 @@ export function LandingHero() {
                         type="button"
                         role="option"
                         aria-selected={neighborhood === n.id}
-                        className="w-full px-4 py-2.5 text-left text-[14px] text-[#475569] hover:bg-[#F4F8FD] hover:text-[#071330]"
+                        className={`w-full px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] hover:text-[#071330] ${
+                          neighborhood === n.id
+                            ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
+                            : 'text-[#475569]'
+                        }`}
                         onClick={() => {
                           setNeighborhood(n.id)
                           setLocOpen(false)
@@ -157,7 +178,7 @@ export function LandingHero() {
 
         {/* 5-card fanned helper stack — 3 on mobile to avoid overflow */}
         <div
-          className="relative mt-12 flex w-full max-w-[920px] items-end justify-center overflow-visible pb-2 pt-6 sm:mt-14 sm:pb-4"
+          className="relative z-10 mt-12 flex w-full max-w-[920px] items-end justify-center overflow-visible pb-2 pt-6 sm:mt-14 sm:pb-4"
           data-testid="hero-fan-stack"
         >
           <div className="flex items-end justify-center gap-[-12px] sm:gap-0">
@@ -169,7 +190,7 @@ export function LandingHero() {
                   key={helper.name}
                   className={`relative shrink-0 origin-bottom transition-transform duration-500 ${
                     isEdge ? 'hidden sm:block' : ''
-                  } ${helper.hero ? 'z-30 -mx-2 sm:-mx-3' : isNear ? 'z-20 -mx-3 sm:-mx-4' : 'z-10 -mx-4'}`}
+                  } ${helper.hero ? 'z-[3] -mx-2 sm:-mx-3' : isNear ? 'z-[2] -mx-3 sm:-mx-4' : 'z-[1] -mx-4'}`}
                   style={{ transform: `rotate(${helper.rotate}deg)` }}
                 >
                   <div
