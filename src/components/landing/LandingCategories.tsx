@@ -2,7 +2,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { CATEGORIES } from '@/data/categories'
 
-/** Masonry-style popular services grid with inline testimonial. */
+/**
+ * Flush popular-services bento.
+ * Desktop: every row sums to 12 cols; heights come from shared `auto-rows` tracks
+ * (no per-tile `lg:aspect-*`), so left/right edges and row bottoms stay aligned.
+ * Mobile/tablet: 2-col pairs + full-width quote — 6 tiles = 3 full pairs, zero orphans.
+ */
 export function LandingCategories() {
   const [moving, cleaning, handyman, petcare, tutoring, events] = CATEGORIES
 
@@ -29,51 +34,65 @@ export function LandingCategories() {
           </Link>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-12 lg:gap-5">
+        <div
+          data-testid="categories-bento"
+          className="mt-10 grid grid-cols-2 auto-rows-[220px] gap-3 sm:auto-rows-[240px] sm:gap-4 lg:grid-cols-12 lg:auto-rows-[250px] lg:gap-5"
+        >
+          {/* Row 1–2 left: Cleaning 3×2 · Row 1: Moving 4 + Quote 5 = 12 */}
           <ServiceTile
             href={`/browse?category=${cleaning.id}`}
             image={cleaning.image}
             label={`${cleaning.shortLabel} · ${cleaning.typicalRange}`}
-            className="col-span-1 aspect-[3/4] lg:col-span-3 lg:row-span-2 lg:aspect-auto lg:min-h-[420px]"
+            objectPosition="object-[50%_28%]"
+            className="col-span-1 lg:col-span-3 lg:row-span-2"
           />
           <ServiceTile
             href={`/browse?category=${moving.id}`}
             image={moving.image}
             label={`${moving.shortLabel} · ${moving.typicalRange}`}
-            className="col-span-1 aspect-[4/5] lg:col-span-4 lg:aspect-[5/4]"
+            objectPosition="object-center"
+            className="col-span-1 lg:col-span-4"
           />
-          <blockquote className="col-span-2 flex flex-col justify-center rounded-[26px] bg-[#F4F8FD] p-6 sm:p-8 lg:col-span-5 lg:min-h-[200px]">
-            <p className="font-display text-[1.35rem] font-semibold leading-snug tracking-[-0.02em] text-[#071330] sm:text-[1.55rem]">
+          <blockquote className="col-span-2 flex h-full min-h-0 flex-col justify-center overflow-hidden rounded-[26px] bg-[#F4F8FD] p-5 sm:p-7 lg:col-span-5 lg:p-8">
+            <p className="font-display text-[clamp(1.15rem,1.6vw,1.5rem)] font-semibold leading-snug tracking-[-0.02em] text-[#071330]">
               “Had two neighbors help carry a sectional up to my 3rd-floor walkup in South Congress
               within 90 minutes.”
             </p>
-            <footer className="mt-4 text-[14px] font-semibold text-[#1D5CE5]">
+            <footer className="mt-3 text-[13.5px] font-semibold text-[#1D5CE5] sm:mt-4 sm:text-[14px]">
               — Elena R. · South Congress
             </footer>
           </blockquote>
+
+          {/* Row 2 remainder: Handyman 5 + Pets 4 (+ Cleaning 3) = 12 */}
           <ServiceTile
             href={`/browse?category=${handyman.id}`}
             image={handyman.image}
             label={`${handyman.shortLabel} · ${handyman.typicalRange}`}
-            className="col-span-1 aspect-[4/5] lg:col-span-4 lg:aspect-[5/4]"
+            objectPosition="object-center"
+            className="col-span-1 lg:col-span-5"
           />
           <ServiceTile
             href={`/browse?category=${petcare.id}`}
             image={petcare.image}
             label={`${petcare.shortLabel} · ${petcare.typicalRange}`}
-            className="col-span-1 aspect-[3/4] lg:col-span-3 lg:aspect-[4/5]"
+            objectPosition="object-[50%_40%]"
+            className="col-span-1 lg:col-span-4"
           />
+
+          {/* Row 3: Tutoring 5 + Events 7 = 12 */}
           <ServiceTile
             href={`/browse?category=${tutoring.id}`}
             image={tutoring.image}
             label={`${tutoring.shortLabel} · ${tutoring.typicalRange}`}
-            className="col-span-1 aspect-[4/5] lg:col-span-4 lg:aspect-[5/4]"
+            objectPosition="object-center"
+            className="col-span-1 lg:col-span-5"
           />
           <ServiceTile
             href={`/browse?category=${events.id}`}
             image={events.image}
             label={`${events.shortLabel} · ${events.typicalRange}`}
-            className="col-span-1 aspect-[4/5] lg:col-span-5 lg:aspect-[16/10]"
+            objectPosition="object-[50%_45%]"
+            className="col-span-1 lg:col-span-7"
           />
         </div>
       </div>
@@ -86,23 +105,25 @@ function ServiceTile({
   image,
   label,
   className = '',
+  objectPosition = 'object-center',
 }: {
   href: string
   image: string
   label: string
   className?: string
+  objectPosition?: string
 }) {
   return (
     <Link
       href={href}
-      className={`group relative block overflow-hidden rounded-[26px] bg-[#E8EEF7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1D5CE5] ${className}`}
+      className={`group relative block h-full min-h-0 w-full overflow-hidden rounded-[26px] bg-[#E8EEF7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1D5CE5] ${className}`}
     >
       <Image
         fill
         src={image}
         alt=""
         sizes="(min-width:1024px) 360px, 50vw"
-        className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+        className={`object-cover transition-transform duration-500 group-hover:scale-[1.04] ${objectPosition}`}
       />
       <span className="absolute bottom-3 left-3 rounded-full bg-white px-3 py-1.5 text-[12.5px] font-semibold text-[#071330] shadow-sm sm:bottom-4 sm:left-4 sm:text-[13px]">
         {label}
