@@ -632,6 +632,50 @@ async function checkLandingBrowser() {
         (await page.locator('[data-testid="notifications-bell"]').count()) >= 1,
         'signed-in topnav has notifications',
       )
+
+      // Topnav is Browse + Messages only — Home & Safety live elsewhere.
+      const topnavLinks = await page.evaluate(() => {
+        const nav = document.querySelector('[data-testid="app-topnav"]')
+        if (!nav) return { home: false, safety: false, browse: false, messages: false, labels: [] }
+        const anchors = [...nav.querySelectorAll('a')]
+        const labels = anchors.map((a) => (a.textContent || '').trim())
+        const hrefs = anchors.map((a) => a.getAttribute('href') || '')
+        return {
+          home: hrefs.some((h) => h === '/home') || labels.some((t) => /^Home$/i.test(t)),
+          safety: hrefs.some((h) => h === '/safety') || labels.some((t) => /^Safety$/i.test(t)),
+          browse: hrefs.some((h) => h === '/browse' || h.startsWith('/browse?')),
+          messages: hrefs.some((h) => h === '/messages' || h.startsWith('/messages/')),
+          labels,
+        }
+      })
+      assert.equal(topnavLinks.home, false, 'app-topnav must not contain Home')
+      assert.equal(topnavLinks.safety, false, 'app-topnav must not contain Safety')
+      assert.equal(topnavLinks.browse, true, 'app-topnav contains Browse')
+      assert.equal(topnavLinks.messages, true, 'app-topnav contains Messages')
+
+      // Marketplace footer with Safety
+      await page.waitForSelector('[data-testid="app-footer"]', { timeout: 10000 })
+      const footer = page.locator('[data-testid="app-footer"]')
+      assert.equal(await footer.count(), 1, 'app-footer visible on signed-in browse')
+      assert.ok(
+        (await footer.locator('a[href="/safety"]').count()) >= 1,
+        'app-footer has /safety link',
+      )
+      await footer.locator('a[href="/safety"]').first().click()
+      await page.waitForURL(/\/safety/, { timeout: 15000 })
+      await page.waitForSelector('text=Safety on Beam', { timeout: 15000 })
+      assert.match(page.url(), /\/safety/)
+      // Signed-in /safety keeps marketplace chrome (topnav + footer), not a stranded page.
+      assert.ok(
+        (await page.locator('[data-testid="app-topnav"]').count()) >= 1,
+        'signed-in /safety keeps app-topnav',
+      )
+      assert.ok(
+        (await page.locator('[data-testid="app-footer"]').count()) >= 1,
+        'signed-in /safety keeps app-footer',
+      )
+      await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
+      await page.waitForSelector('text=Browse tasks')
     }
 
     await page.goto(`${BASE_URL}/safety`, { waitUntil: 'domcontentloaded' })
@@ -654,13 +698,50 @@ async function checkLandingBrowser() {
       await page.setViewportSize({ width, height })
       await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
       await page.waitForSelector('text=Browse tasks')
-      const g = await page.evaluate(() => ({
-        overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
-        broken: Array.from(document.images).filter((img) => img.complete && img.naturalWidth === 0 && img.src)
-          .length,
-      }))
+      const g = await page.evaluate((vpWidth) => {
+        const html = document.documentElement
+        const topnavInner =
+          document.querySelector('[data-testid="app-topnav"] .beam-container') ||
+          document.querySelector('[data-testid="landing-nav"] .beam-container') ||
+          document.querySelector('main.beam-container') ||
+          document.querySelector('.beam-container')
+        // Padding-based gutters: container often spans full viewport; measure content inset.
+        let leftGutter = Infinity
+        let rightGutter = Infinity
+        if (topnavInner) {
+          const cs = getComputedStyle(topnavInner)
+          const padL = parseFloat(cs.paddingLeft) || 0
+          const padR = parseFloat(cs.paddingRight) || 0
+          const rect = topnavInner.getBoundingClientRect()
+          leftGutter = rect.left + padL
+          rightGutter = vpWidth - (rect.right - padR)
+        }
+        return {
+          overflowX: html.scrollWidth > html.clientWidth + 1,
+          scrollWidth: html.scrollWidth,
+          clientWidth: html.clientWidth,
+          leftGutter,
+          rightGutter,
+          broken: Array.from(document.images).filter((img) => img.complete && img.naturalWidth === 0 && img.src)
+            .length,
+        }
+      }, width)
       assert.equal(g.overflowX, false, `no x-overflow browse @${width}`)
       assert.equal(g.broken, 0, `no broken images browse @${width}`)
+      if (width === 1440) {
+        assert.ok(
+          g.leftGutter <= 40,
+          `desktop left gutter <= 40px (got ${g.leftGutter})`,
+        )
+        assert.ok(
+          g.leftGutter >= 16,
+          `desktop left gutter >= 16px (got ${g.leftGutter})`,
+        )
+        assert.ok(
+          Math.abs(g.leftGutter - g.rightGutter) <= 2,
+          `desktop gutters symmetric (L=${g.leftGutter}, R=${g.rightGutter})`,
+        )
+      }
     }
 
     console.log('ok landing browser DOM + browse daylight gates')

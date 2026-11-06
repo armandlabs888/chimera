@@ -852,13 +852,13 @@ export function Browse() {
           }
         />
       ) : tab === 'requests' ? (
-        <div className="grid auto-rows-fr gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid auto-rows-fr gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {openRequests.map((request) => (
             <RequestCard key={request.id} request={request} />
           ))}
         </div>
       ) : people.length ? (
-        <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {people.map((person) => (
             <PersonCard key={person.id} person={person} />
           ))}

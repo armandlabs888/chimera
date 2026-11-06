@@ -56,6 +56,34 @@ async function measureChrome(page) {
         .length,
       topnav: !!document.querySelector('[data-testid="app-topnav"]'),
       landingNav: !!document.querySelector('[data-testid="landing-nav"]'),
+      footer: !!document.querySelector('[data-testid="app-footer"]'),
+      footerSafety: !!document.querySelector('[data-testid="app-footer"] a[href="/safety"]'),
+      topnavHome: (() => {
+        const nav = document.querySelector('[data-testid="app-topnav"]')
+        if (!nav) return false
+        return [...nav.querySelectorAll('a')].some((a) => {
+          const href = a.getAttribute('href') || ''
+          const label = (a.textContent || '').trim()
+          return href === '/home' || /^Home$/i.test(label)
+        })
+      })(),
+      topnavSafety: (() => {
+        const nav = document.querySelector('[data-testid="app-topnav"]')
+        if (!nav) return false
+        return [...nav.querySelectorAll('a')].some((a) => {
+          const href = a.getAttribute('href') || ''
+          const label = (a.textContent || '').trim()
+          return href === '/safety' || /^Safety$/i.test(label)
+        })
+      })(),
+      contentLeftGutter: (() => {
+        const el =
+          document.querySelector('[data-testid="app-topnav"] .beam-container') ||
+          document.querySelector('.beam-container')
+        if (!el) return null
+        const cs = getComputedStyle(el)
+        return el.getBoundingClientRect().left + (parseFloat(cs.paddingLeft) || 0)
+      })(),
       accountTrigger: !!document.querySelector('[data-testid="account-menu-trigger"]'),
       accountMenu: !!document.querySelector('[data-testid="account-menu"]'),
       notifBell: !!document.querySelector('[data-testid="notifications-bell"]'),
@@ -162,6 +190,17 @@ try {
             record(m.locationPill, `${label}: location pill`)
             record(!m.commandSearch, `${label}: no command-bar search clutter`)
             record(!m.landingNav, `${label}: no double landing nav`)
+            record(!m.topnavHome, `${label}: topnav has no Home link`)
+            record(!m.topnavSafety, `${label}: topnav has no Safety link`)
+            record(m.footer, `${label}: app-footer present`)
+            record(m.footerSafety, `${label}: app-footer has /safety`)
+            if (vp.width === 1440 && m.contentLeftGutter != null) {
+              record(
+                m.contentLeftGutter <= 40,
+                `${label}: desktop left gutter <= 40px`,
+                `left=${m.contentLeftGutter}`,
+              )
+            }
             if (route === '/post') {
               record(!m.postCta, `${label}: post CTA hidden on /post`)
             } else {

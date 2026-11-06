@@ -52,7 +52,7 @@
   --beam-shadow-sm: 0 1px 2px rgba(15, 41, 92, 0.06);
   --beam-shadow-md: 0 16px 40px -12px rgba(15, 41, 92, 0.1);
   --beam-shadow-lg: 0 24px 60px -18px rgba(15, 41, 92, 0.14);
-  --beam-content: 1200px;
+  --beam-content: 1680px;
   --canvas: #ffffff;
   --surface-1: #ffffff;
   --surface-2: #f4f8fd;
@@ -393,7 +393,8 @@
     margin-inline: auto;
     width: 100%;
     max-width: var(--beam-content);
-    padding-inline: clamp(20px, 4vw, 48px);
+    /* ~16px mobile · ~24px tablet · ~28px desktop (1440) */
+    padding-inline: clamp(16px, 3.125vw, 28px);
   }
 
   .landing-root {
