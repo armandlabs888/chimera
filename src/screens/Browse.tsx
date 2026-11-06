@@ -165,14 +165,14 @@ export function Browse() {
         }
       />
 
-      <div className="elevated sticky top-[3.5rem] z-20 mb-4 flex flex-col gap-3 bg-[#16181D]/95 p-3 backdrop-blur-sm lg:flex-row lg:items-center lg:top-14">
+      <div className="sticky top-16 z-20 mb-4 flex flex-col gap-3 border-b border-white/[0.08] bg-[#0C0C0E]/95 py-3 backdrop-blur-sm lg:flex-row lg:items-center">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-beam-muted" />
           <TextInput
             value={qDraft}
             onChange={(e) => setQDraft(e.target.value)}
             placeholder="Search titles, details, skills…"
-            className="border-0 bg-[#212225]/90 pl-9"
+            className="h-11 border-white/[0.12] bg-[#141518] pl-9"
             aria-label="Search browse"
           />
         </div>
@@ -271,7 +271,7 @@ export function Browse() {
 
       {tab === 'requests' ? (
         openRequests.length ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
             {openRequests.map((request) => (
               <RequestCard key={request.id} request={request} />
             ))}

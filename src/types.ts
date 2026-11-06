@@ -28,10 +28,14 @@ export interface Category {
   shortLabel: string
   description: string
   image: string
-  /** Soft tile background for category icon badges */
+  /** Soft tile background for category icon badges (legacy; avoid on dark UI) */
   tintBg: string
-  /** Deep foreground for category icons / labels */
+  /** Deep foreground for category icons / labels (legacy; avoid on dark UI) */
   tintFg: string
+  /** Typical budget range shown on marketing tiles */
+  typicalRange: string
+  /** Arrival expectation shown on marketing tiles */
+  arrival: string
   templates: RequestTemplate[]
 }
 

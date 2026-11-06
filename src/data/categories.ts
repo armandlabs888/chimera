@@ -11,6 +11,8 @@ export const CATEGORIES: Category[] = [
     description: 'Furniture, boxes, loading, unloading',
     image: unsplash('photo-1600518464441-9154a4dea21b'),
     tintBg: '#FEF3C7',
+    typicalRange: '$40–60',
+    arrival: 'Often same day',
     tintFg: '#B45309',
     templates: [
       {
@@ -34,6 +36,8 @@ export const CATEGORIES: Category[] = [
     description: 'Post-party tidy, deep clean, move-out',
     image: unsplash('photo-1581578731548-c64695cc6952'),
     tintBg: '#E0F2FE',
+    typicalRange: '$55–90',
+    arrival: 'Same day or next',
     tintFg: '#0369A1',
     templates: [
       {
@@ -51,58 +55,14 @@ export const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: 'tutoring',
-    label: 'Tutoring',
-    shortLabel: 'Tutoring',
-    description: 'Homework help, test prep, skills',
-    image: unsplash('photo-1503676260728-1c00da094a0b'),
-    tintBg: '#D1FAE5',
-    tintFg: '#047857',
-    templates: [
-      {
-        title: 'Algebra II homework help tonight',
-        details:
-          'High school junior stuck on quadratic equations and word problems. Prefer someone patient who can explain step-by-step. About 1 hour.',
-        budgetHint: 45,
-      },
-      {
-        title: 'Spanish conversation practice',
-        details:
-          'Looking for a conversational Spanish partner for 60 minutes — intermediate level. Coffee shop near me or outdoors.',
-        budgetHint: 35,
-      },
-    ],
-  },
-  {
-    id: 'petcare',
-    label: 'Pet care',
-    shortLabel: 'Pets',
-    description: 'Walks, sitting, drop-ins',
-    image: unsplash('photo-1548199973-03cce0bbc87b'),
-    tintBg: '#FFE4E6',
-    tintFg: '#BE123C',
-    templates: [
-      {
-        title: 'Afternoon dog walk (friendly lab)',
-        details:
-          'Need someone to walk our 3-year-old lab for 30–40 minutes. Friendly with people and dogs. Leash and bags ready by the door.',
-        budgetHint: 25,
-      },
-      {
-        title: 'Cat drop-in while at a wedding',
-        details:
-          'Two chill indoor cats. Need a 20-minute drop-in this evening: fresh water, food, litter scoop, quick play.',
-        budgetHint: 30,
-      },
-    ],
-  },
-  {
     id: 'handyman',
     label: 'Light handyman',
     shortLabel: 'Handyman',
     description: 'Assembly, mounting, small fixes',
     image: unsplash('photo-1504148455328-c376907d081c'),
     tintBg: '#FFEDD5',
+    typicalRange: '$50–70',
+    arrival: 'Often same day',
     tintFg: '#C2410C',
     templates: [
       {
@@ -120,12 +80,64 @@ export const CATEGORIES: Category[] = [
     ],
   },
   {
+    id: 'petcare',
+    label: 'Pet care',
+    shortLabel: 'Pets',
+    description: 'Walks, sitting, drop-ins',
+    image: unsplash('photo-1548199973-03cce0bbc87b'),
+    tintBg: '#FFE4E6',
+    typicalRange: '$25–30',
+    arrival: 'Walks within hours',
+    tintFg: '#BE123C',
+    templates: [
+      {
+        title: 'Afternoon dog walk (friendly lab)',
+        details:
+          'Need someone to walk our 3-year-old lab for 30–40 minutes. Friendly with people and dogs. Leash and bags ready by the door.',
+        budgetHint: 25,
+      },
+      {
+        title: 'Cat drop-in while at a wedding',
+        details:
+          'Two chill indoor cats. Need a 20-minute drop-in this evening: fresh water, food, litter scoop, quick play.',
+        budgetHint: 30,
+      },
+    ],
+  },
+  {
+    id: 'tutoring',
+    label: 'Tutoring',
+    shortLabel: 'Tutoring',
+    description: 'Homework help, test prep, skills',
+    image: unsplash('photo-1503676260728-1c00da094a0b'),
+    tintBg: '#D1FAE5',
+    typicalRange: '$35–45',
+    arrival: 'Tonight or this week',
+    tintFg: '#047857',
+    templates: [
+      {
+        title: 'Algebra II homework help tonight',
+        details:
+          'High school junior stuck on quadratic equations and word problems. Prefer someone patient who can explain step-by-step. About 1 hour.',
+        budgetHint: 45,
+      },
+      {
+        title: 'Spanish conversation practice',
+        details:
+          'Looking for a conversational Spanish partner for 60 minutes — intermediate level. Coffee shop near me or outdoors.',
+        budgetHint: 35,
+      },
+    ],
+  },
+  {
     id: 'events',
     label: 'Events & photo',
     shortLabel: 'Events',
     description: 'Setup help, candid photos, teardown',
     image: unsplash('photo-1511795409834-ef04bbd61622'),
     tintBg: '#CCFBF1',
+    typicalRange: '$65–80',
+    arrival: 'Book ahead',
     tintFg: '#0F766E',
     templates: [
       {

@@ -100,20 +100,17 @@ export function LandingSection({
   id,
   children,
   className = '',
-  tone = 'base',
-  band = false,
 }: {
   id?: string
   children: ReactNode
   className?: string
+  /** @deprecated unused — kept for call-site compatibility */
   tone?: Tone
+  /** @deprecated unused — kept for call-site compatibility */
   band?: boolean
 }) {
   return (
-    <section
-      id={id}
-      className={`section ${band ? 'section-band' : toneClass[tone]} ${className}`}
-    >
+    <section id={id} className={`section ${className}`}>
       {children}
     </section>
   )
@@ -172,10 +169,10 @@ export function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`btn-compact shrink-0 rounded-full px-3.5 text-[13px] font-semibold transition ${
+      className={`btn-compact h-9 shrink-0 rounded-full px-3.5 text-[13px] font-medium transition ${
         active
-          ? 'bg-[rgba(221,163,82,0.18)] text-[#E7B567] border border-[#DDA352]/40'
-          : 'border border-white/[0.12] bg-[#16181D] text-[#A7A39C] hover:text-[#F7F4EE] hover:border-white/[0.2]'
+          ? 'bg-[#F6F3EE] text-[#0C0C0E]'
+          : 'bg-transparent text-[#B7B2AA] ring-1 ring-white/[0.14] hover:text-[#F6F3EE]'
       }`}
     >
       {label}

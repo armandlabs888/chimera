@@ -1,77 +1,97 @@
-/** Glowing tilted halo mark — matches warm-obsidian editorial reference. */
+'use client'
+
+import { useId } from 'react'
+
+/** Soft luminous comet-tail halo — reference-locked warm-obsidian mark. */
 export function BeamMark({
   className = '',
-  size = 34,
+  width = 64,
+  height = 28,
 }: {
   className?: string
-  size?: number
+  width?: number
+  height?: number
 }) {
-  const h = Math.round(size * (16 / 34))
+  const uid = useId().replace(/:/g, '')
+  const gradId = `halo-${uid}`
+  const blurId = `haloBlur-${uid}`
+
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center ${className}`}
-      style={{ width: size, height: size }}
+      className={`relative inline-flex shrink-0 items-center justify-center ${className}`}
+      style={{ width, height }}
       aria-hidden
     >
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 34 34"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+      <span
+        className="pointer-events-none absolute"
         style={{
-          filter:
-            'drop-shadow(0 0 10px rgba(235,172,84,0.8)) drop-shadow(0 0 22px rgba(213,145,58,0.5))',
+          inset: '-40px -60px',
+          background: 'radial-gradient(closest-side, rgba(230,160,70,.35), transparent)',
+          filter: 'blur(12px)',
         }}
-      >
-        <g transform="rotate(-22 17 17)">
+      />
+      <svg width={width} height={height} viewBox="0 0 64 28" fill="none" className="relative">
+        <defs>
+          <linearGradient
+            id={gradId}
+            x1="4"
+            y1="20"
+            x2="60"
+            y2="8"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop offset="0" stopColor="#B87A32" stopOpacity="0" />
+            <stop offset=".35" stopColor="#D9A050" stopOpacity=".55" />
+            <stop offset=".75" stopColor="#FFE7B8" stopOpacity="1" />
+            <stop offset="1" stopColor="#FFF6E2" stopOpacity=".95" />
+          </linearGradient>
+          <filter id={blurId} x="-30%" y="-80%" width="160%" height="260%">
+            <feGaussianBlur stdDeviation="2.4" />
+          </filter>
+        </defs>
+        <g transform="rotate(-14 32 14)">
           <ellipse
-            cx="17"
-            cy="17"
-            rx="14"
-            ry="6.5"
-            stroke="#EBAC54"
-            strokeWidth="2.2"
-            opacity="0.55"
+            cx="32"
+            cy="14"
+            rx="27"
+            ry="8.5"
+            stroke={`url(#${gradId})`}
+            strokeWidth="5"
+            filter={`url(#${blurId})`}
+            opacity=".85"
           />
           <ellipse
-            cx="17"
-            cy="17"
-            rx="12.5"
-            ry="5.4"
-            stroke="#FFF8EB"
-            strokeWidth="2.6"
-            strokeLinecap="round"
-            strokeDasharray="28 40"
-            strokeDashoffset="4"
-          />
-          <ellipse
-            cx="17"
-            cy="17"
-            rx="12.5"
-            ry="5.4"
-            stroke="#FFE8C0"
-            strokeWidth="1.2"
-            opacity="0.9"
+            cx="32"
+            cy="14"
+            rx="27"
+            ry="8.5"
+            stroke={`url(#${gradId})`}
+            strokeWidth="1.6"
           />
         </g>
       </svg>
-      <span className="sr-only" style={{ width: h, height: h }} />
     </span>
   )
 }
 
 export function BeamWordmark({
   className = '',
-  markSize = 34,
+  markWidth = 64,
+  markHeight = 28,
+  wordClassName = '',
 }: {
   className?: string
-  markSize?: number
+  markWidth?: number
+  markHeight?: number
+  wordClassName?: string
 }) {
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      <BeamMark size={markSize} />
-      <span className="font-serif text-[25px] font-normal leading-none tracking-[-0.01em] text-[#F7F4EE]">
+    <span className={`inline-flex items-center gap-3 ${className}`}>
+      <BeamMark width={markWidth} height={markHeight} />
+      <span
+        className={`font-serif text-[32px] font-normal leading-none tracking-[-0.01em] text-[#F6F3EE] ${wordClassName}`}
+        style={{ fontVariationSettings: "'opsz' 72" }}
+      >
         Beam
       </span>
     </span>

@@ -1,7 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="8" fill="#0E0F12"/>
-  <g transform="rotate(-22 16 16)">
-    <ellipse cx="16" cy="16" rx="11" ry="5.2" stroke="#EBAC54" stroke-width="1.8" opacity="0.7"/>
-    <ellipse cx="16" cy="16" rx="9.8" ry="4.3" stroke="#FFF8EB" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="22 32" stroke-dashoffset="3"/>
+  <rect width="32" height="32" rx="8" fill="#0C0C0E"/>
+  <defs>
+    <linearGradient id="fhalo" x1="4" y1="22" x2="28" y2="10" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#B87A32" stop-opacity="0"/>
+      <stop offset=".35" stop-color="#D9A050" stop-opacity=".55"/>
+      <stop offset=".75" stop-color="#FFE7B8" stop-opacity="1"/>
+      <stop offset="1" stop-color="#FFF6E2" stop-opacity=".95"/>
+    </linearGradient>
+    <filter id="fblur" x="-40%" y="-80%" width="180%" height="260%">
+      <feGaussianBlur stdDeviation="1.4"/>
+    </filter>
+  </defs>
+  <g transform="rotate(-14 16 16)">
+    <ellipse cx="16" cy="16" rx="12" ry="4.2" stroke="url(#fhalo)" stroke-width="3.2" filter="url(#fblur)" opacity=".9"/>
+    <ellipse cx="16" cy="16" rx="12" ry="4.2" stroke="url(#fhalo)" stroke-width="1.2"/>
   </g>
 </svg>

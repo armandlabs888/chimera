@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { LandingSection } from '@/components/flat'
@@ -5,50 +6,59 @@ import { CATEGORIES } from '@/data/categories'
 
 export function LandingCategories() {
   return (
-    <LandingSection id="categories" band>
-      <div className="section-inner">
+    <LandingSection id="categories">
+      <div className="beam-container">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="max-w-2xl">
-            <p className="flat-meta">Categories</p>
-            <h2 className="mt-3 font-serif text-[clamp(2rem,3.6vw,3rem)] font-normal text-[#FAF8F4]">
-              Six scopes. Clear intent.
-            </h2>
-            <p className="mt-2 text-[17px] text-[#A7A39C]">
-              Browse open requests by category — each with a warm tint for at-a-glance scanning.
-            </p>
-          </div>
+          <h2
+            className="font-serif text-[clamp(2.25rem,3.9vw,3.5rem)] font-normal leading-[1.05] tracking-[-0.018em] text-[#F6F3EE]"
+            style={{ fontVariationSettings: "'opsz' 72" }}
+          >
+            What neighbors ask for
+          </h2>
           <Link
             href="/browse"
-            className="inline-flex items-center gap-1.5 text-[14px] font-medium text-[#DDA352] hover:text-[#E7B567] transition"
+            className="inline-flex items-center gap-1.5 text-[15px] font-medium text-[#D6B06C] transition hover:text-[#E2B66A]"
           >
-            Browse all <ArrowRight className="h-4 w-4" />
+            Browse all requests <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
+        <p className="mt-4 max-w-[44ch] text-[19px] leading-[1.5] text-[#B7B2AA]">
+          Six kinds of practical help, priced by your neighbors.
+        </p>
 
-        <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
           {CATEGORIES.map((c) => (
             <li key={c.id}>
               <Link
                 href={`/browse?category=${c.id}`}
-                className="elevated elevated-hover group flex h-full flex-col p-5 transition"
+                className="group relative block aspect-[4/5] overflow-hidden rounded-2xl bg-[#141518] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E2B66A] lg:aspect-auto lg:h-[300px]"
               >
-                <span
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] text-[13px] font-bold"
-                  style={{ background: 'rgba(221,163,82,0.14)', color: '#E7B567' }}
-                >
-                  {c.shortLabel}
-                </span>
-                <h3 className="mt-4 font-serif text-[20px] text-[#FAF8F4] group-hover:text-white">
-                  {c.label}
-                </h3>
-                <p className="mt-1.5 flex-1 type-sec text-[#A7A39C]">{c.description}</p>
-                <span className="mt-4 inline-flex items-center gap-1 text-[13px] font-medium text-[#DDA352]">
-                  View requests <ArrowRight className="h-3.5 w-3.5" />
-                </span>
+                <Image
+                  fill
+                  src={c.image}
+                  alt=""
+                  sizes="(min-width:1024px) 400px, 50vw"
+                  className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]"
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(8,8,10,.85)_100%)]" />
+                <div className="absolute inset-x-3 bottom-3 sm:inset-x-5 sm:bottom-5 lg:inset-x-6 lg:bottom-6">
+                  <h3
+                    className="font-serif text-[18px] font-normal leading-[1.15] tracking-[-0.01em] text-[#F6F3EE] sm:text-[24px] lg:text-[28px]"
+                    style={{ fontVariationSettings: "'opsz' 72" }}
+                  >
+                    {c.label}
+                  </h3>
+                  <p className="mt-1 text-[11px] leading-[1.4] tracking-[0.01em] text-[#B7B2AA] sm:mt-1.5 sm:text-[13px]">
+                    Typical {c.typicalRange} · {c.arrival}
+                  </p>
+                </div>
               </Link>
             </li>
           ))}
         </ul>
+        <p className="mt-6 text-[13px] text-[#85817A]">
+          Typical budgets from example requests. Helpers set their own offers.
+        </p>
       </div>
     </LandingSection>
   )

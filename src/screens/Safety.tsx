@@ -1,70 +1,101 @@
-import { Eye, Handshake, MapPinned, MessageSquareWarning, ShieldCheck } from 'lucide-react'
-import { FlatDivider, MetaLabel } from '../components/flat'
-import { SectionHeader } from '../components/ui'
+'use client'
 
-const tips = [
+import Link from 'next/link'
+import { LandingNav } from '@/components/landing/LandingNav'
+import { LandingFooter } from '@/components/landing/LandingFooter'
+import { useBeam } from '@/context/BeamContext'
+
+const COMMITMENTS = [
   {
-    icon: Handshake,
-    title: 'Agree in Beam first',
-    body: 'Accept an offer with a named price before anyone shows up. Keep scope changes in the thread.',
+    title: 'Beam never holds your money',
+    body: 'You pay helpers directly, in cash or Venmo. The agreed price is written in the offer so expectations stay clear.',
   },
   {
-    icon: MapPinned,
-    title: 'Meet in public when you can',
-    body: 'For first-time helpers, prefer lobbies, yards, or daytime windows. Share the plan with someone you trust.',
+    title: 'Reviews go both ways',
+    body: 'Requesters and helpers rate each other after every job. Reputation is mutual, not one-sided.',
   },
   {
-    icon: Eye,
-    title: 'Trust signals over chatter',
-    body: 'Beam ranks skill, distance, and availability — then reviews after completion. No social feed to skim.',
+    title: 'Everything stays in the thread',
+    body: 'Coordinate timing, share details, and report problems in-app so there is a record if something goes wrong.',
   },
   {
-    icon: MessageSquareWarning,
-    title: 'What Beam is not for',
-    body: 'No licensed trades, childcare, senior care, or delivery/driving. Keep it practical same-day help.',
+    title: 'Scoped, everyday tasks',
+    body: 'Six practical categories. Nothing that needs a license, overnight care, or driving for hire.',
+  },
+]
+
+const FAQ = [
+  {
+    q: 'How does payment work?',
+    a: 'Beam never holds your money. After you accept an offer, you and the helper arrange payment peer-to-peer. The agreed price lives in the offer.',
   },
   {
-    icon: ShieldCheck,
-    title: 'Payments & accounts',
-    body: 'Beam does not hold payments yet. Live accounts persist in Supabase with RLS; explicit demo mode stays in your browser only.',
+    q: 'Is Beam available outside Austin?',
+    a: 'Not yet. Beam launches in eight central Austin neighborhoods so same-day help stays dense and useful.',
+  },
+  {
+    q: 'What if something goes wrong?',
+    a: 'Use in-thread reporting, review both ways after completion, and follow these community safety rules. Meet in public when it makes sense.',
+  },
+  {
+    q: 'Do I need an account to browse?',
+    a: 'You can browse open requests without signing in. Posting, offering, messaging, and reviewing require an account.',
   },
 ]
 
 export function Safety() {
-  return (
-    <div className="px-4 py-5 sm:py-6">
-      <SectionHeader
-        title="Safety"
-        subtitle="Hyper-local help works when expectations are clear and the job stays narrow."
-      />
+  const { mode, authUser } = useBeam()
+  const publicChrome = mode === 'live' && !authUser
 
-      <div className="relative mb-8 overflow-hidden rounded-[12px]">
-        <img
-          src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1400&q=80"
-          alt="Neighbors outdoors"
-          className="h-44 w-full object-cover md:h-52"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
-        <p className="absolute bottom-3 left-4 right-4 text-[22px] font-semibold tracking-tight text-white md:text-[24px]">
-          Clear price. Clear timing. Local trust.
-        </p>
+  const body = (
+    <div className={publicChrome ? 'beam-container py-16' : 'px-4 py-8 sm:py-10'}>
+      <h1
+        className="font-serif text-[clamp(2.5rem,5vw,3.5rem)] font-normal leading-[1.05] tracking-[-0.02em] text-[#F6F3EE]"
+        style={{ fontVariationSettings: "'opsz' 72" }}
+      >
+        Safety on Beam
+      </h1>
+      <p className="mt-4 max-w-[48ch] text-[18px] leading-[1.55] text-[#B7B2AA]">
+        Beam is a coordination layer — not escrow and not a staffing agency. Clear rules keep
+        same-day help practical.
+      </p>
+
+      <dl className="mt-12 max-w-2xl space-y-8">
+        {COMMITMENTS.map((c) => (
+          <div key={c.title}>
+            <dt className="text-[18px] font-medium text-[#F6F3EE]">{c.title}</dt>
+            <dd className="mt-2 text-[16px] leading-[1.55] text-[#B7B2AA]">{c.body}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="mt-16 max-w-2xl space-y-10 border-t border-white/[0.08] pt-12">
+        {FAQ.map((item) => (
+          <div key={item.q}>
+            <h2 className="text-[18px] font-medium text-[#F6F3EE]">{item.q}</h2>
+            <p className="mt-2 text-[16px] leading-[1.55] text-[#B7B2AA]">{item.a}</p>
+          </div>
+        ))}
       </div>
 
-      <MetaLabel className="mb-2 text-beam-amber">Basics</MetaLabel>
-      <ul className="divide-y divide-beam-line">
-        {tips.map(({ icon: Icon, title, body }) => (
-          <li key={title} className="flex gap-3 py-4">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-beam-amber-soft text-beam-amber-deep">
-              <Icon className="h-4 w-4" />
-            </span>
-            <div>
-              <h2 className="text-[17px] font-semibold text-beam-cream">{title}</h2>
-              <p className="mt-1 type-sec text-beam-muted">{body}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <FlatDivider className="mt-1" />
+      <p className="mt-12 text-[15px] text-[#B7B2AA]">
+        Ready to help or need a hand?{' '}
+        <Link href="/browse" className="font-medium text-[#D6B06C] hover:text-[#E2B66A]">
+          Browse open requests →
+        </Link>
+      </p>
     </div>
   )
+
+  if (publicChrome) {
+    return (
+      <div className="min-h-dvh bg-[#0C0C0E] text-[#F6F3EE]">
+        <LandingNav />
+        {body}
+        <LandingFooter />
+      </div>
+    )
+  }
+
+  return body
 }
