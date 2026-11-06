@@ -24,5 +24,16 @@ export function friendlyAuthError(message: string | null | undefined): string {
   if (lower.includes('rate limit') || lower.includes('too many')) {
     return 'Too many attempts. Wait a moment and try again.'
   }
+  if (
+    lower.includes('access_denied') ||
+    lower.includes('access denied') ||
+    lower.includes('user denied') ||
+    (lower.includes('user') && (lower.includes('cancelled') || lower.includes('canceled')))
+  ) {
+    return 'Google sign-in was cancelled. You can try again, or continue with email below.'
+  }
+  if (lower.includes('exchange') || lower.includes('pkce') || lower.includes('code verifier')) {
+    return 'Sign-in could not be completed. Close extra tabs and try Google again, or use email.'
+  }
   return message
 }
