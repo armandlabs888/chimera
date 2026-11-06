@@ -47,8 +47,19 @@ async function probeBanner(page) {
     const banner = document.querySelector('[data-testid="helper-setup-callout"]')
     const nav = document.querySelector('[data-testid="app-topnav"]')
     const cta = document.querySelector('[data-testid="helper-setup-banner-cta"]')
+    const copy = banner?.querySelector('p')
     const bannerBox = banner?.getBoundingClientRect()
     const navBox = nav?.getBoundingClientRect()
+    const ctaBox = cta?.getBoundingClientRect()
+    const copyBox = copy?.getBoundingClientRect()
+    let contentMidX = null
+    let textCtaGap = null
+    if (copyBox && ctaBox) {
+      const left = Math.min(copyBox.left, ctaBox.left)
+      const right = Math.max(copyBox.right, ctaBox.right)
+      contentMidX = (left + right) / 2
+      textCtaGap = Math.max(0, ctaBox.left - copyBox.right)
+    }
     return {
       bannerCount: banner ? 1 : 0,
       navCount: nav ? 1 : 0,
@@ -56,6 +67,9 @@ async function probeBanner(page) {
       bannerY: bannerBox?.y ?? null,
       bannerH: bannerBox?.height ?? null,
       navY: navBox?.y ?? null,
+      contentMidX,
+      textCtaGap,
+      viewportMidX: window.innerWidth / 2,
       overflowX:
         document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
       bodyText: document.body.innerText.slice(0, 400),
@@ -88,6 +102,20 @@ async function main() {
         `${vp.name} banner bottoms at nav top`,
       )
       assert.equal(browseProbe.overflowX, false, `${vp.name} no horizontal overflow`)
+      if (vp.width === 1440) {
+        assert.ok(
+          browseProbe.contentMidX != null,
+          `${vp.name} banner content group measurable`,
+        )
+        assert.ok(
+          Math.abs(browseProbe.contentMidX - browseProbe.viewportMidX) <= 40,
+          `${vp.name} banner content centered (mid=${browseProbe.contentMidX}, expected≈${browseProbe.viewportMidX})`,
+        )
+        assert.ok(
+          browseProbe.textCtaGap != null && browseProbe.textCtaGap <= 400,
+          `${vp.name} banner text↔CTA gap not edge-stretched (gap=${browseProbe.textCtaGap})`,
+        )
+      }
 
       await page.screenshot({
         path: join(OUT, `browse-banner-${vp.name}.png`),
