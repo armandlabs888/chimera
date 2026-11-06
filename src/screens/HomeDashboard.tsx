@@ -63,7 +63,7 @@ export function HomeDashboard() {
   return (
     <div className="px-4 py-8 sm:py-10">
       <h1
-        className="font-serif text-[clamp(2rem,4vw,2.5rem)] font-normal leading-[1.05] tracking-[-0.02em] text-[#F6F3EE]"
+        className="font-serif text-[clamp(2rem,4vw,2.5rem)] font-normal leading-[1.05] tracking-[-0.02em] text-[#071330]"
         style={{ fontVariationSettings: "'opsz' 72" }}
       >
         {greeting()}, {first}
@@ -71,24 +71,24 @@ export function HomeDashboard() {
       {waitingOffers > 0 && myOpen[0] ? (
         <Link
           href={`/requests/${myOpen[0].id}`}
-          className="mt-3 inline-flex items-center gap-1 text-[16px] text-[#D6B06C] hover:text-[#E2B66A]"
+          className="mt-3 inline-flex items-center gap-1 text-[16px] text-[#1D5CE5] hover:text-[#1D5CE5]"
         >
           {waitingOffers} offer{waitingOffers === 1 ? '' : 's'} waiting on your {myOpen[0].title.toLowerCase()}
           <ArrowRight className="h-4 w-4" />
         </Link>
       ) : (
-        <p className="mt-3 text-[16px] text-[#B7B2AA]">Same-day help near you in Austin.</p>
+        <p className="mt-3 text-[16px] text-[#64748B]">Same-day help near you in Austin.</p>
       )}
 
       <section className="mt-12">
         <div className="mb-5 flex items-end justify-between gap-3">
           <h2
-            className="font-serif text-[26px] font-normal text-[#F6F3EE]"
+            className="font-serif text-[26px] font-normal text-[#071330]"
             style={{ fontVariationSettings: "'opsz' 72" }}
           >
             Open near you
           </h2>
-          <Link href="/browse" className="text-[14px] font-medium text-[#D6B06C]">
+          <Link href="/browse" className="text-[14px] font-medium text-[#1D5CE5]">
             See all →
           </Link>
         </div>
@@ -99,8 +99,8 @@ export function HomeDashboard() {
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-white/[0.08] px-6 py-10 text-center">
-            <p className="font-serif text-[22px] text-[#F6F3EE]">Nothing open nearby yet</p>
+          <div className="rounded-2xl border border-[rgba(7,19,48,0.08)] px-6 py-10 text-center">
+            <p className="font-serif text-[22px] text-[#071330]">Nothing open nearby yet</p>
             <ButtonLink href="/post" className="mt-5">
               Post a request
             </ButtonLink>
@@ -110,27 +110,27 @@ export function HomeDashboard() {
 
       <section className="mt-14">
         <h2
-          className="font-serif text-[26px] font-normal text-[#F6F3EE]"
+          className="font-serif text-[26px] font-normal text-[#071330]"
           style={{ fontVariationSettings: "'opsz' 72" }}
         >
           Your activity
         </h2>
         {activity.length ? (
-          <ul className="mt-5 divide-y divide-white/[0.08] border-y border-white/[0.08]">
+          <ul className="mt-5 divide-y divide-white/[0.08] border-y border-[rgba(7,19,48,0.08)]">
             {activity.map((row) => (
               <li key={row.id}>
                 <Link
                   href={row.href}
-                  className="flex items-center justify-between gap-3 py-4 text-[15px] text-[#F6F3EE] hover:text-white"
+                  className="flex items-center justify-between gap-3 py-4 text-[15px] text-[#071330] hover:text-white"
                 >
                   <span className="truncate">{row.label}</span>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-[#85817A]" />
+                  <ArrowRight className="h-4 w-4 shrink-0 text-[#64748B]" />
                 </Link>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="mt-4 text-[15px] text-[#B7B2AA]">No activity yet — post or browse to get started.</p>
+          <p className="mt-4 text-[15px] text-[#64748B]">No activity yet — post or browse to get started.</p>
         )}
       </section>
     </div>

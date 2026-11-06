@@ -35,17 +35,17 @@ export function AuthGate({ children }: { children: ReactNode }) {
   if (isPublicAppPath(pathname)) return <>{children}</>
 
   return (
-    <div className="min-h-dvh bg-[#0C0C0E]">
-      <header className="border-b border-white/[0.08]">
+    <div className="min-h-dvh bg-[#F4F8FD]">
+      <header className="border-b border-[rgba(7,19,48,0.08)] bg-white">
         <div className="mx-auto flex h-16 max-w-[1240px] items-center justify-between px-6">
           <Link href="/">
-            <BeamWordmark markWidth={40} markHeight={18} wordClassName="text-[24px]" />
+            <BeamWordmark markWidth={24} markHeight={24} wordClassName="text-[22px]" tone="ink" />
           </Link>
-          <nav className="flex items-center gap-6 text-[14.5px] text-[#B7B2AA]">
-            <Link href="/browse" className="hover:text-[#F6F3EE]">
+          <nav className="flex items-center gap-6 text-[14.5px] font-medium text-[#64748B]">
+            <Link href="/browse" className="hover:text-[#071330]">
               Browse
             </Link>
-            <Link href="/safety" className="hover:text-[#F6F3EE]">
+            <Link href="/safety" className="hover:text-[#071330]">
               Safety
             </Link>
           </nav>

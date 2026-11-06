@@ -32,7 +32,7 @@ export function Field({
 }
 
 const controlClass =
-  'w-full rounded-[12px] border border-white/[0.12] bg-[#212225]/90 px-3.5 py-2 text-[15px] text-[#F5F2EC] placeholder:text-[#8E8A83] transition hover:border-white/[0.18] focus:border-[#DDA352]/65 focus:outline-none aria-[invalid=true]:border-beam-danger'
+  'w-full rounded-2xl border border-[rgba(7,19,48,0.1)] bg-white px-3.5 py-2 text-[15px] text-[#071330] placeholder:text-[#94A3B8] transition hover:border-[rgba(7,19,48,0.18)] focus:border-[#1D5CE5] focus:outline-none aria-[invalid=true]:border-beam-danger'
 
 export function TextInput({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={`touch-target ${controlClass} ${className}`} {...props} />

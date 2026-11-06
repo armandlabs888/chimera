@@ -1,74 +1,26 @@
-'use client'
-
-import { useId } from 'react'
-
-/** Soft luminous comet-tail halo — reference-locked warm-obsidian mark. */
+/** Four-point sparkle mark for Beam daylight brand. */
 export function BeamMark({
   className = '',
-  width = 64,
+  width = 28,
   height = 28,
+  color = 'currentColor',
 }: {
   className?: string
   width?: number
   height?: number
+  color?: string
 }) {
-  const uid = useId().replace(/:/g, '')
-  const gradId = `halo-${uid}`
-  const blurId = `haloBlur-${uid}`
-
   return (
     <span
       className={`relative inline-flex shrink-0 items-center justify-center ${className}`}
       style={{ width, height }}
       aria-hidden
     >
-      <span
-        className="pointer-events-none absolute"
-        style={{
-          inset: '-40px -60px',
-          background: 'radial-gradient(closest-side, rgba(230,160,70,.35), transparent)',
-          filter: 'blur(12px)',
-        }}
-      />
-      <svg width={width} height={height} viewBox="0 0 64 28" fill="none" className="relative">
-        <defs>
-          <linearGradient
-            id={gradId}
-            x1="4"
-            y1="20"
-            x2="60"
-            y2="8"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0" stopColor="#B87A32" stopOpacity="0" />
-            <stop offset=".35" stopColor="#D9A050" stopOpacity=".55" />
-            <stop offset=".75" stopColor="#FFE7B8" stopOpacity="1" />
-            <stop offset="1" stopColor="#FFF6E2" stopOpacity=".95" />
-          </linearGradient>
-          <filter id={blurId} x="-30%" y="-80%" width="160%" height="260%">
-            <feGaussianBlur stdDeviation="2.4" />
-          </filter>
-        </defs>
-        <g transform="rotate(-14 32 14)">
-          <ellipse
-            cx="32"
-            cy="14"
-            rx="27"
-            ry="8.5"
-            stroke={`url(#${gradId})`}
-            strokeWidth="5"
-            filter={`url(#${blurId})`}
-            opacity=".85"
-          />
-          <ellipse
-            cx="32"
-            cy="14"
-            rx="27"
-            ry="8.5"
-            stroke={`url(#${gradId})`}
-            strokeWidth="1.6"
-          />
-        </g>
+      <svg width={width} height={height} viewBox="0 0 32 32" fill="none">
+        <path
+          d="M16 2.5c.55 0 1.02.36 1.18.88l1.55 5.1a6.5 6.5 0 0 0 4.29 4.29l5.1 1.55a1.25 1.25 0 0 1 0 2.36l-5.1 1.55a6.5 6.5 0 0 0-4.29 4.29l-1.55 5.1a1.25 1.25 0 0 1-2.36 0l-1.55-5.1a6.5 6.5 0 0 0-4.29-4.29l-5.1-1.55a1.25 1.25 0 0 1 0-2.36l5.1-1.55a6.5 6.5 0 0 0 4.29-4.29l1.55-5.1A1.25 1.25 0 0 1 16 2.5Z"
+          fill={color}
+        />
       </svg>
     </span>
   )
@@ -76,21 +28,28 @@ export function BeamMark({
 
 export function BeamWordmark({
   className = '',
-  markWidth = 64,
+  markWidth = 28,
   markHeight = 28,
   wordClassName = '',
+  tone = 'ink',
 }: {
   className?: string
   markWidth?: number
   markHeight?: number
   wordClassName?: string
+  tone?: 'ink' | 'white' | 'royal'
 }) {
+  const colors = {
+    ink: { mark: '#1D5CE5', word: 'text-[#071330]' },
+    white: { mark: '#FFFFFF', word: 'text-white' },
+    royal: { mark: '#1D5CE5', word: 'text-[#1D5CE5]' },
+  }[tone]
+
   return (
-    <span className={`inline-flex items-center gap-3 ${className}`}>
-      <BeamMark width={markWidth} height={markHeight} />
+    <span className={`inline-flex items-center gap-2.5 ${className}`}>
+      <BeamMark width={markWidth} height={markHeight} color={colors.mark} />
       <span
-        className={`font-serif text-[32px] font-normal leading-none tracking-[-0.01em] text-[#F6F3EE] ${wordClassName}`}
-        style={{ fontVariationSettings: "'opsz' 72" }}
+        className={`font-display text-[26px] font-bold leading-none tracking-[-0.03em] ${colors.word} ${wordClassName}`}
       >
         Beam
       </span>

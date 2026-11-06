@@ -24,6 +24,22 @@ const COMMITMENTS = [
   },
 ]
 
+const PERMITTED = [
+  'Moving & lifting',
+  'Home cleaning',
+  'Handyman & assembly (non-licensed)',
+  'Pet care',
+  'Tutoring & tech help',
+  'Events & photo',
+]
+
+const EXCLUDED = [
+  'Licensed trades (electrical, plumbing, HVAC)',
+  'Childcare / babysitting',
+  'Medical or senior/elderly care',
+  'Passenger driving / rides',
+]
+
 const FAQ = [
   {
     q: 'How does payment work?',
@@ -49,13 +65,10 @@ export function Safety() {
 
   const body = (
     <div className={publicChrome ? 'beam-container py-16' : 'px-4 py-8 sm:py-10'}>
-      <h1
-        className="font-serif text-[clamp(2.5rem,5vw,3.5rem)] font-normal leading-[1.05] tracking-[-0.02em] text-[#F6F3EE]"
-        style={{ fontVariationSettings: "'opsz' 72" }}
-      >
+      <h1 className="font-display text-[clamp(2.5rem,5vw,3.5rem)] font-bold leading-[1.05] tracking-[-0.03em] text-[#071330]">
         Safety on Beam
       </h1>
-      <p className="mt-4 max-w-[48ch] text-[18px] leading-[1.55] text-[#B7B2AA]">
+      <p className="mt-4 max-w-[48ch] text-[18px] leading-[1.55] text-[#64748B]">
         Beam is a coordination layer — not escrow and not a staffing agency. Clear rules keep
         same-day help practical.
       </p>
@@ -63,24 +76,53 @@ export function Safety() {
       <dl className="mt-12 max-w-2xl space-y-8">
         {COMMITMENTS.map((c) => (
           <div key={c.title}>
-            <dt className="text-[18px] font-medium text-[#F6F3EE]">{c.title}</dt>
-            <dd className="mt-2 text-[16px] leading-[1.55] text-[#B7B2AA]">{c.body}</dd>
+            <dt className="text-[18px] font-bold text-[#071330]">{c.title}</dt>
+            <dd className="mt-2 text-[16px] leading-[1.55] text-[#64748B]">{c.body}</dd>
           </div>
         ))}
       </dl>
 
-      <div className="mt-16 max-w-2xl space-y-10 border-t border-white/[0.08] pt-12">
+      <div className="mt-14 grid gap-6 sm:grid-cols-2">
+        <div className="rounded-[26px] border border-[rgba(7,19,48,0.08)] bg-white p-6">
+          <h2 className="text-[15px] font-bold uppercase tracking-[0.08em] text-[#1D5CE5]">
+            Permitted
+          </h2>
+          <ul className="mt-4 space-y-2 text-[15px] text-[#071330]">
+            {PERMITTED.map((item) => (
+              <li key={item} className="flex gap-2">
+                <span className="text-[#059669]">✓</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="rounded-[26px] border border-[#FDE68A] bg-[#FFF8D6] p-6">
+          <h2 className="text-[15px] font-bold uppercase tracking-[0.08em] text-[#92400E]">
+            Not on Beam
+          </h2>
+          <ul className="mt-4 space-y-2 text-[15px] text-[#071330]">
+            {EXCLUDED.map((item) => (
+              <li key={item} className="flex gap-2">
+                <span className="text-[#DC2626]">×</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="mt-16 max-w-2xl space-y-10 border-t border-[rgba(7,19,48,0.08)] pt-12">
         {FAQ.map((item) => (
           <div key={item.q}>
-            <h2 className="text-[18px] font-medium text-[#F6F3EE]">{item.q}</h2>
-            <p className="mt-2 text-[16px] leading-[1.55] text-[#B7B2AA]">{item.a}</p>
+            <h2 className="text-[18px] font-bold text-[#071330]">{item.q}</h2>
+            <p className="mt-2 text-[16px] leading-[1.55] text-[#64748B]">{item.a}</p>
           </div>
         ))}
       </div>
 
-      <p className="mt-12 text-[15px] text-[#B7B2AA]">
+      <p className="mt-12 text-[15px] text-[#64748B]">
         Ready to help or need a hand?{' '}
-        <Link href="/browse" className="font-medium text-[#D6B06C] hover:text-[#E2B66A]">
+        <Link href="/browse" className="font-semibold text-[#1D5CE5] hover:text-[#1649BD]">
           Browse open requests →
         </Link>
       </p>
@@ -89,8 +131,8 @@ export function Safety() {
 
   if (publicChrome) {
     return (
-      <div className="min-h-dvh bg-[#0C0C0E] text-[#F6F3EE]">
-        <LandingNav />
+      <div className="min-h-dvh bg-white text-[#071330]">
+        <LandingNav variant="light" />
         {body}
         <LandingFooter />
       </div>

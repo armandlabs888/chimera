@@ -159,7 +159,7 @@ export function You() {
             onClick={() => setTab(id)}
             className={`touch-target shrink-0 rounded-full px-4 py-2 text-sm font-medium ${
               tab === id
-                ? 'bg-gradient-to-b from-[#D5A455] to-[#B88842] text-[#FDFBF7]'
+                ? 'bg-[#1D5CE5] text-[#FFFFFF]'
                 : 'border border-beam-line/70 text-beam-cream-dim hover:border-beam-amber/40'
             }`}
           >
@@ -325,7 +325,7 @@ export function You() {
                       onClick={() => toggleSkill(c.id)}
                       className={`rounded-full px-3 py-2 text-sm ${
                         skills.includes(c.id)
-                          ? 'bg-gradient-to-b from-[#D5A455] to-[#B88842] text-[#FDFBF7]'
+                          ? 'bg-[#1D5CE5] text-[#FFFFFF]'
                           : 'border border-beam-line text-beam-muted'
                       }`}
                     >
@@ -344,7 +344,7 @@ export function You() {
                       onClick={() => toggleSlot(slot)}
                       className={`rounded-full px-3 py-2 text-sm capitalize ${
                         availability.includes(slot)
-                          ? 'bg-gradient-to-b from-[#D5A455] to-[#B88842] text-[#FDFBF7]'
+                          ? 'bg-[#1D5CE5] text-[#FFFFFF]'
                           : 'border border-beam-line text-beam-muted'
                       }`}
                     >

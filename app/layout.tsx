@@ -1,26 +1,23 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Newsreader } from 'next/font/google'
+import { Fraunces, Plus_Jakarta_Sans } from 'next/font/google'
 import type { ReactNode } from 'react'
 import './globals.css'
 
-const geist = Geist({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  variable: '--font-geist',
+  variable: '--font-sans',
   display: 'swap',
 })
 
-const newsreader = Newsreader({
+const fraunces = Fraunces({
   subsets: ['latin'],
-  weight: 'variable',
-  style: ['normal'],
-  axes: ['opsz'],
-  variable: '--font-serif',
+  variable: '--font-display',
   display: 'swap',
 })
 
-const title = 'Beam — Help nearby. Done today.'
+const title = 'Beam — Local help in Austin, made easy'
 const description =
-  'Beam connects Austin neighbors for practical same-day help — post a task, compare priced offers with arrival windows, and coordinate in thread. Payments arranged peer-to-peer.'
+  'Post what you need done today and get priced offers with arrival times from vetted neighbors nearby. Peer-to-peer same-day help across Austin.'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.yariapp.com'),
@@ -60,12 +57,12 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#0C0C0E',
+  themeColor: '#1D5CE5',
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} ${newsreader.variable}`}>
+    <html lang="en" className={`${plusJakarta.variable} ${fraunces.variable}`}>
       <body className="font-body antialiased">{children}</body>
     </html>
   )

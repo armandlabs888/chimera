@@ -18,7 +18,7 @@ export function RequestCard({
   return (
     <Link
       href={`/requests/${request.id}`}
-      className="group block overflow-hidden rounded-2xl bg-[#141518] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E2B66A]"
+      className="group block overflow-hidden rounded-[26px] border border-[rgba(7,19,48,0.08)] bg-white shadow-sm transition hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1D5CE5]"
     >
       <div className="relative aspect-[16/10] overflow-hidden">
         <Image
@@ -28,28 +28,27 @@ export function RequestCard({
           sizes="(min-width:1024px) 360px, 50vw"
           className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
         />
+        <span className="absolute bottom-3 left-3 rounded-full bg-white px-3 py-1.5 text-[12.5px] font-semibold text-[#071330] shadow-sm">
+          {category.shortLabel}
+        </span>
       </div>
       <div className="p-5">
-        <p className="text-[13px] font-medium tracking-[0.01em] text-[#D6B06C]">{category.label}</p>
-        <h3 className="mt-1.5 line-clamp-2 text-[17px] font-medium leading-[1.35] text-[#F6F3EE]">
+        <h3 className="line-clamp-2 text-[17px] font-bold leading-[1.35] text-[#071330]">
           {request.title}
         </h3>
         {!compact ? (
-          <p className="mt-2 line-clamp-2 text-[14px] leading-[1.5] text-[#B7B2AA]">{request.details}</p>
+          <p className="mt-2 line-clamp-2 text-[14px] leading-[1.5] text-[#64748B]">{request.details}</p>
         ) : null}
         <div className="mt-4 flex items-end justify-between gap-3">
-          <p className="text-[13px] text-[#85817A]">
+          <p className="text-[13px] text-[#64748B]">
             {neighborhood.shortName} · {request.whenLabel} · {relativeTime(request.createdAt)}
           </p>
-          <p
-            className="font-serif text-[24px] leading-none tabular-nums text-[#F6F3EE]"
-            style={{ fontVariationSettings: "'opsz' 36" }}
-          >
+          <p className="font-display text-[24px] font-bold leading-none tabular-nums text-[#071330]">
             {formatMoney(request.budget)}
           </p>
         </div>
         {request.status !== 'open' ? (
-          <p className="mt-3 text-[13px] capitalize text-[#85817A]">{request.status}</p>
+          <p className="mt-3 text-[13px] capitalize text-[#64748B]">{request.status}</p>
         ) : null}
       </div>
     </Link>

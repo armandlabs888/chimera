@@ -9,7 +9,7 @@ import { sanitizeNext } from '@/lib/auth/safeNext'
 export default function AuthPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { mode, authUser, ready } = useBeam()
+  const { authUser, ready } = useBeam()
 
   const rawMode = searchParams.get('mode')
   const initialMode: AuthMode = rawMode === 'signup' ? 'signup' : 'signin'
@@ -18,23 +18,24 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!ready) return
-    // Signed-in users (or demo) should not get stuck on /auth.
-    if (authUser || mode === 'demo') {
+    // Already signed-in users should not linger on /auth.
+    // Demo mode stays on /auth so the daylight auth chrome (and Continue CTA) is visible.
+    if (authUser) {
       router.replace(safeNext)
     }
-  }, [ready, authUser, mode, router, safeNext])
+  }, [ready, authUser, router, safeNext])
 
   if (!ready) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-beam-base">
-        <p className="text-[22px] font-semibold tracking-tight text-[#FAF8F4]">Beam</p>
+      <div className="flex min-h-dvh items-center justify-center bg-[#F4F8FD]">
+        <p className="text-[22px] font-semibold tracking-tight text-[#071330]">Beam</p>
       </div>
     )
   }
 
-  if (authUser || mode === 'demo') {
+  if (authUser) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-beam-base">
+      <div className="flex min-h-dvh items-center justify-center bg-[#F4F8FD]">
         <p className="type-sec text-beam-muted">Continuing…</p>
       </div>
     )

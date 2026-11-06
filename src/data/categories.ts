@@ -10,33 +10,33 @@ export const CATEGORIES: Category[] = [
     shortLabel: 'Moving',
     description: 'Furniture, boxes, loading, unloading',
     image: unsplash('photo-1600518464441-9154a4dea21b'),
-    tintBg: '#FEF3C7',
-    typicalRange: '$40–60',
+    tintBg: '#DBEAFE',
+    typicalRange: '$45–$120',
     arrival: 'Often same day',
-    tintFg: '#B45309',
+    tintFg: '#1D4ED8',
     templates: [
       {
         title: 'Help move a couch upstairs',
         details:
           'Need two strong people to carry a sectional from a U-Haul into a second-floor walk-up. Stairs only, no elevator. Should take about 45 minutes.',
-        budgetHint: 60,
+        budgetHint: 85,
       },
       {
         title: 'Load boxes into a truck',
         details:
           'About 20 medium boxes stacked in the living room. Need help loading into a pickup parked out front this afternoon.',
-        budgetHint: 40,
+        budgetHint: 45,
       },
     ],
   },
   {
     id: 'cleaning',
-    label: 'Cleaning',
+    label: 'Home cleaning',
     shortLabel: 'Cleaning',
-    description: 'Post-party tidy, deep clean, move-out',
+    description: 'Deep cleans, turnover resets, kitchen & bath',
     image: unsplash('photo-1581578731548-c64695cc6952'),
     tintBg: '#E0F2FE',
-    typicalRange: '$55–90',
+    typicalRange: '$60–$140',
     arrival: 'Same day or next',
     tintFg: '#0369A1',
     templates: [
@@ -44,24 +44,24 @@ export const CATEGORIES: Category[] = [
         title: 'Post-brunch kitchen reset',
         details:
           'Kitchen and dining area after a small brunch. Dishes, counters, floors. Supplies are here — just need an extra pair of hands for ~90 minutes.',
-        budgetHint: 55,
+        budgetHint: 65,
       },
       {
         title: 'Move-out tidy before keys',
         details:
           'Studio apartment needs a solid clean before walkthrough tomorrow. Bathrooms, kitchen, floors, wipe surfaces. I have cleaning supplies.',
-        budgetHint: 90,
+        budgetHint: 110,
       },
     ],
   },
   {
     id: 'handyman',
-    label: 'Light handyman',
+    label: 'Handyman & assembly',
     shortLabel: 'Handyman',
-    description: 'Assembly, mounting, small fixes',
+    description: 'Assembly, mounting, small fixes — non-licensed',
     image: unsplash('photo-1504148455328-c376907d081c'),
     tintBg: '#FFEDD5',
-    typicalRange: '$50–70',
+    typicalRange: '$45–$110',
     arrival: 'Often same day',
     tintFg: '#C2410C',
     templates: [
@@ -86,7 +86,7 @@ export const CATEGORIES: Category[] = [
     description: 'Walks, sitting, drop-ins',
     image: unsplash('photo-1548199973-03cce0bbc87b'),
     tintBg: '#FFE4E6',
-    typicalRange: '$25–30',
+    typicalRange: '$25–$65',
     arrival: 'Walks within hours',
     tintFg: '#BE123C',
     templates: [
@@ -94,24 +94,24 @@ export const CATEGORIES: Category[] = [
         title: 'Afternoon dog walk (friendly lab)',
         details:
           'Need someone to walk our 3-year-old lab for 30–40 minutes. Friendly with people and dogs. Leash and bags ready by the door.',
-        budgetHint: 25,
+        budgetHint: 30,
       },
       {
         title: 'Cat drop-in while at a wedding',
         details:
           'Two chill indoor cats. Need a 20-minute drop-in this evening: fresh water, food, litter scoop, quick play.',
-        budgetHint: 30,
+        budgetHint: 35,
       },
     ],
   },
   {
     id: 'tutoring',
-    label: 'Tutoring',
+    label: 'Tutoring & tech help',
     shortLabel: 'Tutoring',
-    description: 'Homework help, test prep, skills',
+    description: 'Homework help, language practice, Wi-Fi/laptop setup',
     image: unsplash('photo-1503676260728-1c00da094a0b'),
     tintBg: '#D1FAE5',
-    typicalRange: '$35–45',
+    typicalRange: '$35–$85',
     arrival: 'Tonight or this week',
     tintFg: '#047857',
     templates: [
@@ -125,7 +125,7 @@ export const CATEGORIES: Category[] = [
         title: 'Spanish conversation practice',
         details:
           'Looking for a conversational Spanish partner for 60 minutes — intermediate level. Coffee shop near me or outdoors.',
-        budgetHint: 35,
+        budgetHint: 40,
       },
     ],
   },
@@ -136,7 +136,7 @@ export const CATEGORIES: Category[] = [
     description: 'Setup help, candid photos, teardown',
     image: unsplash('photo-1511795409834-ef04bbd61622'),
     tintBg: '#CCFBF1',
-    typicalRange: '$65–80',
+    typicalRange: '$50–$150',
     arrival: 'Book ahead',
     tintFg: '#0F766E',
     templates: [
@@ -144,7 +144,7 @@ export const CATEGORIES: Category[] = [
         title: 'Candid photos at backyard birthday',
         details:
           'Small backyard birthday, ~20 people. Need someone with a good phone or camera for 90 minutes of candid shots. Golden hour start.',
-        budgetHint: 80,
+        budgetHint: 90,
       },
       {
         title: 'Help set up a patio dinner',

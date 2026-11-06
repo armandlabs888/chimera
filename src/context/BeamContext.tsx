@@ -713,7 +713,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
   if (booting) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-beam-base text-beam-cream">
-        <p className="text-[22px] font-semibold tracking-tight text-[#FAF8F4]" aria-busy="true">
+        <p className="text-[22px] font-semibold tracking-tight text-[#071330]" aria-busy="true">
           Beam
         </p>
       </div>
@@ -723,7 +723,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
   if (mode === 'unconfigured') {
     return (
       <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-4 text-beam-cream">
-        <h1 className="type-h2 text-[#FAF8F4]">Beam needs configuration</h1>
+        <h1 className="type-h2 text-[#071330]">Beam needs configuration</h1>
         <p className="text-sm text-beam-muted">
           {backendError ||
             'Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, or enable local demo with NEXT_PUBLIC_BEAM_DEMO_MODE=1.'}
@@ -782,7 +782,7 @@ export function BeamProvider({ children }: { children: ReactNode }) {
   if (!state || !currentUser) {
     return (
       <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-4 text-beam-cream">
-        <h1 className="type-h2 text-[#FAF8F4]">Beam backend error</h1>
+        <h1 className="type-h2 text-[#071330]">Beam backend error</h1>
         <p className="text-sm text-beam-muted">
           {backendError || 'Could not load your Beam session from Supabase.'}
         </p>
