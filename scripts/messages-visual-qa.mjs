@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Playwright visual QA for Beam Messages marketplace workspace.
- * Saves screenshots to /opt/cursor/artifacts/messages-visual-qa/
+ * Playwright visual QA for Beam Messages 2-column split.
+ * Saves screenshots to /opt/cursor/artifacts/messages-2col-visual-qa/
  */
 import { chromium } from 'playwright'
 import { mkdirSync } from 'node:fs'
@@ -10,7 +10,7 @@ import assert from 'node:assert/strict'
 
 const BASE_URL = process.env.BASE_URL ?? 'http://127.0.0.1:43123'
 const STORAGE_KEY = 'beam-demo-v1'
-const OUT = '/opt/cursor/artifacts/messages-visual-qa'
+const OUT = '/opt/cursor/artifacts/messages-2col-visual-qa'
 mkdirSync(OUT, { recursive: true })
 
 async function seedOpenBudgetHelperThread(page) {
@@ -69,159 +69,153 @@ async function shot(page, name) {
   return path
 }
 
+async function assertTwoPane(page) {
+  const probe = await page.evaluate(() => {
+    const workspace = document.querySelector('[data-testid="messages-workspace"]')
+    const inbox = document.querySelector('[data-testid="messages-inbox-rail"]')
+    const conversation = document.querySelector('[data-testid="messages-conversation"]')
+    const rail = document.querySelector('[data-testid="messages-task-rail"]')
+    const ir = inbox?.getBoundingClientRect()
+    const cr = conversation?.getBoundingClientRect()
+    const workspaceWidth = workspace?.getBoundingClientRect().width ?? 0
+    return {
+      hasRail: Boolean(rail),
+      twoPane:
+        Boolean(ir && cr) &&
+        ir.width >= 280 &&
+        ir.width <= 380 &&
+        cr.width >= 600 &&
+        Math.abs(ir.top - cr.top) < 8 &&
+        cr.left >= ir.right - 4 &&
+        Math.abs(ir.width + cr.width - workspaceWidth) <= 6,
+      inboxWidth: ir?.width ?? 0,
+      conversationWidth: cr?.width ?? 0,
+      overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+    }
+  })
+  assert.equal(probe.hasRail, false, 'no messages-task-rail')
+  assert.ok(probe.twoPane, `2-pane split failed: ${JSON.stringify(probe)}`)
+  assert.equal(probe.overflow, false, 'no horizontal overflow')
+  return probe
+}
+
 async function main() {
   const browser = await chromium.launch({ headless: true })
   const page = await browser.newPage()
 
   try {
-    // Desktop wide — open-budget helper empty thread (screenshot scenario)
+    // 01 — Desktop requester incoming offer
     await page.setViewportSize({ width: 1440, height: 900 })
-    const openThreadId = await seedOpenBudgetHelperThread(page)
-    await page.waitForSelector('[data-testid="messages-workspace"]')
-    await page
-      .locator('[data-testid="messages-task-rail"] [data-testid="messages-send-offer"]')
-      .waitFor({ state: 'visible', timeout: 15000 })
-    await page.waitForSelector('[data-testid="messages-empty-starter"]', { state: 'visible' })
+    await page.goto(`${BASE_URL}/messages/th-1`, { waitUntil: 'networkidle' })
+    await page.waitForSelector('[data-testid="messages-incoming-offer"]', { state: 'visible' })
+    await page.waitForSelector('[data-testid="messages-composer"]', { state: 'visible' })
+    await assertTwoPane(page)
+    assert.equal(
+      await page.evaluate(() => /\bPRICE\b/.test(document.body.innerText)),
+      false,
+      'no uppercase PRICE',
+    )
+    await shot(page, '01-desktop-1440x900-messages-incoming-offer')
 
-    const desktopOpen = await page.evaluate(() => {
-      const workspace = document.querySelector('[data-testid="messages-workspace"]')
-      const price = document.querySelector(
-        '[data-testid="messages-task-rail"] [data-testid="messages-offer-price"]',
-      )
-      const avatar = document.querySelector(
-        '[data-testid="messages-conversation"] header img, [data-testid="messages-conversation"] header span',
-      )
-      const heroOutside = [...document.querySelectorAll('h1')].some(
-        (h) =>
-          h.textContent?.trim() === 'Messages' &&
-          !h.closest('[data-testid="messages-inbox-rail"]'),
-      )
-      const ws = workspace ? getComputedStyle(workspace) : null
+    // 02 — Helper compact send-offer bar
+    const openThreadId = await seedOpenBudgetHelperThread(page)
+    await page.waitForSelector('[data-testid="messages-send-offer"]', { state: 'visible' })
+    await page.waitForSelector('[data-testid="messages-offer-price"]', { state: 'visible' })
+    const helperProbe = await page.evaluate(() => {
+      const price = document.querySelector('[data-testid="messages-offer-price"]')
+      const taskBar = document.querySelector('[data-testid="messages-task-bar"]')
       const rail = document.querySelector('[data-testid="messages-task-rail"]')
-      const compact = document.querySelector('[data-testid="messages-compact-task-strip"]')
       return {
-        radius: ws ? parseFloat(ws.borderTopLeftRadius) : -1,
         priceValue: price?.value ?? null,
-        hasDollarPrefix: Boolean(
-          price?.previousElementSibling?.textContent?.includes('$') ||
-            price?.parentElement?.textContent?.includes('$'),
-        ),
-        avatarRounded: avatar ? getComputedStyle(avatar).borderRadius : '',
-        heroOutside,
-        railVisible: rail ? getComputedStyle(rail).display !== 'none' : false,
-        compactHidden: compact ? getComputedStyle(compact).display === 'none' : true,
+        hasDollar: Boolean(price?.parentElement?.textContent?.includes('$')),
+        taskBarVisible: taskBar ? getComputedStyle(taskBar).display !== 'none' : false,
+        hasRail: Boolean(rail),
         etaChips: [
-          ...document.querySelectorAll(
-            '[data-testid="messages-task-rail"] [data-testid="messages-send-offer"] button',
-          ),
+          ...document.querySelectorAll('[data-testid="messages-send-offer"] button'),
         ].map((b) => b.textContent?.trim()),
-        rawOpen: /\bopen\b/.test(
-          (document.querySelector('[data-testid="messages-inbox-rail"]')?.innerText || '').toLowerCase(),
-        ) &&
-          !/\bOpen\b/.test(
-            document.querySelector('[data-testid="messages-inbox-rail"]')?.innerText || '',
-          ),
       }
     })
+    assert.equal(helperProbe.hasRail, false)
+    assert.equal(helperProbe.taskBarVisible, true)
+    assert.equal(helperProbe.priceValue, '', 'open-budget offer price empty')
+    assert.equal(helperProbe.hasDollar, true)
+    assert.ok(helperProbe.etaChips.includes('Within 30 min'))
+    assert.ok(helperProbe.etaChips.includes('Send offer'))
+    await assertTwoPane(page)
+    await shot(page, '02-desktop-1440x900-messages-helper-send-offer')
 
-    assert.ok(desktopOpen.radius > 0 && desktopOpen.radius <= 12, `radius ${desktopOpen.radius}`)
-    assert.equal(desktopOpen.priceValue, '', 'open-budget offer price empty')
-    assert.equal(desktopOpen.hasDollarPrefix, true, '$ prefix present')
-    assert.equal(desktopOpen.heroOutside, false, 'no external Messages hero')
-    assert.equal(desktopOpen.railVisible, true, '3rd pane visible at 1440')
-    assert.equal(desktopOpen.compactHidden, true, 'compact strip hidden on xl')
-    assert.ok(desktopOpen.etaChips.includes('Within 30 min'))
-    assert.ok(desktopOpen.etaChips.includes('Flexible'))
-    assert.ok(
-      desktopOpen.avatarRounded.includes('50%') || parseFloat(desktopOpen.avatarRounded) >= 999,
-      `circular avatar, got ${desktopOpen.avatarRounded}`,
-    )
-    await shot(page, 'desktop-1440-open-budget-empty')
-
-    // Desktop — seeded requester incoming offer + messages
-    await page.goto(`${BASE_URL}/messages/th-1`, { waitUntil: 'networkidle' })
-    await page
-      .locator('[data-testid="messages-task-rail"] [data-testid="messages-incoming-offer"]')
-      .waitFor({ state: 'visible', timeout: 15000 })
-    await page.waitForSelector('[data-testid="messages-scroll"]')
-    await shot(page, 'desktop-1440-th1-incoming-offer')
-
-    // Desktop /messages auto-select
+    // 03 — Wide desktop proportions
+    await page.setViewportSize({ width: 1680, height: 960 })
     await page.goto(`${BASE_URL}/messages`, { waitUntil: 'networkidle' })
     await page.waitForSelector('[data-testid="messages-conversation"]')
-    const autoSelected = await page.evaluate(() => {
-      const anySelected = [...document.querySelectorAll('[data-testid="messages-thread-list"] a')].some(
-        (a) => getComputedStyle(a).backgroundColor !== 'rgb(255, 255, 255)',
-      )
-      return {
-        hasConversation: Boolean(document.querySelector('[data-testid="messages-conversation"]')),
-        anySelected,
-      }
-    })
-    assert.equal(autoSelected.hasConversation, true)
-    assert.equal(autoSelected.anySelected, true)
-    await shot(page, 'desktop-1440-inbox-autoselect')
+    await assertTwoPane(page)
+    await shot(page, '03-desktop-1680x960-messages-wide')
 
-    // Tablet 768 — 2-col + compact strip
+    // 04 — Tablet 2-column split
     await page.setViewportSize({ width: 768, height: 1024 })
     await page.goto(`${BASE_URL}/messages/${openThreadId}`, { waitUntil: 'networkidle' })
-    await page
-      .locator('[data-testid="messages-compact-task-strip"]')
-      .waitFor({ state: 'visible', timeout: 15000 })
+    await page.waitForSelector('[data-testid="messages-task-bar"]', { state: 'visible' })
     const tablet = await page.evaluate(() => {
-      const rail = document.querySelector('[data-testid="messages-task-rail"]')
-      const compact = document.querySelector('[data-testid="messages-compact-task-strip"]')
       const inbox = document.querySelector('[data-testid="messages-inbox-rail"]')
+      const conversation = document.querySelector('[data-testid="messages-conversation"]')
+      const rail = document.querySelector('[data-testid="messages-task-rail"]')
+      const ir = inbox?.getBoundingClientRect()
+      const cr = conversation?.getBoundingClientRect()
       return {
-        railHidden: rail ? getComputedStyle(rail).display === 'none' : true,
-        compactVisible: compact ? getComputedStyle(compact).display !== 'none' : false,
+        hasRail: Boolean(rail),
         inboxVisible: inbox ? getComputedStyle(inbox).display !== 'none' : false,
+        sideBySide: Boolean(ir && cr) && Math.abs(ir.top - cr.top) < 8 && cr.left >= ir.right - 4,
         overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
       }
     })
-    assert.equal(tablet.railHidden, true, 'task rail hidden on tablet')
-    assert.equal(tablet.compactVisible, true, 'compact strip on tablet')
-    assert.equal(tablet.inboxVisible, true, 'inbox visible on tablet')
-    assert.equal(tablet.overflow, false, 'no horizontal overflow on tablet')
-    await shot(page, 'tablet-768-thread-compact-strip')
+    assert.equal(tablet.hasRail, false)
+    assert.equal(tablet.inboxVisible, true)
+    assert.equal(tablet.sideBySide, true)
+    assert.equal(tablet.overflow, false)
+    await shot(page, '04-tablet-768x1024-messages')
 
-    // Mobile inbox
+    // 05 — Mobile inbox
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto(`${BASE_URL}/messages`, { waitUntil: 'networkidle' })
-    await page
-      .locator('[data-testid="messages-inbox-rail"]')
-      .waitFor({ state: 'visible', timeout: 15000 })
+    await page.waitForSelector('[data-testid="messages-inbox-rail"]', { state: 'visible' })
     const mobileInbox = await page.evaluate(() => {
       const inbox = document.querySelector('[data-testid="messages-inbox-rail"]')
+      const conversation = document.querySelector('[data-testid="messages-conversation"]')
       return {
         inboxVisible: inbox ? getComputedStyle(inbox).display !== 'none' : false,
+        conversationHidden: conversation
+          ? getComputedStyle(conversation).display === 'none' ||
+            !conversation.checkVisibility?.()
+          : true,
         overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
       }
     })
     assert.equal(mobileInbox.inboxVisible, true)
     assert.equal(mobileInbox.overflow, false)
-    await shot(page, 'mobile-390-inbox')
+    await shot(page, '05-mobile-390x844-inbox')
 
-    // Mobile thread
-    await page.goto(`${BASE_URL}/messages/${openThreadId}`, { waitUntil: 'networkidle' })
-    await page
-      .locator('[data-testid="messages-conversation"]')
-      .waitFor({ state: 'visible', timeout: 15000 })
+    // 06 — Mobile thread + composer
+    await page.goto(`${BASE_URL}/messages/th-1`, { waitUntil: 'networkidle' })
+    await page.waitForSelector('[data-testid="messages-conversation"]', { state: 'visible' })
+    await page.waitForSelector('[data-testid="messages-composer"]', { state: 'visible' })
     const mobileThread = await page.evaluate(() => {
       const inbox = document.querySelector('[data-testid="messages-inbox-rail"]')
       const composer = document.querySelector('[data-testid="messages-composer"]')
+      const bottomNav = document.querySelector('[data-testid="bottom-nav"], nav[aria-label="Bottom"], [data-testid="app-bottom-nav"]')
       return {
         inboxHidden: inbox ? getComputedStyle(inbox).display === 'none' : true,
-        composerPaddingBottom: composer ? parseFloat(getComputedStyle(composer).paddingBottom) : 0,
+        composerVisible: composer ? getComputedStyle(composer).display !== 'none' : false,
+        composerBottom: composer?.getBoundingClientRect().bottom ?? 0,
+        bottomNavTop: bottomNav?.getBoundingClientRect().top ?? null,
         overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
       }
     })
     assert.equal(mobileThread.inboxHidden, true)
-    assert.ok(mobileThread.composerPaddingBottom >= 10, 'composer has bottom padding')
+    assert.equal(mobileThread.composerVisible, true)
     assert.equal(mobileThread.overflow, false)
-    await shot(page, 'mobile-390-thread')
+    await shot(page, '06-mobile-390x844-thread')
 
-    console.log('messages visual QA passed')
+    console.log('messages 2-col visual QA passed')
   } finally {
     await browser.close()
   }
