@@ -44,6 +44,8 @@ const people: Person[] = [
     rateType: 'hourly',
     availableNow: true,
     isHelper: true,
+    // Explicit role so jobs-only Browse does not rely on legacy isHelper fallback.
+    accountRole: 'helper',
   },
   {
     id: 'p-maya',

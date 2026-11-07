@@ -17,7 +17,13 @@ function normalizePerson(p: Person): Person {
     rateType: p.rateType ?? 'hourly',
     availableNow: p.availableNow ?? false,
     isHelper: p.isHelper ?? p.skills.length > 0,
-    accountRole: p.accountRole ?? null,
+    accountRole:
+      p.accountRole === 'customer' || p.accountRole === 'helper'
+        ? p.accountRole
+        : // Migrate legacy demo helpers that only had isHelper/skills set.
+          p.isHelper || (p.skills?.length ?? 0) > 0
+          ? 'helper'
+          : null,
     city: p.city ?? null,
     stateCode: p.stateCode ?? null,
     cityGeoid: p.cityGeoid ?? null,

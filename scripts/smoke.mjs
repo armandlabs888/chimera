@@ -1083,6 +1083,35 @@ async function checkOnboardingFlow() {
   const browser = await chromium.launch({ headless: true })
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
   try {
+    // Clear demo seed role/city so preview matches a fresh signup (seed helpers
+    // now carry explicit accountRole and would otherwise pre-select Helper).
+    await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded', timeout: 60000 })
+    await page.waitForFunction(() => !!localStorage.getItem('beam-demo-v1'), null, {
+      timeout: 20000,
+    })
+    await page.evaluate(() => {
+      const key = 'beam-demo-v1'
+      const state = JSON.parse(localStorage.getItem(key) || '{}')
+      const me = state.currentUserId
+      state.people = (state.people || []).map((p) =>
+        p.id === me
+          ? {
+              ...p,
+              accountRole: null,
+              isHelper: false,
+              skills: [],
+              hourlyRate: 0,
+              city: null,
+              stateCode: null,
+              locationLabel: '',
+              onboardingCompletedAt: null,
+              safetyDisclaimerAcceptedAt: null,
+            }
+          : p,
+      )
+      localStorage.setItem(key, JSON.stringify(state))
+    })
+
     await page.goto(`${BASE_URL}/onboarding?preview=1`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('[data-testid="onboarding-root"]', { timeout: 20000 })
 

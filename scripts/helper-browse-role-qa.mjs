@@ -12,9 +12,14 @@ import { chromium } from 'playwright'
 // Mirror src/lib/roles.ts for node-side unit checks (no TS loader required).
 function hidesPeerHelperDiscovery(person, isGuest) {
   if (isGuest) return false
-  if (person.accountRole === 'customer') return false
-  if (person.accountRole === 'helper') return true
-  return Boolean(person.isHelper)
+  const role =
+    person.accountRole === 'customer' || person.accountRole === 'helper'
+      ? person.accountRole
+      : null
+  if (role === 'customer') return false
+  if (role === 'helper') return true
+  // Missing/invalid role keeps discovery open (no helper-only flash).
+  return false
 }
 
 function stripHelperDiscoveryParams(search) {
@@ -222,6 +227,16 @@ async function assertHelperJobsOnly(page, label, { expectPopulated = false, expe
       await page.locator('[data-testid="browse-fresh-empty"]').count(),
       `${label}: fresh empty state`,
     )
+    assert.equal(
+      await page.locator('[data-testid="browse-radar"]').count(),
+      0,
+      `${label}: no radar illustration`,
+    )
+    assert.equal(
+      await page.locator('[data-testid="browse-fresh-empty"]').getAttribute('data-empty-layout'),
+      'copy-only',
+      `${label}: copy-only empty layout`,
+    )
   }
   return m
 }
@@ -291,8 +306,11 @@ function runUnit() {
     [{ accountRole: 'helper', isHelper: true }, false, true, 'active helper'],
     [{ accountRole: 'customer', isHelper: false }, false, false, 'customer'],
     [{ accountRole: 'customer', isHelper: true }, false, false, 'customer with helper profile'],
-    [{ accountRole: null, isHelper: true }, false, true, 'legacy active helper'],
+    // Null role must NOT hide discovery — fresh/hydrating profiles stay open.
+    [{ accountRole: null, isHelper: true }, false, false, 'null role even if isHelper'],
+    [{ accountRole: null, isHelper: false }, false, false, 'null role unsigned shape'],
     [{ accountRole: null, isHelper: false }, true, false, 'guest'],
+    [{ accountRole: 'helper', isHelper: true }, false, true, 'explicit helper still jobs-only'],
   ]
   for (const [person, isGuest, expected, name] of cases) {
     const got = hidesPeerHelperDiscovery(person, isGuest)
@@ -390,6 +408,122 @@ async function main() {
       )
       await shot(page, 'customer-discovery-1440x900.png')
       report.checks.push({ role: 'customer', ok: true })
+      await page.close()
+    }
+
+    // REAL post-signup customer shape (complete_onboarding → accountRole customer,
+    // isHelper false, empty skills) in Milpitas — matches live bug evidence locale.
+    {
+      const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+      await warmDemo(page)
+      await page.evaluate((key) => {
+        const state = JSON.parse(localStorage.getItem(key) || '{}')
+        const me = state.currentUserId || 'user-you'
+        const now = new Date().toISOString()
+        state.people = (state.people || []).map((p) => {
+          if (p.id !== me) {
+            if (!(p.isHelper || (p.skills || []).length)) {
+              p.isHelper = true
+              p.skills = ['moving', 'cleaning']
+              p.hourlyRate = p.hourlyRate || 35
+              p.rating = p.rating || 4.8
+              p.reviewCount = p.reviewCount || 6
+            }
+            return p
+          }
+          return {
+            id: me,
+            name: p.name || 'Neighbor',
+            avatar: p.avatar || '',
+            bio: '',
+            neighborhood: '',
+            skills: [],
+            hourlyRate: 0,
+            availability: [],
+            rating: 0,
+            reviewCount: 0,
+            jobsCompleted: 0,
+            isCurrentUser: true,
+            locationLabel: 'Milpitas, CA',
+            lat: 37.4283,
+            lng: -121.9066,
+            serviceRadiusMiles: 5,
+            rateType: 'hourly',
+            availableNow: false,
+            isHelper: false,
+            accountRole: 'customer',
+            city: 'Milpitas',
+            stateCode: 'CA',
+            cityGeoid: null,
+            onboardingCompletedAt: now,
+            safetyDisclaimerAcceptedAt: now,
+            safetyDisclaimerVersion: 'v1',
+          }
+        })
+        state.requests = (state.requests || []).map((r) =>
+          r.status === 'open' ? { ...r, status: 'cancelled' } : r,
+        )
+        localStorage.setItem(key, JSON.stringify(state))
+      }, STORAGE_KEY)
+      // Cold load
+      await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
+      await page.waitForSelector('[data-testid="browse-fresh-empty"]')
+      await assertDiscovery(page, 'fresh Milpitas customer')
+      assert.equal(await page.locator('[data-testid="browse-radar"]').count(), 0)
+      assert.match(
+        await page.locator('[data-testid="browse-fresh-empty"]').innerText(),
+        /Be the first on Beam/,
+      )
+      assert.doesNotMatch(
+        await page.locator('[data-testid="browse-fresh-empty"]').innerText(),
+        /No open jobs nearby|Near Milpitas/,
+      )
+      await shot(page, 'fresh-customer-milpitas-empty-1440x900.png')
+
+      // Persist + reload simulates logout/login session restore from storage.
+      await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
+      await page.waitForSelector('[data-testid="browse-mode-tabs"]')
+      await assertDiscovery(page, 'fresh customer after reload')
+      assert.equal(await page.locator('[data-testid="browse-radar"]').count(), 0)
+      await page.getByTestId('browse-tab-local-helpers').click()
+      await page.waitForTimeout(300)
+      assert.equal(await page.locator('[data-testid="browse-radar"]').count(), 0)
+      await shot(page, 'fresh-customer-milpitas-helpers-tab-1440x900.png')
+      report.checks.push({ role: 'fresh-customer-milpitas', ok: true })
+      await page.close()
+    }
+
+    // Null accountRole must keep discovery (pre-hydration / incomplete setup).
+    {
+      const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+      await warmDemo(page)
+      await page.evaluate((key) => {
+        const state = JSON.parse(localStorage.getItem(key) || '{}')
+        const me = state.currentUserId || 'user-you'
+        state.people = (state.people || []).map((p) =>
+          p.id === me
+            ? {
+                ...p,
+                accountRole: null,
+                isHelper: false,
+                skills: [],
+                hourlyRate: 0,
+                city: 'Milpitas',
+                stateCode: 'CA',
+                locationLabel: 'Milpitas, CA',
+                onboardingCompletedAt: new Date().toISOString(),
+                safetyDisclaimerAcceptedAt: new Date().toISOString(),
+              }
+            : p,
+        )
+        localStorage.setItem(key, JSON.stringify(state))
+      }, STORAGE_KEY)
+      await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
+      await page.waitForSelector('[data-testid="browse-3col-grid"]')
+      await assertDiscovery(page, 'null-role keeps discovery')
+      assert.equal(await page.locator('[data-testid="browse-radar"]').count(), 0)
+      await shot(page, 'null-role-keeps-discovery-1440x900.png')
+      report.checks.push({ role: 'null-accountRole', ok: true })
       await page.close()
     }
 

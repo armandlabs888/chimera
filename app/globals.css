@@ -308,50 +308,12 @@
     animation: float-soft 5s ease-in-out infinite;
   }
 
-  @keyframes browse-radar-sweep {
-    0% {
-      opacity: 0.35;
-      transform: rotate(0deg);
-      transform-origin: 210px 188px;
-    }
-    50% {
-      opacity: 0.7;
-    }
-    100% {
-      opacity: 0.35;
-      transform: rotate(360deg);
-      transform-origin: 210px 188px;
-    }
-  }
-
-  @keyframes browse-radar-dot {
-    0%,
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.45;
-      transform: scale(0.85);
-    }
-  }
-
-  .browse-radar-sweep {
-    animation: browse-radar-sweep 12s linear infinite;
-    transform-origin: 210px 188px;
-  }
-
-  .browse-radar-dot {
-    animation: browse-radar-dot 2.2s ease-in-out infinite;
-  }
 
   @media (prefers-reduced-motion: reduce) {
     .animate-fade-up,
     .animate-fade-up-delay,
     .animate-pulse-dot,
-    .animate-float-soft,
-    .browse-radar-sweep,
-    .browse-radar-dot {
+    .animate-float-soft {
       animation: none !important;
     }
   }

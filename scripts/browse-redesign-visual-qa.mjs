@@ -55,6 +55,9 @@ async function seedHelper(page, { emptyJobs }) {
           city: 'San Jose',
           stateCode: 'CA',
           locationLabel: 'San Jose, CA',
+          // Reset coords so prior Milpitas customer fixtures don't zero the feed.
+          lat: 37.3382,
+          lng: -121.8863,
           onboardingCompletedAt: p.onboardingCompletedAt || new Date().toISOString(),
           safetyDisclaimerAcceptedAt:
             p.safetyDisclaimerAcceptedAt || new Date().toISOString(),
@@ -65,12 +68,18 @@ async function seedHelper(page, { emptyJobs }) {
           r.status === 'open' ? { ...r, status: 'cancelled' } : r,
         )
       } else {
-        // Restore open jobs after a prior empty-state seed cancelled them.
+        // Restore open jobs near the helper pin after prior empty-state seeds.
         let opened = 0
         state.requests = (state.requests || []).map((r) => {
           if (r.status === 'cancelled' || r.status === 'open') {
             opened += 1
-            return { ...r, status: 'open' }
+            return {
+              ...r,
+              status: 'open',
+              locationLabel: 'San Jose, CA',
+              lat: 37.3382,
+              lng: -121.8863,
+            }
           }
           return r
         })
@@ -207,7 +216,15 @@ async function main() {
         0,
         'helper empty: no Local helpers tab',
       )
-      assert.ok(await page.locator('[data-testid="browse-radar"]').count())
+      assert.equal(
+        await page.locator('[data-testid="browse-radar"]').count(),
+        0,
+        'helper: no radar illustration',
+      )
+      assert.equal(
+        await page.locator('[data-testid="browse-fresh-empty"]').getAttribute('data-empty-layout'),
+        'copy-only',
+      )
       assert.ok(await page.locator('[data-testid="browse-while-you-wait"]').count())
       assert.ok(await page.locator('[data-testid="browse-safety-strip"]').count())
       assert.equal(
@@ -261,8 +278,10 @@ async function main() {
       )
       assert.equal(
         await page.locator('[data-testid="browse-fresh-empty"]').getAttribute('data-empty-layout'),
-        'customer-copy',
+        'copy-only',
       )
+      assert.ok(await page.locator('[data-testid="browse-mode-tabs"]').count())
+      assert.match(await page.locator('[data-testid="browse-fresh-empty"]').innerText(), /Be the first on Beam/)
       assert.equal(await page.locator('[data-testid="browse-view-toggle"]').count(), 0)
       assert.equal(await page.locator('[data-testid="browse-map-view"]').count(), 0)
       summary.shots.push(await shot(page, `customer-empty-jobs-${vp.name}.png`))
@@ -292,6 +311,124 @@ async function main() {
     assert.equal(await page.locator('[data-testid="browse-map-view"]').count(), 0)
     summary.shots.push(await shot(page, 'customer-list-1440x900.png'))
     summary.checks.push({ state: 'customer-no-map', ok: true })
+
+    // REAL fresh-customer shape after auth signup + complete_onboarding(customer)
+    // (Milpitas matches the live bug screenshot locale).
+    await warmDemo(page)
+    await page.evaluate((key) => {
+      const state = JSON.parse(localStorage.getItem(key) || '{}')
+      const me = state.currentUserId || 'user-you'
+      const now = new Date().toISOString()
+      state.people = (state.people || []).map((p) => {
+        if (p.id !== me) {
+          if (!(p.isHelper || (p.skills || []).length)) {
+            p.isHelper = true
+            p.skills = ['moving', 'cleaning']
+            p.hourlyRate = p.hourlyRate || 35
+          }
+          return p
+        }
+        // Exact post-onboarding customer profile shape from live RPC mapping.
+        return {
+          id: me,
+          name: p.name || 'Neighbor',
+          avatar: p.avatar || '',
+          bio: '',
+          neighborhood: '',
+          skills: [],
+          hourlyRate: 0,
+          availability: [],
+          rating: 0,
+          reviewCount: 0,
+          jobsCompleted: 0,
+          isCurrentUser: true,
+          locationLabel: 'Milpitas, CA',
+          lat: 37.4283,
+          lng: -121.9066,
+          serviceRadiusMiles: 5,
+          rateType: 'hourly',
+          availableNow: false,
+          isHelper: false,
+          accountRole: 'customer',
+          city: 'Milpitas',
+          stateCode: 'CA',
+          cityGeoid: null,
+          onboardingCompletedAt: now,
+          safetyDisclaimerAcceptedAt: now,
+          safetyDisclaimerVersion: 'v1',
+        }
+      })
+      state.requests = (state.requests || []).map((r) =>
+        r.status === 'open' ? { ...r, status: 'cancelled' } : r,
+      )
+      localStorage.setItem(key, JSON.stringify(state))
+    }, STORAGE_KEY)
+    // Cold load (new document) — not just in-page mutate.
+    await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
+    await page.waitForSelector('[data-testid="browse-fresh-empty"]')
+    assert.ok(await page.locator('[data-testid="browse-mode-tabs"]').count(), 'fresh customer keeps discovery tabs')
+    assert.ok(await page.locator('[data-testid="browse-tab-local-helpers"]').count())
+    assert.equal(await page.locator('[data-testid="browse-radar"]').count(), 0)
+    assert.equal(await page.locator('[data-testid="browse-map-view"]').count(), 0)
+    assert.equal(
+      await page.locator('[data-testid="browse-fresh-empty"]').getAttribute('data-empty-layout'),
+      'copy-only',
+    )
+    assert.match(await page.locator('[data-testid="browse-fresh-empty"]').innerText(), /Be the first on Beam/)
+    assert.doesNotMatch(
+      await page.locator('[data-testid="browse-fresh-empty"]').innerText(),
+      /No open jobs nearby|Near Milpitas/,
+    )
+    assert.match(await page.locator('body').innerText(), /Milpitas/)
+    summary.shots.push(await shot(page, 'fresh-customer-milpitas-empty-1440x900.png'))
+    summary.checks.push({ state: 'fresh-customer-milpitas-no-radar', ok: true })
+
+    // Mobile cold load of same fresh customer
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
+    await page.waitForSelector('[data-testid="browse-fresh-empty"]')
+    assert.equal(await page.locator('[data-testid="browse-radar"]').count(), 0)
+    assert.ok(await page.locator('[data-testid="browse-mode-tabs"]').count())
+    summary.shots.push(await shot(page, 'fresh-customer-milpitas-empty-390x844.png'))
+    summary.checks.push({ state: 'fresh-customer-milpitas-mobile', ok: true })
+
+    // Null/undefined accountRole during hydration must NOT enter helper-only chrome.
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await warmDemo(page)
+    await page.evaluate((key) => {
+      const state = JSON.parse(localStorage.getItem(key) || '{}')
+      const me = state.currentUserId || 'user-you'
+      state.people = (state.people || []).map((p) => {
+        if (p.id !== me) return p
+        return {
+          ...p,
+          accountRole: null,
+          isHelper: false,
+          skills: [],
+          hourlyRate: 0,
+          city: 'Milpitas',
+          stateCode: 'CA',
+          locationLabel: 'Milpitas, CA',
+          onboardingCompletedAt: new Date().toISOString(),
+          safetyDisclaimerAcceptedAt: new Date().toISOString(),
+        }
+      })
+      state.requests = (state.requests || []).map((r) =>
+        r.status === 'open' ? { ...r, status: 'cancelled' } : r,
+      )
+      localStorage.setItem(key, JSON.stringify(state))
+    }, STORAGE_KEY)
+    await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
+    await page.waitForSelector('[data-testid="browse-3col-grid"]')
+    // storage migrate may promote legacy helper-shaped rows; force null-role
+    // after hydrate by re-writing without skills/isHelper and bypassing migrate
+    // path via explicit null + empty skills already set above.
+    const layout = await page.locator('[data-testid="browse-3col-grid"]').getAttribute('data-browse-layout')
+    assert.equal(layout, 'discovery', `null-role layout should be discovery (got ${layout})`)
+    assert.ok(await page.locator('[data-testid="browse-mode-tabs"]').count())
+    assert.equal(await page.locator('[data-testid="browse-radar"]').count(), 0)
+    summary.shots.push(await shot(page, 'null-role-keeps-discovery-1440x900.png'))
+    summary.checks.push({ state: 'null-role-keeps-discovery', ok: true })
 
     // Legacy ?view=map deep links fall back to list for helper + customer
     await seedHelper(page, { emptyJobs: false })
