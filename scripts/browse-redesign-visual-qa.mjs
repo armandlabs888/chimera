@@ -246,6 +246,16 @@ async function main() {
         0,
         'helper: no Map button',
       )
+      assert.equal(
+        await page.locator('[data-testid="browse-location-eyebrow"]').count(),
+        0,
+        'helper: no location eyebrow',
+      )
+      assert.equal(
+        await page.getByRole('button', { name: 'Moving & lifting' }).count(),
+        0,
+        'helper: no horizontal category chips',
+      )
       // No fabricated social proof
       const body = await page.locator('body').innerText()
       assert.doesNotMatch(body, /48 helpers|3x faster|live scanning/i)
@@ -464,10 +474,20 @@ async function main() {
     summary.checks.push({ state: 'customer-view-map-fallback', ok: true })
     summary.shots.push(await shot(page, 'customer-view-map-fallback-1440x900.png'))
 
-    // Filter empty vs fresh empty distinction
+    // Filter empty vs fresh empty distinction (sidebar category — chip row removed)
     await seedHelper(page, { emptyJobs: false })
-    await page.getByRole('button', { name: 'Moving & lifting' }).first().click()
+    assert.equal(await page.locator('[data-testid="browse-location-eyebrow"]').count(), 0)
+    assert.equal(
+      await page.getByRole('button', { name: 'Moving & lifting' }).count(),
+      0,
+      'horizontal category chips removed',
+    )
+    await page
+      .locator('[data-testid="browse-filters-sidebar"]')
+      .getByRole('button', { name: /^Moving\b/ })
+      .click()
     await page.waitForTimeout(300)
+    assert.match(page.url(), /category=moving/)
     // Force no matches by searching nonsense
     await page.getByLabel('Search browse').fill('zzzz-no-match-zzzz')
     await page.waitForSelector('[data-testid="browse-reset-filters"]', { timeout: 10000 })

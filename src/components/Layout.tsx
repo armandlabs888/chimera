@@ -158,7 +158,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
     return (
       <div className="app-shell relative flex min-h-dvh flex-col bg-[#F4F8FD] text-[#071330]">
-        <LandingNav variant="light" />
+        <LandingNav
+          variant="light"
+          browseLocationLabel={pathname === '/browse' ? locationText : undefined}
+        />
         <BrowseLocationDialogHost />
         <main
           className={

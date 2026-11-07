@@ -4,12 +4,16 @@ import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
+import { BrowseLocationTrigger } from '@/components/browse/BrowseLocationDialog'
 import { useBeam } from '@/context/BeamContext'
 
 export function LandingNav({
   variant = 'hero',
+  browseLocationLabel,
 }: {
   variant?: 'hero' | 'light'
+  /** Guest Browse: reuse topnav location control without a page eyebrow. */
+  browseLocationLabel?: string
 }) {
   const { authUser, mode, currentUser, signOut } = useBeam()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -102,7 +106,17 @@ export function LandingNav({
           )}
         </nav>
 
-        <div className="flex items-center gap-4 sm:gap-5">
+        <div className="flex items-center gap-3 sm:gap-5">
+          {browseLocationLabel ? (
+            <BrowseLocationTrigger
+              label={browseLocationLabel}
+              className={`inline-flex h-9 max-w-[9.5rem] items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:px-2.5 ${
+                light
+                  ? 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#071330]'
+                  : 'text-white/90 hover:bg-white/10 hover:text-white'
+              }`}
+            />
+          ) : null}
           {signedInLive ? (
             <>
               <button
