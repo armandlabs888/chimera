@@ -156,7 +156,21 @@ async function main() {
       assert.ok(await page.locator('[data-testid="browse-radar"]').count())
       assert.ok(await page.locator('[data-testid="browse-while-you-wait"]').count())
       assert.ok(await page.locator('[data-testid="browse-safety-strip"]').count())
-      assert.ok(await page.locator('[data-testid="browse-view-toggle"]').count())
+      assert.equal(
+        await page.locator('[data-testid="browse-view-toggle"]').count(),
+        0,
+        'helper: no List/Map toggle',
+      )
+      assert.equal(
+        await page.locator('[data-testid="browse-map-view"]').count(),
+        0,
+        'helper: no map view',
+      )
+      assert.equal(
+        await page.getByRole('button', { name: /^Map$/ }).count(),
+        0,
+        'helper: no Map button',
+      )
       // No fabricated social proof
       const body = await page.locator('body').innerText()
       assert.doesNotMatch(body, /48 helpers|3x faster|live scanning/i)
@@ -171,19 +185,55 @@ async function main() {
         0,
         'populated: no empty panel',
       )
+      assert.equal(await page.locator('[data-testid="browse-view-toggle"]').count(), 0)
       const populatedShot = await shot(page, `helper-populated-${vp.name}.png`)
       summary.shots.push(populatedShot)
       summary.checks.push({ state: 'helper-populated', viewport: vp.name, ok: true })
     }
 
-    // Desktop customer discovery retention + map + filters
+    // Desktop customer discovery retention (no map affordance)
     await page.setViewportSize({ width: 1440, height: 900 })
     await seedCustomerPopulated(page)
     assert.ok(await page.locator('[data-testid="browse-mode-tabs"]').count())
     assert.ok(await page.locator('[data-testid="browse-trending-helpers"]').count())
-    await page.getByTestId('browse-view-toggle').getByRole('button', { name: 'Map' }).click()
-    await page.waitForSelector('[data-testid="browse-map-view"]')
-    summary.shots.push(await shot(page, 'customer-map-1440x900.png'))
+    assert.equal(
+      await page.locator('[data-testid="browse-view-toggle"]').count(),
+      0,
+      'customer: no List/Map toggle',
+    )
+    assert.equal(await page.locator('[data-testid="browse-map-view"]').count(), 0)
+    summary.shots.push(await shot(page, 'customer-list-1440x900.png'))
+    summary.checks.push({ state: 'customer-no-map', ok: true })
+
+    // Legacy ?view=map deep links fall back to list for helper + customer
+    await seedHelper(page, { emptyJobs: false })
+    await page.goto(`${BASE}/browse?view=map&radius=10`, {
+      waitUntil: 'networkidle',
+      timeout: 60000,
+    })
+    await page.waitForSelector('[data-testid="browse-feed-scroll"] a[href^="/requests/"]')
+    await page.waitForFunction(() => !new URL(location.href).searchParams.has('view'), null, {
+      timeout: 10000,
+    })
+    assert.match(page.url(), /radius=10/)
+    assert.doesNotMatch(page.url(), /view=/)
+    assert.equal(await page.locator('[data-testid="browse-map-view"]').count(), 0)
+    summary.checks.push({ state: 'helper-view-map-fallback', ok: true })
+
+    await seedCustomerPopulated(page)
+    await page.goto(`${BASE}/browse?view=map&tab=people`, {
+      waitUntil: 'networkidle',
+      timeout: 60000,
+    })
+    await page.waitForSelector('[data-testid="browse-mode-tabs"]')
+    await page.waitForFunction(() => !new URL(location.href).searchParams.has('view'), null, {
+      timeout: 10000,
+    })
+    assert.match(page.url(), /tab=people/)
+    assert.doesNotMatch(page.url(), /view=/)
+    assert.equal(await page.locator('[data-testid="browse-map-view"]').count(), 0)
+    summary.checks.push({ state: 'customer-view-map-fallback', ok: true })
+    summary.shots.push(await shot(page, 'customer-view-map-fallback-1440x900.png'))
 
     // Filter empty vs fresh empty distinction
     await seedHelper(page, { emptyJobs: false })

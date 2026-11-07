@@ -6,8 +6,6 @@ import {
   ChevronDown,
   Clock,
   Crosshair,
-  LayoutList,
-  Map as MapIcon,
   MapPin,
   Search,
   ShieldCheck,
@@ -29,7 +27,6 @@ import {
 } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { BrowseFreshEmpty } from '@/components/browse/BrowseFreshEmpty'
-import { BrowseMapView } from '@/components/browse/BrowseMapView'
 import { BrowseSafetyStrip } from '@/components/browse/BrowseSafetyStrip'
 import { WhileYouWait } from '@/components/browse/WhileYouWait'
 import { PersonCard } from '@/components/PersonCard'
@@ -48,7 +45,6 @@ import type { AvailabilitySlot, Person, WhenOption } from '@/types'
 
 type SortMode = 'nearest' | 'newest' | 'budget'
 type RadiusMiles = 'all' | '3' | '5' | '10' | '25'
-type ViewMode = 'list' | 'map'
 
 const REQUEST_SORT_OPTIONS: { id: SortMode; label: string }[] = [
   { id: 'nearest', label: 'Nearest' },
@@ -123,10 +119,6 @@ function parseRadius(value: string | null): RadiusMiles {
   return 'all'
 }
 
-function parseView(value: string | null): ViewMode {
-  return value === 'map' ? 'map' : 'list'
-}
-
 function isBlankZeroCard(person: Person): boolean {
   if (person.rateType === 'quote') return false
   return !(person.hourlyRate > 0)
@@ -178,7 +170,6 @@ export function Browse() {
   const avail = hidePeerDiscovery ? 'all' : parseAvail(params.get('avail'))
   const qParam = params.get('q') ?? ''
   const freeOnly = hidePeerDiscovery ? false : params.get('free') === '1'
-  const view = parseView(params.get('view'))
   const sortParam = params.get('sort') as SortMode | null
   const sort: SortMode =
     isGuest && (!sortParam || sortParam === 'nearest')
@@ -206,6 +197,26 @@ export function Browse() {
       params.get('tab') === 'people' || params.get('free') === '1' || params.has('avail')
     if (!hasDiscovery) return
     const nextParams = stripHelperDiscoveryParams(params)
+    // Also drop retired map mode if present on the same deep link.
+    nextParams.delete('view')
+    const qs = nextParams.toString()
+    startTransition(() => {
+      router.replace(qs ? `${pathname}?${qs}` : pathname)
+    })
+  }, [hidePeerDiscovery, params, pathname, router, startTransition])
+
+  // Legacy ?view=map (and any view=*) falls back to the list/grid feed for all roles.
+  useEffect(() => {
+    if (!params.has('view')) return
+    // Helper discovery redirect owns combined cleanup when both apply.
+    if (
+      hidePeerDiscovery &&
+      (params.get('tab') === 'people' || params.get('free') === '1' || params.has('avail'))
+    ) {
+      return
+    }
+    const nextParams = new URLSearchParams(params.toString())
+    nextParams.delete('view')
     const qs = nextParams.toString()
     startTransition(() => {
       router.replace(qs ? `${pathname}?${qs}` : pathname)
@@ -441,13 +452,6 @@ export function Browse() {
     else nextParams.set('sort', next)
     replaceQuery(nextParams)
     setSortOpen(false)
-  }
-
-  function setView(next: ViewMode) {
-    const nextParams = new URLSearchParams(params.toString())
-    if (next === 'list') nextParams.delete('view')
-    else nextParams.set('view', 'map')
-    replaceQuery(nextParams)
   }
 
   function toggleFree() {
@@ -848,8 +852,8 @@ export function Browse() {
                 </div>
               </div>
 
-              <div className="flex shrink-0 flex-wrap items-center gap-2 self-start sm:self-auto">
-                {showDiscoveryChrome ? (
+              {showDiscoveryChrome ? (
+                <div className="flex shrink-0 flex-wrap items-center gap-2 self-start sm:self-auto">
                   <div
                     className="inline-flex h-9 shrink-0 rounded-lg border border-[#E2E8F0] bg-white p-0.5"
                     role="tablist"
@@ -898,42 +902,8 @@ export function Browse() {
                       </span>
                     </button>
                   </div>
-                ) : null}
-
-                <div
-                  className="inline-flex h-9 shrink-0 rounded-lg border border-[#E2E8F0] bg-white p-0.5"
-                  role="group"
-                  aria-label="Result view"
-                  data-testid="browse-view-toggle"
-                >
-                  <button
-                    type="button"
-                    aria-pressed={view === 'list'}
-                    onClick={() => setView('list')}
-                    className={`inline-flex h-full items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition ${
-                      view === 'list'
-                        ? 'bg-[#071330] text-white'
-                        : 'text-[#64748B] hover:text-[#071330]'
-                    }`}
-                  >
-                    <LayoutList className="h-3.5 w-3.5" aria-hidden />
-                    List
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={view === 'map'}
-                    onClick={() => setView('map')}
-                    className={`inline-flex h-full items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition ${
-                      view === 'map'
-                        ? 'bg-[#071330] text-white'
-                        : 'text-[#64748B] hover:text-[#071330]'
-                    }`}
-                  >
-                    <MapIcon className="h-3.5 w-3.5" aria-hidden />
-                    Map
-                  </button>
                 </div>
-              </div>
+              ) : null}
             </div>
 
             {/* Command bar: search + distance/timing + sort */}
@@ -1298,16 +1268,6 @@ export function Browse() {
                       Reset filters
                     </button>
                   }
-                />
-                <BrowseSafetyStrip />
-              </>
-            ) : view === 'map' ? (
-              <>
-                <BrowseMapView
-                  mode={tab === 'people' ? 'people' : 'requests'}
-                  requests={openRequests}
-                  people={people}
-                  origin={currentUser}
                 />
                 <BrowseSafetyStrip />
               </>
