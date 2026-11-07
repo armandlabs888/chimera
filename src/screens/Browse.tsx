@@ -5,12 +5,17 @@ import {
   Check,
   ChevronDown,
   Clock,
+  Crosshair,
+  LayoutList,
+  Map as MapIcon,
   MapPin,
   Search,
+  ShieldCheck,
   SlidersHorizontal,
   Sun,
   Users,
   X,
+  Zap,
   type LucideIcon,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -23,12 +28,18 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { BrowseFreshEmpty } from '@/components/browse/BrowseFreshEmpty'
+import { BrowseMapView } from '@/components/browse/BrowseMapView'
+import { BrowseSafetyStrip } from '@/components/browse/BrowseSafetyStrip'
+import { WhileYouWait } from '@/components/browse/WhileYouWait'
 import { PersonCard } from '@/components/PersonCard'
 import { RequestCard } from '@/components/RequestCard'
 import { Avatar, EmptyState, ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { CATEGORIES, WHEN_OPTIONS } from '@/data/categories'
 import { ALL_CATEGORY_ICON, CATEGORY_ICONS } from '@/lib/categoryIcons'
+import { helperProfileProgress } from '@/lib/helperProfileProgress'
+import { readJobAlertsPreference, writeJobAlertsPreference } from '@/lib/jobAlerts'
 import { distanceBetween, formatLocation } from '@/lib/location'
 import { formatBudget, formatRate } from '@/lib/matching'
 import { formatPublicRating } from '@/lib/ratingDisplay'
@@ -37,6 +48,7 @@ import type { AvailabilitySlot, Person, WhenOption } from '@/types'
 
 type SortMode = 'nearest' | 'newest' | 'budget'
 type RadiusMiles = 'all' | '3' | '5' | '10' | '25'
+type ViewMode = 'list' | 'map'
 
 const REQUEST_SORT_OPTIONS: { id: SortMode; label: string }[] = [
   { id: 'nearest', label: 'Nearest' },
@@ -79,12 +91,12 @@ const RADIUS_FILTER_OPTIONS: { id: RadiusMiles; label: string }[] = [
   { id: '25', label: 'Within 25 mi' },
 ]
 
-const RADIUS_CHIP_OPTIONS: { id: RadiusMiles; label: string }[] = [
+const RADIUS_SEGMENT_OPTIONS: { id: RadiusMiles; label: string }[] = [
   { id: 'all', label: 'Any' },
-  { id: '3', label: '3 mi' },
-  { id: '5', label: '5 mi' },
-  { id: '10', label: '10 mi' },
-  { id: '25', label: '25 mi' },
+  { id: '3', label: '3' },
+  { id: '5', label: '5' },
+  { id: '10', label: '10' },
+  { id: '25', label: '25' },
 ]
 
 function parseWhen(value: string | null): WhenOption | 'all' {
@@ -109,6 +121,10 @@ function parseAvail(value: string | null): AvailabilitySlot | 'all' {
 function parseRadius(value: string | null): RadiusMiles {
   if (value === '3' || value === '5' || value === '10' || value === '25') return value
   return 'all'
+}
+
+function parseView(value: string | null): ViewMode {
+  return value === 'map' ? 'map' : 'list'
 }
 
 function isBlankZeroCard(person: Person): boolean {
@@ -162,6 +178,7 @@ export function Browse() {
   const avail = hidePeerDiscovery ? 'all' : parseAvail(params.get('avail'))
   const qParam = params.get('q') ?? ''
   const freeOnly = hidePeerDiscovery ? false : params.get('free') === '1'
+  const view = parseView(params.get('view'))
   const sortParam = params.get('sort') as SortMode | null
   const sort: SortMode =
     isGuest && (!sortParam || sortParam === 'nearest')
@@ -172,6 +189,9 @@ export function Browse() {
   const [areaOpen, setAreaOpen] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [alertsEnabled, setAlertsEnabled] = useState(
+    () => (typeof window === 'undefined' ? false : readJobAlertsPreference().enabled),
+  )
   const areaRef = useRef<HTMLDivElement>(null)
   const sortRef = useRef<HTMLDivElement>(null)
 
@@ -240,6 +260,9 @@ export function Browse() {
       const label = formatLocation(currentUser)
       return label && label !== 'Local area' ? label.split(',')[0]?.trim() : ''
     })()
+  const locationEyebrow = cityOrArea
+    ? `${cityOrArea}${currentUser.stateCode ? `, ${currentUser.stateCode}` : ''} & nearby`
+    : 'Your area & nearby'
 
   const openRequests = useMemo(() => {
     let list = state.requests
@@ -361,6 +384,12 @@ export function Browse() {
       .map((x) => x.person)
   }, [state.people, currentUser, isGuest])
 
+  const profileProgress = useMemo(() => helperProfileProgress(currentUser), [currentUser])
+  const showProfileWaitCard =
+    hidePeerDiscovery &&
+    (currentUser.accountRole === 'helper' || Boolean(currentUser.isHelper)) &&
+    (!currentUser.isHelper || profileProgress.percent < 100)
+
   function setTab(next: string) {
     if (hidePeerDiscovery && next === 'people') return
     const nextParams = new URLSearchParams(params.toString())
@@ -414,6 +443,13 @@ export function Browse() {
     setSortOpen(false)
   }
 
+  function setView(next: ViewMode) {
+    const nextParams = new URLSearchParams(params.toString())
+    if (next === 'list') nextParams.delete('view')
+    else nextParams.set('view', 'map')
+    replaceQuery(nextParams)
+  }
+
   function toggleFree() {
     if (hidePeerDiscovery) return
     const nextParams = new URLSearchParams(params.toString())
@@ -455,6 +491,16 @@ export function Browse() {
     const nextParams = new URLSearchParams(params.toString())
     nextParams.delete('free')
     replaceQuery(nextParams)
+  }
+
+  function enableAlerts() {
+    const next = writeJobAlertsPreference(true)
+    setAlertsEnabled(next.enabled)
+  }
+
+  function toggleAlerts() {
+    const next = writeJobAlertsPreference(!alertsEnabled)
+    setAlertsEnabled(next.enabled)
   }
 
   const sortOptions = (tab === 'people' ? PEOPLE_SORT_OPTIONS : REQUEST_SORT_OPTIONS).filter(
@@ -524,6 +570,7 @@ export function Browse() {
     tab === 'requests' && hasActiveFilters && openRequests.length === 0
   const showHelpersEmpty = !hidePeerDiscovery && tab === 'people' && people.length === 0
   const showDiscoveryChrome = !hidePeerDiscovery
+  const showWhileYouWait = showFreshMarketplace && (hidePeerDiscovery || isGuest === false)
 
   const trendingSubtitle = isGuest
     ? 'Top-rated neighbors'
@@ -533,58 +580,26 @@ export function Browse() {
 
   const filterSurface = 'rounded-lg border border-[#E2E8F0] bg-white'
 
-  function renderChipGrid(
-    label: string,
-    options: { id: string; label: string }[],
-    current: string,
-    onSelect: (id: string) => void,
-    cols: 'grid-cols-2' | 'grid-cols-3' = 'grid-cols-2',
-  ) {
-    return (
-      <div className="space-y-2">
-        <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
-          {label}
-        </p>
-        <div className={`grid ${cols} gap-1.5`}>
-          {options.map((opt) => {
-            const active = current === opt.id
-            return (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => onSelect(opt.id)}
-                className={`inline-flex h-7 items-center justify-center rounded-md px-2 text-[12px] font-medium transition ${
-                  active
-                    ? 'bg-[#1D5CE5]/[0.08] font-semibold text-[#1D5CE5]'
-                    : 'bg-[#F8FAFC] text-[#475569] hover:bg-[#F1F5F9] hover:text-[#071330]'
-                }`}
-              >
-                {opt.label}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-    )
-  }
-
   function renderFiltersSidebar() {
     return (
-      <div className={`${filterSurface} h-fit max-h-full overflow-y-auto`}>
+      <div className={`${filterSurface} flex h-fit max-h-full flex-col overflow-hidden`}>
         <div className="flex items-center justify-between gap-3 border-b border-[#F1F5F9] px-3.5 py-2.5">
           <h2 className="text-[13px] font-semibold text-[#071330]">Filters</h2>
-          {hasActiveFilters ? (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="text-[12px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
-            >
-              Reset
-            </button>
-          ) : null}
+          <button
+            type="button"
+            onClick={clearFilters}
+            className={`text-[12px] font-semibold transition ${
+              hasActiveFilters
+                ? 'text-[#1D5CE5] hover:text-[#1649BD]'
+                : 'text-[#94A3B8] hover:text-[#64748B]'
+            }`}
+            data-testid="browse-filters-reset"
+          >
+            Reset
+          </button>
         </div>
 
-        <div className="space-y-3.5 px-3 py-3">
+        <div className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-3 py-3">
           <div className="space-y-1.5">
             <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
               Categories
@@ -607,6 +622,7 @@ export function Browse() {
                     label={c.shortLabel}
                     icon={CATEGORY_ICONS[c.id]}
                     count={categoryCounts[c.id] ?? 0}
+                    tint={c.tintFg}
                   />
                 </li>
               ))}
@@ -615,21 +631,46 @@ export function Browse() {
 
           <div className="space-y-3 border-t border-[#F1F5F9] pt-3">
             {isGuest ? (
-              tab === 'requests'
-                ? renderChipGrid('When', WHEN_FILTER_OPTIONS, when, setWhen, 'grid-cols-2')
-                : renderChipGrid('Availability', AVAIL_CHIP_OPTIONS, avail, setAvail, 'grid-cols-2')
+              tab === 'requests' ? (
+                <WhenChipRow current={when} onSelect={setWhen} />
+              ) : (
+                <AvailChipRow current={avail} onSelect={setAvail} />
+              )
             ) : (
               <>
-                {renderChipGrid('Distance', RADIUS_CHIP_OPTIONS, radius, setRadius, 'grid-cols-3')}
-                {tab === 'requests'
-                  ? renderChipGrid('When', WHEN_FILTER_OPTIONS, when, setWhen, 'grid-cols-2')
-                  : renderChipGrid(
-                      'Availability',
-                      AVAIL_CHIP_OPTIONS,
-                      avail,
-                      setAvail,
-                      'grid-cols-2',
-                    )}
+                <div className="space-y-2">
+                  <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
+                    Miles radius
+                  </p>
+                  <div
+                    className="grid grid-cols-5 gap-0.5 rounded-lg bg-[#F1F5F9] p-0.5"
+                    role="group"
+                    aria-label="Miles radius"
+                  >
+                    {RADIUS_SEGMENT_OPTIONS.map((opt) => {
+                      const active = radius === opt.id
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setRadius(opt.id)}
+                          className={`inline-flex h-7 items-center justify-center rounded-md text-[12px] font-semibold transition ${
+                            active
+                              ? 'bg-white text-[#071330] shadow-[0_1px_2px_rgba(7,19,48,0.08)]'
+                              : 'text-[#64748B] hover:text-[#071330]'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+                {tab === 'requests' ? (
+                  <WhenChipRow current={when} onSelect={setWhen} />
+                ) : (
+                  <AvailChipRow current={avail} onSelect={setAvail} />
+                )}
               </>
             )}
           </div>
@@ -651,6 +692,16 @@ export function Browse() {
               </button>
             </div>
           ) : null}
+        </div>
+
+        <div className="mt-auto border-t border-[#F1F5F9] px-3.5 py-2.5">
+          <Link
+            href="/safety"
+            className="flex items-center gap-2 text-[11.5px] font-medium text-[#64748B] transition hover:text-[#1D5CE5]"
+          >
+            <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-600" aria-hidden />
+            Safety guidelines for every listing
+          </Link>
         </div>
       </div>
     )
@@ -781,92 +832,113 @@ export function Browse() {
           className="flex min-w-0 flex-col xl:h-full xl:min-h-0"
         >
           <div className="shrink-0 pb-3.5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <h1 className="text-[22px] font-bold leading-tight tracking-[-0.02em] text-[#071330] sm:text-[24px]">
-                  Browse Local Jobs
-                </h1>
-                <span className="inline-flex items-center rounded-md bg-[#E2E8F0]/70 px-2 py-0.5 text-[12px] font-semibold tabular-nums text-[#334155]">
-                  {liveCount}
-                </span>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+              <div className="min-w-0">
+                <p className="mb-1.5 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#1D5CE5]">
+                  <MapPin className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                  {locationEyebrow}
+                </p>
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <h1 className="text-[22px] font-bold leading-tight tracking-[-0.02em] text-[#071330] sm:text-[24px]">
+                    Browse Local Jobs
+                  </h1>
+                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#E2E8F0]/80 px-1.5 text-[12px] font-semibold tabular-nums text-[#334155]">
+                    {liveCount}
+                  </span>
+                </div>
               </div>
 
-              {showDiscoveryChrome ? (
+              <div className="flex shrink-0 flex-wrap items-center gap-2 self-start sm:self-auto">
+                {showDiscoveryChrome ? (
+                  <div
+                    className="inline-flex h-9 shrink-0 rounded-lg border border-[#E2E8F0] bg-white p-0.5"
+                    role="tablist"
+                    aria-label="Browse mode"
+                    data-testid="browse-mode-tabs"
+                  >
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={tab === 'requests'}
+                      onClick={() => setTab('requests')}
+                      className={`inline-flex h-full items-center gap-1.5 rounded-md px-3 text-[12.5px] font-semibold transition ${
+                        tab === 'requests'
+                          ? 'bg-[#1D5CE5] text-white'
+                          : 'text-[#64748B] hover:text-[#071330]'
+                      }`}
+                    >
+                      Open requests
+                      <span
+                        className={`tabular-nums ${
+                          tab === 'requests' ? 'text-white/85' : 'text-[#94A3B8]'
+                        }`}
+                      >
+                        {openRequestCount}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={tab === 'people'}
+                      onClick={() => setTab('people')}
+                      data-testid="browse-tab-local-helpers"
+                      className={`inline-flex h-full items-center gap-1.5 rounded-md px-3 text-[12.5px] font-semibold transition ${
+                        tab === 'people'
+                          ? 'bg-[#1D5CE5] text-white'
+                          : 'text-[#64748B] hover:text-[#071330]'
+                      }`}
+                    >
+                      Local helpers
+                      <span
+                        className={`tabular-nums ${
+                          tab === 'people' ? 'text-white/85' : 'text-[#94A3B8]'
+                        }`}
+                      >
+                        {helperCount}
+                      </span>
+                    </button>
+                  </div>
+                ) : null}
+
                 <div
-                  className="inline-flex h-9 shrink-0 self-start rounded-lg border border-[#E2E8F0] bg-white p-0.5 sm:self-auto"
-                  role="tablist"
-                  aria-label="Browse mode"
-                  data-testid="browse-mode-tabs"
+                  className="inline-flex h-9 shrink-0 rounded-lg border border-[#E2E8F0] bg-white p-0.5"
+                  role="group"
+                  aria-label="Result view"
+                  data-testid="browse-view-toggle"
                 >
                   <button
                     type="button"
-                    role="tab"
-                    aria-selected={tab === 'requests'}
-                    onClick={() => setTab('requests')}
-                    className={`inline-flex h-full items-center gap-1.5 rounded-md px-3 text-[12.5px] font-semibold transition ${
-                      tab === 'requests'
-                        ? 'bg-[#1D5CE5] text-white'
+                    aria-pressed={view === 'list'}
+                    onClick={() => setView('list')}
+                    className={`inline-flex h-full items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition ${
+                      view === 'list'
+                        ? 'bg-[#071330] text-white'
                         : 'text-[#64748B] hover:text-[#071330]'
                     }`}
                   >
-                    Open requests
-                    <span
-                      className={`tabular-nums ${
-                        tab === 'requests' ? 'text-white/85' : 'text-[#94A3B8]'
-                      }`}
-                    >
-                      {openRequestCount}
-                    </span>
+                    <LayoutList className="h-3.5 w-3.5" aria-hidden />
+                    List
                   </button>
                   <button
                     type="button"
-                    role="tab"
-                    aria-selected={tab === 'people'}
-                    onClick={() => setTab('people')}
-                    data-testid="browse-tab-local-helpers"
-                    className={`inline-flex h-full items-center gap-1.5 rounded-md px-3 text-[12.5px] font-semibold transition ${
-                      tab === 'people'
-                        ? 'bg-[#1D5CE5] text-white'
+                    aria-pressed={view === 'map'}
+                    onClick={() => setView('map')}
+                    className={`inline-flex h-full items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition ${
+                      view === 'map'
+                        ? 'bg-[#071330] text-white'
                         : 'text-[#64748B] hover:text-[#071330]'
                     }`}
                   >
-                    Local helpers
-                    <span
-                      className={`tabular-nums ${
-                        tab === 'people' ? 'text-white/85' : 'text-[#94A3B8]'
-                      }`}
-                    >
-                      {helperCount}
-                    </span>
+                    <MapIcon className="h-3.5 w-3.5" aria-hidden />
+                    Map
                   </button>
                 </div>
-              ) : null}
-            </div>
-
-            {/* Compact category + filters access on < xl */}
-            <div className="mt-3 xl:hidden">
-              <div className="hide-scrollbar mb-2 flex gap-2 overflow-x-auto pb-1">
-                <CategoryPill
-                  active={category === 'all'}
-                  onClick={() => setCategory('all')}
-                  label="All"
-                  icon={ALL_CATEGORY_ICON}
-                />
-                {CATEGORIES.map((c) => (
-                  <CategoryPill
-                    key={c.id}
-                    active={category === c.id}
-                    onClick={() => setCategory(c.id)}
-                    label={c.shortLabel}
-                    icon={CATEGORY_ICONS[c.id]}
-                  />
-                ))}
               </div>
             </div>
 
             {/* Command bar: search + distance/timing + sort */}
-            <div className="relative z-30 mt-2.5" data-testid="browse-command-bar">
-              <div className="flex w-full max-w-[760px] flex-col gap-1 rounded-lg border border-[#E2E8F0] bg-white px-2 py-1 shadow-[0_1px_2px_rgba(7,19,48,0.04)] sm:flex-row sm:items-center sm:gap-0">
+            <div className="relative z-30 mt-3" data-testid="browse-command-bar">
+              <div className="flex w-full flex-col gap-1 rounded-lg border border-[#E2E8F0] bg-white px-2 py-1 shadow-[0_1px_2px_rgba(7,19,48,0.04)] sm:flex-row sm:items-center sm:gap-0">
                 <label className="relative flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg px-2">
                   <Search className="h-4 w-4 shrink-0 text-[#64748B]" aria-hidden />
                   <span className="sr-only">Search browse</span>
@@ -886,7 +958,11 @@ export function Browse() {
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
-                  ) : null}
+                  ) : (
+                    <kbd className="hidden rounded-md border border-[#E2E8F0] bg-[#F8FAFC] px-1.5 py-0.5 text-[10.5px] font-semibold text-[#94A3B8] sm:inline-flex">
+                      ⌘K
+                    </kbd>
+                  )}
                 </label>
 
                 <span className="mx-0.5 hidden h-5 w-px bg-[#E2E8F0] sm:block" aria-hidden />
@@ -992,7 +1068,7 @@ export function Browse() {
                           }
                         }}
                       >
-                        <MapPin className="h-3.5 w-3.5 shrink-0 text-[#64748B]" aria-hidden />
+                        <Crosshair className="h-3.5 w-3.5 shrink-0 text-[#64748B]" aria-hidden />
                         <span
                           className={`min-w-0 flex-1 truncate text-[13px] ${
                             radius === 'all' ? 'text-[#64748B]' : 'font-medium text-[#071330]'
@@ -1134,6 +1210,25 @@ export function Browse() {
               ) : null}
             </div>
 
+            {/* Compact category chips (screenshot density — not big pills) */}
+            <div className="mt-3 hide-scrollbar flex gap-1.5 overflow-x-auto pb-0.5">
+              <CategoryChip
+                active={category === 'all'}
+                onClick={() => setCategory('all')}
+                label="All"
+                icon={ALL_CATEGORY_ICON}
+              />
+              {CATEGORIES.map((c) => (
+                <CategoryChip
+                  key={c.id}
+                  active={category === c.id}
+                  onClick={() => setCategory(c.id)}
+                  label={c.label}
+                  icon={CATEGORY_ICONS[c.id]}
+                />
+              ))}
+            </div>
+
             {hasActiveFilters ? (
               <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                 {qParam ? (
@@ -1170,69 +1265,30 @@ export function Browse() {
             className="browse-feed-scroll xl:min-h-0 xl:flex-1 xl:overflow-y-auto xl:pr-1"
           >
             {showFreshMarketplace ? (
-              <div
-                className="rounded-lg border border-[#E2E8F0] bg-white px-6 py-14 text-center sm:px-10"
-                data-testid="browse-fresh-empty"
-              >
-                <span className="inline-flex items-center rounded-md border border-[#E2E8F0] bg-[#FFF8D6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#071330]">
-                  Fresh marketplace
-                </span>
-                <h2 className="mt-4 font-display text-[clamp(1.6rem,3vw,2.1rem)] font-bold tracking-[-0.02em] text-[#071330]">
-                  {hidePeerDiscovery ? 'No open jobs nearby yet' : 'Be the first on Beam'}
-                </h2>
-                <p className="mx-auto mt-2 max-w-[42ch] text-[15px] leading-[1.55] text-[#64748B]">
-                  {hidePeerDiscovery
-                    ? 'Check back soon for neighbor requests in your area, or post a task if you need help yourself.'
-                    : 'No requests yet — post a task for neighbors nearby, or set up your helper profile and start earning.'}
-                </p>
-                <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                  <ButtonLink href="/post" variant="brand">
-                    {hidePeerDiscovery ? 'Post a task' : 'Post the first request'}
-                  </ButtonLink>
-                  {!hidePeerDiscovery ? (
-                    <ButtonLink href="/onboarding/helper" variant="secondary">
-                      Become a helper
-                    </ButtonLink>
-                  ) : null}
-                </div>
-              </div>
+              <>
+                <BrowseFreshEmpty
+                  hidePeerDiscovery={hidePeerDiscovery}
+                  cityLabel={cityOrArea || 'your area'}
+                  onEnableAlerts={enableAlerts}
+                  alertsEnabled={alertsEnabled}
+                />
+                {showWhileYouWait ? (
+                  <WhileYouWait
+                    alertsEnabled={alertsEnabled}
+                    onToggleAlerts={toggleAlerts}
+                    onWidenRadius={() => setRadius('25')}
+                    profileProgress={profileProgress}
+                    showProfileCard={showProfileWaitCard}
+                  />
+                ) : null}
+                <BrowseSafetyStrip />
+              </>
             ) : showFilteredRequestsEmpty ? (
-              <EmptyState
-                title="No open requests match"
-                body="Try clearing filters or post a request for your neighborhood."
-                action={
-                  <button
-                    type="button"
-                    onClick={clearFilters}
-                    className="inline-flex h-9 items-center justify-center rounded-lg bg-[#1D5CE5] px-4 text-[13px] font-semibold text-white transition hover:bg-[#1649BD]"
-                    data-testid="browse-reset-filters"
-                  >
-                    Reset filters
-                  </button>
-                }
-              />
-            ) : tab === 'requests' ? (
-              <div className="grid grid-cols-1 content-start items-start gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
-                {openRequests.map((request) => (
-                  <RequestCard key={request.id} request={request} />
-                ))}
-              </div>
-            ) : people.length ? (
-              <div className="grid grid-cols-1 content-start items-start gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
-                {people.map((person) => (
-                  <PersonCard key={person.id} person={person} />
-                ))}
-              </div>
-            ) : showHelpersEmpty ? (
-              <EmptyState
-                title={hasActiveFilters ? 'No local helpers match' : 'No helpers nearby yet'}
-                body={
-                  hasActiveFilters
-                    ? 'Widen category or availability filters, or reset to see everyone nearby.'
-                    : 'Be the first neighbor to set up a helper profile and start earning.'
-                }
-                action={
-                  hasActiveFilters ? (
+              <>
+                <EmptyState
+                  title="No open requests match"
+                  body="Try clearing filters or post a request for your neighborhood."
+                  action={
                     <button
                       type="button"
                       onClick={clearFilters}
@@ -1241,13 +1297,66 @@ export function Browse() {
                     >
                       Reset filters
                     </button>
-                  ) : (
-                    <ButtonLink href="/onboarding/helper" variant="brand">
-                      Become a helper
-                    </ButtonLink>
-                  )
-                }
-              />
+                  }
+                />
+                <BrowseSafetyStrip />
+              </>
+            ) : view === 'map' ? (
+              <>
+                <BrowseMapView
+                  mode={tab === 'people' ? 'people' : 'requests'}
+                  requests={openRequests}
+                  people={people}
+                  origin={currentUser}
+                />
+                <BrowseSafetyStrip />
+              </>
+            ) : tab === 'requests' ? (
+              <>
+                <div className="grid grid-cols-1 content-start items-start gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
+                  {openRequests.map((request) => (
+                    <RequestCard key={request.id} request={request} />
+                  ))}
+                </div>
+                <BrowseSafetyStrip />
+              </>
+            ) : people.length ? (
+              <>
+                <div className="grid grid-cols-1 content-start items-start gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
+                  {people.map((person) => (
+                    <PersonCard key={person.id} person={person} />
+                  ))}
+                </div>
+                <BrowseSafetyStrip />
+              </>
+            ) : showHelpersEmpty ? (
+              <>
+                <EmptyState
+                  title={hasActiveFilters ? 'No local helpers match' : 'No helpers nearby yet'}
+                  body={
+                    hasActiveFilters
+                      ? 'Widen category or availability filters, or reset to see everyone nearby.'
+                      : 'Be the first neighbor to set up a helper profile and start earning.'
+                  }
+                  action={
+                    hasActiveFilters ? (
+                      <button
+                        type="button"
+                        onClick={clearFilters}
+                        className="inline-flex h-9 items-center justify-center rounded-lg bg-[#1D5CE5] px-4 text-[13px] font-semibold text-white transition hover:bg-[#1649BD]"
+                        data-testid="browse-reset-filters"
+                      >
+                        Reset filters
+                      </button>
+                    ) : (
+                      <ButtonLink href="/onboarding/helper" variant="brand">
+                        Become a helper
+                      </ButtonLink>
+                    )
+                  }
+                />
+                <BrowseSafetyStrip />
+              </>
             ) : null}
           </div>
         </div>
@@ -1272,18 +1381,91 @@ export function Browse() {
   )
 }
 
+function WhenChipRow({
+  current,
+  onSelect,
+}: {
+  current: string
+  onSelect: (id: string) => void
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
+        When
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {WHEN_FILTER_OPTIONS.map((opt) => {
+          const active = current === opt.id
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => onSelect(opt.id)}
+              className={`inline-flex h-7 items-center gap-1 rounded-md px-2.5 text-[12px] font-medium transition ${
+                active
+                  ? 'bg-[#1D5CE5]/[0.08] font-semibold text-[#1D5CE5]'
+                  : 'bg-[#F8FAFC] text-[#475569] hover:bg-[#F1F5F9] hover:text-[#071330]'
+              }`}
+            >
+              {opt.id === 'asap' ? <Zap className="h-3 w-3" strokeWidth={2.25} aria-hidden /> : null}
+              {opt.label}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function AvailChipRow({
+  current,
+  onSelect,
+}: {
+  current: string
+  onSelect: (id: string) => void
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
+        Availability
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {AVAIL_CHIP_OPTIONS.map((opt) => {
+          const active = current === opt.id
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => onSelect(opt.id)}
+              className={`inline-flex h-7 items-center rounded-md px-2.5 text-[12px] font-medium transition ${
+                active
+                  ? 'bg-[#1D5CE5]/[0.08] font-semibold text-[#1D5CE5]'
+                  : 'bg-[#F8FAFC] text-[#475569] hover:bg-[#F1F5F9] hover:text-[#071330]'
+              }`}
+            >
+              {opt.label}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function CategoryRow({
   label,
   active,
   onClick,
   icon: Icon,
   count,
+  tint,
 }: {
   label: string
   active: boolean
   onClick: () => void
   icon: LucideIcon
   count: number
+  tint?: string
 }) {
   return (
     <button
@@ -1295,7 +1477,12 @@ function CategoryRow({
           : 'font-medium text-[#475569] hover:bg-[#F8FAFC] hover:text-[#071330]'
       }`}
     >
-      <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
+      <Icon
+        className="h-3.5 w-3.5 shrink-0"
+        strokeWidth={2}
+        aria-hidden
+        style={tint && !active ? { color: tint } : undefined}
+      />
       <span className="min-w-0 flex-1 truncate">{label}</span>
       <span
         className={`inline-flex min-w-[1.25rem] items-center justify-center text-[11px] font-semibold tabular-nums ${
@@ -1308,7 +1495,7 @@ function CategoryRow({
   )
 }
 
-function CategoryPill({
+function CategoryChip({
   label,
   active,
   onClick,
@@ -1323,13 +1510,13 @@ function CategoryPill({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3 text-[13px] font-semibold transition ${
+      className={`inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition ${
         active
           ? 'bg-[#1D5CE5] text-white'
           : 'bg-white text-[#475569] ring-1 ring-[#E2E8F0] hover:text-[#071330]'
       }`}
     >
-      <Icon className="h-[15px] w-[15px]" strokeWidth={2} aria-hidden />
+      <Icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
       {label}
     </button>
   )

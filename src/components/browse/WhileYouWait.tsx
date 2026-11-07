@@ -1,0 +1,125 @@
+'use client'
+
+import Link from 'next/link'
+import { Bell, MapPinned, UserRound } from 'lucide-react'
+import type { HelperProfileProgress } from '@/lib/helperProfileProgress'
+
+export function WhileYouWait({
+  alertsEnabled,
+  onToggleAlerts,
+  onWidenRadius,
+  profileProgress,
+  showProfileCard,
+}: {
+  alertsEnabled: boolean
+  onToggleAlerts: () => void
+  onWidenRadius: () => void
+  profileProgress: HelperProfileProgress
+  showProfileCard: boolean
+}) {
+  return (
+    <section className="mt-5" data-testid="browse-while-you-wait" aria-labelledby="while-you-wait-heading">
+      <div className="mb-2.5 flex flex-wrap items-end justify-between gap-2">
+        <h3 id="while-you-wait-heading" className="text-[15px] font-semibold text-[#071330]">
+          While you wait
+        </h3>
+        <p className="text-[12.5px] text-[#94A3B8]">Get ready for the next open job</p>
+      </div>
+
+      <div
+        className={`grid grid-cols-1 gap-3 ${
+          showProfileCard ? 'md:grid-cols-3' : 'md:grid-cols-2'
+        }`}
+      >
+        <article className="rounded-lg border border-[#E2E8F0] bg-white p-3.5 shadow-[0_1px_2px_rgba(7,19,48,0.03)]">
+          <div className="flex items-start justify-between gap-3">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#EEF4FF] text-[#1D5CE5]">
+              <Bell className="h-4 w-4" strokeWidth={1.85} aria-hidden />
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={alertsEnabled}
+              aria-label="In-app job alerts"
+              onClick={onToggleAlerts}
+              data-testid="browse-alerts-toggle"
+              className={`relative inline-flex h-6 w-10 shrink-0 items-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 ${
+                alertsEnabled ? 'bg-[#1D5CE5]' : 'bg-[#E2E8F0]'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 rounded-full bg-white shadow transition ${
+                  alertsEnabled ? 'translate-x-5' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          <h4 className="mt-3 text-[14px] font-semibold text-[#071330]">Instant job alerts</h4>
+          <p className="mt-1 text-[12.5px] leading-[1.45] text-[#64748B]">
+            Save an in-app preference so new nearby jobs stand out in Notifications when you come
+            back. No push or SMS.
+          </p>
+          <p
+            className={`mt-3 text-[12px] font-semibold ${
+              alertsEnabled ? 'text-[#059669]' : 'text-[#94A3B8]'
+            }`}
+          >
+            {alertsEnabled ? 'Alerts are on' : 'Alerts are off'}
+          </p>
+        </article>
+
+        <article className="rounded-lg border border-[#E2E8F0] bg-white p-3.5 shadow-[0_1px_2px_rgba(7,19,48,0.03)]">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#EEF4FF] text-[#1D5CE5]">
+            <MapPinned className="h-4 w-4" strokeWidth={1.85} aria-hidden />
+          </span>
+          <h4 className="mt-3 text-[14px] font-semibold text-[#071330]">Widen your service area</h4>
+          <p className="mt-1 text-[12.5px] leading-[1.45] text-[#64748B]">
+            Expand the browse radius to catch open jobs a bit farther from your pin.
+          </p>
+          <button
+            type="button"
+            onClick={onWidenRadius}
+            className="mt-3 inline-flex text-[12.5px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
+            data-testid="browse-widen-radius"
+          >
+            Set to 25 mi →
+          </button>
+        </article>
+
+        {showProfileCard ? (
+          <article className="rounded-lg border border-[#E2E8F0] bg-white p-3.5 shadow-[0_1px_2px_rgba(7,19,48,0.03)]">
+            <div className="flex items-start justify-between gap-3">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+                <UserRound className="h-4 w-4" strokeWidth={1.85} aria-hidden />
+              </span>
+              <span className="inline-flex items-center rounded-md bg-[#F1F5F9] px-2 py-0.5 text-[11.5px] font-bold tabular-nums text-[#334155]">
+                {profileProgress.percent}%
+              </span>
+            </div>
+            <h4 className="mt-3 text-[14px] font-semibold text-[#071330]">Finish your helper profile</h4>
+            <p className="mt-1 text-[12.5px] leading-[1.45] text-[#64748B]">
+              {profileProgress.missing.length
+                ? `Still needed: ${profileProgress.missing.slice(0, 2).join(', ')}${
+                    profileProgress.missing.length > 2 ? '…' : ''
+                  }`
+                : 'Profile checklist looks complete — keep skills and rate up to date.'}
+            </p>
+            <div className="mt-3 h-1.5 overflow-hidden rounded-md bg-[#E2E8F0]">
+              <div
+                className="h-full rounded-md bg-emerald-500 transition-[width] duration-300"
+                style={{ width: `${profileProgress.percent}%` }}
+              />
+            </div>
+            <Link
+              href="/onboarding/helper"
+              className="mt-3 inline-flex text-[12.5px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
+              data-testid="browse-continue-profile"
+            >
+              Continue →
+            </Link>
+          </article>
+        ) : null}
+      </div>
+    </section>
+  )
+}
