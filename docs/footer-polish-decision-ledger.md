@@ -23,10 +23,10 @@
 5. **Mobile:** wrap-row links collide visually; no labeled groups for thumb scanning.
 6. **Semantic misuse nearby:** category card attribution uses a `<footer>` element, which muddies landmark discovery (fix while polishing).
 
-## Concept lock
+## Concept lock (updated after user correction)
 
-**“Trustworthy marketplace status bar → site map.”**  
-Quiet `#F4F8FD` surface, navy brand mark, short one-line value prop, 2–3 labeled link groups of real routes only, hairline-separated legal row. No socials, newsletter, app badges, fabricated contact, or trust claims beyond existing Safety/copy.
+**“Substantial marketing site map, not a compact status bar.”**  
+Quiet `#F4F8FD` surface, expanded brand presence (larger wordmark + two real product sentences + Browse/Post CTAs), spacious labeled columns of real routes (Explore / Services / Get started / Trust), and a distinct taller legal row. Height comes from content + generous padding — not empty `min-height` filler, socials, newsletter, or fabricated URLs.
 
 ## Decision ledger
 
@@ -48,3 +48,10 @@ Quiet `#F4F8FD` surface, navy brand mark, short one-line value prop, 2–3 label
 - Rewrite `LandingFooter.tsx` with brand + grouped nav + legal.
 - Tiny landmark fix in `LandingCategories.tsx`.
 - Leave `Layout.tsx` compact browse/messages footers structurally intact (optional focus/contrast parity only if needed without layout growth).
+
+## Height correction (follow-up)
+
+User rejected the compact interpretation. Correction targets:
+- Desktop footer height roughly **1.6–2×** the PR50 ~312px baseline via padding + brand + Services column (real category routes) + legal row — without dead empty space.
+- Mobile remains a well-spaced stacked/2-col layout, not cramped.
+- Browse/Messages compact workspace footers stay unchanged.
