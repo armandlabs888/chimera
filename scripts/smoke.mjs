@@ -723,26 +723,28 @@ async function checkLandingBrowser() {
       assert.equal(topnavLinks.browse, true, 'app-topnav contains Browse')
       assert.equal(topnavLinks.messages, true, 'app-topnav contains Messages')
 
-      // Marketplace footer with Safety
-      await page.waitForSelector('[data-testid="app-footer"]', { timeout: 10000 })
-      const footer = page.locator('[data-testid="app-footer"]')
-      assert.equal(await footer.count(), 1, 'app-footer visible on signed-in browse')
+      // Shared tall marketing footer with Safety (replaces compact app-footer)
+      await page.waitForSelector('[data-testid="landing-footer"]', { timeout: 10000 })
+      const footer = page.locator('[data-testid="landing-footer"]')
+      assert.equal(await footer.count(), 1, 'landing-footer visible on signed-in browse')
       assert.ok(
         (await footer.locator('a[href="/safety"]').count()) >= 1,
-        'app-footer has /safety link',
+        'landing-footer has /safety link',
       )
+      // Footer is below the browse workspace — scroll into view before clicking.
+      await footer.scrollIntoViewIfNeeded()
       await footer.locator('a[href="/safety"]').first().click()
       await page.waitForURL(/\/safety/, { timeout: 15000 })
       await page.waitForSelector('text=Safety on Beam', { timeout: 15000 })
       assert.match(page.url(), /\/safety/)
-      // Signed-in /safety keeps marketplace chrome (topnav + footer), not a stranded page.
+      // Signed-in /safety keeps marketplace chrome (topnav + shared footer), not a stranded page.
       assert.ok(
         (await page.locator('[data-testid="app-topnav"]').count()) >= 1,
         'signed-in /safety keeps app-topnav',
       )
       assert.ok(
-        (await page.locator('[data-testid="app-footer"]').count()) >= 1,
-        'signed-in /safety keeps app-footer',
+        (await page.locator('[data-testid="landing-footer"]').count()) >= 1,
+        'signed-in /safety keeps landing-footer',
       )
       await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
       await page.waitForSelector('text=Browse Local Jobs')
@@ -895,12 +897,13 @@ async function checkLandingBrowser() {
           `browse card radius <= 10px (got ${col.maxCardRadius})`,
         )
 
-        // Locked-viewport desktop /browse: outer document does not scroll;
-        // only the middle feed scrolls; left/right columns stay pinned.
+        // Browse workspace: feed scrolls inside the panel; sidecards stay pinned in that
+        // viewport. Document may scroll further to reach the shared tall footer below.
         const locked = await page.evaluate(() => {
           const feedScroll = document.querySelector('[data-testid="browse-feed-scroll"]')
           const filters = document.querySelector('[data-testid="browse-filters-sidebar"]')
           const trending = document.querySelector('[data-testid="browse-trending-helpers"]')
+          const siteFooter = document.querySelector('[data-testid="landing-footer"]')
           const feedCards = [
             ...document.querySelectorAll(
               '[data-testid="browse-feed-scroll"] a[href^="/requests/"], [data-testid="browse-feed-scroll"] a[href^="/people/"]',
@@ -940,12 +943,19 @@ async function checkLandingBrowser() {
             filtersBottom: filters?.getBoundingClientRect().bottom ?? null,
             viewportHeight: window.innerHeight,
             hasZeroStar: /★\s*0\.0/.test(bodyText) || /★\s*0\.0/.test(document.body.textContent || ''),
+            hasSiteFooter: Boolean(siteFooter),
+            footerHeight: siteFooter ? Math.round(siteFooter.getBoundingClientRect().height) : 0,
           }
         })
-        assert.equal(locked.scrollY, 0, 'desktop /browse window.scrollY === 0')
+        assert.equal(locked.scrollY, 0, 'desktop /browse window.scrollY === 0 at load')
+        assert.ok(locked.hasSiteFooter, 'desktop /browse includes shared landing-footer')
         assert.ok(
-          locked.docScrollHeight <= locked.docClientHeight + 1,
-          `desktop /browse document does not vertically overflow (scrollHeight=${locked.docScrollHeight}, clientHeight=${locked.docClientHeight})`,
+          locked.footerHeight >= 480,
+          `desktop /browse tall footer height >= 480 (got ${locked.footerHeight})`,
+        )
+        assert.ok(
+          locked.docScrollHeight > locked.docClientHeight + 200,
+          `desktop /browse document scrolls to reach footer (scrollHeight=${locked.docScrollHeight}, clientHeight=${locked.docClientHeight})`,
         )
         assert.ok(
           locked.overflowY === 'auto' || locked.overflowY === 'scroll',

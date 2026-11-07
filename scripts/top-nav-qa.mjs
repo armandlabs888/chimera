@@ -56,8 +56,8 @@ async function measureChrome(page) {
         .length,
       topnav: !!document.querySelector('[data-testid="app-topnav"]'),
       landingNav: !!document.querySelector('[data-testid="landing-nav"]'),
-      footer: !!document.querySelector('[data-testid="app-footer"]'),
-      footerSafety: !!document.querySelector('[data-testid="app-footer"] a[href="/safety"]'),
+      footer: !!document.querySelector('[data-testid="landing-footer"]'),
+      footerSafety: !!document.querySelector('[data-testid="landing-footer"] a[href="/safety"]'),
       topnavHome: (() => {
         const nav = document.querySelector('[data-testid="app-topnav"]')
         if (!nav) return false
@@ -192,8 +192,8 @@ try {
             record(!m.landingNav, `${label}: no double landing nav`)
             record(!m.topnavHome, `${label}: topnav has no Home link`)
             record(!m.topnavSafety, `${label}: topnav has no Safety link`)
-            record(m.footer, `${label}: app-footer present`)
-            record(m.footerSafety, `${label}: app-footer has /safety`)
+            record(m.footer, `${label}: landing-footer present`)
+            record(m.footerSafety, `${label}: landing-footer has /safety`)
             if (vp.width === 1440 && m.contentLeftGutter != null) {
               record(
                 m.contentLeftGutter <= 40,

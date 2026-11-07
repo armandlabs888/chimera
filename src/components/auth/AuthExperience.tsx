@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useMemo, useState, type FormEvent } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
+import { LandingFooter } from '@/components/landing/LandingFooter'
 import { useBeam } from '@/context/BeamContext'
 import { Button, Field, TextInput } from '@/components/ui'
 import { friendlyAuthError } from '@/lib/auth/errors'
@@ -153,26 +154,29 @@ export function AuthExperience({
   )
 
   return (
-    <div className="min-h-dvh bg-white text-[#071330] lg:grid lg:min-h-dvh lg:grid-cols-[1.05fr_1fr]">
-      <AsidePanel />
-      <div className="flex flex-col px-6 py-6 lg:px-10">
-        <div className="mb-6 lg:hidden">
-          <Link href="/">
-            <BeamWordmark markWidth={26} markHeight={26} wordClassName="text-[24px]" tone="ink" />
-          </Link>
-          <div className="relative mt-5 h-[180px] overflow-hidden rounded-lg bg-gradient-to-br from-[#1D5CE5] to-[#7CC9FA]">
-            <Image
-              src={LIFESTYLE.authShowcase}
-              alt=""
-              fill
-              className="object-cover object-[60%_30%] opacity-90"
-              sizes="100vw"
-              priority
-            />
+    <div className="min-h-dvh bg-white text-[#071330]">
+      <div className="lg:grid lg:min-h-dvh lg:grid-cols-[1.05fr_1fr]">
+        <AsidePanel />
+        <div className="flex flex-col px-6 py-6 lg:px-10">
+          <div className="mb-6 lg:hidden">
+            <Link href="/">
+              <BeamWordmark markWidth={26} markHeight={26} wordClassName="text-[24px]" tone="ink" />
+            </Link>
+            <div className="relative mt-5 h-[180px] overflow-hidden rounded-lg bg-gradient-to-br from-[#1D5CE5] to-[#7CC9FA]">
+              <Image
+                src={LIFESTYLE.authShowcase}
+                alt=""
+                fill
+                className="object-cover object-[60%_30%] opacity-90"
+                sizes="100vw"
+                priority
+              />
+            </div>
           </div>
+          <div className="mx-auto w-full max-w-[400px] flex-1 self-center py-8 lg:py-0">{form}</div>
         </div>
-        <div className="mx-auto w-full max-w-[400px] flex-1 self-center py-8 lg:py-0">{form}</div>
       </div>
+      <LandingFooter />
     </div>
   )
 }
