@@ -27,7 +27,6 @@ import {
 } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { BrowseFreshEmpty } from '@/components/browse/BrowseFreshEmpty'
-import { BrowseSafetyStrip } from '@/components/browse/BrowseSafetyStrip'
 import { WhileYouWait } from '@/components/browse/WhileYouWait'
 import { PersonCard } from '@/components/PersonCard'
 import { RequestCard } from '@/components/RequestCard'
@@ -1272,14 +1271,44 @@ export function Browse() {
                     showProfileCard={showProfileWaitCard}
                   />
                 ) : null}
-                <BrowseSafetyStrip />
               </>
             ) : showFilteredRequestsEmpty ? (
-              <>
-                <EmptyState
-                  title="No open requests match"
-                  body="Try clearing filters or post a request for your neighborhood."
-                  action={
+              <EmptyState
+                title="No open requests match"
+                body="Try clearing filters or post a request for your neighborhood."
+                action={
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="inline-flex h-9 items-center justify-center rounded-lg bg-[#1D5CE5] px-4 text-[13px] font-semibold text-white transition hover:bg-[#1649BD]"
+                    data-testid="browse-reset-filters"
+                  >
+                    Reset filters
+                  </button>
+                }
+              />
+            ) : tab === 'requests' ? (
+              <div className="grid grid-cols-1 content-start items-start gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
+                {openRequests.map((request) => (
+                  <RequestCard key={request.id} request={request} />
+                ))}
+              </div>
+            ) : people.length ? (
+              <div className="grid grid-cols-1 content-start items-start gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
+                {people.map((person) => (
+                  <PersonCard key={person.id} person={person} />
+                ))}
+              </div>
+            ) : showHelpersEmpty ? (
+              <EmptyState
+                title={hasActiveFilters ? 'No local helpers match' : 'No helpers nearby yet'}
+                body={
+                  hasActiveFilters
+                    ? 'Widen category or availability filters, or reset to see everyone nearby.'
+                    : 'Be the first neighbor to set up a helper profile and start earning.'
+                }
+                action={
+                  hasActiveFilters ? (
                     <button
                       type="button"
                       onClick={clearFilters}
@@ -1288,56 +1317,13 @@ export function Browse() {
                     >
                       Reset filters
                     </button>
-                  }
-                />
-                <BrowseSafetyStrip />
-              </>
-            ) : tab === 'requests' ? (
-              <>
-                <div className="grid grid-cols-1 content-start items-start gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
-                  {openRequests.map((request) => (
-                    <RequestCard key={request.id} request={request} />
-                  ))}
-                </div>
-                <BrowseSafetyStrip />
-              </>
-            ) : people.length ? (
-              <>
-                <div className="grid grid-cols-1 content-start items-start gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
-                  {people.map((person) => (
-                    <PersonCard key={person.id} person={person} />
-                  ))}
-                </div>
-                <BrowseSafetyStrip />
-              </>
-            ) : showHelpersEmpty ? (
-              <>
-                <EmptyState
-                  title={hasActiveFilters ? 'No local helpers match' : 'No helpers nearby yet'}
-                  body={
-                    hasActiveFilters
-                      ? 'Widen category or availability filters, or reset to see everyone nearby.'
-                      : 'Be the first neighbor to set up a helper profile and start earning.'
-                  }
-                  action={
-                    hasActiveFilters ? (
-                      <button
-                        type="button"
-                        onClick={clearFilters}
-                        className="inline-flex h-9 items-center justify-center rounded-lg bg-[#1D5CE5] px-4 text-[13px] font-semibold text-white transition hover:bg-[#1649BD]"
-                        data-testid="browse-reset-filters"
-                      >
-                        Reset filters
-                      </button>
-                    ) : (
-                      <ButtonLink href="/onboarding/helper" variant="brand">
-                        Become a helper
-                      </ButtonLink>
-                    )
-                  }
-                />
-                <BrowseSafetyStrip />
-              </>
+                  ) : (
+                    <ButtonLink href="/onboarding/helper" variant="brand">
+                      Become a helper
+                    </ButtonLink>
+                  )
+                }
+              />
             ) : null}
           </div>
         </div>
