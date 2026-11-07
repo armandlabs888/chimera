@@ -59,9 +59,9 @@ export function LandingCategories() {
             <p className="font-display text-[clamp(1.15rem,1.6vw,1.5rem)] font-semibold leading-snug tracking-[-0.02em] text-[#071330]">
               “Had two neighbors help carry a sectional up to my 3rd-floor walkup within 90 minutes.”
             </p>
-            <footer className="mt-3 text-[13.5px] font-semibold text-[#1D5CE5] sm:mt-4 sm:text-[14px]">
+            <p className="mt-3 text-[13.5px] font-semibold text-[#1D5CE5] sm:mt-4 sm:text-[14px]">
               — Elena R. · Verified neighbor
-            </footer>
+            </p>
           </blockquote>
 
           {/* Row 2 remainder: Handyman 5 + Pets 4 (+ Cleaning 3) = 12 */}
