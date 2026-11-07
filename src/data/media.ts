@@ -48,17 +48,17 @@ export const HERO_HELPERS: HeroHelper[] = [
 
 /** Category / lifestyle photography — every path is unique. */
 export const LIFESTYLE = {
-  /** Helper wiping a sunlit kitchen counter */
+  /** Neighbor wiping a sunlit kitchen counter */
   cleaning: '/images/landing/service-cleaning.jpg',
-  /** Neighbors carrying boxes at an apartment entry */
+  /** Neighbors carrying a sofa on a sunny driveway */
   moving: '/images/landing/service-moving.jpg',
-  /** Non-licensed furniture/shelf assembly in a bright living room */
+  /** Furniture/shelf assembly with a spirit level in a bright living room */
   handyman: '/images/landing/service-handyman.jpg',
-  /** Neighbor walking a dog on a tree-lined sidewalk */
+  /** Neighbor walking dogs on a tree-lined sidewalk */
   petcare: '/images/landing/service-petcare.jpg',
-  /** Adult tutoring session with laptop and notebook */
+  /** Tutor and student with laptop and notebook */
   tutoring: '/images/landing/service-tutoring.jpg',
-  /** Event setup / photo lifestyle outdoors */
+  /** Outdoor event table setup in a garden */
   events: '/images/landing/service-events.jpg',
   /** Auth left showcase — welcoming helper ready to help */
   authShowcase: '/images/landing/auth-showcase.jpg',
