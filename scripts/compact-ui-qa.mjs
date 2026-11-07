@@ -106,7 +106,11 @@ async function main() {
           `${vp.name} banner centered mid=${m.contentMidX}`,
         )
         assert.ok(m.textCtaGap <= 400, `${vp.name} gap=${m.textCtaGap}`)
-        assert.ok(m.commandBarWidth <= 780, `${vp.name} bar=${m.commandBarWidth}`)
+        // Helper 2-col feed is wide; redesign bar fills the column (not a capped 760 strip).
+        assert.ok(
+          m.commandBarWidth > 500 && m.commandBarWidth <= 1200,
+          `${vp.name} bar=${m.commandBarWidth}`,
+        )
         assert.ok(m.radiusWidth <= 220, `${vp.name} radius=${m.radiusWidth}`)
       }
 
@@ -125,7 +129,10 @@ async function main() {
     await guest.waitForSelector('[data-testid="browse-command-bar"]')
     const gm = await measure(guest)
     assert.equal(gm.overflowX, false, 'guest no x-overflow')
-    assert.ok(gm.commandBarWidth <= 780, `guest bar=${gm.commandBarWidth}`)
+    assert.ok(
+      gm.commandBarWidth > 500 && gm.commandBarWidth <= 1200,
+      `guest bar=${gm.commandBarWidth}`,
+    )
     assert.ok(gm.radiusWidth <= 220, `guest middle=${gm.radiusWidth}`)
     const gtmp = join('/tmp', 'browse-compact-guest-1440x900.png')
     await guest.screenshot({ path: gtmp, fullPage: false })

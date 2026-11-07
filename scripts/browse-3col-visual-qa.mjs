@@ -107,7 +107,8 @@ async function main() {
       assert.equal(m.filtersVisible, true, 'filters visible @1440')
       assert.equal(m.trendingVisible, true, 'trending visible @1440')
       assert.ok(m.filtersX < m.feedX && m.feedX < m.trendingX, '3col x-order')
-      assert.ok(m.commandWidth <= 780, `command bar ${m.commandWidth}`)
+      // Unified search bar fills the feed column in the locked redesign.
+      assert.ok(m.commandWidth > 500 && m.commandWidth <= 1100, `command bar ${m.commandWidth}`)
       assert.ok(m.maxRadius > 0 && m.maxRadius <= 14, `radius ${m.maxRadius}`)
       await shot(page, 'browse-3col-requests-1440x900.png')
       summary.checks.push({ name: 'requests-1440', ok: true, metrics: m })

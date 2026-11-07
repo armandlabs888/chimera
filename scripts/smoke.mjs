@@ -806,6 +806,7 @@ async function checkLandingBrowser() {
         const commandBar =
           document.querySelector('[data-testid="browse-command-bar"] > div') ||
           document.querySelector('[data-testid="browse-command-bar"]')
+        const feed = document.querySelector('[data-testid="browse-feed-main"]')
         const radiusTrigger =
           document.querySelector('[data-testid="browse-radius-trigger"]') ||
           document.querySelector('[data-testid="browse-when-trigger"]') ||
@@ -817,6 +818,7 @@ async function checkLandingBrowser() {
           leftGutter,
           rightGutter,
           commandBarWidth: commandBar?.getBoundingClientRect().width ?? null,
+          feedWidth: feed?.getBoundingClientRect().width ?? null,
           radiusTriggerWidth: radiusTrigger?.getBoundingClientRect().width ?? null,
           broken: Array.from(document.images).filter((img) => img.complete && img.naturalWidth === 0 && img.src)
             .length,
@@ -837,9 +839,12 @@ async function checkLandingBrowser() {
           Math.abs(g.leftGutter - g.rightGutter) <= 2,
           `desktop gutters symmetric (L=${g.leftGutter}, R=${g.rightGutter})`,
         )
+        // Redesign: unified search bar spans the main feed column (not a capped 760px strip).
         assert.ok(
-          g.commandBarWidth != null && g.commandBarWidth <= 780,
-          `desktop command bar compact (<=780px, got ${g.commandBarWidth})`,
+          g.commandBarWidth != null &&
+            g.feedWidth != null &&
+            Math.abs(g.commandBarWidth - g.feedWidth) <= 8,
+          `desktop command bar fills feed (bar=${g.commandBarWidth}, feed=${g.feedWidth})`,
         )
         assert.ok(
           g.radiusTriggerWidth != null && g.radiusTriggerWidth <= 220,
