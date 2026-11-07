@@ -5,7 +5,6 @@ import {
   Bell,
   ChevronDown,
   LogOut,
-  MapPin,
   Plus,
   UserRound,
 } from 'lucide-react'
@@ -14,10 +13,14 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { BottomNav } from './BottomNav'
 import { BeamWordmark } from '@/components/BeamMark'
+import {
+  BrowseLocationDialogHost,
+  BrowseLocationTrigger,
+} from '@/components/browse/BrowseLocationDialog'
 import { LandingFooter } from '@/components/landing/LandingFooter'
 import { LandingNav } from '@/components/landing/LandingNav'
 import { useBeam } from '@/context/BeamContext'
-import { formatLocationLabel } from '@/lib/location'
+import { useBrowseLocation } from '@/hooks/useBrowseLocation'
 import { relativeTime } from '@/lib/matching'
 import { Avatar } from '@/components/ui'
 
@@ -130,6 +133,23 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
   }, [notifOpen, accountOpen])
 
+  // Must stay above early returns — hooks cannot be conditional.
+  const { origin: browseOrigin } = useBrowseLocation(currentUser)
+  const locationText = ready ? browseOrigin.locationLabel : '…'
+  const isHelperOnboarding = pathname.startsWith('/onboarding/helper')
+  const showPostCta =
+    pathname !== '/post' &&
+    !pathname.startsWith('/post/') &&
+    !isHelperOnboarding
+  const canSignOut = Boolean(authUser)
+  const showHelperSetupBanner =
+    ready &&
+    !isLiveGuest &&
+    currentUser.accountRole === 'helper' &&
+    !currentUser.isHelper &&
+    !isHelperOnboarding
+  const shellBg = isHelperOnboarding ? 'bg-white' : 'bg-[#F4F8FD]'
+
   if (hideChrome) {
     return <div className="app-shell relative min-h-dvh text-[#071330]">{children}</div>
   }
@@ -146,6 +166,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         }`}
       >
         <LandingNav variant="light" />
+        <BrowseLocationDialogHost />
         <main
           className={
             pathname === '/browse'
@@ -188,21 +209,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
     )
   }
-
-  const locationText = ready ? formatLocationLabel(currentUser) : '…'
-  const isHelperOnboarding = pathname.startsWith('/onboarding/helper')
-  const showPostCta =
-    pathname !== '/post' &&
-    !pathname.startsWith('/post/') &&
-    !isHelperOnboarding
-  const canSignOut = Boolean(authUser)
-  const showHelperSetupBanner =
-    ready &&
-    !isLiveGuest &&
-    currentUser.accountRole === 'helper' &&
-    !currentUser.isHelper &&
-    !isHelperOnboarding
-  const shellBg = isHelperOnboarding ? 'bg-white' : 'bg-[#F4F8FD]'
 
   return (
     <div
@@ -288,15 +294,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </span>
               ) : null}
 
-              <Link
-                href="/you"
-                className="hidden h-9 max-w-[11rem] items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-[#475569] transition hover:bg-[#F8FAFC] hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:inline-flex sm:max-w-[14rem]"
-                title="Profile & city"
-                data-testid="topnav-location"
-              >
-                <MapPin className="h-3.5 w-3.5 shrink-0 text-[#64748B]" strokeWidth={2} />
-                <span className="truncate">{locationText}</span>
-              </Link>
+              <BrowseLocationTrigger
+                label={locationText}
+                className="inline-flex h-9 max-w-[9.5rem] items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium text-[#475569] transition hover:bg-[#F8FAFC] hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:px-2.5"
+              />
 
               <span className="hidden h-4 w-px bg-[#E2E8F0] sm:block" aria-hidden />
 
@@ -541,6 +542,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </footer>
 
+      <BrowseLocationDialogHost />
       <BottomNav />
     </div>
   )
