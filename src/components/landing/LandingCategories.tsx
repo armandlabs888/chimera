@@ -43,7 +43,7 @@ export function LandingCategories() {
             href={`/browse?category=${cleaning.id}`}
             image={cleaning.image}
             label={`${cleaning.shortLabel} · ${cleaning.typicalRange}`}
-            alt="Local helper wiping a sunlit kitchen counter"
+            alt="Neighbor wiping a sunlit kitchen counter during a home cleaning job"
             objectPosition="object-[50%_22%]"
             className="col-span-1 lg:col-span-3 lg:row-span-2"
           />
@@ -51,7 +51,7 @@ export function LandingCategories() {
             href={`/browse?category=${moving.id}`}
             image={moving.image}
             label={`${moving.shortLabel} · ${moving.typicalRange}`}
-            alt="Neighbors carrying moving boxes at an apartment entry"
+            alt="Two neighbors carrying a sofa toward a truck on a sunny driveway"
             objectPosition="object-[50%_35%]"
             className="col-span-1 lg:col-span-4"
           />
@@ -69,7 +69,7 @@ export function LandingCategories() {
             href={`/browse?category=${handyman.id}`}
             image={handyman.image}
             label={`${handyman.shortLabel} · ${handyman.typicalRange}`}
-            alt="Neighbor assembling a bookshelf in a bright living room"
+            alt="Neighbor leveling a bookshelf with a spirit level in a bright living room"
             objectPosition="object-[50%_40%]"
             className="col-span-1 lg:col-span-5"
           />
@@ -77,7 +77,7 @@ export function LandingCategories() {
             href={`/browse?category=${petcare.id}`}
             image={petcare.image}
             label={`${petcare.shortLabel} · ${petcare.typicalRange}`}
-            alt="Neighbor walking a dog on a sunny neighborhood sidewalk"
+            alt="Neighbor walking two dogs on a sunny tree-lined sidewalk"
             objectPosition="object-[58%_8%]"
             className="col-span-1 lg:col-span-4"
           />
@@ -87,7 +87,7 @@ export function LandingCategories() {
             href={`/browse?category=${tutoring.id}`}
             image={tutoring.image}
             label={`${tutoring.shortLabel} · ${tutoring.typicalRange}`}
-            alt="Adult tutoring session with laptop and notebook at a table"
+            alt="Tutor and student studying together with a laptop and notebook at a table"
             objectPosition="object-[50%_30%]"
             className="col-span-1 lg:col-span-5"
           />
@@ -95,7 +95,7 @@ export function LandingCategories() {
             href={`/browse?category=${events.id}`}
             image={events.image}
             label={`${events.shortLabel} · ${events.typicalRange}`}
-            alt="Local helper setting up outdoor event tables and chairs"
+            alt="Neighbors arranging flowers and place settings for an outdoor event"
             objectPosition="object-[50%_40%]"
             className="col-span-1 lg:col-span-7"
           />
