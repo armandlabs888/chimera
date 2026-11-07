@@ -26,6 +26,7 @@
 | Customer empty: no radar | Explicit product follow-up | Customer UX | Remove map-like radar from customer Browse empty; helper radar retained |
 | Radar removed universally | Bug evidence (Milpitas fresh account) | Customer UX | Role-gated radar still surfaced when hidePeerDiscovery true; decorative radar deleted |
 | Role source of truth | Bug evidence + PR42 intent | Functional | Only `accountRole==='helper'` hides discovery; null role keeps discovery |
+| Browse location picker | User: location click went to profile | Functional | Topnav/eyebrow open city picker; browse pin persists separately from profile city |
 | Job alerts preference | Honest alternative | localStorage flag | No push infra; status reflects stored preference only |
 | Widen area CTA | Existing `radius` query | Real action | Sets browse radius to 25 mi |
 | Profile progress | `Person` fields | Derived fact | No invented 60% |

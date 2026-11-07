@@ -34,7 +34,9 @@ import { RequestCard } from '@/components/RequestCard'
 import { Avatar, EmptyState, ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { CATEGORIES, WHEN_OPTIONS } from '@/data/categories'
+import { useBrowseLocation } from '@/hooks/useBrowseLocation'
 import { ALL_CATEGORY_ICON, CATEGORY_ICONS } from '@/lib/categoryIcons'
+import { requestBrowseLocationPicker } from '@/lib/browseLocationPreference'
 import { helperProfileProgress } from '@/lib/helperProfileProgress'
 import { readJobAlertsPreference, writeJobAlertsPreference } from '@/lib/jobAlerts'
 import { distanceBetween, formatLocation } from '@/lib/location'
@@ -130,16 +132,20 @@ function isBrowseHelper(person: Person): boolean {
 
 function milesTo(
   entity: { lat?: number | null; lng?: number | null; neighborhood?: string },
-  user: Person,
+  origin: { lat?: number | null; lng?: number | null; neighborhood?: string },
 ) {
-  return distanceBetween(user, entity)
+  return distanceBetween(origin, entity)
 }
 
-function trendingScore(helper: Person, user: Person, signedIn: boolean): number {
+function trendingScore(
+  helper: Person,
+  origin: { lat?: number | null; lng?: number | null },
+  signedIn: boolean,
+): number {
   let score = helper.rating * 12 + Math.min(helper.jobsCompleted, 40) * 0.55
   if (helper.availableNow) score += 28
   if (signedIn) {
-    const d = milesTo(helper, user)
+    const d = milesTo(helper, origin)
     if (d != null && Number.isFinite(d)) {
       if (d <= 5) score += 36 - d * 3
       else if (d <= 15) score += 18 - (d - 5)
@@ -155,6 +161,17 @@ export function Browse() {
   const { state, currentUser, authUser, mode } = useBeam()
   // Demo uses the seed user chrome; only live signed-out visitors are guests.
   const isGuest = mode === 'live' && !authUser
+  const { origin: browseOrigin } = useBrowseLocation(currentUser)
+  const browseAnchor = useMemo(
+    () => ({
+      lat: browseOrigin.lat,
+      lng: browseOrigin.lng,
+      locationLabel: browseOrigin.locationLabel,
+      city: browseOrigin.city,
+      stateCode: browseOrigin.stateCode,
+    }),
+    [browseOrigin],
+  )
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -265,15 +282,12 @@ export function Browse() {
 
   const q = qParam.toLowerCase().trim()
   const radiusMiles = radius === 'all' ? null : Number(radius)
-  const cityOrArea =
-    (currentUser.city && currentUser.city.trim()) ||
-    (() => {
-      const label = formatLocation(currentUser)
-      return label && label !== 'Local area' ? label.split(',')[0]?.trim() : ''
-    })()
+  const cityOrArea = browseOrigin.city || ''
   const locationEyebrow = cityOrArea
-    ? `${cityOrArea}${currentUser.stateCode ? `, ${currentUser.stateCode}` : ''} & nearby`
-    : 'Your area & nearby'
+    ? `${cityOrArea}${browseOrigin.stateCode ? `, ${browseOrigin.stateCode}` : ''} & nearby`
+    : browseOrigin.locationLabel !== 'Nearby'
+      ? `${browseOrigin.locationLabel} & nearby`
+      : 'Your area & nearby'
 
   const openRequests = useMemo(() => {
     let list = state.requests
@@ -281,7 +295,7 @@ export function Browse() {
       .filter((r) => (category === 'all' ? true : r.category === category))
       .filter((r) => {
         if (isGuest || radiusMiles == null) return true
-        const d = milesTo(r, currentUser)
+        const d = milesTo(r, browseAnchor)
         if (d == null) return true
         return d <= radiusMiles
       })
@@ -302,14 +316,14 @@ export function Browse() {
       if (sort === 'newest' || isGuest) {
         return +new Date(b.createdAt) - +new Date(a.createdAt)
       }
-      const da = milesTo(a, currentUser)
-      const db = milesTo(b, currentUser)
+      const da = milesTo(a, browseAnchor)
+      const db = milesTo(b, browseAnchor)
       const na = da ?? Number.POSITIVE_INFINITY
       const nb = db ?? Number.POSITIVE_INFINITY
       return na - nb || +new Date(b.createdAt) - +new Date(a.createdAt)
     })
     return list
-  }, [state.requests, category, radiusMiles, when, q, sort, currentUser, isGuest])
+  }, [state.requests, category, radiusMiles, when, q, sort, browseAnchor, isGuest])
 
   const people = useMemo(() => {
     let list = state.people
@@ -321,7 +335,7 @@ export function Browse() {
       .filter((p) => (category === 'all' ? true : p.skills.includes(category as never)))
       .filter((p) => {
         if (isGuest || radiusMiles == null) return true
-        const d = milesTo(p, currentUser)
+        const d = milesTo(p, browseAnchor)
         if (d == null) return true
         return d <= radiusMiles
       })
@@ -342,14 +356,14 @@ export function Browse() {
     list = [...list].sort((a, b) => {
       if (sort === 'newest' || (isGuest && sort !== 'budget')) return b.rating - a.rating
       if (sort === 'budget') return a.hourlyRate - b.hourlyRate
-      const da = milesTo(a, currentUser)
-      const db = milesTo(b, currentUser)
+      const da = milesTo(a, browseAnchor)
+      const db = milesTo(b, browseAnchor)
       return (
         (da ?? Number.POSITIVE_INFINITY) - (db ?? Number.POSITIVE_INFINITY) || b.rating - a.rating
       )
     })
     return list
-  }, [state.people, category, radiusMiles, avail, q, freeOnly, sort, currentUser, isGuest])
+  }, [state.people, category, radiusMiles, avail, q, freeOnly, sort, browseAnchor, currentUser.id, isGuest])
 
   const openRequestCount = useMemo(
     () => state.requests.filter((r) => r.status === 'open').length,
@@ -389,11 +403,11 @@ export function Browse() {
   const trendingHelpers = useMemo(() => {
     return state.people
       .filter((p) => isBrowseHelper(p) && !(p.isCurrentUser || p.id === currentUser.id))
-      .map((p) => ({ person: p, score: trendingScore(p, currentUser, !isGuest) }))
+      .map((p) => ({ person: p, score: trendingScore(p, browseAnchor, !isGuest) }))
       .sort((a, b) => b.score - a.score || b.person.rating - a.person.rating)
       .slice(0, 5)
       .map((x) => x.person)
-  }, [state.people, currentUser, isGuest])
+  }, [state.people, currentUser.id, browseAnchor, isGuest])
 
   const profileProgress = useMemo(() => helperProfileProgress(currentUser), [currentUser])
   const showProfileWaitCard =
@@ -838,10 +852,17 @@ export function Browse() {
           <div className="shrink-0 pb-3.5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
               <div className="min-w-0">
-                <p className="mb-1.5 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#1D5CE5]">
+                <button
+                  type="button"
+                  onClick={() => requestBrowseLocationPicker()}
+                  className="mb-1.5 inline-flex items-center gap-1.5 rounded-md text-[12px] font-semibold text-[#1D5CE5] transition hover:bg-[#EEF4FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35"
+                  data-testid="browse-location-eyebrow"
+                  aria-haspopup="dialog"
+                  title="Change browse location"
+                >
                   <MapPin className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
                   {locationEyebrow}
-                </p>
+                </button>
                 <div className="flex min-w-0 items-center gap-2.5">
                   <h1 className="text-[22px] font-bold leading-tight tracking-[-0.02em] text-[#071330] sm:text-[24px]">
                     Browse Local Jobs
