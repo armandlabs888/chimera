@@ -11,6 +11,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
+import { LandingFooter } from '@/components/landing/LandingFooter'
 import {
   UsCityCombobox,
   type UsCityComboboxHandle,
@@ -419,6 +420,7 @@ export function Onboarding() {
           </div>
         )}
       </main>
+      <LandingFooter />
     </div>
   )
 }

@@ -29,12 +29,6 @@ const primaryNav = [
   { href: '/messages', label: 'Messages' },
 ]
 
-const footerNav = [
-  { href: '/safety', label: 'Safety & guidelines' },
-  { href: '/browse', label: 'Browse' },
-  { href: '/onboarding/helper', label: 'Helper profile' },
-]
-
 function shouldHideAppChrome(pathname: string) {
   return pathname === '/' || pathname === '/onboarding'
 }
@@ -77,8 +71,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isLiveGuest = mode === 'live' && !authUser
   const isBrowsePath = pathname === '/browse'
   const isMessagesPath = pathname === '/messages' || pathname.startsWith('/messages/')
-  const lockBrowseDesktop = isBrowsePath
-  const compactMessagesMain = isMessagesPath
+  // Workspace pages keep a viewport-tall main panel with internal scroll; the shared
+  // tall footer sits below and is reached by document scroll (no shell overflow lock).
+  const workspaceMain = isBrowsePath || isMessagesPath
+  const browseWorkspaceMain = isBrowsePath
+  const messagesWorkspaceMain = isMessagesPath
 
   const notifications = state.notifications ?? []
   const unreadCount = useMemo(
@@ -160,63 +157,26 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
 
     return (
-      <div
-        className={`app-shell relative flex min-h-dvh flex-col bg-[#F4F8FD] text-[#071330] ${
-          lockBrowseDesktop ? 'xl:h-dvh xl:max-h-dvh xl:overflow-hidden' : ''
-        }`}
-      >
+      <div className="app-shell relative flex min-h-dvh flex-col bg-[#F4F8FD] text-[#071330]">
         <LandingNav variant="light" />
         <BrowseLocationDialogHost />
         <main
           className={
             pathname === '/browse'
-              ? 'beam-container flex-1 py-6 sm:py-8 xl:min-h-0 xl:overflow-hidden xl:py-4'
+              ? 'beam-container flex-1 py-6 sm:py-8 xl:h-[calc(100dvh-3.5rem)] xl:min-h-[640px] xl:shrink-0 xl:overflow-hidden xl:py-4'
               : 'beam-container flex-1 py-8 sm:py-12'
           }
         >
           {children}
         </main>
-        {pathname === '/browse' ? (
-          <footer
-            className="mt-auto hidden shrink-0 border-t border-[#E2E8F0] bg-white xl:block"
-            aria-label="Browse status"
-          >
-            <div className="beam-container flex h-9 items-center justify-between gap-4 text-[12px] text-[#64748B]">
-              <p>© 2026 Beam · Neighbor-to-neighbor local help</p>
-              <nav className="flex items-center gap-3 font-medium" aria-label="Footer">
-                <Link href="/safety" className="hover:text-[#1D5CE5]">
-                  Safety &amp; guidelines
-                </Link>
-                <span aria-hidden>·</span>
-                <Link href="/browse" className="hover:text-[#1D5CE5]">
-                  Browse
-                </Link>
-                <span aria-hidden>·</span>
-                <Link href="/auth?mode=signup" className="hover:text-[#1D5CE5]">
-                  Sign up
-                </Link>
-              </nav>
-            </div>
-          </footer>
-        ) : (
-          <LandingFooter />
-        )}
-        {pathname === '/browse' ? (
-          <div className="xl:hidden">
-            <LandingFooter />
-          </div>
-        ) : null}
+        <LandingFooter />
       </div>
     )
   }
 
   return (
-    <div
-      className={`app-shell relative flex min-h-dvh flex-col ${shellBg} text-[#071330] ${
-        lockBrowseDesktop ? 'xl:h-dvh xl:max-h-dvh xl:overflow-hidden' : ''
-      }`}
-    >
-      <div className={`z-40 ${lockBrowseDesktop ? 'xl:shrink-0' : 'sticky top-0'}`}>
+    <div className={`app-shell relative flex min-h-dvh flex-col ${shellBg} text-[#071330]`}>
+      <div className="sticky top-0 z-40">
         {showHelperSetupBanner ? (
           <div
             className="min-h-9 border-b border-white/10 bg-[#071330] py-1.5 text-white"
@@ -472,75 +432,18 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <main
         className={
-          lockBrowseDesktop
-            ? 'beam-container relative flex-1 min-h-0 pb-4 pt-4 sm:pt-5 xl:overflow-hidden xl:pb-3 xl:pt-4'
-            : compactMessagesMain
-              ? 'beam-container relative flex-1 min-h-0 pb-4 pt-4 sm:pt-5'
+          browseWorkspaceMain
+            ? 'beam-container relative min-h-0 shrink-0 pb-4 pt-4 sm:pt-5 xl:h-[calc(100dvh-3.5rem)] xl:min-h-[640px] xl:overflow-hidden xl:pb-3 xl:pt-4'
+            : messagesWorkspaceMain
+              ? 'beam-container relative min-h-0 shrink-0 pb-4 pt-4 sm:pt-5 lg:min-h-[calc(100dvh-3.5rem)]'
               : 'beam-container relative flex-1 pb-10 pt-6 sm:pt-8 md:pb-10'
         }
+        data-workspace-main={workspaceMain ? 'true' : undefined}
       >
         {children}
       </main>
 
-      <footer
-        data-testid="app-footer"
-        className={
-          lockBrowseDesktop
-            ? 'mt-auto shrink-0 border-t border-[#E2E8F0] bg-white pb-24 md:pb-0 xl:h-9 xl:pb-0'
-            : compactMessagesMain
-              ? 'mt-auto hidden border-t border-[#E2E8F0] bg-white lg:block lg:pb-0'
-              : 'mt-auto border-t border-[#E2E8F0] bg-white pb-24 md:pb-0'
-        }
-      >
-        {/* Compact docked footer on locked desktop /browse */}
-        {lockBrowseDesktop ? (
-          <div className="beam-container hidden h-9 items-center justify-between gap-4 xl:flex">
-            <p className="text-[12px] leading-none text-[#64748B]">
-              © 2026 Beam · Neighbor-to-neighbor local help
-            </p>
-            <nav
-              className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-medium text-[#475569]"
-              aria-label="Footer"
-            >
-              {footerNav.map(({ href, label }, i) => (
-                <span key={href} className="inline-flex items-center gap-3">
-                  {i > 0 ? <span aria-hidden>·</span> : null}
-                  <Link
-                    href={href}
-                    className="transition hover:text-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35"
-                  >
-                    {label}
-                  </Link>
-                </span>
-              ))}
-            </nav>
-          </div>
-        ) : null}
-        {/* Spacious footer on non-browse pages, and below xl on /browse */}
-        <div
-          className={`beam-container flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:py-7 ${
-            lockBrowseDesktop ? 'xl:hidden' : ''
-          }`}
-        >
-          <p className="text-[13px] leading-[1.45] text-[#64748B]">
-            © 2026 Beam · Neighbor-to-neighbor local help
-          </p>
-          <nav
-            className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[13.5px] font-semibold text-[#475569]"
-            aria-label="Footer"
-          >
-            {footerNav.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className="transition hover:text-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35"
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      </footer>
+      <LandingFooter dockPadding />
 
       <BrowseLocationDialogHost />
       <BottomNav />

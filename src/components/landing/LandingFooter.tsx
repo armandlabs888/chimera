@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
 import { useBeam } from '@/context/BeamContext'
 import { CATEGORIES } from '@/data/categories'
+import { hidesPeerHelperDiscovery } from '@/lib/roles'
 
 const linkClass =
   'rounded-sm text-[15px] font-medium leading-snug text-[#475569] transition hover:text-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F8FD]'
@@ -20,6 +21,7 @@ function FooterGroup({
   links: ReadonlyArray<{ href: string; label: string }>
   note?: string
 }) {
+  if (links.length === 0 && !note) return null
   return (
     <nav aria-labelledby={id} className="min-w-0">
       <h2
@@ -28,15 +30,17 @@ function FooterGroup({
       >
         {title}
       </h2>
-      <ul className="mt-5 space-y-3.5">
-        {links.map((l) => (
-          <li key={`${l.href}-${l.label}`}>
-            <Link href={l.href} className={linkClass}>
-              {l.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {links.length > 0 ? (
+        <ul className="mt-5 space-y-3.5">
+          {links.map((l) => (
+            <li key={`${l.href}-${l.label}`}>
+              <Link href={l.href} className={linkClass}>
+                {l.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {note ? (
         <p className="mt-5 max-w-[28ch] text-[13.5px] leading-[1.55] text-[#64748B]">{note}</p>
       ) : null}
@@ -44,35 +48,44 @@ function FooterGroup({
   )
 }
 
-export function LandingFooter() {
-  const { authUser, mode } = useBeam()
+/** Shared tall marketing footer — used on landing and across AppShell/auth. */
+export function LandingFooter({
+  dockPadding = false,
+}: {
+  /** Extra bottom padding when the mobile BottomNav dock is present. */
+  dockPadding?: boolean
+}) {
+  const { authUser, mode, currentUser } = useBeam()
+  const isGuest = mode === 'live' && !authUser
+  const signedIn = !isGuest
+  const hidePeerDiscovery = hidesPeerHelperDiscovery(currentUser, isGuest)
   const canOnboardHelper = Boolean(authUser) || mode === 'demo'
 
-  const groups = useMemo(
-    () => [
-      {
-        id: 'footer-explore',
-        title: 'Explore',
-        links: [
-          { href: '/browse', label: 'Browse tasks' },
-          { href: '/browse?tab=people', label: 'Meet helpers' },
-          { href: '/#categories', label: 'Popular services' },
-          { href: '/#how-it-works', label: 'How it works' },
-          { href: '/#neighborhoods', label: 'Neighborhoods' },
-        ],
-      },
-      {
-        id: 'footer-services',
-        title: 'Services',
-        links: CATEGORIES.map((c) => ({
-          href: `/browse?category=${c.id}`,
-          label: c.shortLabel,
-        })),
-      },
-      {
-        id: 'footer-start',
-        title: 'Get started',
-        links: [
+  const groups = useMemo(() => {
+    const explore = [
+      { href: '/browse', label: 'Browse tasks' },
+      ...(!hidePeerDiscovery
+        ? [{ href: '/browse?tab=people', label: 'Meet helpers' as const }]
+        : []),
+      { href: '/#categories', label: 'Popular services' },
+      { href: '/#how-it-works', label: 'How it works' },
+      { href: '/#neighborhoods', label: 'Neighborhoods' },
+    ]
+
+    const start = signedIn
+      ? [
+          { href: '/post', label: 'Post a request' },
+          {
+            href: '/onboarding/helper',
+            label:
+              currentUser.accountRole === 'helper' || currentUser.isHelper
+                ? 'Helper profile'
+                : 'Become a helper',
+          },
+          { href: '/you', label: 'Profile & account' },
+          { href: '/home', label: 'My activity' },
+        ]
+      : [
           { href: '/post', label: 'Post a request' },
           {
             href: canOnboardHelper
@@ -82,22 +95,43 @@ export function LandingFooter() {
           },
           { href: '/auth?mode=signup', label: 'Create account' },
           { href: '/auth?mode=signin', label: 'Sign in' },
-        ],
+        ]
+
+    return [
+      { id: 'footer-explore', title: 'Explore', links: explore },
+      {
+        id: 'footer-services',
+        title: 'Services',
+        links: CATEGORIES.map((c) => ({
+          href: `/browse?category=${c.id}`,
+          label: c.shortLabel,
+        })),
       },
+      { id: 'footer-start', title: 'Get started', links: start },
       {
         id: 'footer-trust',
         title: 'Trust',
         links: [{ href: '/safety', label: 'Safety & guidelines' }],
         note: 'Clear community rules, two-way reviews, and in-thread coordination — Beam never holds your money.',
       },
-    ],
-    [canOnboardHelper],
-  )
+    ]
+  }, [
+    canOnboardHelper,
+    currentUser.accountRole,
+    currentUser.isHelper,
+    hidePeerDiscovery,
+    signedIn,
+  ])
 
   return (
     <footer
-      className="border-t border-[rgba(7,19,48,0.08)] bg-[#F4F8FD]"
+      className={`border-t border-[rgba(7,19,48,0.08)] bg-[#F4F8FD] ${
+        dockPadding ? 'pb-24 md:pb-0' : ''
+      }`}
       data-testid="landing-footer"
+      // Back-compat for marketplace QA that still looks for app-footer landmark.
+      data-app-footer="true"
+      id="site-footer"
     >
       <div className="beam-container pb-16 pt-20 sm:pb-20 sm:pt-24 lg:pb-24 lg:pt-28">
         <div className="grid gap-14 lg:grid-cols-12 lg:items-start lg:gap-16">
