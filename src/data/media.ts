@@ -62,10 +62,8 @@ export const LIFESTYLE = {
   events: '/images/landing/service-events.jpg',
   /** Auth left showcase — welcoming helper ready to help */
   authShowcase: '/images/landing/auth-showcase.jpg',
-  /** Book-in-3-steps step 1 — posting a move task on a phone */
+  /** Legacy step photos (superseded by UI-preview how-it-works; kept for assets) */
   stepPost: '/images/landing/step-01-post.jpg',
-  /** Book-in-3-steps step 2 — reviewing arrival-time offers */
   stepOffers: '/images/landing/step-02-offers.jpg',
-  /** Book-in-3-steps step 3 — handshake after finishing the job */
   stepDone: '/images/landing/step-03-finish.jpg',
 } as const

@@ -90,6 +90,11 @@ async function checkLandingMarkup() {
   assert.match(text, /Safety/, 'Safety link present')
   assert.match(text, /beam-hero-moving-v2/, 'hero v2 image referenced')
   assert.match(text, /id="how-it-works"/, 'how-it-works section')
+  assert.match(text, /Book in minutes, not days/, 'how-it-works heading')
+  assert.match(text, /Post your task/, 'how-it-works step 1')
+  assert.match(text, /Compare fast offers/, 'how-it-works step 2')
+  assert.match(text, /Chat, finish/, 'how-it-works step 3')
+
   assert.match(text, /id="neighborhoods"/, 'neighborhoods section')
   assert.match(text, /id="categories"/, 'categories section')
   assert.match(text, /data-testid="landing-nav"/, 'daylight landing nav')
@@ -486,7 +491,7 @@ async function checkLandingBrowser() {
     await page.waitForFunction(
       () => {
         const imgs = [...document.querySelectorAll('img')]
-        return imgs.length >= 23 && imgs.every((img) => img.complete)
+        return imgs.length >= 20 && imgs.every((img) => img.complete)
       },
       null,
       { timeout: 20000 },
@@ -524,7 +529,7 @@ async function checkLandingBrowser() {
         unsplash: paths.filter((p) => /images\.unsplash\.com/i.test(p) || /unsplash/i.test(p)),
       }
     })
-    assert.equal(landingImages.count, 23, `landing should render 23 <img> elements, got ${landingImages.count}`)
+    assert.equal(landingImages.count, 20, `landing should render 20 <img> elements, got ${landingImages.count}`)
     assert.equal(landingImages.allComplete, true, 'every landing <img> must be complete')
     assert.ok(
       landingImages.minNaturalWidth >= 400,
@@ -536,7 +541,7 @@ async function checkLandingBrowser() {
       `zero duplicate image paths on / (unique=${landingImages.uniqueCount}, total=${landingImages.paths.length}): ${JSON.stringify(landingImages.paths)}`,
     )
     assert.deepEqual(landingImages.unsplash, [], `zero Unsplash URLs on /: ${JSON.stringify(landingImages.unsplash)}`)
-    console.log('ok landing unique local images (23/23, no unsplash)')
+    console.log('ok landing unique local images (20/20, no unsplash)')
 
     const headline = await page.locator('h1').innerText()
     assert.match(headline, /Local help, made easy/i)
