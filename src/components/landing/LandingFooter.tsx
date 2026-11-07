@@ -8,47 +8,43 @@ import { CATEGORIES } from '@/data/categories'
 import { hidesPeerHelperDiscovery } from '@/lib/roles'
 
 const linkClass =
-  'rounded-sm text-[15px] font-medium leading-snug text-[#475569] transition hover:text-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F8FD]'
+  'rounded-sm text-[14px] font-medium leading-snug text-[#475569] transition hover:text-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F8FD]'
 
 function FooterGroup({
   id,
   title,
   links,
-  note,
 }: {
   id: string
   title: string
   links: ReadonlyArray<{ href: string; label: string }>
-  note?: string
 }) {
-  if (links.length === 0 && !note) return null
+  if (links.length === 0) return null
   return (
     <nav aria-labelledby={id} className="min-w-0">
       <h2
         id={id}
-        className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#071330]"
+        className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#071330]"
       >
         {title}
       </h2>
-      {links.length > 0 ? (
-        <ul className="mt-5 space-y-3.5">
-          {links.map((l) => (
-            <li key={`${l.href}-${l.label}`}>
-              <Link href={l.href} className={linkClass}>
-                {l.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      {note ? (
-        <p className="mt-5 max-w-[28ch] text-[13.5px] leading-[1.55] text-[#64748B]">{note}</p>
-      ) : null}
+      <ul className="mt-3 space-y-2">
+        {links.map((l) => (
+          <li key={`${l.href}-${l.label}`}>
+            <Link href={l.href} className={linkClass}>
+              {l.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
     </nav>
   )
 }
 
-/** Shared tall marketing footer — used on landing and across AppShell/auth. */
+/**
+ * Shared grouped site footer used on marketing + AppShell/auth.
+ * Content-led footprint (~280–340px desktop) — not a fixed-height mega-footer.
+ */
 export function LandingFooter({
   dockPadding = false,
 }: {
@@ -112,7 +108,6 @@ export function LandingFooter({
         id: 'footer-trust',
         title: 'Trust',
         links: [{ href: '/safety', label: 'Safety & guidelines' }],
-        note: 'Clear community rules, two-way reviews, and in-thread coordination — Beam never holds your money.',
       },
     ]
   }, [
@@ -125,71 +120,46 @@ export function LandingFooter({
 
   return (
     <footer
-      className={`border-t border-[rgba(7,19,48,0.08)] bg-[#F4F8FD] ${
+      className={`shrink-0 border-t border-[rgba(7,19,48,0.08)] bg-[#F4F8FD] ${
         dockPadding ? 'pb-24 md:pb-0' : ''
       }`}
       data-testid="landing-footer"
-      // Back-compat for marketplace QA that still looks for app-footer landmark.
       data-app-footer="true"
       id="site-footer"
     >
-      <div className="beam-container pb-16 pt-20 sm:pb-20 sm:pt-24 lg:pb-24 lg:pt-28">
-        <div className="grid gap-14 lg:grid-cols-12 lg:items-start lg:gap-16">
-          <div className="flex max-w-[40ch] flex-col lg:col-span-4">
+      <div className="beam-container py-7 sm:py-8">
+        <div className="grid gap-7 lg:grid-cols-12 lg:items-start lg:gap-8">
+          <div className="flex max-w-[32ch] flex-col lg:col-span-4">
             <Link
               href="/"
               className="inline-flex w-fit rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F8FD]"
               aria-label="Beam home"
             >
               <BeamWordmark
-                markWidth={34}
-                markHeight={34}
-                wordClassName="text-[32px] tracking-[-0.03em]"
+                markWidth={24}
+                markHeight={24}
+                wordClassName="text-[22px] tracking-[-0.03em]"
                 tone="ink"
               />
             </Link>
-            <p className="mt-6 text-[16px] leading-[1.6] text-[#475569]">
-              Peer-to-peer everyday local help in your neighborhood — moving, cleaning, assembly,
-              pet care, tutoring, and events.
+            <p className="mt-2.5 text-[13.5px] leading-[1.45] text-[#64748B]">
+              Peer-to-peer everyday local help — moving, cleaning, assembly, pet care, tutoring, and
+              events.
             </p>
-            <p className="mt-4 text-[15px] leading-[1.55] text-[#64748B]">
-              Beam coordinates same-day neighbor help. You agree on price in the offer and pay
-              helpers directly.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/browse"
-                className="inline-flex h-11 items-center justify-center rounded-lg bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white transition hover:bg-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F8FD]"
-              >
-                Browse tasks
-              </Link>
-              <Link
-                href="/post"
-                className="inline-flex h-11 items-center justify-center rounded-lg border border-[rgba(7,19,48,0.14)] bg-white px-5 text-[14px] font-semibold text-[#071330] transition hover:border-[#1D5CE5]/35 hover:text-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F8FD]"
-              >
-                Post a request
-              </Link>
-            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-8 gap-y-12 sm:grid-cols-4 lg:col-span-8 lg:gap-x-10 lg:pt-1">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4 lg:col-span-8">
             {groups.map((g) => (
-              <FooterGroup
-                key={g.id}
-                id={g.id}
-                title={g.title}
-                links={g.links}
-                note={'note' in g ? g.note : undefined}
-              />
+              <FooterGroup key={g.id} id={g.id} title={g.title} links={g.links} />
             ))}
           </div>
         </div>
       </div>
 
-      <div className="border-t border-[rgba(7,19,48,0.08)] bg-white/60">
-        <div className="beam-container flex flex-col gap-3 py-8 sm:flex-row sm:items-baseline sm:justify-between sm:gap-10 sm:py-9">
-          <p className="shrink-0 text-[14px] leading-[1.5] text-[#475569]">© 2026 Beam</p>
-          <p className="max-w-[68ch] text-[14px] leading-[1.55] text-[#475569] sm:text-right">
+      <div className="border-t border-[rgba(7,19,48,0.08)] bg-white/70" data-testid="footer-legal">
+        <div className="beam-container flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <p className="shrink-0 text-[12.5px] leading-[1.35] text-[#475569]">© 2026 Beam</p>
+          <p className="max-w-[68ch] text-[12px] leading-[1.4] text-[#64748B] sm:text-right">
             Payments are arranged directly between neighbors. Not for licensed trades, childcare,
             medical/senior care, or passenger driving.
           </p>

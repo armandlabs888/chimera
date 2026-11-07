@@ -226,7 +226,11 @@ async function main() {
         'copy-only',
       )
       assert.ok(await page.locator('[data-testid="browse-while-you-wait"]').count())
-      assert.ok(await page.locator('[data-testid="browse-safety-strip"]').count())
+      assert.equal(
+        await page.locator('[data-testid="browse-safety-strip"]').count(),
+        0,
+        'helper: Protected marketplace safety strip removed',
+      )
       assert.equal(
         await page.locator('[data-testid="browse-view-toggle"]').count(),
         0,

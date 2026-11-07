@@ -950,8 +950,8 @@ async function checkLandingBrowser() {
         assert.equal(locked.scrollY, 0, 'desktop /browse window.scrollY === 0 at load')
         assert.ok(locked.hasSiteFooter, 'desktop /browse includes shared landing-footer')
         assert.ok(
-          locked.footerHeight >= 480,
-          `desktop /browse tall footer height >= 480 (got ${locked.footerHeight})`,
+          locked.footerHeight >= 240 && locked.footerHeight <= 340,
+          `desktop /browse footer height in ~280–340px band (got ${locked.footerHeight})`,
         )
         assert.ok(
           locked.docScrollHeight > locked.docClientHeight + 200,

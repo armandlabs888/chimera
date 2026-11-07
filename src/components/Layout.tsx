@@ -163,7 +163,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main
           className={
             pathname === '/browse'
-              ? 'beam-container flex-1 py-6 sm:py-8 xl:h-[calc(100dvh-3.5rem)] xl:min-h-[640px] xl:shrink-0 xl:overflow-hidden xl:py-4'
+              ? // Never flex-shrink against the tall footer — keep a real viewport of jobs first.
+                'beam-container shrink-0 py-6 sm:py-8 min-h-[calc(100dvh-3.5rem)] h-[calc(100dvh-3.5rem)] overflow-hidden'
               : 'beam-container flex-1 py-8 sm:py-12'
           }
         >
@@ -433,9 +434,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main
         className={
           browseWorkspaceMain
-            ? 'beam-container relative min-h-0 shrink-0 pb-4 pt-4 sm:pt-5 xl:h-[calc(100dvh-3.5rem)] xl:min-h-[640px] xl:overflow-hidden xl:pb-3 xl:pt-4'
+            ? // Fixed viewport workspace first; footer sits below and is reached by page scroll.
+              // shrink-0 prevents the shared footer from compressing the jobs panel.
+              'beam-container relative shrink-0 overflow-hidden pb-4 pt-4 sm:pt-5 h-[calc(100dvh-3.5rem)] min-h-[calc(100dvh-3.5rem)]'
             : messagesWorkspaceMain
-              ? 'beam-container relative min-h-0 shrink-0 pb-4 pt-4 sm:pt-5 lg:min-h-[calc(100dvh-3.5rem)]'
+              ? 'beam-container relative shrink-0 pb-4 pt-4 sm:pt-5 min-h-[calc(100dvh-3.5rem)]'
               : 'beam-container relative flex-1 pb-10 pt-6 sm:pt-8 md:pb-10'
         }
         data-workspace-main={workspaceMain ? 'true' : undefined}
