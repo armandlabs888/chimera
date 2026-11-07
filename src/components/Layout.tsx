@@ -73,7 +73,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Demo mode always uses the authenticated marketplace top nav.
   const isLiveGuest = mode === 'live' && !authUser
   const isBrowsePath = pathname === '/browse'
+  const isMessagesPath = pathname === '/messages' || pathname.startsWith('/messages/')
   const lockBrowseDesktop = isBrowsePath
+  const compactMessagesMain = isMessagesPath
 
   const notifications = state.notifications ?? []
   const unreadCount = useMemo(
@@ -471,7 +473,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         className={
           lockBrowseDesktop
             ? 'beam-container relative flex-1 min-h-0 pb-4 pt-4 sm:pt-5 xl:overflow-hidden xl:pb-3 xl:pt-4'
-            : 'beam-container relative flex-1 pb-10 pt-6 sm:pt-8 md:pb-10'
+            : compactMessagesMain
+              ? 'beam-container relative flex-1 min-h-0 pb-4 pt-4 sm:pt-5'
+              : 'beam-container relative flex-1 pb-10 pt-6 sm:pt-8 md:pb-10'
         }
       >
         {children}
@@ -482,7 +486,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         className={
           lockBrowseDesktop
             ? 'mt-auto shrink-0 border-t border-[#E2E8F0] bg-white pb-24 md:pb-0 xl:h-9 xl:pb-0'
-            : 'mt-auto border-t border-[#E2E8F0] bg-white pb-24 md:pb-0'
+            : compactMessagesMain
+              ? 'mt-auto hidden border-t border-[#E2E8F0] bg-white lg:block lg:pb-0'
+              : 'mt-auto border-t border-[#E2E8F0] bg-white pb-24 md:pb-0'
         }
       >
         {/* Compact docked footer on locked desktop /browse */}

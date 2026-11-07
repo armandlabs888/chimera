@@ -1692,11 +1692,11 @@ async function checkMarketplaceFlows() {
     const messagesProbe = await page.evaluate(() => {
       const workspace = document.querySelector('[data-testid="messages-workspace"]')
       if (!workspace) return null
-      const cs = getComputedStyle(workspace)
-      const radius = parseFloat(cs.borderTopLeftRadius)
       const inbox = document.querySelector('[data-testid="messages-inbox-rail"]')
       const conversation = document.querySelector('[data-testid="messages-conversation"]')
+      const conversationPanel = document.querySelector('[data-testid="messages-conversation-panel"]')
       const rail = document.querySelector('[data-testid="messages-task-rail"]')
+      const taskBar = document.querySelector('[data-testid="messages-task-bar"]')
       const list = document.querySelector('[data-testid="messages-thread-list"]')
       const heroH1 = [...document.querySelectorAll('h1')].some(
         (h) =>
@@ -1709,21 +1709,28 @@ async function checkMarketplaceFlows() {
       const ir = inbox?.getBoundingClientRect()
       const cr = conversation?.getBoundingClientRect()
       const workspaceWidth = workspace.getBoundingClientRect().width
+      const inboxRadius = inbox ? parseFloat(getComputedStyle(inbox).borderTopLeftRadius) : 0
+      const panelRadius = conversationPanel
+        ? parseFloat(getComputedStyle(conversationPanel).borderTopLeftRadius)
+        : 0
+      const gutter = ir && cr ? cr.left - ir.right : 0
       return {
-        radius,
+        inboxRadius,
+        panelRadius,
         hasList: Boolean(list),
         hasConversation: Boolean(conversation),
         hasRail: Boolean(rail),
+        hasTaskBar: Boolean(taskBar),
         heroH1,
         rawOpenBadge,
+        gutter,
         twoPane:
           Boolean(ir && cr) &&
           ir.width >= 280 &&
           ir.width <= 380 &&
-          cr.width >= 600 &&
+          cr.width >= 560 &&
           Math.abs(ir.top - cr.top) < 8 &&
-          cr.left >= ir.right - 4 &&
-          Math.abs(ir.width + cr.width - workspaceWidth) <= 6,
+          gutter >= 12,
         inboxWidth: ir?.width ?? 0,
         conversationWidth: cr?.width ?? 0,
         workspaceWidth,
@@ -1735,30 +1742,48 @@ async function checkMarketplaceFlows() {
     assert.ok(messagesProbe.hasList, 'inbox thread list present')
     assert.ok(messagesProbe.hasConversation, 'desktop auto-selects a conversation on /messages')
     assert.equal(messagesProbe.hasRail, false, 'task rail removed — 2-column split only')
-    assert.ok(messagesProbe.twoPane, 'desktop messages is 2-pane inbox | conversation split')
+    assert.equal(messagesProbe.hasTaskBar, false, 'no persistent job/offer task bar')
+    assert.ok(messagesProbe.twoPane, 'desktop messages is 2 separate panels with gutter')
+    assert.ok(
+      messagesProbe.gutter >= 12,
+      `messages panels have visible gutter (got ${messagesProbe.gutter})`,
+    )
     assert.ok(
       messagesProbe.inboxWidth >= 280 && messagesProbe.inboxWidth <= 380,
       `inbox rail compact (280–380px, got ${messagesProbe.inboxWidth})`,
     )
     assert.ok(
-      messagesProbe.radius > 0 && messagesProbe.radius <= 10,
-      `messages workspace radius <=10px, got ${messagesProbe.radius}`,
+      messagesProbe.inboxRadius > 0 && messagesProbe.inboxRadius <= 10,
+      `messages inbox panel radius <=10px, got ${messagesProbe.inboxRadius}`,
+    )
+    assert.ok(
+      messagesProbe.panelRadius > 0 && messagesProbe.panelRadius <= 10,
+      `messages conversation panel radius <=10px, got ${messagesProbe.panelRadius}`,
     )
 
-    // Seeded requester thread — incoming offer + chat stream
+    // Seeded requester thread — person header + chat stream, no offer strips
     await page.goto(`${BASE_URL}/messages/th-1`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('[data-testid="messages-conversation"]', { timeout: 15000 })
-    assert.ok(await page.getByTestId('messages-incoming-offer').count() >= 1)
+    assert.equal(await page.getByTestId('messages-incoming-offer').count(), 0)
+    assert.equal(await page.getByTestId('messages-task-bar').count(), 0)
     assert.ok(await page.getByTestId('messages-composer').count() >= 1)
+    assert.ok(await page.getByTestId('messages-view-request').count() >= 1)
     assert.equal(
       await page.evaluate(() => /\bPRICE\b/.test(document.body.innerText)),
       false,
       'no uppercase PRICE label in messages',
     )
     assert.equal(
-      await page.evaluate(() => /\bETA\b(?!\s)/.test(document.body.innerText) && /PRICE/.test(document.body.innerText)),
+      await page.evaluate(() => {
+        const text = document.body.innerText
+        return (
+          /Confirmed\s*·/.test(text) ||
+          /Open to offers/i.test(text) ||
+          /ETA Today/i.test(text)
+        )
+      }),
       false,
-      'no ALL-CAPS offer micro-labels',
+      'no confirmed-price / ETA / open-to-offers strips',
     )
 
     console.log('ok marketplace daylight + AI draft + geocode + onboarding + request-detail 2col + messages 2-pane workspace')
@@ -1860,7 +1885,8 @@ async function checkSubtleRadii() {
           '[data-testid="browse-trending-helpers"]',
           '[data-testid="browse-command-bar"] > div',
           '[data-testid="hero-search-pill"] > div',
-          '[data-testid="messages-workspace"]',
+          '[data-testid="messages-inbox-rail"]',
+          '[data-testid="messages-conversation-panel"]',
           '[data-testid="categories-bento"] a',
           '[data-testid="why-beam-live-offers"]',
           '[data-testid="why-beam-showcase"] > div',
