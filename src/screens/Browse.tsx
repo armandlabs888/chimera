@@ -6,7 +6,6 @@ import {
   ChevronDown,
   Clock,
   Crosshair,
-  MapPin,
   Search,
   ShieldCheck,
   SlidersHorizontal,
@@ -35,7 +34,6 @@ import { useBeam } from '@/context/BeamContext'
 import { CATEGORIES, WHEN_OPTIONS } from '@/data/categories'
 import { useBrowseLocation } from '@/hooks/useBrowseLocation'
 import { ALL_CATEGORY_ICON, CATEGORY_ICONS } from '@/lib/categoryIcons'
-import { requestBrowseLocationPicker } from '@/lib/browseLocationPreference'
 import { helperProfileProgress } from '@/lib/helperProfileProgress'
 import { readJobAlertsPreference, writeJobAlertsPreference } from '@/lib/jobAlerts'
 import { distanceBetween, formatLocation } from '@/lib/location'
@@ -282,11 +280,6 @@ export function Browse() {
   const q = qParam.toLowerCase().trim()
   const radiusMiles = radius === 'all' ? null : Number(radius)
   const cityOrArea = browseOrigin.city || ''
-  const locationEyebrow = cityOrArea
-    ? `${cityOrArea}${browseOrigin.stateCode ? `, ${browseOrigin.stateCode}` : ''} & nearby`
-    : browseOrigin.locationLabel !== 'Nearby'
-      ? `${browseOrigin.locationLabel} & nearby`
-      : 'Your area & nearby'
 
   const openRequests = useMemo(() => {
     let list = state.requests
@@ -851,17 +844,6 @@ export function Browse() {
           <div className="shrink-0 pb-3.5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
               <div className="min-w-0">
-                <button
-                  type="button"
-                  onClick={() => requestBrowseLocationPicker()}
-                  className="mb-1.5 inline-flex items-center gap-1.5 rounded-md text-[12px] font-semibold text-[#1D5CE5] transition hover:bg-[#EEF4FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35"
-                  data-testid="browse-location-eyebrow"
-                  aria-haspopup="dialog"
-                  title="Change browse location"
-                >
-                  <MapPin className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-                  {locationEyebrow}
-                </button>
                 <div className="flex min-w-0 items-center gap-2.5">
                   <h1 className="text-[22px] font-bold leading-tight tracking-[-0.02em] text-[#071330] sm:text-[24px]">
                     Browse Local Jobs
@@ -1200,25 +1182,6 @@ export function Browse() {
               ) : null}
             </div>
 
-            {/* Compact category chips (screenshot density — not big pills) */}
-            <div className="mt-3 hide-scrollbar flex gap-1.5 overflow-x-auto pb-0.5">
-              <CategoryChip
-                active={category === 'all'}
-                onClick={() => setCategory('all')}
-                label="All"
-                icon={ALL_CATEGORY_ICON}
-              />
-              {CATEGORIES.map((c) => (
-                <CategoryChip
-                  key={c.id}
-                  active={category === c.id}
-                  onClick={() => setCategory(c.id)}
-                  label={c.label}
-                  icon={CATEGORY_ICONS[c.id]}
-                />
-              ))}
-            </div>
-
             {hasActiveFilters ? (
               <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                 {qParam ? (
@@ -1458,33 +1421,6 @@ function CategoryRow({
       >
         {count}
       </span>
-    </button>
-  )
-}
-
-function CategoryChip({
-  label,
-  active,
-  onClick,
-  icon: Icon,
-}: {
-  label: string
-  active: boolean
-  onClick: () => void
-  icon: LucideIcon
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition ${
-        active
-          ? 'bg-[#1D5CE5] text-white'
-          : 'bg-white text-[#475569] ring-1 ring-[#E2E8F0] hover:text-[#071330]'
-      }`}
-    >
-      <Icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-      {label}
     </button>
   )
 }

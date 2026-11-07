@@ -185,8 +185,8 @@ async function main() {
       const prefAfterCancel = await page.evaluate((k) => localStorage.getItem(k), BROWSE_LOC_KEY)
       assert.equal(prefAfterCancel, null, 'cancel leaves preference unset')
 
-      // Open via eyebrow + validation error
-      await page.getByTestId('browse-location-eyebrow').click()
+      // Re-open via topnav + validation error
+      await page.getByTestId('topnav-location').click()
       await page.waitForSelector('[data-testid="browse-location-dialog"]')
       const change = page.getByRole('button', { name: 'Change city' })
       if (await change.count()) await change.click()
@@ -210,8 +210,7 @@ async function main() {
       await pickCity(page, 'Milpitas', 'Milpitas')
       await page.waitForTimeout(400)
 
-      const eyebrow = await page.getByTestId('browse-location-eyebrow').innerText()
-      assert.match(eyebrow, /Milpitas/i)
+      assert.equal(await page.locator('[data-testid="browse-location-eyebrow"]').count(), 0)
       const topnav = await page.getByTestId('topnav-location').innerText()
       assert.match(topnav, /Milpitas/i)
 
@@ -239,8 +238,9 @@ async function main() {
 
       // Reload persistence
       await page.goto(`${BASE}/browse?radius=10`, { waitUntil: 'networkidle', timeout: 60000 })
-      await page.waitForSelector('[data-testid="browse-location-eyebrow"]')
-      assert.match(await page.getByTestId('browse-location-eyebrow').innerText(), /Milpitas/i)
+      await page.waitForSelector('[data-testid="topnav-location"]')
+      assert.match(await page.getByTestId('topnav-location').innerText(), /Milpitas/i)
+      assert.equal(await page.locator('[data-testid="browse-location-eyebrow"]').count(), 0)
       assert.equal(
         await page.locator('[data-testid="browse-feed-scroll"] a[href^="/requests/"]').count(),
         0,
@@ -252,7 +252,7 @@ async function main() {
       await page.getByTestId('browse-location-use-home').click()
       await page.waitForSelector('[data-testid="browse-location-dialog"]', { state: 'detached' })
       await page.waitForTimeout(400)
-      assert.match(await page.getByTestId('browse-location-eyebrow').innerText(), /Austin/i)
+      assert.match(await page.getByTestId('topnav-location').innerText(), /Austin/i)
       assert.ok(
         (await page.locator('[data-testid="browse-feed-scroll"] a[href^="/requests/"]').count()) >= 1,
       )
@@ -270,7 +270,8 @@ async function main() {
       assert.equal(new URL(page.url()).pathname, '/browse')
       report.shots.push(await shot(page, 'mobile-customer-picker-open.png'))
       await pickCity(page, 'San Jose', 'San Jose')
-      assert.match(await page.getByTestId('browse-location-eyebrow').innerText(), /San Jose/i)
+      assert.match(await page.getByTestId('topnav-location').innerText(), /San Jose/i)
+      assert.equal(await page.locator('[data-testid="browse-location-eyebrow"]').count(), 0)
       report.shots.push(await shot(page, 'mobile-customer-san-jose.png'))
       report.checks.push({ state: 'mobile-customer-picker', ok: true })
       await page.close()
