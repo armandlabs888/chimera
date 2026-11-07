@@ -107,34 +107,88 @@ async function seedHelper(page, { emptyJobs }) {
   await page.waitForSelector('[data-testid="browse-3col-grid"]', { timeout: 15000 })
 }
 
-async function seedCustomerPopulated(page) {
+async function seedCustomer(page, { emptyJobs = false, emptyHelpers = false } = {}) {
   await warmDemo(page)
-  await page.evaluate((key) => {
-    const state = JSON.parse(localStorage.getItem(key) || '{}')
-    const me = state.currentUserId || 'user-you'
-    state.people = (state.people || []).map((p) => {
-      if (p.id === me) {
-        return {
-          ...p,
-          accountRole: 'customer',
-          isHelper: false,
-          skills: [],
-          city: p.city || 'San Jose',
-          stateCode: p.stateCode || 'CA',
-          locationLabel: p.locationLabel || 'San Jose, CA',
-          onboardingCompletedAt: p.onboardingCompletedAt || new Date().toISOString(),
+  await page.evaluate(
+    ({ key, emptyJobs, emptyHelpers }) => {
+      const state = JSON.parse(localStorage.getItem(key) || '{}')
+      const me = state.currentUserId || 'user-you'
+      state.people = (state.people || []).map((p) => {
+        if (p.id === me) {
+          return {
+            ...p,
+            accountRole: 'customer',
+            isHelper: false,
+            skills: [],
+            city: p.city || 'San Jose',
+            stateCode: p.stateCode || 'CA',
+            locationLabel: p.locationLabel || 'San Jose, CA',
+            onboardingCompletedAt: p.onboardingCompletedAt || new Date().toISOString(),
+          }
+        }
+        if (emptyHelpers) {
+          return {
+            ...p,
+            isHelper: false,
+            skills: [],
+            hourlyRate: 0,
+          }
+        }
+        if (!(p.isHelper || (p.skills || []).length)) {
+          p.isHelper = true
+          p.skills = ['moving', 'cleaning']
+          if (!(p.hourlyRate > 0)) p.hourlyRate = 35
+        }
+        return p
+      })
+      if (emptyJobs) {
+        state.requests = (state.requests || []).map((r) =>
+          r.status === 'open' ? { ...r, status: 'cancelled' } : r,
+        )
+      } else {
+        let opened = 0
+        state.requests = (state.requests || []).map((r) => {
+          if (r.status === 'cancelled' || r.status === 'open') {
+            opened += 1
+            return { ...r, status: 'open' }
+          }
+          return r
+        })
+        if (opened === 0) {
+          state.requests = [
+            {
+              id: 'req-visual-qa-customer-1',
+              title: 'Help move a couch upstairs',
+              details: 'Need careful help with furniture.',
+              category: 'moving',
+              neighborhood: 'east-austin',
+              when: 'asap',
+              whenLabel: 'ASAP',
+              budget: 85,
+              status: 'open',
+              requesterId: 'p-maya',
+              image: '',
+              createdAt: new Date().toISOString(),
+              locationLabel: 'San Jose, CA',
+              lat: 37.3382,
+              lng: -121.8863,
+              radiusMiles: 5,
+              budgetType: 'fixed',
+            },
+            ...(state.requests || []),
+          ]
         }
       }
-      if (!(p.isHelper || (p.skills || []).length)) {
-        p.isHelper = true
-        p.skills = ['moving', 'cleaning']
-      }
-      return p
-    })
-    localStorage.setItem(key, JSON.stringify(state))
-  }, STORAGE_KEY)
+      localStorage.setItem(key, JSON.stringify(state))
+    },
+    { key: STORAGE_KEY, emptyJobs, emptyHelpers },
+  )
   await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
   await page.waitForSelector('[data-testid="browse-3col-grid"]')
+}
+
+async function seedCustomerPopulated(page) {
+  await seedCustomer(page, { emptyJobs: false, emptyHelpers: false })
 }
 
 async function main() {
@@ -191,8 +245,41 @@ async function main() {
       summary.checks.push({ state: 'helper-populated', viewport: vp.name, ok: true })
     }
 
-    // Desktop customer discovery retention (no map affordance)
+    // Customer role — empty jobs: no radar / no map hole; discovery tabs present
+    for (const vp of [
+      { name: '1440x900', width: 1440, height: 900 },
+      { name: '390x844', width: 390, height: 844 },
+    ]) {
+      await page.setViewportSize({ width: vp.width, height: vp.height })
+      await seedCustomer(page, { emptyJobs: true })
+      await page.waitForSelector('[data-testid="browse-fresh-empty"]')
+      assert.ok(await page.locator('[data-testid="browse-mode-tabs"]').count())
+      assert.equal(
+        await page.locator('[data-testid="browse-radar"]').count(),
+        0,
+        `customer empty jobs: no radar @${vp.name}`,
+      )
+      assert.equal(
+        await page.locator('[data-testid="browse-fresh-empty"]').getAttribute('data-empty-layout'),
+        'customer-copy',
+      )
+      assert.equal(await page.locator('[data-testid="browse-view-toggle"]').count(), 0)
+      assert.equal(await page.locator('[data-testid="browse-map-view"]').count(), 0)
+      summary.shots.push(await shot(page, `customer-empty-jobs-${vp.name}.png`))
+      summary.checks.push({ state: 'customer-empty-jobs-no-radar', viewport: vp.name, ok: true })
+    }
+
+    // Customer Local helpers tab empty — still no radar/map
     await page.setViewportSize({ width: 1440, height: 900 })
+    await seedCustomer(page, { emptyJobs: false, emptyHelpers: true })
+    await page.getByTestId('browse-tab-local-helpers').click()
+    await page.waitForTimeout(400)
+    assert.equal(await page.locator('[data-testid="browse-radar"]').count(), 0)
+    assert.equal(await page.locator('[data-testid="browse-map-view"]').count(), 0)
+    summary.shots.push(await shot(page, 'customer-empty-helpers-1440x900.png'))
+    summary.checks.push({ state: 'customer-empty-helpers-no-radar', ok: true })
+
+    // Desktop customer discovery retention (populated, no map affordance)
     await seedCustomerPopulated(page)
     assert.ok(await page.locator('[data-testid="browse-mode-tabs"]').count())
     assert.ok(await page.locator('[data-testid="browse-trending-helpers"]').count())
@@ -201,6 +288,7 @@ async function main() {
       0,
       'customer: no List/Map toggle',
     )
+    assert.equal(await page.locator('[data-testid="browse-radar"]').count(), 0)
     assert.equal(await page.locator('[data-testid="browse-map-view"]').count(), 0)
     summary.shots.push(await shot(page, 'customer-list-1440x900.png'))
     summary.checks.push({ state: 'customer-no-map', ok: true })
