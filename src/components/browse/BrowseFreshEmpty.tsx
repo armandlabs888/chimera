@@ -4,6 +4,11 @@ import Link from 'next/link'
 import { BrowseRadar } from '@/components/browse/BrowseRadar'
 import { ButtonLink } from '@/components/ui'
 
+/**
+ * Fresh-marketplace empty panel.
+ * Helper empty state keeps the redesign radar illustration.
+ * Customer/guest empty state is copy+actions only — no map/radar geographic viz.
+ */
 export function BrowseFreshEmpty({
   hidePeerDiscovery,
   cityLabel,
@@ -16,14 +21,26 @@ export function BrowseFreshEmpty({
   alertsEnabled: boolean
 }) {
   const area = cityLabel || 'your area'
+  const showRadar = hidePeerDiscovery
 
   return (
     <div
       className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(7,19,48,0.04)]"
       data-testid="browse-fresh-empty"
+      data-empty-layout={showRadar ? 'helper-radar' : 'customer-copy'}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        <div className="flex flex-col justify-center px-5 py-6 sm:px-7 sm:py-8 lg:px-9">
+      <div
+        className={
+          showRadar
+            ? 'grid grid-cols-1 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]'
+            : 'grid grid-cols-1'
+        }
+      >
+        <div
+          className={`flex flex-col justify-center px-5 py-6 sm:px-7 sm:py-8 lg:px-9 ${
+            showRadar ? '' : 'mx-auto w-full max-w-[36rem] text-left sm:py-10'
+          }`}
+        >
           <span className="inline-flex w-fit items-center rounded-md border border-[#E8D9A8] bg-[#FFF8D6] px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#071330]">
             Fresh marketplace
           </span>
@@ -84,9 +101,11 @@ export function BrowseFreshEmpty({
           ) : null}
         </div>
 
-        <div className="border-t border-[#F1F5F9] lg:border-l lg:border-t-0">
-          <BrowseRadar cityLabel={area} className="h-full min-h-[200px] sm:min-h-[240px]" />
-        </div>
+        {showRadar ? (
+          <div className="border-t border-[#F1F5F9] lg:border-l lg:border-t-0">
+            <BrowseRadar cityLabel={area} className="h-full min-h-[200px] sm:min-h-[240px]" />
+          </div>
+        ) : null}
       </div>
     </div>
   )
