@@ -360,7 +360,110 @@ try {
     if (!hrefOk) failed = true
     console.log('\n=== bento hrefs ===', hrefOk ? 'PASS' : 'FAIL', hrefs)
 
-    report.push({ viewport: 'filter-tabs', ok: !failed, filterChecks, hrefs })
+    // Accessibility semantics: toggle filter buttons (not ARIA tabs)
+    const a11y = await page.evaluate(() => {
+      const group = document.querySelector('[data-testid="categories-filter-tabs"]')
+      const buttons = [...document.querySelectorAll('[data-testid^="categories-filter-"]')].filter(
+        (el) => el.tagName === 'BUTTON',
+      )
+      return {
+        groupRole: group?.getAttribute('role') || null,
+        hasTablist: !!document.querySelector('#categories [role="tablist"]'),
+        hasTab: !!document.querySelector('#categories [role="tab"]'),
+        hasTabpanel: !!document.querySelector('#categories [role="tabpanel"]'),
+        pressed: buttons.map((b) => ({
+          id: b.getAttribute('data-testid'),
+          pressed: b.getAttribute('aria-pressed'),
+          label: (b.textContent || '').trim(),
+        })),
+      }
+    })
+    const a11yOk =
+      a11y.groupRole === 'group' &&
+      !a11y.hasTablist &&
+      !a11y.hasTab &&
+      !a11y.hasTabpanel &&
+      a11y.pressed.every((b) => b.pressed === 'true' || b.pressed === 'false') &&
+      a11y.pressed.find((b) => b.id === 'categories-filter-all')?.pressed === 'true'
+    if (!a11yOk) failed = true
+    console.log('\n=== filter a11y semantics ===', a11yOk ? 'PASS' : 'FAIL', JSON.stringify(a11y))
+
+    // Keyboard: Tab focuses filters; Enter / Space toggles aria-pressed + content
+    const homeBtn = page.getByTestId('categories-filter-home')
+    const petsBtn = page.getByTestId('categories-filter-pets')
+    await homeBtn.focus()
+    const homeFocused = await homeBtn.evaluate((el) => el === document.activeElement)
+    await page.keyboard.press('Enter')
+    await page.waitForTimeout(80)
+    const afterEnter = await visibleTiles()
+    const enterOk =
+      homeFocused &&
+      afterEnter.hasCleaning &&
+      afterEnter.hasQuote &&
+      !afterEnter.hasPets &&
+      !afterEnter.hasCustom &&
+      (await homeBtn.getAttribute('aria-pressed')) === 'true' &&
+      (await page.getByTestId('categories-filter-all').getAttribute('aria-pressed')) === 'false'
+    if (!enterOk) failed = true
+    console.log('\n=== filter keyboard Enter ===', enterOk ? 'PASS' : 'FAIL')
+
+    await petsBtn.focus()
+    await page.keyboard.press('Space')
+    await page.waitForTimeout(80)
+    const afterSpace = await visibleTiles()
+    const spaceOk =
+      afterSpace.hasPets &&
+      !afterSpace.hasCleaning &&
+      !afterSpace.hasCustom &&
+      !afterSpace.hasQuote &&
+      (await petsBtn.getAttribute('aria-pressed')) === 'true' &&
+      (await homeBtn.getAttribute('aria-pressed')) === 'false'
+    if (!spaceOk) failed = true
+    console.log('\n=== filter keyboard Space ===', spaceOk ? 'PASS' : 'FAIL')
+
+    // Tab order reaches successive filter buttons
+    await page.getByTestId('categories-filter-all').focus()
+    await page.keyboard.press('Tab')
+    const tabToHome = await homeBtn.evaluate((el) => el === document.activeElement)
+    await page.keyboard.press('Tab')
+    const tabToPets = await petsBtn.evaluate((el) => el === document.activeElement)
+    const tabOk = tabToHome && tabToPets
+    if (!tabOk) failed = true
+    console.log('\n=== filter keyboard Tab ===', tabOk ? 'PASS' : 'FAIL', { tabToHome, tabToPets })
+
+    // Cleaning photo crop: tile tall enough + object-position keeps face band visible
+    await page.getByTestId('categories-filter-all').click()
+    await page.waitForTimeout(100)
+    const crop = await page.evaluate(() => {
+      const tile = document.querySelector('[data-testid="categories-tile-cleaning"]')
+      const img = tile?.querySelector('img')
+      if (!tile || !img) return { error: 'missing cleaning tile' }
+      const tr = tile.getBoundingClientRect()
+      const style = getComputedStyle(img)
+      return {
+        height: Math.round(tr.height),
+        width: Math.round(tr.width),
+        aspect: Number((tr.width / tr.height).toFixed(2)),
+        objectPosition: style.objectPosition,
+      }
+    })
+    const cropOk =
+      !crop.error &&
+      crop.height >= 400 &&
+      crop.aspect <= 2.4 &&
+      String(crop.objectPosition).includes('18%')
+    if (!cropOk) failed = true
+    console.log('\n=== cleaning crop metrics ===', cropOk ? 'PASS' : 'FAIL', JSON.stringify(crop))
+
+    report.push({
+      viewport: 'filter-tabs',
+      ok: !failed,
+      filterChecks,
+      hrefs,
+      a11y,
+      keyboard: { enterOk, spaceOk, tabOk },
+      crop,
+    })
     await page.close()
   }
 } finally {

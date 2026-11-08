@@ -26,3 +26,5 @@
 | Filter hides non-matching tiles; All shows full 3-col asymmetry | Brief | Tabs must filter real content |
 | Replace View-all button with filter tabs | Screenshot | Composition lock |
 | Price copy: “Typical range $60–$140” | Taxonomy | Estimate language, not guarantee |
+| Filters = `aria-pressed` buttons in labeled `role="group"` | A11y review | Content filters, not ARIA tabs (no fake tablist) |
+| Cleaning tile ~420px first row + `object-[50%_18%]` | Desktop crop fix | Preserve face + kitchen cleaning context; keep unique `service-cleaning.jpg` |

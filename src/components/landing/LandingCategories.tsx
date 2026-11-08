@@ -19,11 +19,12 @@ const FILTERS: { id: FilterId; label: string }[] = [
 /**
  * Popular-services bento — screenshot-locked asymmetric Discover section.
  * Auto Detailing omitted (no detailing asset). Junk linked from subtitle only.
+ * Filters are toggle buttons (aria-pressed), not ARIA tabs — they filter content.
  */
 export function LandingCategories() {
   const house = SERVICE_CATEGORIES.find((c) => c.id === 'house-cleaning')!
   const [filter, setFilter] = useState<FilterId>('all')
-  const tablistId = useId()
+  const filterLabelId = useId()
 
   const showCleaning = filter === 'all' || filter === 'home'
   const showQuote = filter === 'all' || filter === 'home'
@@ -31,6 +32,7 @@ export function LandingCategories() {
   const showCustom = filter === 'all' || filter === 'other'
 
   const isAll = filter === 'all'
+  const activeFilterLabel = FILTERS.find((f) => f.id === filter)?.label ?? 'All'
 
   return (
     <section
@@ -59,24 +61,25 @@ export function LandingCategories() {
           </div>
 
           <div
-            role="tablist"
-            aria-label="Filter popular services"
-            id={tablistId}
+            role="group"
+            aria-labelledby={filterLabelId}
             data-testid="categories-filter-tabs"
             className="flex flex-wrap gap-2 sm:justify-end"
           >
+            <span id={filterLabelId} className="sr-only">
+              Filter popular services
+            </span>
             {FILTERS.map((tab) => {
-              const selected = filter === tab.id
+              const pressed = filter === tab.id
               return (
                 <button
                   key={tab.id}
                   type="button"
-                  role="tab"
-                  aria-selected={selected}
+                  aria-pressed={pressed}
                   data-testid={`categories-filter-${tab.id}`}
                   onClick={() => setFilter(tab.id)}
                   className={`inline-flex h-8 items-center rounded-md px-3.5 text-[13px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 focus-visible:ring-offset-2 ${
-                    selected
+                    pressed
                       ? 'bg-[#1D5CE5] text-white'
                       : 'bg-[#F1F5F9] text-[#071330] hover:bg-[#E2E8F0]'
                   }`}
@@ -90,12 +93,14 @@ export function LandingCategories() {
 
         <div
           data-testid="categories-bento"
-          role="tabpanel"
-          aria-labelledby={tablistId}
+          aria-live="polite"
+          data-active-filter={filter}
+          aria-label={`Popular services — ${activeFilterLabel}`}
           className={`mt-10 grid gap-4 sm:gap-5 ${
             isAll
-              ? 'grid-cols-1 auto-rows-[minmax(220px,auto)] sm:grid-cols-2 lg:grid-cols-3 lg:auto-rows-[minmax(300px,auto)]'
-              : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:auto-rows-[minmax(280px,auto)]'
+              ? // Generous first row so portrait cleaning photo keeps face + kitchen action (not a torso strip).
+                'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-[minmax(420px,auto)_minmax(250px,auto)]'
+              : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:auto-rows-[minmax(300px,auto)]'
           }`}
         >
           {showCleaning ? (
@@ -107,8 +112,9 @@ export function LandingCategories() {
               // Taxonomy typicalRange — estimate label, not a live market quote.
               detail={`Typical range ${house.typicalRange}`}
               alt="Neighbor wiping a sunlit kitchen counter during a home cleaning job"
-              objectPosition="object-[50%_28%]"
-              className="sm:col-span-2 lg:col-span-2"
+              // Portrait source: bias upward so eyes stay in frame while retaining counter context.
+              objectPosition="object-[50%_18%]"
+              className="min-h-[300px] sm:col-span-2 sm:min-h-[340px] lg:col-span-2 lg:min-h-0 lg:h-full"
               testId="categories-tile-cleaning"
             />
           ) : null}
@@ -116,7 +122,7 @@ export function LandingCategories() {
           {showQuote ? (
             <blockquote
               data-testid="categories-quote"
-              className="relative flex h-full min-h-[220px] flex-col justify-between overflow-hidden rounded-[10px] border border-dashed border-[#C4B5FD]/70 bg-[#F3F0FF] p-5 sm:min-h-[240px] sm:p-6 lg:min-h-0 lg:p-7"
+              className="relative flex h-full min-h-[260px] flex-col justify-between overflow-hidden rounded-[10px] border border-dashed border-[#C4B5FD]/70 bg-[#F3F0FF] p-5 sm:min-h-[280px] sm:p-6 lg:min-h-0 lg:h-full lg:p-7"
             >
               <span
                 aria-hidden
@@ -222,7 +228,7 @@ function PhotoServiceTile({
       />
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"
       />
       <span className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-start gap-1.5 p-4 sm:p-5">
         <span className="inline-flex rounded-md bg-black/45 px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-white backdrop-blur-[2px]">
