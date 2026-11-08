@@ -118,8 +118,9 @@ function analyzeGeometry(data) {
     issues.push(data.error)
     return { ok: false, issues, rows: [] }
   }
-  if (data.childCount !== 7) {
-    issues.push(`Expected 7 bento items, found ${data.childCount}`)
+  // Default All filter: House Cleaning + quote + Pets + Custom = 4
+  if (data.childCount !== 4) {
+    issues.push(`Expected 4 bento items (All filter), found ${data.childCount}`)
   }
 
   const { grid, kids, quoteOverflow } = data
@@ -293,6 +294,73 @@ try {
       console.log(' Other landing grid trailing gaps:', other.suspects)
     }
 
+    await page.close()
+  }
+
+  // Filter tabs must show matching tiles only (desktop).
+  {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+    await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
+    await page.locator('#categories').scrollIntoViewIfNeeded()
+
+    const filterChecks = []
+    async function visibleTiles() {
+      return page.evaluate(() => {
+        const grid = document.querySelector('[data-testid="categories-bento"]')
+        if (!grid) return { error: 'missing bento' }
+        const kids = Array.from(grid.children).map((el) => el.getAttribute('data-testid') || el.tagName)
+        return {
+          count: kids.length,
+          kids,
+          hasCleaning: !!grid.querySelector('[data-testid="categories-tile-cleaning"]'),
+          hasPets: !!grid.querySelector('[data-testid="categories-tile-pets"]'),
+          hasCustom: !!grid.querySelector('[data-testid="categories-tile-custom"]'),
+          hasQuote: !!grid.querySelector('[data-testid="categories-quote"]'),
+          illustrative: /Illustrative example/i.test(grid.textContent || ''),
+          verifiedLie: /Verified neighbor/i.test(grid.textContent || ''),
+        }
+      })
+    }
+
+    for (const [tab, expect] of [
+      ['all', { hasCleaning: true, hasPets: true, hasCustom: true, hasQuote: true, count: 4 }],
+      ['home', { hasCleaning: true, hasPets: false, hasCustom: false, hasQuote: true, count: 2 }],
+      ['pets', { hasCleaning: false, hasPets: true, hasCustom: false, hasQuote: false, count: 1 }],
+      ['other', { hasCleaning: false, hasPets: false, hasCustom: true, hasQuote: false, count: 1 }],
+    ]) {
+      await page.getByTestId(`categories-filter-${tab}`).click()
+      await page.waitForTimeout(120)
+      const state = await visibleTiles()
+      const ok =
+        !state.error &&
+        state.count === expect.count &&
+        state.hasCleaning === expect.hasCleaning &&
+        state.hasPets === expect.hasPets &&
+        state.hasCustom === expect.hasCustom &&
+        state.hasQuote === expect.hasQuote &&
+        state.illustrative === (expect.hasQuote === true ? true : state.illustrative) &&
+        state.verifiedLie === false
+      filterChecks.push({ tab, ok, state, expect })
+      if (!ok) failed = true
+      console.log(`\n=== filter:${tab} ===`)
+      console.log(ok ? 'PASS' : 'FAIL', JSON.stringify(state))
+    }
+
+    // Link hrefs
+    await page.getByTestId('categories-filter-all').click()
+    const hrefs = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('[data-testid="categories-bento"] a')).map((a) =>
+        a.getAttribute('href'),
+      ),
+    )
+    const hrefOk =
+      hrefs.includes('/browse?category=home') &&
+      hrefs.includes('/browse?category=pets') &&
+      hrefs.includes('/browse?category=other')
+    if (!hrefOk) failed = true
+    console.log('\n=== bento hrefs ===', hrefOk ? 'PASS' : 'FAIL', hrefs)
+
+    report.push({ viewport: 'filter-tabs', ok: !failed, filterChecks, hrefs })
     await page.close()
   }
 } finally {
