@@ -16,6 +16,9 @@
 | Popular services bento unchanged | User ask | Distinct discovery surface |
 | Keep `id="neighborhoods"` | Nav/footer/smoke | Deep-link stability |
 | Local-only photos (no Unsplash hotlinks) | Smoke uniqueness | Page must not embed remote Unsplash URLs |
+| `motion-safe:scroll-smooth` + `motion-reduce:scroll-auto`; imperative `behavior: instant` when reduced | PR66 a11y review | Smooth scroll must not run under prefers-reduced-motion |
+| QA asserts computed `scroll-behavior: auto` + instant jump samples | PR66 a11y review | Navigation alone is insufficient evidence |
+| Content-hash + contact sheet for rendered landing `<img>`s | PR66 evidence ask | Catch real pixel duplicates beyond unique paths |
 
 ## Image provenance (all local under `/public/images/landing/`)
 

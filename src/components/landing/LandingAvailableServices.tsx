@@ -114,7 +114,14 @@ export function LandingAvailableServices() {
     if (!el) return
     const card = el.querySelector<HTMLElement>('[data-service-card]')
     const delta = (card?.offsetWidth ?? 220) + 16
-    el.scrollBy({ left: dir * delta, behavior: 'smooth' })
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    // Prefer 'instant' when supported; 'auto' follows CSS (motion-reduce:scroll-auto).
+    const behavior: ScrollBehavior = reduceMotion ? 'instant' : 'smooth'
+    try {
+      el.scrollBy({ left: dir * delta, behavior })
+    } catch {
+      el.scrollBy({ left: dir * delta, behavior: reduceMotion ? 'auto' : 'smooth' })
+    }
   }
 
   return (
@@ -173,7 +180,7 @@ export function LandingAvailableServices() {
             role="list"
             aria-labelledby={headingId}
             data-testid="available-services-row"
-            className="flex gap-4 overflow-x-auto scroll-smooth pb-2 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory [&::-webkit-scrollbar]:hidden"
+            className="flex gap-4 overflow-x-auto scroll-auto motion-safe:scroll-smooth motion-reduce:scroll-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory [&::-webkit-scrollbar]:hidden"
           >
             {SERVICES.map((service) => (
               <Link
