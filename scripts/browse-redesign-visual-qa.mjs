@@ -549,7 +549,7 @@ async function main() {
     })
     assert.equal(mobileEmptyMetrics.artVisible, true, 'mobile empty keeps reduced artwork visible')
     assert.ok(mobileEmptyMetrics.artWidth <= 120, `mobile art width compact (got ${mobileEmptyMetrics.artWidth})`)
-    assert.ok(mobileEmptyMetrics.heroHeight < 320, `mobile hero compact (got ${mobileEmptyMetrics.heroHeight})`)
+    assert.ok(mobileEmptyMetrics.heroHeight < 360, `mobile hero compact (got ${mobileEmptyMetrics.heroHeight})`)
     assert.ok(
       mobileEmptyMetrics.commandBarHeight <= 56,
       `mobile command bar single-row (got ${mobileEmptyMetrics.commandBarHeight})`,

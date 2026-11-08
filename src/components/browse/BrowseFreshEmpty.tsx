@@ -56,11 +56,11 @@ export function BrowseFreshEmpty({
             Fresh marketplace
           </span>
 
-          <h2 className="mt-2 max-w-[16ch] text-balance font-display text-[1.35rem] font-bold leading-[1.1] tracking-[-0.03em] text-white sm:mt-3 sm:max-w-[18ch] sm:text-[clamp(1.7rem,3.2vw,2.35rem)] sm:leading-[1.08]">
+          <h2 className="mt-2 max-w-[16ch] text-balance font-display text-[1.45rem] font-bold leading-[1.08] tracking-[-0.03em] text-white drop-shadow-[0_1px_3px_rgba(7,19,48,0.28)] sm:mt-3 sm:max-w-[18ch] sm:text-[clamp(1.85rem,3.2vw,2.45rem)] sm:leading-[1.06]">
             {hidePeerDiscovery ? 'No open jobs nearby yet.' : 'Be the first on Beam.'}
           </h2>
 
-          <p className="mt-1.5 max-w-[36ch] text-[12.5px] leading-[1.45] text-white/90 sm:mt-3 sm:max-w-[40ch] sm:text-[14.5px] sm:leading-[1.55] sm:text-[15px]">
+          <p className="mt-1.5 max-w-[36ch] text-[13px] leading-[1.45] text-white drop-shadow-[0_1px_2px_rgba(7,19,48,0.35)] sm:mt-3 sm:max-w-[40ch] sm:text-[15px] sm:leading-[1.55]">
             {hidePeerDiscovery
               ? `Requests near ${area} will show up here. Turn on alerts, widen search, or post a task.`
               : `No open requests near ${area} yet — post a task, or set up your helper profile.`}
@@ -114,7 +114,7 @@ export function BrowseFreshEmpty({
 
           {hidePeerDiscovery ? (
             <p
-              className="mt-2.5 max-w-[42ch] text-[11.5px] leading-snug text-white/80 sm:mt-4 sm:max-w-[46ch] sm:text-[12.5px] sm:leading-relaxed sm:text-white/75"
+              className="mt-2 max-w-[42ch] rounded-lg bg-[#071330]/40 px-2 py-1 text-[12px] font-medium leading-snug text-white backdrop-blur-[2px] drop-shadow-[0_1px_2px_rgba(7,19,48,0.4)] sm:mt-4 sm:max-w-[46ch] sm:px-2.5 sm:py-1.5 sm:text-[13px] sm:leading-relaxed"
               data-testid="browse-empty-alerts-caveat"
             >
               {alertsEnabled

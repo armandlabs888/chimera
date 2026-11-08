@@ -142,7 +142,7 @@ export function LandingFooter({
                 tone="ink"
               />
             </Link>
-            <p className="mt-2.5 text-[13.5px] leading-[1.45] text-[#64748B]">
+            <p className="mt-2.5 text-[13.5px] leading-[1.45] text-[#334155]">
               Peer-to-peer everyday local help — home, auto, junk removal, pets, and other casual
               tasks.
             </p>
@@ -159,7 +159,7 @@ export function LandingFooter({
       <div className="border-t border-[rgba(7,19,48,0.08)] bg-white/70" data-testid="footer-legal">
         <div className="beam-container flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <p className="shrink-0 text-[12.5px] leading-[1.35] text-[#475569]">© 2026 Beam</p>
-          <p className="max-w-[68ch] text-[12px] leading-[1.4] text-[#64748B] sm:text-right">
+          <p className="max-w-[68ch] text-[12px] leading-[1.45] text-[#475569] sm:text-right">
             Payments are arranged directly between neighbors. Not for licensed trades, childcare,
             medical/senior care, or passenger driving.
           </p>

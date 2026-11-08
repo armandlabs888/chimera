@@ -30,7 +30,7 @@ export function EmptyState({
   action?: ReactNode
 }) {
   return (
-    <div className="rounded-lg border border-[#E2E8F0] bg-white px-6 py-12 text-center">
+    <div className="rounded-[10px] border border-[#C7D7F0] bg-[#FBFDFF] px-6 py-12 text-center">
       <h3 className="type-h3 text-[#071330]">{title}</h3>
       <p className="mx-auto mt-2 max-w-sm type-sec text-beam-muted">{body}</p>
       {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
