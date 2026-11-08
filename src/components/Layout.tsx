@@ -221,7 +221,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {/* Right: location + CTA + account (Messages nav carries unread; no bell) */}
             <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
               {process.env.NODE_ENV !== 'production' ? (
-                <span className="hidden rounded-md border border-[#E2E8F0] px-2 py-1 text-[11px] font-semibold text-[#64748B] lg:inline-flex">
+                <span className="hidden rounded-md border border-[#C7D7F0] px-2 py-1 text-[11px] font-semibold text-[#334155] lg:inline-flex">
                   {mode === 'live' ? 'Live' : 'Demo'}
                 </span>
               ) : null}
@@ -266,7 +266,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <span className="hidden truncate text-[13px] font-medium text-[#071330] sm:inline">
                     {ready ? currentUser.name.split(' ')[0] || currentUser.name : '…'}
                   </span>
-                  <ChevronDown className="hidden h-3.5 w-3.5 shrink-0 text-[#64748B] sm:block" aria-hidden />
+                  <ChevronDown className="hidden h-3.5 w-3.5 shrink-0 text-[#475569] sm:block" aria-hidden />
                 </button>
                 {accountOpen ? (
                   <div
@@ -279,7 +279,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       <p className="truncate text-[14px] font-bold text-[#071330]">
                         {ready ? currentUser.name : '…'}
                       </p>
-                      <p className="mt-0.5 truncate text-[12.5px] text-[#64748B]">{locationText}</p>
+                      <p className="mt-0.5 truncate text-[12.5px] font-medium text-[#334155]">{locationText}</p>
                     </div>
                     <ul className="py-1.5">
                       <AccountMenuLink href="/you" onNavigate={() => setAccountOpen(false)}>

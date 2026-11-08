@@ -3,11 +3,11 @@
 Primary lock: user screenshot (`beam-browse-reference` / attached analysis). Secondary: current Beam Browse geometry & roles.
 
 ## Direction
-Quiet pale gray-blue canvas + white compact chrome surrounding **one** vivid blue→turquoise gradient empty-state hero. Personality in the hero only; sidebar/nav stay restrained.
+Pale gray-blue canvas + **one** vivid blue→turquoise gradient empty-state hero. **Superseded for chrome contrast:** see `browse-contrast-vibrancy-reference-lock.md` — populated feed / filters / cards must stay lively and legible; quiet washed gray chrome is rejected.
 
 ## Tokens
 - Canvas: `#F4F8FD`
-- Ink: `#071330` / muted `#64748B`
+- Ink: `#071330` / secondary `#334155` (not washed `#64748B` for readable copy)
 - CTA blue: `#1D5CE5`
 - Hero gradient: deep blue `#0B3CC7` → turquoise `#22D3EE` (diagonal)
 - Radius: cards/wrappers ~10–12px (`rounded-[10px]`/`rounded-xl`); controls 8px (`rounded-lg`)

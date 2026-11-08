@@ -621,7 +621,7 @@ export function Browse() {
       ? `Active near ${cityOrArea}`
       : 'Active near you'
 
-  const filterSurface = 'rounded-lg border border-[#E2E8F0] bg-white'
+  const filterSurface = 'rounded-[10px] border border-[#C7D7F0] bg-[#FBFDFF]'
 
   function closeMobileFilters() {
     setMobileFiltersOpen(false)
@@ -632,8 +632,8 @@ export function Browse() {
   function renderFiltersSidebar(opts?: { onDismiss?: () => void }) {
     return (
       <div className={`${filterSurface} flex h-fit max-h-full flex-col overflow-hidden`}>
-        <div className="flex items-center justify-between gap-3 border-b border-[#F1F5F9] px-3.5 py-2.5">
-          <h2 className="text-[13px] font-semibold text-[#071330]">Filters</h2>
+        <div className="flex items-center justify-between gap-3 border-b border-[#D7E3F4] px-3.5 py-2.5">
+          <h2 className="text-[13.5px] font-bold text-[#071330]">Filters</h2>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -641,7 +641,7 @@ export function Browse() {
               className={`text-[12px] font-semibold transition ${
                 hasActiveFilters
                   ? 'text-[#1D5CE5] hover:text-[#1649BD]'
-                  : 'text-[#94A3B8] hover:text-[#64748B]'
+                  : 'text-[#475569] hover:text-[#334155]'
               }`}
               data-testid="browse-filters-reset"
             >
@@ -651,7 +651,7 @@ export function Browse() {
               <button
                 type="button"
                 onClick={opts.onDismiss}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-[#64748B] transition hover:bg-[#F8FAFC] hover:text-[#071330]"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-[#334155] transition hover:bg-[#F0F7FF] hover:text-[#071330]"
                 aria-label="Close filters"
                 data-testid="browse-mobile-filters-close"
               >
@@ -663,7 +663,7 @@ export function Browse() {
 
         <div className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-3 py-3">
           <div className="space-y-1.5">
-            <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
+            <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#334155]">
               Categories
             </p>
             <ul className="space-y-0.5">
@@ -690,7 +690,7 @@ export function Browse() {
             </ul>
           </div>
 
-          <div className="space-y-3 border-t border-[#F1F5F9] pt-3">
+          <div className="space-y-3 border-t border-[#D7E3F4] pt-3">
             {isGuest ? (
               tab === 'requests' ? (
                 <WhenChipRow current={when} onSelect={setWhen} />
@@ -700,11 +700,11 @@ export function Browse() {
             ) : (
               <>
                 <div className="space-y-2">
-                  <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
+                  <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#334155]">
                     Miles radius
                   </p>
                   <div
-                    className="grid grid-cols-5 gap-0.5 rounded-lg bg-[#F1F5F9] p-0.5"
+                    className="grid grid-cols-5 gap-0.5 rounded-lg bg-[#E8F1FC] p-0.5"
                     role="group"
                     aria-label="Miles radius"
                   >
@@ -717,8 +717,8 @@ export function Browse() {
                           onClick={() => setRadius(opt.id)}
                           className={`inline-flex h-7 items-center justify-center rounded-md text-[12px] font-semibold transition ${
                             active
-                              ? 'bg-white text-[#071330] shadow-[0_1px_2px_rgba(7,19,48,0.08)]'
-                              : 'text-[#64748B] hover:text-[#071330]'
+                              ? 'bg-white text-[#071330] shadow-[0_1px_3px_rgba(29,92,229,0.18)]'
+                              : 'text-[#334155] hover:bg-white/70 hover:text-[#071330]'
                           }`}
                         >
                           {opt.label}
@@ -737,14 +737,14 @@ export function Browse() {
           </div>
 
           {tab === 'people' || freeOnly ? (
-            <div className="border-t border-[#F1F5F9] pt-3">
+            <div className="border-t border-[#D7E3F4] pt-3">
               <button
                 type="button"
                 onClick={toggleFree}
                 className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13px] font-semibold transition ${
                   freeOnly
-                    ? 'bg-[#1D5CE5]/[0.08] text-[#1D5CE5]'
-                    : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#071330]'
+                    ? 'bg-[#DBEAFE] text-[#1D5CE5]'
+                    : 'text-[#475569] hover:bg-[#F0F7FF] hover:text-[#071330]'
                 }`}
               >
                 <Sun className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
@@ -755,7 +755,7 @@ export function Browse() {
           ) : null}
         </div>
 
-        <div className="mt-auto border-t border-[#F1F5F9] px-3 py-3">
+        <div className="mt-auto border-t border-[#D7E3F4] px-3 py-3">
           <Link
             href="/safety"
             className="flex items-start gap-2.5 rounded-[10px] border border-[#DBEAFE] bg-[#EFF6FF] px-3 py-2.5 text-[12px] font-medium leading-snug text-[#1E3A8A] transition hover:border-[#BFDBFE] hover:bg-[#DBEAFE]/70"
@@ -775,14 +775,14 @@ export function Browse() {
         className={`${filterSurface} flex h-fit max-h-full flex-col overflow-y-auto`}
         data-testid={opts?.omitTestId ? undefined : 'browse-trending-helpers'}
       >
-        <div className="border-b border-[#F1F5F9] px-4 py-3">
-          <h2 className="text-[14px] font-semibold text-[#071330]">Trending helpers</h2>
-          <p className="mt-0.5 text-[12px] text-[#64748B]">{trendingSubtitle}</p>
+        <div className="border-b border-[#D7E3F4] px-4 py-3">
+          <h2 className="text-[15px] font-bold text-[#071330]">Trending helpers</h2>
+          <p className="mt-0.5 text-[12.5px] font-medium text-[#475569]">{trendingSubtitle}</p>
         </div>
 
         {trendingHelpers.length === 0 ? (
           <div className="px-4 py-6 text-center">
-            <span className="mx-auto inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#F8FAFC] text-[#64748B]">
+            <span className="mx-auto inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#CCFBF1] text-[#0D9488]">
               <Users className="h-4 w-4" strokeWidth={1.75} aria-hidden />
             </span>
             <p className="mt-3 text-[13px] font-semibold text-[#071330]">
@@ -809,7 +809,7 @@ export function Browse() {
                 <li key={helper.id}>
                   <Link
                     href={`/people/${helper.id}`}
-                    className="flex gap-2.5 rounded-lg px-3 py-2.5 transition hover:bg-[#F8FAFC]"
+                    className="flex gap-2.5 rounded-lg px-3 py-2.5 transition hover:bg-[#F0F7FF]"
                   >
                     <span className="relative shrink-0">
                       <Avatar src={helper.avatar} name={helper.name} size={36} />
@@ -829,11 +829,11 @@ export function Browse() {
                           {formatRate(helper)}
                         </span>
                       </span>
-                      <span className="mt-0.5 flex items-center gap-1.5 text-[12px] text-[#64748B]">
+                      <span className="mt-0.5 flex items-center gap-1.5 text-[12px] text-[#334155]">
                         {ratingLabel ? (
                           <span>★ {ratingLabel}</span>
                         ) : (
-                          <span className="rounded bg-[#F1F5F9] px-1.5 py-0.5 text-[10.5px] font-medium text-[#64748B]">
+                          <span className="rounded bg-[#E8F1FC] px-1.5 py-0.5 text-[10.5px] font-medium text-[#334155]">
                             New
                           </span>
                         )}
@@ -843,7 +843,7 @@ export function Browse() {
                           {skillLabels.map((label) => (
                             <span
                               key={label}
-                              className="rounded-md bg-[#F4F8FD] px-1.5 py-0.5 text-[11px] font-medium text-[#475569]"
+                              className="rounded-md border border-[#99F6E4]/70 bg-[#F0FDFA] px-1.5 py-0.5 text-[11px] font-bold text-[#0F766E]"
                             >
                               {label}
                             </span>
@@ -858,8 +858,8 @@ export function Browse() {
           </ul>
         )}
 
-        <div className="mt-auto flex items-center justify-between gap-2 rounded-b-lg border-t border-[#F1F5F9] bg-[#FAFBFD] px-4 py-2.5">
-          <p className="truncate text-[12px] text-[#64748B]">Need something done today?</p>
+        <div className="mt-auto flex items-center justify-between gap-2 rounded-b-lg border-t border-[#D7E3F4] bg-[#F0F7FF] px-4 py-2.5">
+          <p className="truncate text-[12px] text-[#334155]">Need something done today?</p>
           <Link
             href="/post"
             className="shrink-0 text-[12px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
@@ -899,10 +899,10 @@ export function Browse() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
               <div className="min-w-0">
                 <div className="flex min-w-0 items-center gap-2.5">
-                  <h1 className="text-[22px] font-bold leading-tight tracking-[-0.02em] text-[#071330] sm:text-[24px]">
+                  <h1 className="text-[24px] font-bold leading-tight tracking-[-0.025em] text-[#071330] sm:text-[26px]">
                     Browse Local Jobs
                   </h1>
-                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#E2E8F0]/80 px-1.5 text-[12px] font-semibold tabular-nums text-[#334155]">
+                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#DBEAFE] px-1.5 text-[12px] font-bold tabular-nums text-[#1D5CE5]">
                     {liveCount}
                   </span>
                 </div>
@@ -911,7 +911,7 @@ export function Browse() {
               {showDiscoveryChrome ? (
                 <div className="flex shrink-0 flex-wrap items-center gap-2 self-start sm:self-auto">
                   <div
-                    className="inline-flex h-9 shrink-0 rounded-lg border border-[#E2E8F0] bg-white p-0.5"
+                    className="inline-flex h-9 shrink-0 rounded-lg border border-[#C7D7F0] bg-white p-0.5"
                     role="tablist"
                     aria-label="Browse mode"
                     data-testid="browse-mode-tabs"
@@ -924,13 +924,13 @@ export function Browse() {
                       className={`inline-flex h-full items-center gap-1.5 rounded-md px-3 text-[12.5px] font-semibold transition ${
                         tab === 'requests'
                           ? 'bg-[#1D5CE5] text-white'
-                          : 'text-[#64748B] hover:text-[#071330]'
+                          : 'text-[#334155] hover:text-[#071330]'
                       }`}
                     >
                       Open requests
                       <span
                         className={`tabular-nums ${
-                          tab === 'requests' ? 'text-white/85' : 'text-[#94A3B8]'
+                          tab === 'requests' ? 'text-white/90' : 'text-[#475569]'
                         }`}
                       >
                         {openRequestCount}
@@ -945,13 +945,13 @@ export function Browse() {
                       className={`inline-flex h-full items-center gap-1.5 rounded-md px-3 text-[12.5px] font-semibold transition ${
                         tab === 'people'
                           ? 'bg-[#1D5CE5] text-white'
-                          : 'text-[#64748B] hover:text-[#071330]'
+                          : 'text-[#334155] hover:text-[#071330]'
                       }`}
                     >
                       Local helpers
                       <span
                         className={`tabular-nums ${
-                          tab === 'people' ? 'text-white/85' : 'text-[#94A3B8]'
+                          tab === 'people' ? 'text-white/90' : 'text-[#475569]'
                         }`}
                       >
                         {helperCount}
@@ -964,34 +964,34 @@ export function Browse() {
 
             {/* Command bar: compact single-row on mobile (search + distance + sort + filters) */}
             <div className="relative z-30 mt-2.5 sm:mt-3" data-testid="browse-command-bar">
-              <div className="flex w-full flex-row flex-nowrap items-center gap-0 rounded-lg border border-[#E2E8F0] bg-white px-1 py-0.5 shadow-[0_1px_2px_rgba(7,19,48,0.04)] sm:gap-0 sm:px-2 sm:py-1">
+              <div className="flex w-full flex-row flex-nowrap items-center gap-0 rounded-lg border border-[#C7D7F0] bg-white px-1 py-0.5 shadow-[0_2px_8px_-2px_rgba(29,92,229,0.14)] sm:gap-0 sm:px-2 sm:py-1">
                 <label className="relative flex h-8 min-w-0 flex-1 items-center gap-1.5 rounded-lg px-1.5 sm:h-9 sm:gap-2 sm:px-2">
-                  <Search className="h-4 w-4 shrink-0 text-[#64748B]" aria-hidden />
+                  <Search className="h-4 w-4 shrink-0 text-[#334155]" aria-hidden />
                   <span className="sr-only">Search browse</span>
                   <input
                     value={qDraft}
                     onChange={(e) => setQDraft(e.target.value)}
                     placeholder="Search titles, skills…"
                     aria-label="Search browse"
-                    className="min-w-0 flex-1 bg-transparent text-[13px] text-[#071330] outline-none placeholder:text-[#94A3B8]"
+                    className="min-w-0 flex-1 bg-transparent text-[13px] text-[#071330] outline-none placeholder:text-[#64748B]"
                   />
                   {qDraft ? (
                     <button
                       type="button"
                       onClick={clearSearch}
-                      className="inline-flex h-6 w-6 items-center justify-center rounded-lg text-[#64748B] transition hover:bg-[#F8FAFC] hover:text-[#071330]"
+                      className="inline-flex h-6 w-6 items-center justify-center rounded-lg text-[#334155] transition hover:bg-[#F0F7FF] hover:text-[#071330]"
                       aria-label="Clear search"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
                   ) : (
-                    <kbd className="hidden rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-1.5 py-0.5 text-[10.5px] font-semibold text-[#94A3B8] sm:inline-flex">
+                    <kbd className="hidden rounded-lg border border-[#C7D7F0] bg-[#F0F7FF] px-1.5 py-0.5 text-[10.5px] font-semibold text-[#475569] sm:inline-flex">
                       ⌘K
                     </kbd>
                   )}
                 </label>
 
-                <span className="mx-0.5 hidden h-5 w-px bg-[#E2E8F0] sm:block" aria-hidden />
+                <span className="mx-0.5 hidden h-5 w-px bg-[#C7D7F0] sm:block" aria-hidden />
 
                 <div
                   className="relative w-[5.75rem] shrink-0 grow-0 sm:w-[180px] sm:max-w-[180px] sm:flex-none"
@@ -1018,16 +1018,16 @@ export function Browse() {
                           }
                         }}
                       >
-                        <Clock className="h-3.5 w-3.5 shrink-0 text-[#64748B]" aria-hidden />
+                        <Clock className="h-3.5 w-3.5 shrink-0 text-[#334155]" aria-hidden />
                         <span
                           className={`min-w-0 flex-1 truncate text-[11.5px] sm:text-[13px] ${
-                            guestMiddleIsDefault ? 'text-[#64748B]' : 'font-medium text-[#071330]'
+                            guestMiddleIsDefault ? 'text-[#334155]' : 'font-medium text-[#071330]'
                           }`}
                         >
                           {guestMiddleLabel}
                         </span>
                         <ChevronDown
-                          className={`hidden h-3.5 w-3.5 shrink-0 text-[#94A3B8] transition-transform sm:block ${
+                          className={`hidden h-3.5 w-3.5 shrink-0 text-[#475569] transition-transform sm:block ${
                             areaOpen ? 'rotate-180' : ''
                           }`}
                         />
@@ -1037,7 +1037,7 @@ export function Browse() {
                           id={guestMiddleListboxId}
                           role="listbox"
                           data-testid={guestMiddleListboxId}
-                          className="absolute left-0 top-[calc(100%+6px)] z-50 max-h-[min(18rem,50vh)] w-[min(16rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-lg border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:right-auto sm:min-w-[16rem]"
+                          className="absolute left-0 top-[calc(100%+6px)] z-50 max-h-[min(18rem,50vh)] w-[min(16rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-lg border border-[#C7D7F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:right-auto sm:min-w-[16rem]"
                           onKeyDown={(e) =>
                             onListboxKeyDown(
                               e,
@@ -1054,9 +1054,9 @@ export function Browse() {
                                 type="button"
                                 role="option"
                                 aria-selected={guestMiddleValue === opt.id}
-                                className={`flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left text-[13px] transition-colors hover:bg-[#F8FAFC] ${
+                                className={`flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left text-[13px] transition-colors hover:bg-[#F0F7FF] ${
                                   guestMiddleValue === opt.id
-                                    ? 'bg-[#EFF6FF] font-semibold text-[#1D5CE5]'
+                                    ? 'bg-[#DBEAFE] font-semibold text-[#1D5CE5]'
                                     : opt.id === 'all'
                                       ? 'text-[#071330]'
                                       : 'text-[#475569]'
@@ -1094,16 +1094,16 @@ export function Browse() {
                           }
                         }}
                       >
-                        <Crosshair className="h-3.5 w-3.5 shrink-0 text-[#64748B]" aria-hidden />
+                        <Crosshair className="h-3.5 w-3.5 shrink-0 text-[#334155]" aria-hidden />
                         <span
                           className={`min-w-0 flex-1 truncate text-[11.5px] sm:text-[13px] ${
-                            radius === 'all' ? 'text-[#64748B]' : 'font-medium text-[#071330]'
+                            radius === 'all' ? 'text-[#334155]' : 'font-medium text-[#071330]'
                           }`}
                         >
                           {radiusLabel}
                         </span>
                         <ChevronDown
-                          className={`hidden h-3.5 w-3.5 shrink-0 text-[#94A3B8] transition-transform sm:block ${
+                          className={`hidden h-3.5 w-3.5 shrink-0 text-[#475569] transition-transform sm:block ${
                             areaOpen ? 'rotate-180' : ''
                           }`}
                         />
@@ -1113,7 +1113,7 @@ export function Browse() {
                           id="browse-radius-listbox"
                           role="listbox"
                           data-testid="browse-radius-listbox"
-                          className="absolute left-0 top-[calc(100%+6px)] z-50 max-h-[min(18rem,50vh)] w-[min(16rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-lg border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:right-auto sm:min-w-[16rem]"
+                          className="absolute left-0 top-[calc(100%+6px)] z-50 max-h-[min(18rem,50vh)] w-[min(16rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-lg border border-[#C7D7F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:right-auto sm:min-w-[16rem]"
                           onKeyDown={(e) =>
                             onListboxKeyDown(e, radiusOptionIds, radius, setRadius, () =>
                               setAreaOpen(false),
@@ -1126,9 +1126,9 @@ export function Browse() {
                                 type="button"
                                 role="option"
                                 aria-selected={radius === opt.id}
-                                className={`flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left text-[13px] transition-colors hover:bg-[#F8FAFC] ${
+                                className={`flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left text-[13px] transition-colors hover:bg-[#F0F7FF] ${
                                   radius === opt.id
-                                    ? 'bg-[#EFF6FF] font-semibold text-[#1D5CE5]'
+                                    ? 'bg-[#DBEAFE] font-semibold text-[#1D5CE5]'
                                     : opt.id === 'all'
                                       ? 'text-[#071330]'
                                       : 'text-[#475569]'
@@ -1148,7 +1148,7 @@ export function Browse() {
                   )}
                 </div>
 
-                <span className="mx-0.5 hidden h-5 w-px bg-[#E2E8F0] sm:block" aria-hidden />
+                <span className="mx-0.5 hidden h-5 w-px bg-[#C7D7F0] sm:block" aria-hidden />
 
                 <div
                   className="relative w-[5.25rem] shrink-0 grow-0 sm:w-[150px] sm:max-w-[160px] sm:flex-none"
@@ -1174,12 +1174,12 @@ export function Browse() {
                       }
                     }}
                   >
-                    <ArrowUpDown className="h-3.5 w-3.5 shrink-0 text-[#64748B]" aria-hidden />
+                    <ArrowUpDown className="h-3.5 w-3.5 shrink-0 text-[#334155]" aria-hidden />
                     <span className="min-w-0 flex-1 truncate text-[11.5px] font-medium text-[#071330] sm:text-[13px]">
                       {sortLabel}
                     </span>
                     <ChevronDown
-                      className={`hidden h-3.5 w-3.5 shrink-0 text-[#94A3B8] transition-transform sm:block ${
+                      className={`hidden h-3.5 w-3.5 shrink-0 text-[#475569] transition-transform sm:block ${
                         sortOpen ? 'rotate-180' : ''
                       }`}
                     />
@@ -1189,7 +1189,7 @@ export function Browse() {
                       id="browse-sort-listbox"
                       role="listbox"
                       data-testid="browse-sort-listbox"
-                      className="absolute right-0 top-[calc(100%+6px)] z-50 w-[min(13rem,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:left-auto sm:min-w-[13rem]"
+                      className="absolute right-0 top-[calc(100%+6px)] z-50 w-[min(13rem,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-[#C7D7F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:left-auto sm:min-w-[13rem]"
                       onKeyDown={(e) =>
                         onListboxKeyDown(e, sortOptionIds, sort, setSort, () => setSortOpen(false))
                       }
@@ -1200,9 +1200,9 @@ export function Browse() {
                             type="button"
                             role="option"
                             aria-selected={sort === opt.id}
-                            className={`flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left text-[13px] transition-colors hover:bg-[#F8FAFC] ${
+                            className={`flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left text-[13px] transition-colors hover:bg-[#F0F7FF] ${
                               sort === opt.id
-                                ? 'bg-[#EFF6FF] font-semibold text-[#1D5CE5]'
+                                ? 'bg-[#DBEAFE] font-semibold text-[#1D5CE5]'
                                 : 'text-[#475569]'
                             }`}
                             onClick={() => setSort(opt.id)}
@@ -1232,7 +1232,7 @@ export function Browse() {
                   className={`ml-0.5 inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-1.5 text-[11.5px] font-semibold transition sm:h-9 sm:gap-1.5 sm:px-2.5 sm:text-[12.5px] xl:hidden ${
                     mobileFiltersOpen || hasActiveFilters
                       ? 'bg-[#1D5CE5] text-white'
-                      : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#071330]'
+                      : 'text-[#475569] hover:bg-[#F0F7FF] hover:text-[#071330]'
                   }`}
                 >
                   <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
@@ -1276,7 +1276,7 @@ export function Browse() {
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="inline-flex h-6 items-center px-1.5 text-[11.5px] font-semibold text-[#64748B] transition hover:text-[#1D5CE5]"
+                  className="inline-flex h-6 items-center px-1.5 text-[11.5px] font-semibold text-[#334155] transition hover:text-[#1D5CE5]"
                 >
                   Clear all
                 </button>
@@ -1392,7 +1392,7 @@ function WhenChipRow({
 }) {
   return (
     <div className="space-y-2">
-      <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
+      <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#334155]">
         When
       </p>
       <div className="flex flex-wrap gap-1.5">
@@ -1407,13 +1407,13 @@ function WhenChipRow({
                 active
                   ? opt.id === 'asap'
                     ? 'bg-[#FEF08A] font-semibold text-[#071330]'
-                    : 'bg-[#1D5CE5]/[0.08] font-semibold text-[#1D5CE5]'
-                  : 'bg-[#F8FAFC] text-[#475569] hover:bg-[#F1F5F9] hover:text-[#071330]'
+                    : 'bg-[#DBEAFE] font-semibold text-[#1D5CE5]'
+                  : 'bg-[#F0F7FF] text-[#475569] hover:bg-[#E8F1FC] hover:text-[#071330]'
               }`}
             >
               {opt.id === 'asap' ? (
                 <Zap
-                  className={`h-3 w-3 ${active ? 'text-[#CA8A04]' : 'text-[#94A3B8]'}`}
+                  className={`h-3 w-3 ${active ? 'text-[#CA8A04]' : 'text-[#1D5CE5]'}`}
                   strokeWidth={2.25}
                   aria-hidden
                 />
@@ -1436,7 +1436,7 @@ function AvailChipRow({
 }) {
   return (
     <div className="space-y-2">
-      <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
+      <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#334155]">
         Availability
       </p>
       <div className="flex flex-wrap gap-1.5">
@@ -1449,8 +1449,8 @@ function AvailChipRow({
               onClick={() => onSelect(opt.id)}
               className={`inline-flex h-7 items-center rounded-md px-2.5 text-[12px] font-medium transition ${
                 active
-                  ? 'bg-[#1D5CE5]/[0.08] font-semibold text-[#1D5CE5]'
-                  : 'bg-[#F8FAFC] text-[#475569] hover:bg-[#F1F5F9] hover:text-[#071330]'
+                  ? 'bg-[#DBEAFE] font-semibold text-[#1D5CE5]'
+                  : 'bg-[#F0F7FF] text-[#475569] hover:bg-[#E8F1FC] hover:text-[#071330]'
               }`}
             >
               {opt.label}
@@ -1483,13 +1483,13 @@ function CategoryRow({
       onClick={onClick}
       className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-[13px] transition ${
         active
-          ? 'bg-[#1D5CE5]/[0.09] font-semibold text-[#1D5CE5]'
-          : 'font-medium text-[#475569] hover:bg-[#F8FAFC] hover:text-[#071330]'
+          ? 'bg-[#DBEAFE] font-bold text-[#1D5CE5]'
+          : 'font-semibold text-[#334155] hover:bg-[#F0F7FF] hover:text-[#071330]'
       }`}
     >
       <span
         className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
-          active ? 'bg-white text-[#1D5CE5] shadow-[0_1px_2px_rgba(7,19,48,0.06)]' : 'bg-[#F1F5F9] text-[#64748B]'
+          active ? 'bg-[#1D5CE5] text-white shadow-[0_1px_3px_rgba(29,92,229,0.35)]' : 'bg-[#DBEAFE] text-[#1D5CE5]'
         }`}
         style={tint && !active ? { color: tint } : undefined}
       >
@@ -1498,7 +1498,7 @@ function CategoryRow({
       <span className="min-w-0 flex-1 truncate">{label}</span>
       <span
         className={`inline-flex min-w-[1.25rem] items-center justify-center text-[11px] font-semibold tabular-nums ${
-          active ? 'text-[#1D5CE5]' : 'text-[#94A3B8]'
+          active ? 'text-[#1D5CE5]' : 'text-[#334155]'
         }`}
       >
         {count}
@@ -1512,7 +1512,7 @@ function FilterSummaryPill({ label, onRemove }: { label: string; onRemove: () =>
     <button
       type="button"
       onClick={onRemove}
-      className="inline-flex h-6 items-center gap-1 rounded-md border border-[#E2E8F0] bg-white px-2 text-[11.5px] font-medium text-[#071330] transition hover:border-[#1D5CE5]/40 hover:text-[#1D5CE5]"
+      className="inline-flex h-6 items-center gap-1 rounded-md border border-[#93C5FD] bg-[#EFF6FF] px-2 text-[12px] font-semibold text-[#071330] transition hover:border-[#1D5CE5] hover:text-[#1D5CE5]"
     >
       {label}
       <X className="h-3 w-3 opacity-70" aria-hidden />
