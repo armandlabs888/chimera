@@ -1,15 +1,6 @@
 import Link from 'next/link'
-import {
-  CalendarClock,
-  Car,
-  PawPrint,
-  Scissors,
-  ShieldCheck,
-  Sparkles,
-  SprayCan,
-  Trash2,
-  type LucideIcon,
-} from 'lucide-react'
+import { CalendarClock, ShieldCheck, Sparkles } from 'lucide-react'
+import { LandingAvailableServices } from './LandingAvailableServices'
 
 const PILLARS = [
   {
@@ -34,15 +25,6 @@ const PILLARS = [
     fg: '#059669',
   },
 ] as const
-
-const CHIP_LINKS: { label: string; category: string; icon: LucideIcon }[] = [
-  { label: 'House Cleaning', category: 'house-cleaning', icon: SprayCan },
-  { label: 'Carpet Cleaning', category: 'carpet-cleaning', icon: SprayCan },
-  { label: 'Auto Detailing', category: 'auto-detailing', icon: Car },
-  { label: 'Junk Removal', category: 'junk-removal', icon: Trash2 },
-  { label: 'Pet Sitting', category: 'pet-sitting', icon: PawPrint },
-  { label: 'Grooming', category: 'grooming', icon: Scissors },
-]
 
 const SHOWCASE_PHOTO = '/images/landing/why-beam-dresser.jpg'
 
@@ -195,29 +177,7 @@ export function LandingWhyBeam() {
         </div>
       </div>
 
-      {/* Scalloped warm-yellow popular-task band */}
-      <div className="scallop-band mt-20 py-10 sm:mt-24 sm:py-12" id="neighborhoods">
-        <div className="beam-container">
-          <div
-            className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3"
-            data-testid="why-beam-task-pills"
-          >
-            {CHIP_LINKS.map((chip) => {
-              const Icon = chip.icon
-              return (
-                <Link
-                  key={chip.label}
-                  href={`/browse?category=${chip.category}`}
-                  className="inline-flex items-center gap-2 rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-2.5 text-[13.5px] font-semibold text-[#071330] shadow-sm transition hover:border-[#1D5CE5]/35 hover:text-[#1D5CE5]"
-                >
-                  <Icon className="h-4 w-4 text-[#1D5CE5]" strokeWidth={2} aria-hidden />
-                  {chip.label}
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-      </div>
+      <LandingAvailableServices />
     </section>
   )
 }
