@@ -6,7 +6,7 @@ import { ArrowRight, Bell, CheckCircle2, MessageCircle, Star } from 'lucide-reac
 import { RequestCard } from '@/components/RequestCard'
 import { ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import { CATEGORIES } from '@/data/categories'
+import { BROWSE_PARENTS } from '@/lib/taxonomy'
 import { distanceBetween } from '@/lib/location'
 import { rankHelpersForRequest } from '@/lib/matching'
 import type { HelpRequest } from '@/types'
@@ -264,14 +264,14 @@ export function HomeDashboard() {
             Pick a category and get help today.
           </p>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {CATEGORIES.map((c) => (
+            {BROWSE_PARENTS.map((p) => (
               <Link
-                key={c.id}
-                href={`/post?category=${c.id}`}
+                key={p.id}
+                href={`/post?category=${p.id}`}
                 className="rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4 text-left transition hover:border-[rgba(29,92,229,0.28)] hover:shadow-[0_12px_28px_-16px_rgba(12,42,102,0.14)]"
               >
-                <p className="text-[15px] font-bold text-[#071330]">{c.shortLabel}</p>
-                <p className="mt-1 text-[12.5px] text-[#64748B]">{c.typicalRange}</p>
+                <p className="text-[15px] font-bold text-[#071330]">{p.shortLabel}</p>
+                <p className="mt-1 text-[12.5px] text-[#64748B]">{p.description}</p>
               </Link>
             ))}
           </div>

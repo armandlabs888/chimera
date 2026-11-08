@@ -20,6 +20,7 @@ export type Database = {
           budget: number
           budget_type: string
           category: string
+          category_custom: string | null
           created_at: string
           details: string
           helper_id: string | null
@@ -44,6 +45,7 @@ export type Database = {
           budget: number
           budget_type?: string
           category: string
+          category_custom?: string | null
           created_at?: string
           details: string
           helper_id?: string | null
@@ -68,6 +70,7 @@ export type Database = {
           budget?: number
           budget_type?: string
           category?: string
+          category_custom?: string | null
           created_at?: string
           details?: string
           helper_id?: string | null
@@ -336,6 +339,7 @@ export type Database = {
           name: string
           neighborhood: string
           onboarding_completed_at: string | null
+          other_skill_label: string | null
           rate_type: string
           rating: number
           review_count: number
@@ -366,6 +370,7 @@ export type Database = {
           name: string
           neighborhood?: string
           onboarding_completed_at?: string | null
+          other_skill_label?: string | null
           rate_type?: string
           rating?: number
           review_count?: number
@@ -396,6 +401,7 @@ export type Database = {
           name?: string
           neighborhood?: string
           onboarding_completed_at?: string | null
+          other_skill_label?: string | null
           rate_type?: string
           rating?: number
           review_count?: number

@@ -6,7 +6,7 @@ export const EXAMPLE_REQUEST = {
   neighborhood: 'East Austin',
   when: 'Today · afternoon',
   budget: '$60',
-  category: 'Moving',
+  category: 'Junk Removal',
   details: 'Second-floor walk-up. About 45 minutes with two people.',
 }
 

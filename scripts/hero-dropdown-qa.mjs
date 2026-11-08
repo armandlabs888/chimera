@@ -64,7 +64,7 @@ async function assertDropdownOnTop(page, viewportName) {
       throw new Error(`Guest hero category listbox includes Austin neighborhood "${name}"`)
     }
   }
-  if (!/All categories/i.test(listText) || !/Moving & lifting/i.test(listText)) {
+  if (!/All categories/i.test(listText) || !/Home/i.test(listText) || !/Junk Removal/i.test(listText)) {
     throw new Error(`Guest hero category listbox missing expected options: ${listText.slice(0, 200)}`)
   }
 
@@ -114,10 +114,10 @@ async function assertDropdownOnTop(page, viewportName) {
     )
   }
 
-  await listbox.getByRole('option', { name: 'Moving & lifting' }).click()
+  await listbox.getByRole('option', { name: 'Junk Removal', exact: true }).click()
   await page.waitForTimeout(150)
   const label = await trigger.innerText()
-  if (!label.includes('Moving & lifting')) {
+  if (!label.includes('Junk Removal')) {
     throw new Error(`Trigger label not updated after select: "${label}"`)
   }
 
@@ -128,11 +128,11 @@ async function assertFindHelpNavigation(page) {
   await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
   const trigger = page.getByTestId('hero-category-trigger')
   await trigger.click()
-  await page.getByTestId('hero-category-listbox').getByRole('option', { name: 'Home cleaning' }).click()
+  await page.getByTestId('hero-category-listbox').getByRole('option', { name: 'Home', exact: true }).click()
   await page.getByRole('button', { name: 'Find help' }).click()
-  await page.waitForURL(/\/browse\?.*category=cleaning/, { timeout: 15000 })
+  await page.waitForURL(/\/browse\?.*category=home/, { timeout: 15000 })
   const url = page.url()
-  if (!url.includes('category=cleaning')) {
+  if (!url.includes('category=home')) {
     throw new Error(`Find help did not navigate with category filter: ${url}`)
   }
   if (/neighborhood=/.test(url)) {

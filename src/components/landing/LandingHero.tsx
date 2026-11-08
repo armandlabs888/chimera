@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation'
 import { Check, ChevronDown, MapPin, Search } from 'lucide-react'
 import { LandingNav } from './LandingNav'
 import { useBeam } from '@/context/BeamContext'
-import { CATEGORIES } from '@/data/categories'
 import { HERO_HELPERS } from '@/data/media'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
-import { ALL_CATEGORY_ICON, CATEGORY_ICONS } from '@/lib/categoryIcons'
-import type { CategoryId, NeighborhoodId } from '@/types'
+import { ALL_CATEGORY_ICON, PARENT_ICONS } from '@/lib/categoryIcons'
+import { BROWSE_PARENTS, type BrowseParentId } from '@/lib/taxonomy'
+import type { NeighborhoodId } from '@/types'
 
 const FAN_HELPERS = HERO_HELPERS
 
@@ -20,7 +20,7 @@ export function LandingHero() {
   const isGuest = !authUser
   const [query, setQuery] = useState('')
   const [neighborhood, setNeighborhood] = useState<NeighborhoodId | 'all'>('all')
-  const [category, setCategory] = useState<CategoryId | 'all'>('all')
+  const [category, setCategory] = useState<BrowseParentId | 'all'>('all')
   const [locOpen, setLocOpen] = useState(false)
   const locRef = useRef<HTMLDivElement>(null)
 
@@ -30,11 +30,11 @@ export function LandingHero() {
       : NEIGHBORHOODS.find((n) => n.id === neighborhood)?.name ?? 'Select neighborhood'
 
   const CategoryIcon =
-    category === 'all' ? ALL_CATEGORY_ICON : CATEGORY_ICONS[category] ?? ALL_CATEGORY_ICON
+    category === 'all' ? ALL_CATEGORY_ICON : PARENT_ICONS[category] ?? ALL_CATEGORY_ICON
   const categoryLabel =
     category === 'all'
       ? 'All categories'
-      : CATEGORIES.find((c) => c.id === category)?.label ?? 'All categories'
+      : BROWSE_PARENTS.find((p) => p.id === category)?.label ?? 'All categories'
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
@@ -165,29 +165,29 @@ export function LandingHero() {
                           ) : null}
                         </button>
                       </li>
-                      {CATEGORIES.map((c) => {
-                        const Icon = CATEGORY_ICONS[c.id]
+                      {BROWSE_PARENTS.map((p) => {
+                        const Icon = PARENT_ICONS[p.id]
                         return (
-                          <li key={c.id}>
+                          <li key={p.id}>
                             <button
                               type="button"
                               role="option"
-                              aria-selected={category === c.id}
+                              aria-selected={category === p.id}
                               className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] hover:text-[#071330] ${
-                                category === c.id
+                                category === p.id
                                   ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
                                   : 'text-[#475569]'
                               }`}
                               onClick={() => {
-                                setCategory(c.id)
+                                setCategory(p.id)
                                 setLocOpen(false)
                               }}
                             >
                               <span className="inline-flex min-w-0 items-center gap-2.5">
                                 <Icon className="h-4 w-4 shrink-0 text-[#1D5CE5]" aria-hidden />
-                                <span className="truncate">{c.label}</span>
+                                <span className="truncate">{p.label}</span>
                               </span>
-                              {category === c.id ? (
+                              {category === p.id ? (
                                 <Check className="h-4 w-4 shrink-0" aria-hidden />
                               ) : null}
                             </button>
@@ -289,8 +289,9 @@ export function LandingHero() {
         >
           <div className="flex items-end justify-center gap-[-12px] sm:gap-0">
             {FAN_HELPERS.map((helper, i) => {
-              const isEdge = i === 0 || i === 4
-              const isNear = i === 1 || i === 3
+              const last = FAN_HELPERS.length - 1
+              const isEdge = i === 0 || i === last
+              const isNear = !helper.hero && !isEdge
               return (
                 <div
                   key={helper.name}

@@ -255,7 +255,7 @@ try {
 
     // Filter-aware empty state: apply Cleaning when marketplace may be empty or filtered
     if (vp.name === '1440x900') {
-      await page.goto(`${BASE}/browse?category=cleaning`, { waitUntil: 'domcontentloaded' })
+      await page.goto(`${BASE}/browse?category=home`, { waitUntil: 'domcontentloaded' })
       await page.waitForTimeout(700)
       const emptyLogic = await page.evaluate(() => {
         const fresh = !!document.querySelector('[data-testid="browse-fresh-empty"]')

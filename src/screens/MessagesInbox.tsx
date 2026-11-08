@@ -4,8 +4,8 @@ import { useMemo } from 'react'
 import Link from 'next/link'
 import { Avatar, EmptyState, ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import { getCategory } from '@/data/categories'
 import { relativeTime } from '@/lib/matching'
+import { formatCategoryLabel } from '@/lib/taxonomy'
 import { MessagesThread } from '@/screens/MessagesThread'
 
 const panelSurface =
@@ -135,7 +135,10 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
                         {needsDisambiguation ? (
                           <p className="truncate text-[12px] font-medium text-[#64748B]">
                             {request
-                              ? (getCategory(request.category)?.shortLabel ?? request.title)
+                              ? formatCategoryLabel(
+                                  request.category,
+                                  request.categoryCustom,
+                                ) || request.title
                               : 'Request'}
                           </p>
                         ) : null}

@@ -54,7 +54,7 @@ async function seedHelperBannerOneCard(page) {
       keep.title = 'I need to help with moving out of my apartment'
       keep.details =
         'I need to help with moving out of my apartment. Looking for careful help with boxes and furniture.'
-      keep.category = 'moving'
+      keep.category = 'junk-removal'
       keep.budget = 0
       keep.budgetType = 'open'
       keep.when = 'this-week'
@@ -89,7 +89,15 @@ async function seedMultiCards(page) {
       self.city = self.city || 'San Jose'
       self.locationLabel = self.locationLabel || 'San Jose, CA'
     }
-    const cats = ['moving', 'cleaning', 'handyman', 'petcare', 'tutoring', 'events']
+    const cats = [
+      'house-cleaning',
+      'carpet-cleaning',
+      'auto-detailing',
+      'junk-removal',
+      'pet-sitting',
+      'grooming',
+      'other',
+    ]
     const base = Date.now()
     const extras = Array.from({ length: 8 }, (_, i) => ({
       id: `req-qa-enterprise-${i}`,

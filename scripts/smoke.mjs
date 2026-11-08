@@ -82,8 +82,8 @@ async function checkLandingMarkup() {
   assert.match(text, /What help do you need\?/, 'hero search placeholder')
   assert.match(text, /href="\/post"/, 'post route wired')
   assert.match(text, /href="\/browse"/, 'browse route wired')
-  assert.match(text, /href="\/browse\?category=moving"/, 'moving category browse link')
-  assert.match(text, /href="\/browse\?category=handyman"/, 'handyman category browse link')
+  assert.match(text, /href="\/browse\?category=home"/, 'home category browse link')
+  assert.match(text, /href="\/browse\?category=junk-removal"/, 'junk-removal category browse link')
   assert.match(text, /href="\/auth\?mode=signin"/, 'landing Log in')
   assert.match(text, /href="\/auth\?mode=signup/, 'landing Sign up')
   assert.match(text, /How it works/, 'nav How it works')
@@ -491,7 +491,7 @@ async function checkLandingBrowser() {
     await page.waitForFunction(
       () => {
         const imgs = [...document.querySelectorAll('img')]
-        return imgs.length >= 20 && imgs.every((img) => img.complete)
+        return imgs.length >= 14 && imgs.every((img) => img.complete)
       },
       null,
       { timeout: 20000 },
@@ -529,7 +529,10 @@ async function checkLandingBrowser() {
         unsplash: paths.filter((p) => /images\.unsplash\.com/i.test(p) || /unsplash/i.test(p)),
       }
     })
-    assert.equal(landingImages.count, 20, `landing should render 20 <img> elements, got ${landingImages.count}`)
+    assert.ok(
+      landingImages.count >= 14,
+      `landing should render >=14 <img> elements, got ${landingImages.count}`,
+    )
     assert.equal(landingImages.allComplete, true, 'every landing <img> must be complete')
     assert.ok(
       landingImages.minNaturalWidth >= 400,
@@ -541,7 +544,15 @@ async function checkLandingBrowser() {
       `zero duplicate image paths on / (unique=${landingImages.uniqueCount}, total=${landingImages.paths.length}): ${JSON.stringify(landingImages.paths)}`,
     )
     assert.deepEqual(landingImages.unsplash, [], `zero Unsplash URLs on /: ${JSON.stringify(landingImages.unsplash)}`)
-    console.log('ok landing unique local images (20/20, no unsplash)')
+    console.log(
+      `ok landing unique local images (${landingImages.uniqueCount}/${landingImages.count}, no unsplash)`,
+    )
+
+    const fanText = await page.getByTestId('hero-fan-stack').innerText()
+    assert.doesNotMatch(fanText, /\bMoving\b/)
+    assert.doesNotMatch(fanText, /\bAssembly\b/)
+    assert.doesNotMatch(fanText, /\bEvents\b/)
+    assert.match(fanText, /House Cleaning|Junk Removal|Pet Sitting|Other/)
 
     const headline = await page.locator('h1').innerText()
     assert.match(headline, /Local help, made easy/i)
@@ -633,8 +644,8 @@ async function checkLandingBrowser() {
     assert.ok(geo.h1Px >= 40 && geo.h1Px <= 110, `hero size ${geo.h1Px}`)
     assert.equal(geo.overflowX, false, 'no horizontal overflow desktop')
 
-    await page.locator('a[href="/browse?category=cleaning"]').first().click()
-    await page.waitForURL(/\/browse\?category=cleaning/)
+    await page.locator('a[href="/browse?category=home"]').first().click()
+    await page.waitForURL(/\/browse\?category=home/)
     console.log('ok landing category navigation')
 
     // Public browse + safety
@@ -778,7 +789,7 @@ async function checkLandingBrowser() {
           p.skills = []
         } else if (!(p.isHelper || (p.skills || []).length)) {
           p.isHelper = true
-          p.skills = ['moving', 'cleaning']
+          p.skills = ['junk-removal', 'house-cleaning']
         }
       }
       localStorage.setItem(key, JSON.stringify(state))
@@ -1061,7 +1072,7 @@ async function checkBrowserPersistence() {
         id: 'req-browser-smoke',
         title: 'Browser smoke request',
         details: 'Persists across reload',
-        category: 'cleaning',
+        category: 'house-cleaning',
         neighborhood: 'hyde-park',
         when: 'asap',
         whenLabel: 'ASAP',
@@ -1552,7 +1563,7 @@ async function checkMarketplaceFlows() {
       await page.goto(`${BASE_URL}/onboarding/helper`, { waitUntil: 'domcontentloaded' })
       await page.waitForSelector('[data-testid="helper-onboarding-root"]', { timeout: 15000 })
       // Ensure at least one skill selected, then publish.
-      const skillBtn = page.getByTestId('helper-skill-moving')
+      const skillBtn = page.getByTestId('helper-skill-parent-home')
       if ((await skillBtn.getAttribute('aria-pressed')) !== 'true') {
         await skillBtn.click()
       }

@@ -1,16 +1,13 @@
 import Link from 'next/link'
 import {
   CalendarClock,
-  Laptop,
-  Leaf,
-  Monitor,
-  PartyPopper,
+  Car,
   PawPrint,
+  Scissors,
   ShieldCheck,
-  Sofa,
   Sparkles,
   SprayCan,
-  Wrench,
+  Trash2,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -39,14 +36,12 @@ const PILLARS = [
 ] as const
 
 const CHIP_LINKS: { label: string; category: string; icon: LucideIcon }[] = [
-  { label: 'Couch Moving', category: 'moving', icon: Sofa },
-  { label: 'Deep Cleaning', category: 'cleaning', icon: SprayCan },
-  { label: 'Furniture Assembly', category: 'handyman', icon: Wrench },
-  { label: 'TV Mounting', category: 'handyman', icon: Monitor },
-  { label: 'Dog Walking', category: 'petcare', icon: PawPrint },
-  { label: 'Yard Cleanup', category: 'handyman', icon: Leaf },
-  { label: 'Event Setup', category: 'events', icon: PartyPopper },
-  { label: 'Tech & Tutoring', category: 'tutoring', icon: Laptop },
+  { label: 'House Cleaning', category: 'house-cleaning', icon: SprayCan },
+  { label: 'Carpet Cleaning', category: 'carpet-cleaning', icon: SprayCan },
+  { label: 'Auto Detailing', category: 'auto-detailing', icon: Car },
+  { label: 'Junk Removal', category: 'junk-removal', icon: Trash2 },
+  { label: 'Pet Sitting', category: 'pet-sitting', icon: PawPrint },
+  { label: 'Grooming', category: 'grooming', icon: Scissors },
 ]
 
 const SHOWCASE_PHOTO = '/images/landing/why-beam-dresser.jpg'

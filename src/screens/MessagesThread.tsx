@@ -5,9 +5,9 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { Avatar, EmptyState, ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import { getCategory } from '@/data/categories'
 import { formatLocation } from '@/lib/location'
 import { relativeTime } from '@/lib/matching'
+import { formatCategoryLabel } from '@/lib/taxonomy'
 
 export function MessagesThread({
   threadId,
@@ -25,7 +25,9 @@ export function MessagesThread({
   const otherId = thread?.participantIds.find((id) => id !== currentUser.id)
   const other = otherId ? getPerson(otherId) : undefined
   const request = thread ? getRequest(thread.requestId) : undefined
-  const category = request ? getCategory(request.category) : undefined
+  const categoryLabel = request
+    ? formatCategoryLabel(request.category, request.categoryCustom)
+    : undefined
 
   const messages = useMemo(
     () =>
@@ -54,7 +56,7 @@ export function MessagesThread({
     el.scrollIntoView({ block: 'nearest', behavior: 'instant' })
   }, [messages.length])
 
-  if (!thread || !other || !request || !category) {
+  if (!thread || !other || !request || !categoryLabel) {
     return (
       <div
         className="flex min-h-[50vh] flex-1 items-center justify-center bg-white p-6"
@@ -85,7 +87,7 @@ export function MessagesThread({
   const locationLabel = formatLocation(request)
   const firstName = other.name.split(' ')[0] || other.name
   const identityBits = [
-    samePersonThreadCount > 1 ? category.shortLabel : null,
+    samePersonThreadCount > 1 ? categoryLabel : null,
     locationLabel,
   ].filter(Boolean)
   const headerSubtitle = identityBits.join(' · ')

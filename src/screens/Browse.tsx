@@ -31,9 +31,15 @@ import { PersonCard } from '@/components/PersonCard'
 import { RequestCard } from '@/components/RequestCard'
 import { Avatar, EmptyState, ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import { CATEGORIES, WHEN_OPTIONS } from '@/data/categories'
+import { WHEN_OPTIONS } from '@/data/categories'
 import { useBrowseLocation } from '@/hooks/useBrowseLocation'
-import { ALL_CATEGORY_ICON, CATEGORY_ICONS } from '@/lib/categoryIcons'
+import { ALL_CATEGORY_ICON, PARENT_ICONS } from '@/lib/categoryIcons'
+import {
+  BROWSE_PARENTS,
+  formatCategoryLabel,
+  matchesBrowseCategory,
+  expandBrowseFilter,
+} from '@/lib/taxonomy'
 import { helperProfileProgress } from '@/lib/helperProfileProgress'
 import { readJobAlertsPreference, writeJobAlertsPreference } from '@/lib/jobAlerts'
 import { distanceBetween, formatLocation } from '@/lib/location'
@@ -284,7 +290,7 @@ export function Browse() {
   const openRequests = useMemo(() => {
     let list = state.requests
       .filter((r) => r.status === 'open')
-      .filter((r) => (category === 'all' ? true : r.category === category))
+      .filter((r) => matchesBrowseCategory(r.category, category))
       .filter((r) => {
         if (isGuest || radiusMiles == null) return true
         const d = milesTo(r, browseAnchor)
@@ -324,7 +330,12 @@ export function Browse() {
         const isSelf = p.isCurrentUser || p.id === currentUser.id
         return !isSelf
       })
-      .filter((p) => (category === 'all' ? true : p.skills.includes(category as never)))
+      .filter((p) => {
+        if (category === 'all') return true
+        const expanded = expandBrowseFilter(category)
+        if (!expanded) return true
+        return p.skills.some((s) => expanded.includes(s))
+      })
       .filter((p) => {
         if (isGuest || radiusMiles == null) return true
         const d = milesTo(p, browseAnchor)
@@ -371,22 +382,23 @@ export function Browse() {
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { all: 0 }
-    for (const c of CATEGORIES) counts[c.id] = 0
+    for (const p of BROWSE_PARENTS) counts[p.id] = 0
     if (tab === 'requests') {
       const open = state.requests.filter((r) => r.status === 'open')
       counts.all = open.length
-      for (const r of open) {
-        if (counts[r.category] != null) counts[r.category] += 1
+      for (const parent of BROWSE_PARENTS) {
+        counts[parent.id] = open.filter((r) => matchesBrowseCategory(r.category, parent.id)).length
       }
     } else {
       const helpers = state.people.filter(
         (p) => isBrowseHelper(p) && !(p.isCurrentUser || p.id === currentUser.id),
       )
       counts.all = helpers.length
-      for (const p of helpers) {
-        for (const skill of p.skills) {
-          if (counts[skill] != null) counts[skill] += 1
-        }
+      for (const parent of BROWSE_PARENTS) {
+        const expanded = expandBrowseFilter(parent.id) ?? []
+        counts[parent.id] = helpers.filter((h) =>
+          h.skills.some((s) => expanded.includes(s)),
+        ).length
       }
     }
     return counts
@@ -522,7 +534,7 @@ export function Browse() {
   const whenLabel = WHEN_FILTER_OPTIONS.find((o) => o.id === when)?.label ?? 'Any timing'
   const availLabel = AVAIL_FILTER_OPTIONS.find((o) => o.id === avail)?.label ?? 'Any availability'
   const categoryLabel =
-    category === 'all' ? null : (CATEGORIES.find((c) => c.id === category)?.shortLabel ?? category)
+    category === 'all' ? null : formatCategoryLabel(category)
 
   const hasActiveFilters =
     category !== 'all' ||
@@ -624,15 +636,14 @@ export function Browse() {
                   count={categoryCounts.all}
                 />
               </li>
-              {CATEGORIES.map((c) => (
-                <li key={c.id}>
+              {BROWSE_PARENTS.map((p) => (
+                <li key={p.id}>
                   <CategoryRow
-                    active={category === c.id}
-                    onClick={() => setCategory(c.id)}
-                    label={c.shortLabel}
-                    icon={CATEGORY_ICONS[c.id]}
-                    count={categoryCounts[c.id] ?? 0}
-                    tint={c.tintFg}
+                    active={category === p.id}
+                    onClick={() => setCategory(p.id)}
+                    label={p.shortLabel}
+                    icon={PARENT_ICONS[p.id]}
+                    count={categoryCounts[p.id] ?? 0}
                   />
                 </li>
               ))}
@@ -747,9 +758,12 @@ export function Browse() {
         ) : (
           <ul className="px-1.5 py-1.5">
             {trendingHelpers.map((helper) => {
-              const skillLabels = helper.skills
-                .slice(0, 2)
-                .map((id) => CATEGORIES.find((c) => c.id === id)?.shortLabel ?? id)
+              const skillLabels = helper.skills.slice(0, 2).map((id) =>
+                formatCategoryLabel(
+                  id,
+                  id === 'other' ? helper.otherSkillLabel : null,
+                ),
+              )
               const ratingLabel = formatPublicRating(helper)
               return (
                 <li key={helper.id}>

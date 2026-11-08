@@ -1,6 +1,7 @@
 /** Daylight photography — unique local public assets for the Beam landing page.
  *  Hero fan: smiling human portraits (object-cover object-top).
  *  Lifestyle: real photography — no cartoons, masks/goggles, drills, or alphabet blocks.
+ *  Specialty labels must match the photo subject (or be omitted), never invent a service.
  */
 
 export type HeroHelper = {
@@ -11,37 +12,34 @@ export type HeroHelper = {
   hero?: boolean
 }
 
-/** Hero fan — smiling human portraits of friendly local helpers. */
+/**
+ * Hero fan — only slots whose photo subject fits casual-launch services.
+ * Omitted: assembly portrait (no matching launch service / no detailing photo).
+ */
 export const HERO_HELPERS: HeroHelper[] = [
   {
     name: 'Maya',
-    specialty: 'Cleaning',
+    specialty: 'House Cleaning',
     rotate: -8,
     src: '/images/landing/hero-maya-cleaning.jpg',
   },
   {
     name: 'Devon',
-    specialty: 'Moving',
+    specialty: 'Junk Removal',
     rotate: -4,
     src: '/images/landing/hero-devon-moving.jpg',
   },
   {
-    name: 'Mateo',
-    specialty: 'Assembly',
+    name: 'Chloe',
+    specialty: 'Pet Sitting',
     rotate: 0,
-    src: '/images/landing/hero-mateo-assembly.jpg',
+    src: '/images/landing/hero-chloe-petcare.jpg',
     hero: true,
   },
   {
-    name: 'Chloe',
-    specialty: 'Pet Care',
-    rotate: 4,
-    src: '/images/landing/hero-chloe-petcare.jpg',
-  },
-  {
     name: 'Liam',
-    specialty: 'Events',
-    rotate: 8,
+    specialty: 'Other',
+    rotate: 6,
     src: '/images/landing/hero-liam-events.jpg',
   },
 ]
@@ -50,15 +48,15 @@ export const HERO_HELPERS: HeroHelper[] = [
 export const LIFESTYLE = {
   /** Neighbor wiping a sunlit kitchen counter */
   cleaning: '/images/landing/service-cleaning.jpg',
-  /** Neighbors carrying a sofa on a sunny driveway */
+  /** Neighbors carrying a sofa on a sunny driveway — used for junk haul-away */
   moving: '/images/landing/service-moving.jpg',
-  /** Furniture/shelf assembly with a spirit level in a bright living room */
+  /** Furniture/shelf assembly — kept as asset; not used for active Auto marketing */
   handyman: '/images/landing/service-handyman.jpg',
   /** Neighbor walking dogs on a tree-lined sidewalk */
   petcare: '/images/landing/service-petcare.jpg',
-  /** Tutor and student with laptop and notebook */
+  /** Tutor and student with laptop and notebook — not used for active launch marketing */
   tutoring: '/images/landing/service-tutoring.jpg',
-  /** Outdoor event table setup in a garden */
+  /** Outdoor event / setup — used for Other custom everyday help */
   events: '/images/landing/service-events.jpg',
   /** Auth left showcase — welcoming helper ready to help */
   authShowcase: '/images/landing/auth-showcase.jpg',

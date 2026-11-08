@@ -2,7 +2,6 @@
 
 import {
   Camera,
-  Check,
   ChevronDown,
   Lock,
   MapPin,
@@ -21,8 +20,15 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { RequestCard } from '@/components/RequestCard'
 import { Avatar, Button, Field, TextArea, TextInput } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import { CATEGORIES, getCategory, whenLabel as baseWhenLabel } from '@/data/categories'
-import { CATEGORY_ICONS } from '@/lib/categoryIcons'
+import { CategorySelect } from '@/components/CategorySelect'
+import { getCategory, whenLabel as baseWhenLabel } from '@/data/categories'
+import {
+  defaultServiceForParent,
+  isBrowseParentId,
+  isCategoryId,
+  normalizeOtherCustom,
+  type ServiceCategoryId,
+} from '@/lib/taxonomy'
 import { uploadBeamMedia } from '@/lib/beam/storageUpload'
 import { rankHelpersForRequest } from '@/lib/matching'
 import { createClient } from '@/lib/supabase/client'
@@ -73,10 +79,6 @@ type DraftAiResponse = {
   error?: string
 }
 
-function isCategoryId(value: string | null): value is CategoryId {
-  return CATEGORIES.some((c) => c.id === value)
-}
-
 function formatScheduledLabel(dateIso: string, window: TimeWindow): string {
   const d = new Date(`${dateIso}T12:00:00`)
   if (Number.isNaN(d.getTime())) return `Pick a date · ${window}`
@@ -120,9 +122,15 @@ export function PostRequest() {
   const helperId = params.get('rebook') || params.get('helper') || ''
   const preferredHelper = helperId ? getPerson(helperId) : undefined
   const categoryParam = params.get('category')
-  const initialCategory: CategoryId = isCategoryId(categoryParam) ? categoryParam : 'moving'
+  const initialCategory: ServiceCategoryId = isCategoryId(categoryParam)
+    ? categoryParam
+    : isBrowseParentId(categoryParam)
+      ? defaultServiceForParent(categoryParam)
+      : 'house-cleaning'
 
-  const [category, setCategory] = useState<CategoryId>(initialCategory)
+  const [category, setCategory] = useState<ServiceCategoryId>(initialCategory)
+  const [categoryCustom, setCategoryCustom] = useState('')
+  const [customError, setCustomError] = useState('')
   const [title, setTitle] = useState('')
   const [details, setDetails] = useState('')
   const [aiPrompt, setAiPrompt] = useState('')
@@ -391,6 +399,16 @@ export function PostRequest() {
       setError('Add a title and a few details so helpers know what to expect.')
       return
     }
+    let customValue: string | null = null
+    if (category === 'other') {
+      const normalized = normalizeOtherCustom(categoryCustom)
+      if (!normalized.ok) {
+        setCustomError(normalized.error)
+        setError(normalized.error)
+        return
+      }
+      customValue = normalized.value
+    }
     if (budgetType === 'fixed' && budget < 10) {
       setError('Budget should be at least $10.')
       return
@@ -401,11 +419,13 @@ export function PostRequest() {
     }
     setPending(true)
     setError('')
+    setCustomError('')
     try {
       const request = await postRequest({
         title: title.trim(),
         details: details.trim(),
         category,
+        categoryCustom: customValue,
         neighborhood: '',
         when,
         whenLabel: computedWhenLabel,
@@ -545,53 +565,29 @@ export function PostRequest() {
               ) : null}
             </section>
 
-            {/* Category */}
+            {/* Category — parent then service; Other requires custom text */}
             <section className={cardClass()}>
               <h2 className="mb-1 text-[16px] font-semibold" style={{ color: INK }}>
                 Category
               </h2>
               <p className="mb-4 text-[13px]" style={{ color: MUTED }}>
-                Pick the closest fit — helpers filter by these.
+                Choose a main category, then the specific service helpers filter by.
               </p>
-              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-                {CATEGORIES.map((c) => {
-                  const Icon = CATEGORY_ICONS[c.id]
-                  const selected = category === c.id
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setCategory(c.id)}
-                      className={`relative flex flex-col items-start gap-2 rounded-lg border px-3 py-3 text-left transition ${
-                        selected
-                          ? 'border-[#1D5CE5] bg-[#EEF4FF] ring-2 ring-[#1D5CE5]/30'
-                          : 'border-[rgba(7,19,48,0.08)] bg-[#F8FAFC] hover:bg-white'
-                      }`}
-                    >
-                      {selected ? (
-                        <span
-                          className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full text-white"
-                          style={{ backgroundColor: CTA }}
-                        >
-                          <Check className="h-3 w-3" aria-hidden />
-                        </span>
-                      ) : null}
-                      <span
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg"
-                        style={{ backgroundColor: c.tintBg, color: c.tintFg }}
-                      >
-                        <Icon className="h-4 w-4" aria-hidden />
-                      </span>
-                      <span className="text-[14px] font-semibold" style={{ color: INK }}>
-                        {c.shortLabel}
-                      </span>
-                      <span className="text-[12px] leading-snug" style={{ color: MUTED }}>
-                        {c.typicalRange}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
+              <CategorySelect
+                serviceId={category}
+                customLabel={categoryCustom}
+                onServiceChange={(id) => {
+                  setCategory(id)
+                  setCustomError('')
+                  if (id !== 'other') setCategoryCustom('')
+                }}
+                onCustomChange={(v) => {
+                  setCategoryCustom(v)
+                  setCustomError('')
+                }}
+                customError={customError}
+                testIdPrefix="post-category"
+              />
             </section>
 
             {/* Title & Details */}

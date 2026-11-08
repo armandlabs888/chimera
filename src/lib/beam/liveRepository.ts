@@ -209,6 +209,9 @@ export async function updateLiveProfile(
       payload.is_helper = patch.skills.length > 0
     }
   }
+  if (patch.otherSkillLabel !== undefined) {
+    payload.other_skill_label = patch.otherSkillLabel
+  }
   if (patch.hourlyRate !== undefined) payload.hourly_rate = patch.hourlyRate
   if (patch.availability !== undefined) payload.availability = patch.availability
   if (patch.locationLabel !== undefined) payload.location_label = patch.locationLabel
@@ -230,6 +233,7 @@ export type CreateRequestInput = {
   title: string
   details: string
   category: CategoryId
+  categoryCustom?: string | null
   neighborhood?: NeighborhoodId | ''
   when: WhenOption
   whenLabel: string
@@ -257,6 +261,8 @@ export async function createLiveRequest(
       title: input.title.trim(),
       details: input.details.trim(),
       category: input.category,
+      category_custom:
+        input.category === 'other' ? (input.categoryCustom?.trim() || null) : null,
       neighborhood: input.neighborhood ?? '',
       when_option: input.when,
       when_label: input.whenLabel,

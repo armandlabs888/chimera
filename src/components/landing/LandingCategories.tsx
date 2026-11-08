@@ -1,15 +1,17 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { CATEGORIES } from '@/data/categories'
+import { SERVICE_CATEGORIES, getBrowseParent } from '@/lib/taxonomy'
+import { LIFESTYLE } from '@/data/media'
 
 /**
- * Flush popular-services bento.
- * Desktop: every row sums to 12 cols; heights come from shared `auto-rows` tracks
- * (no per-tile `lg:aspect-*`), so left/right edges and row bottoms stay aligned.
- * Mobile/tablet: 2-col pairs + full-width quote — 6 tiles = 3 full pairs, zero orphans.
+ * Popular-services bento — only tiles with matching lifestyle photos.
+ * Auto Detailing omitted (no car/detailing asset). Assembly/handyman photo unused.
  */
 export function LandingCategories() {
-  const [moving, cleaning, handyman, petcare, tutoring, events] = CATEGORIES
+  const house = SERVICE_CATEGORIES.find((c) => c.id === 'house-cleaning')!
+  const junk = SERVICE_CATEGORIES.find((c) => c.id === 'junk-removal')!
+  const pets = getBrowseParent('pets')
+  const other = SERVICE_CATEGORIES.find((c) => c.id === 'other')!
 
   return (
     <section id="categories" className="relative z-10 -mt-4 bg-white pb-16 pt-10 sm:-mt-8 sm:pb-20 sm:pt-14">
@@ -23,7 +25,7 @@ export function LandingCategories() {
               Popular services
             </h2>
             <p className="mt-2 max-w-[42ch] text-[16px] text-[#64748B]">
-              Everything your apartment, home, or weekend project needs—done today.
+              Home, Junk Removal, Pets, and everyday Other help nearby.
             </p>
           </div>
           <Link
@@ -38,64 +40,44 @@ export function LandingCategories() {
           data-testid="categories-bento"
           className="mt-10 grid grid-cols-2 auto-rows-[220px] gap-3 sm:auto-rows-[240px] sm:gap-4 lg:grid-cols-12 lg:auto-rows-[250px] lg:gap-5"
         >
-          {/* Row 1–2 left: Cleaning 3×2 · Row 1: Moving 4 + Quote 5 = 12 */}
           <ServiceTile
-            href={`/browse?category=${cleaning.id}`}
-            image={cleaning.image}
-            label={`${cleaning.shortLabel} · ${cleaning.typicalRange}`}
+            href={`/browse?category=home`}
+            image={house.image}
+            label={`Home · House & carpet`}
             alt="Neighbor wiping a sunlit kitchen counter during a home cleaning job"
             objectPosition="object-[50%_22%]"
             className="col-span-1 lg:col-span-3 lg:row-span-2"
           />
           <ServiceTile
-            href={`/browse?category=${moving.id}`}
-            image={moving.image}
-            label={`${moving.shortLabel} · ${moving.typicalRange}`}
-            alt="Two neighbors carrying a sofa toward a truck on a sunny driveway"
-            objectPosition="object-[50%_35%]"
+            href={`/browse?category=junk-removal`}
+            image={junk.image}
+            label={`${junk.shortLabel} · ${junk.typicalRange}`}
+            alt="Neighbors loading household items into a truck for haul-away"
+            objectPosition="object-[50%_40%]"
             className="col-span-1 lg:col-span-4"
           />
           <blockquote className="col-span-2 flex h-full min-h-0 flex-col justify-center overflow-hidden rounded-lg bg-[#F4F8FD] p-5 sm:p-7 lg:col-span-5 lg:p-8">
             <p className="font-display text-[clamp(1.15rem,1.6vw,1.5rem)] font-semibold leading-snug tracking-[-0.02em] text-[#071330]">
-              “Had two neighbors help carry a sectional up to my 3rd-floor walkup within 90 minutes.”
+              “Booked house cleaning for Saturday morning and had two solid offers within the hour.”
             </p>
             <p className="mt-3 text-[13.5px] font-semibold text-[#1D5CE5] sm:mt-4 sm:text-[14px]">
               — Elena R. · Verified neighbor
             </p>
           </blockquote>
 
-          {/* Row 2 remainder: Handyman 5 + Pets 4 (+ Cleaning 3) = 12 */}
           <ServiceTile
-            href={`/browse?category=${handyman.id}`}
-            image={handyman.image}
-            label={`${handyman.shortLabel} · ${handyman.typicalRange}`}
-            alt="Neighbor leveling a bookshelf with a spirit level in a bright living room"
-            objectPosition="object-[50%_40%]"
-            className="col-span-1 lg:col-span-5"
-          />
-          <ServiceTile
-            href={`/browse?category=${petcare.id}`}
-            image={petcare.image}
-            label={`${petcare.shortLabel} · ${petcare.typicalRange}`}
+            href={`/browse?category=pets`}
+            image={LIFESTYLE.petcare}
+            label={`${pets.label} · Sitting & grooming`}
             alt="Neighbor walking two dogs on a sunny tree-lined sidewalk"
             objectPosition="object-[58%_8%]"
-            className="col-span-1 lg:col-span-4"
-          />
-
-          {/* Row 3: Tutoring 5 + Events 7 = 12 */}
-          <ServiceTile
-            href={`/browse?category=${tutoring.id}`}
-            image={tutoring.image}
-            label={`${tutoring.shortLabel} · ${tutoring.typicalRange}`}
-            alt="Tutor and student studying together with a laptop and notebook at a table"
-            objectPosition="object-[50%_30%]"
             className="col-span-1 lg:col-span-5"
           />
           <ServiceTile
-            href={`/browse?category=${events.id}`}
-            image={events.image}
-            label={`${events.shortLabel} · ${events.typicalRange}`}
-            alt="Neighbors arranging flowers and place settings for an outdoor event"
+            href={`/browse?category=other`}
+            image={other.image}
+            label={`${other.shortLabel} · Custom everyday help`}
+            alt="Neighbors arranging items for a casual local task"
             objectPosition="object-[50%_40%]"
             className="col-span-1 lg:col-span-7"
           />

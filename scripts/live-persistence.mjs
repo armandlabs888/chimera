@@ -47,7 +47,7 @@ async function main() {
     .insert({
       title: 'Live persistence sofa lift',
       details: 'Need two people for a couch up stairs',
-      category: 'moving',
+      category: 'junk-removal',
       neighborhood: 'east-austin',
       when_option: 'today',
       when_label: 'Today',

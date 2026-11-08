@@ -88,7 +88,7 @@ async function seedCustomerAustin(page) {
           id: 'req-loc-qa-1',
           title: 'Help move a couch upstairs',
           details: 'Need careful help with furniture.',
-          category: 'moving',
+          category: 'junk-removal',
           neighborhood: 'east-austin',
           when: 'asap',
           whenLabel: 'ASAP',
