@@ -35,6 +35,12 @@ function normalizePerson(p: Person): Person {
 }
 
 function normalizeRequest(r: HelpRequest): HelpRequest {
+  const images =
+    Array.isArray(r.images) && r.images.length
+      ? r.images.filter((u) => typeof u === 'string' && u.trim().length > 0).slice(0, 5)
+      : r.image
+        ? [r.image]
+        : []
   return {
     ...r,
     locationLabel: r.locationLabel ?? '',
@@ -43,8 +49,11 @@ function normalizeRequest(r: HelpRequest): HelpRequest {
     radiusMiles: r.radiusMiles ?? 5,
     budgetType: r.budgetType ?? (r.budget === 0 ? 'open' : 'fixed'),
     scheduledFor: r.scheduledFor ?? null,
+    scheduledEnd: r.scheduledEnd ?? null,
     preferredHelperId: r.preferredHelperId ?? null,
     categoryCustom: r.categoryCustom ?? null,
+    images,
+    image: images[0] || r.image || '',
   }
 }
 

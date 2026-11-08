@@ -71,8 +71,10 @@ export type PostRequestInput = {
   exactAddress?: string
   budgetType?: BudgetType
   scheduledFor?: string | null
+  scheduledEnd?: string | null
   preferredHelperId?: string | null
   image?: string
+  images?: string[]
 }
 
 interface BeamContextValue {
@@ -537,7 +539,10 @@ export function BeamProvider({
   const postRequest = useCallback(
     (input: PostRequestInput) => {
       const budgetType = input.budgetType ?? (input.budget === 0 ? 'open' : 'fixed')
-      const image = input.image || getCategory(input.category).image
+      const images = (input.images ?? [])
+        .filter((u) => typeof u === 'string' && u.trim().length > 0)
+        .slice(0, 5)
+      const image = images[0] || input.image || getCategory(input.category).image || ''
       const label = input.whenLabel ?? whenLabel(input.when)
 
       if (mode === 'live') {
@@ -555,6 +560,7 @@ export function BeamProvider({
               whenLabel: label,
               budget: budgetType === 'open' ? 0 : input.budget,
               image,
+              images,
               locationLabel: input.locationLabel,
               lat: input.lat,
               lng: input.lng,
@@ -562,6 +568,7 @@ export function BeamProvider({
               exactAddress: input.exactAddress,
               budgetType,
               scheduledFor: input.scheduledFor,
+              scheduledEnd: input.scheduledEnd,
               preferredHelperId: input.preferredHelperId,
             }
             const created = await createLiveRequest(client, authUser.id, payload)
@@ -591,6 +598,7 @@ export function BeamProvider({
           status: 'open',
           requesterId: prev.currentUserId,
           image,
+          images,
           createdAt: new Date().toISOString(),
           locationLabel: input.locationLabel?.trim() || '',
           exactAddress: input.exactAddress?.trim() || undefined,
@@ -598,6 +606,7 @@ export function BeamProvider({
           lng: input.lng ?? null,
           radiusMiles: input.radiusMiles ?? 5,
           scheduledFor: input.scheduledFor ?? null,
+          scheduledEnd: input.scheduledEnd ?? null,
           preferredHelperId: input.preferredHelperId ?? null,
         }
         let next: AppState = { ...prev, requests: [created, ...prev.requests] }

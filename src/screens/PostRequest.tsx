@@ -9,7 +9,6 @@ import {
   X,
 } from 'lucide-react'
 import {
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -18,10 +17,29 @@ import {
 } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { RequestCard } from '@/components/RequestCard'
+import { CategorySelect } from '@/components/CategorySelect'
 import { Avatar, Button, Field, TextArea, TextInput } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import { CategorySelect } from '@/components/CategorySelect'
-import { getCategory, whenLabel as baseWhenLabel } from '@/data/categories'
+import { getCategory } from '@/data/categories'
+import { deleteBeamMedia, uploadBeamMedia } from '@/lib/beam/storageUpload'
+import {
+  LISTING_PHOTO_HINT,
+  LISTING_PHOTO_MAX,
+  listingCoverImage,
+} from '@/lib/listingPhotos'
+import {
+  addLocalDays,
+  buildWhenLabel,
+  combineLocalDateTime,
+  formatShortDate,
+  formatTimeInput,
+  localDateISO,
+  parseTimeInput,
+  validateTimeWindow,
+  type ClockTime,
+} from '@/lib/listingSchedule'
+import { rankHelpersForRequest } from '@/lib/matching'
+import { createClient } from '@/lib/supabase/client'
 import {
   defaultServiceForParent,
   isBrowseParentId,
@@ -29,9 +47,6 @@ import {
   normalizeOtherCustom,
   type ServiceCategoryId,
 } from '@/lib/taxonomy'
-import { uploadBeamMedia } from '@/lib/beam/storageUpload'
-import { rankHelpersForRequest } from '@/lib/matching'
-import { createClient } from '@/lib/supabase/client'
 import type {
   BudgetType,
   CategoryId,
@@ -41,25 +56,13 @@ import type {
 
 const PAGE_BG = '#F4F8FD'
 const INK = '#071330'
-const BODY = '#475569'
 const MUTED = '#64748B'
-const CTA = '#1D5CE5'
 const BUTTER = '#FFF8D6'
 
-const RADIUS_OPTIONS = [1, 3, 5, 10, 25] as const
 const BUDGET_PRESETS = [40, 60, 80, 100, 120] as const
 const TITLE_MAX = 70
 const DETAILS_MAX = 1200
-
-type TimeWindow = 'Morning' | 'Afternoon' | 'Evening'
-
-const WHEN_CHIPS: { id: WhenOption | 'pick'; label: string }[] = [
-  { id: 'asap', label: 'ASAP' },
-  { id: 'today', label: 'Today' },
-  { id: 'tomorrow', label: 'Tomorrow' },
-  { id: 'this-week', label: 'This week' },
-  { id: 'pick', label: 'Pick date & time' },
-]
+const DEFAULT_START: ClockTime = { hours: 14, minutes: 0 }
 
 type GeocodeSuggestion = {
   label: string
@@ -79,39 +82,16 @@ type DraftAiResponse = {
   error?: string
 }
 
-function formatScheduledLabel(dateIso: string, window: TimeWindow): string {
-  const d = new Date(`${dateIso}T12:00:00`)
-  if (Number.isNaN(d.getTime())) return `Pick a date · ${window}`
-  const day = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-  return `${day} · ${window}`
-}
-
-function scheduledForIso(dateIso: string, window: TimeWindow): string {
-  const hour = window === 'Morning' ? 9 : window === 'Afternoon' ? 14 : 18
-  const d = new Date(`${dateIso}T00:00:00`)
-  d.setHours(hour, 0, 0, 0)
-  return d.toISOString()
-}
-
-function resolveWhenLabel(
-  when: WhenOption,
-  scheduledDate: string,
-  timeWindow: TimeWindow,
-  customLabel?: string,
-): string {
-  if (customLabel) return customLabel
-  if (when === 'scheduled') {
-    return scheduledDate ? formatScheduledLabel(scheduledDate, timeWindow) : 'Pick date & time'
-  }
-  return baseWhenLabel(when)
-}
-
 function firstName(name: string): string {
   return name.trim().split(/\s+/)[0] || name
 }
 
 function cardClass(extra = '') {
   return `rounded-lg border border-[rgba(7,19,48,0.08)] bg-white p-5 sm:p-6 ${extra}`
+}
+
+function needsClockTime(when: WhenOption): boolean {
+  return when === 'today' || when === 'tomorrow' || when === 'scheduled'
 }
 
 export function PostRequest() {
@@ -136,26 +116,27 @@ export function PostRequest() {
   const [aiPrompt, setAiPrompt] = useState('')
   const [aiBlocked, setAiBlocked] = useState('')
   const [aiPending, setAiPending] = useState(false)
-  const [photoUrl, setPhotoUrl] = useState('')
+  const [photoUrls, setPhotoUrls] = useState<string[]>([])
   const [photoPending, setPhotoPending] = useState(false)
+  const [photoError, setPhotoError] = useState('')
 
   const [locationLabel, setLocationLabel] = useState(
     () => currentUser.locationLabel?.trim() || '',
   )
   const [lat, setLat] = useState<number | null>(currentUser.lat ?? null)
   const [lng, setLng] = useState<number | null>(currentUser.lng ?? null)
-  const [radiusMiles, setRadiusMiles] = useState(5)
   const [exactAddress, setExactAddress] = useState('')
   const [showExact, setShowExact] = useState(false)
   const [geoPending, setGeoPending] = useState(false)
   const [suggestions, setSuggestions] = useState<GeocodeSuggestion[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
 
+  const [nowTick, setNowTick] = useState(() => Date.now())
   const [when, setWhen] = useState<WhenOption>('today')
   const [pickingSchedule, setPickingSchedule] = useState(false)
   const [scheduledDate, setScheduledDate] = useState('')
-  const [timeWindow, setTimeWindow] = useState<TimeWindow>('Afternoon')
-  const [customWhenLabel, setCustomWhenLabel] = useState<string | undefined>()
+  const [startTime, setStartTime] = useState(formatTimeInput(DEFAULT_START))
+  const [endTime, setEndTime] = useState('')
 
   const [budgetType, setBudgetType] = useState<BudgetType>('fixed')
   const [budget, setBudget] = useState(60)
@@ -167,14 +148,36 @@ export function PostRequest() {
   const locationWrapRef = useRef<HTMLDivElement>(null)
 
   const cat = useMemo(() => getCategory(category), [category])
+  const todayISO = localDateISO(new Date(nowTick))
+  const tomorrowISO = addLocalDays(todayISO, 1)
+
+  const activeDateISO =
+    when === 'today' ? todayISO : when === 'tomorrow' ? tomorrowISO : scheduledDate || null
+
+  const startClock = parseTimeInput(startTime)
+  const endClock = endTime ? parseTimeInput(endTime) : null
+
   const computedWhenLabel = useMemo(
-    () => resolveWhenLabel(when, scheduledDate, timeWindow, customWhenLabel),
-    [when, scheduledDate, timeWindow, customWhenLabel],
+    () =>
+      buildWhenLabel({
+        when,
+        dateISO: activeDateISO,
+        start: needsClockTime(when) ? startClock : null,
+        end: needsClockTime(when) ? endClock : null,
+      }),
+    [when, activeDateISO, startClock, endClock],
   )
+
   const scheduledFor =
-    when === 'scheduled' && scheduledDate
-      ? scheduledForIso(scheduledDate, timeWindow)
+    needsClockTime(when) && activeDateISO && startClock
+      ? combineLocalDateTime(activeDateISO, startClock).toISOString()
       : null
+  const scheduledEnd =
+    needsClockTime(when) && activeDateISO && endClock
+      ? combineLocalDateTime(activeDateISO, endClock).toISOString()
+      : null
+
+  const coverImage = listingCoverImage(photoUrls, cat.image)
 
   const draft = useMemo<HelpRequest>(
     () => ({
@@ -189,14 +192,16 @@ export function PostRequest() {
       budgetType,
       status: 'open',
       requesterId: currentUser.id,
-      image: photoUrl || cat.image,
+      image: coverImage,
+      images: photoUrls,
       createdAt: new Date().toISOString(),
       locationLabel: locationLabel.trim() || undefined,
       exactAddress: exactAddress.trim() || undefined,
       lat,
       lng,
-      radiusMiles,
+      radiusMiles: 5,
       scheduledFor,
+      scheduledEnd,
       preferredHelperId: preferredHelper?.id ?? null,
       publicOfferCount: 0,
     }),
@@ -209,14 +214,14 @@ export function PostRequest() {
       budgetType,
       budget,
       currentUser.id,
-      photoUrl,
-      cat.image,
+      coverImage,
+      photoUrls,
       locationLabel,
       exactAddress,
       lat,
       lng,
-      radiusMiles,
       scheduledFor,
+      scheduledEnd,
       preferredHelper?.id,
     ],
   )
@@ -226,7 +231,12 @@ export function PostRequest() {
     [draft, state.people, currentUser.id],
   )
 
-  // Debounced location autocomplete
+  // Refresh calendar labels across midnight.
+  useEffect(() => {
+    const id = window.setInterval(() => setNowTick(Date.now()), 60_000)
+    return () => window.clearInterval(id)
+  }, [])
+
   useEffect(() => {
     const q = locationLabel.trim()
     if (q.length < 2) {
@@ -256,20 +266,6 @@ export function PostRequest() {
     return () => document.removeEventListener('mousedown', onDocClick)
   }, [])
 
-  const applyTemplate = useCallback(
-    (index: number) => {
-      const t = cat.templates[index]
-      if (!t) return
-      setTitle(t.title.slice(0, TITLE_MAX))
-      setDetails(t.details.slice(0, DETAILS_MAX))
-      setBudget(t.budgetHint)
-      setBudgetType('fixed')
-      setError('')
-      setAiBlocked('')
-    },
-    [cat.templates],
-  )
-
   async function onUseMyLocation() {
     if (!navigator.geolocation) {
       setError('Geolocation is not available in this browser.')
@@ -289,7 +285,10 @@ export function PostRequest() {
       )
       if (!res.ok) throw new Error('Could not reverse-geocode')
       const data = (await res.json()) as GeocodeSuggestion
-      setLocationLabel(data.label || `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`)
+      setLocationLabel(
+        data.label ||
+          `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`,
+      )
       setLat(typeof data.lat === 'number' ? data.lat : pos.coords.latitude)
       setLng(typeof data.lng === 'number' ? data.lng : pos.coords.longitude)
       setShowSuggestions(false)
@@ -307,24 +306,74 @@ export function PostRequest() {
     setShowSuggestions(false)
   }
 
-  async function onPhotoSelected(file: File | null) {
-    if (!file) return
-    setPhotoPending(true)
+  async function onPhotosSelected(fileList: FileList | null) {
+    if (!fileList?.length) return
+    setPhotoError('')
     setError('')
+    const remaining = LISTING_PHOTO_MAX - photoUrls.length
+    if (remaining <= 0) {
+      setPhotoError(`You can add up to ${LISTING_PHOTO_MAX} photos.`)
+      if (fileRef.current) fileRef.current.value = ''
+      return
+    }
+    const selected = Array.from(fileList)
+    const truncated = selected.length > remaining
+    const files = selected.slice(0, remaining)
+    if (truncated) {
+      setPhotoError(`Only ${LISTING_PHOTO_MAX} photos allowed — kept the first ${remaining}.`)
+    }
+    setPhotoPending(true)
+    const uploaded: string[] = []
     try {
       const supabase = mode === 'live' ? createClient() : null
-      const url = await uploadBeamMedia({
-        mode,
-        supabase,
-        userId: authUser?.id || currentUser.id,
-        file,
-      })
-      setPhotoUrl(url)
+      for (let i = 0; i < files.length; i++) {
+        const url = await uploadBeamMedia({
+          mode,
+          supabase,
+          userId: authUser?.id || currentUser.id,
+          file: files[i],
+          currentCount: photoUrls.length + uploaded.length,
+        })
+        uploaded.push(url)
+      }
+      setPhotoUrls((prev) => [...prev, ...uploaded].slice(0, LISTING_PHOTO_MAX))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not upload photo')
+      // Clean orphan uploads from this batch on failure.
+      if (mode === 'live') {
+        const supabase = createClient()
+        await Promise.all(
+          uploaded.map((url) =>
+            deleteBeamMedia({
+              mode,
+              supabase,
+              userId: authUser?.id || currentUser.id,
+              url,
+            }),
+          ),
+        )
+      }
+      setPhotoError(err instanceof Error ? err.message : 'Could not upload photo')
     } finally {
       setPhotoPending(false)
       if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  async function removePhotoAt(index: number) {
+    const url = photoUrls[index]
+    if (!url) return
+    setPhotoUrls((prev) => prev.filter((_, i) => i !== index))
+    setPhotoError('')
+    try {
+      const supabase = mode === 'live' ? createClient() : null
+      await deleteBeamMedia({
+        mode,
+        supabase,
+        userId: authUser?.id || currentUser.id,
+        url,
+      })
+    } catch {
+      /* best-effort delete */
     }
   }
 
@@ -343,30 +392,33 @@ export function PostRequest() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt,
-          hasPhoto: Boolean(photoUrl),
+          hasPhoto: photoUrls.length > 0,
           categoryHint: category,
         }),
       })
       const data = (await res.json()) as DraftAiResponse
       if (!res.ok) {
-        setAiBlocked(data.error || 'Could not draft request')
+        setAiBlocked(data.error || 'Could not draft this request.')
         return
       }
       if (data.blocked) {
-        setAiBlocked(data.reason || 'This request is not permitted on Beam.')
+        setAiBlocked(data.reason || 'That request is not allowed on Beam.')
         return
       }
       if (data.category && isCategoryId(data.category)) setCategory(data.category)
       if (data.title) setTitle(data.title.slice(0, TITLE_MAX))
       if (data.details) setDetails(data.details.slice(0, DETAILS_MAX))
-      if (data.when && data.when !== 'scheduled') {
+      // Only accept coarse when chips — never invent Morning/Afternoon windows or radius.
+      if (
+        data.when === 'asap' ||
+        data.when === 'today' ||
+        data.when === 'tomorrow' ||
+        data.when === 'this-week'
+      ) {
         setWhen(data.when)
         setPickingSchedule(false)
-        setCustomWhenLabel(data.whenLabel)
-      } else if (data.whenLabel) {
-        setCustomWhenLabel(data.whenLabel)
       }
-      if (typeof data.suggestedBudget === 'number' && data.suggestedBudget > 0) {
+      if (typeof data.suggestedBudget === 'number' && data.suggestedBudget >= 10) {
         setBudget(data.suggestedBudget)
         setBudgetType('fixed')
       }
@@ -378,19 +430,16 @@ export function PostRequest() {
   }
 
   function selectWhenChip(id: WhenOption | 'pick') {
-    setCustomWhenLabel(undefined)
     if (id === 'pick') {
       setPickingSchedule(true)
       setWhen('scheduled')
-      if (!scheduledDate) {
-        const tomorrow = new Date()
-        tomorrow.setDate(tomorrow.getDate() + 1)
-        setScheduledDate(tomorrow.toISOString().slice(0, 10))
-      }
+      if (!scheduledDate) setScheduledDate(tomorrowISO)
       return
     }
     setPickingSchedule(false)
     setWhen(id)
+    if (id === 'today') setScheduledDate(todayISO)
+    if (id === 'tomorrow') setScheduledDate(tomorrowISO)
   }
 
   async function onSubmit(e: FormEvent) {
@@ -413,13 +462,27 @@ export function PostRequest() {
       setError('Budget should be at least $10.')
       return
     }
-    if (when === 'scheduled' && !scheduledDate) {
-      setError('Pick a date for your scheduled request.')
+    if (needsClockTime(when)) {
+      const check = validateTimeWindow({
+        when,
+        dateISO: activeDateISO,
+        start: startClock,
+        end: endClock,
+        now: new Date(),
+      })
+      if (!check.ok) {
+        setError(check.error)
+        return
+      }
+    }
+    if (photoUrls.length > LISTING_PHOTO_MAX) {
+      setError(`You can add up to ${LISTING_PHOTO_MAX} photos.`)
       return
     }
     setPending(true)
     setError('')
     setCustomError('')
+    setPhotoError('')
     try {
       const request = await postRequest({
         title: title.trim(),
@@ -434,11 +497,12 @@ export function PostRequest() {
         locationLabel: locationLabel.trim() || undefined,
         lat,
         lng,
-        radiusMiles,
         exactAddress: exactAddress.trim() || undefined,
         scheduledFor,
+        scheduledEnd,
         preferredHelperId: preferredHelper?.id ?? null,
-        image: photoUrl || undefined,
+        images: photoUrls,
+        image: listingCoverImage(photoUrls) || undefined,
       })
       router.push(`/requests/${request.id}?justPosted=1`)
     } catch (err) {
@@ -446,6 +510,14 @@ export function PostRequest() {
       setPending(false)
     }
   }
+
+  const whenChips: { id: WhenOption | 'pick'; label: string }[] = [
+    { id: 'asap', label: 'ASAP' },
+    { id: 'today', label: `Today · ${formatShortDate(todayISO)}` },
+    { id: 'tomorrow', label: `Tomorrow · ${formatShortDate(tomorrowISO)}` },
+    { id: 'this-week', label: 'This week' },
+    { id: 'pick', label: 'Pick date & time' },
+  ]
 
   return (
     <div className="min-h-full py-2 sm:py-4" style={{ backgroundColor: PAGE_BG }}>
@@ -459,82 +531,41 @@ export function PostRequest() {
           </p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(300px,360px)] lg:items-start">
-          <form className="space-y-5" onSubmit={onSubmit}>
-            {preferredHelper ? (
-              <div
-                className="flex items-center gap-3 rounded-lg border border-[rgba(7,19,48,0.08)] px-4 py-3.5"
-                style={{ backgroundColor: BUTTER }}
-              >
-                <Avatar src={preferredHelper.avatar} name={preferredHelper.name} size={44} />
-                <div className="min-w-0">
-                  <p className="text-[15px] font-semibold" style={{ color: INK }}>
-                    Requesting help from {firstName(preferredHelper.name)}
-                  </p>
-                  <p className="mt-0.5 text-[13px]" style={{ color: BODY }}>
-                    She&apos;ll be notified as soon as you post — you can still receive other offers.
-                  </p>
-                </div>
-              </div>
-            ) : null}
+        {preferredHelper ? (
+          <div
+            className="mb-5 flex items-center gap-3 rounded-lg border border-[rgba(29,92,229,0.2)] px-4 py-3"
+            style={{ backgroundColor: '#EEF4FF' }}
+          >
+            <Avatar src={preferredHelper.avatar} name={preferredHelper.name} size={40} />
+            <div className="min-w-0">
+              <p className="text-[14px] font-semibold" style={{ color: INK }}>
+                Prefer {firstName(preferredHelper.name)}
+              </p>
+              <p className="text-[13px]" style={{ color: MUTED }}>
+                They’ll be invited first when you post.
+              </p>
+            </div>
+          </div>
+        ) : null}
 
-            {/* AI Quick-Draft */}
-            <section className={cardClass()}>
-              <div className="mb-3 flex items-center gap-2">
-                <span
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg"
-                  style={{ backgroundColor: '#EEF4FF', color: CTA }}
-                >
-                  <Sparkles className="h-4 w-4" aria-hidden />
-                </span>
-                <div>
-                  <h2 className="text-[16px] font-semibold" style={{ color: INK }}>
-                    AI Quick-Draft
-                  </h2>
-                  <p className="text-[13px]" style={{ color: MUTED }}>
-                    Sketch the job in plain language — we fill the form.
-                  </p>
-                </div>
-              </div>
-
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+          <form className="space-y-4" onSubmit={onSubmit} data-testid="post-request-form">
+            {/* Smart draft */}
+            <section className={cardClass()} style={{ backgroundColor: BUTTER }}>
+              <h2 className="mb-1 text-[16px] font-semibold" style={{ color: INK }}>
+                Smart Task Drafter
+              </h2>
+              <p className="mb-3 text-[13px]" style={{ color: MUTED }}>
+                Describe the job in a sentence — we’ll draft title, details, and a budget hint.
+              </p>
               <TextArea
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
-                placeholder="e.g. Need help moving a couch up two flights of stairs this Saturday afternoon…"
+                placeholder="e.g. Need help hauling boxes to the curb this Saturday afternoon…"
                 rows={3}
                 className="min-h-[96px]"
               />
-
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => void onPhotoSelected(e.target.files?.[0] ?? null)}
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  loading={photoPending}
-                  onClick={() => fileRef.current?.click()}
-                >
-                  <Camera className="h-4 w-4" aria-hidden />
-                  {photoUrl ? 'Change photo' : 'Add photo'}
-                </Button>
-                {photoUrl ? (
-                  <button
-                    type="button"
-                    onClick={() => setPhotoUrl('')}
-                    className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[13px] font-medium"
-                    style={{ color: MUTED }}
-                  >
-                    <X className="h-3.5 w-3.5" aria-hidden />
-                    Remove
-                  </button>
-                ) : null}
-                <div className="flex-1" />
+              <div className="mt-3 flex justify-end">
                 <Button
                   type="button"
                   variant="brand"
@@ -546,14 +577,6 @@ export function PostRequest() {
                   Draft with AI
                 </Button>
               </div>
-
-              {photoUrl ? (
-                <div className="mt-3 overflow-hidden rounded-lg border border-[rgba(7,19,48,0.08)]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photoUrl} alt="" className="h-36 w-full object-cover" />
-                </div>
-              ) : null}
-
               {aiBlocked ? (
                 <p
                   className="mt-3 rounded-lg px-3 py-2 text-[13px] leading-snug"
@@ -565,7 +588,71 @@ export function PostRequest() {
               ) : null}
             </section>
 
-            {/* Category — parent then service; Other requires custom text */}
+            {/* Photos */}
+            <section className={cardClass()} data-testid="post-photos-section">
+              <h2 className="mb-1 text-[16px] font-semibold" style={{ color: INK }}>
+                Photos
+              </h2>
+              <p className="mb-3 text-[13px]" style={{ color: MUTED }}>
+                Optional. {LISTING_PHOTO_HINT}
+              </p>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif,image/*"
+                multiple
+                className="hidden"
+                data-testid="post-photo-input"
+                onChange={(e) => void onPhotosSelected(e.target.files)}
+              />
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  loading={photoPending}
+                  disabled={photoUrls.length >= LISTING_PHOTO_MAX}
+                  onClick={() => fileRef.current?.click()}
+                  data-testid="post-photo-add"
+                >
+                  <Camera className="h-4 w-4" aria-hidden />
+                  {photoUrls.length ? 'Add more photos' : 'Add photos'}
+                </Button>
+                <span className="text-[13px]" style={{ color: MUTED }} data-testid="post-photo-count">
+                  {photoUrls.length}/{LISTING_PHOTO_MAX}
+                </span>
+              </div>
+              {photoError ? (
+                <p
+                  className="mt-2 text-[13px] font-medium text-red-600"
+                  role="alert"
+                  data-testid="post-photo-error"
+                >
+                  {photoError}
+                </p>
+              ) : null}
+              {photoUrls.length ? (
+                <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5" data-testid="post-photo-thumbs">
+                  {photoUrls.map((url, i) => (
+                    <li key={`${url}-${i}`} className="relative aspect-square overflow-hidden rounded-lg bg-[#F1F5F9]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt="" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        aria-label={`Remove photo ${i + 1}`}
+                        data-testid={`post-photo-remove-${i}`}
+                        onClick={() => void removePhotoAt(i)}
+                        className="absolute right-1 top-1 inline-flex h-7 w-7 items-center justify-center rounded-md bg-[#071330]/75 text-white"
+                      >
+                        <X className="h-3.5 w-3.5" aria-hidden />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+
+            {/* Category */}
             <section className={cardClass()}>
               <h2 className="mb-1 text-[16px] font-semibold" style={{ color: INK }}>
                 Category
@@ -593,20 +680,17 @@ export function PostRequest() {
             {/* Title & Details */}
             <section className={cardClass()}>
               <h2 className="mb-4 text-[16px] font-semibold" style={{ color: INK }}>
-                Title &amp; details
+                Title &amp; Details
               </h2>
 
-              <Field
-                label="Title"
-                required
-                hint={`${title.length}/${TITLE_MAX}`}
-              >
+              <Field label="Title" required hint={`${title.length}/${TITLE_MAX}`}>
                 <TextInput
                   value={title}
                   maxLength={TITLE_MAX}
                   onChange={(e) => setTitle(e.target.value.slice(0, TITLE_MAX))}
                   placeholder="What do you need done?"
                   required
+                  data-testid="post-title"
                 />
               </Field>
 
@@ -623,30 +707,10 @@ export function PostRequest() {
                     placeholder="A few sentences helpers can trust…"
                     rows={5}
                     required
+                    data-testid="post-details"
                   />
                 </Field>
               </div>
-
-              {cat.templates.length ? (
-                <div className="mt-4">
-                  <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
-                    Templates
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {cat.templates.map((t, i) => (
-                      <button
-                        key={t.title}
-                        type="button"
-                        onClick={() => applyTemplate(i)}
-                        className="rounded-md border border-[rgba(7,19,48,0.1)] bg-[#F4F8FD] px-3 py-1.5 text-[13px] font-medium transition hover:border-[#1D5CE5]/40 hover:bg-white"
-                        style={{ color: INK }}
-                      >
-                        {t.title}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
             </section>
 
             {/* Location */}
@@ -655,7 +719,7 @@ export function PostRequest() {
                 Location
               </h2>
               <p className="mb-4 text-[13px]" style={{ color: MUTED }}>
-                City, neighborhood, or ZIP — helpers see a radius, not your door.
+                Where will the job take place?
               </p>
 
               <div ref={locationWrapRef} className="relative">
@@ -712,31 +776,6 @@ export function PostRequest() {
                 ) : null}
               </div>
 
-              <div className="mt-4">
-                <p className="mb-2 text-[13px] font-medium" style={{ color: BODY }}>
-                  Search radius
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {RADIUS_OPTIONS.map((r) => {
-                    const selected = radiusMiles === r
-                    return (
-                      <button
-                        key={r}
-                        type="button"
-                        onClick={() => setRadiusMiles(r)}
-                        className={`rounded-md px-3.5 py-1.5 text-[13px] font-semibold transition ${
-                          selected
-                            ? 'bg-[#1D5CE5] text-white'
-                            : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330] hover:bg-[#F4F8FD]'
-                        }`}
-                      >
-                        {r} mi
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
               <div className="mt-4 border-t border-[rgba(7,19,48,0.06)] pt-3">
                 <button
                   type="button"
@@ -770,18 +809,21 @@ export function PostRequest() {
             </section>
 
             {/* When */}
-            <section className={cardClass()}>
+            <section className={cardClass()} data-testid="post-when-section">
               <h2 className="mb-4 text-[16px] font-semibold" style={{ color: INK }}>
                 When
               </h2>
               <div className="flex flex-wrap gap-2">
-                {WHEN_CHIPS.map((chip) => {
+                {whenChips.map((chip) => {
                   const selected =
-                    chip.id === 'pick' ? pickingSchedule || when === 'scheduled' : when === chip.id && !pickingSchedule
+                    chip.id === 'pick'
+                      ? pickingSchedule || when === 'scheduled'
+                      : when === chip.id && !pickingSchedule
                   return (
                     <button
                       key={chip.id}
                       type="button"
+                      data-testid={`post-when-${chip.id}`}
                       onClick={() => selectWhenChip(chip.id)}
                       className={`rounded-md px-3.5 py-2 text-[13px] font-semibold transition ${
                         selected
@@ -795,50 +837,58 @@ export function PostRequest() {
                 })}
               </div>
 
-              {pickingSchedule || when === 'scheduled' ? (
-                <div className="mt-4 space-y-3 rounded-lg bg-[#F4F8FD] p-4">
-                  <Field label="Date">
-                    <TextInput
-                      type="date"
-                      value={scheduledDate}
-                      min={new Date().toISOString().slice(0, 10)}
-                      onChange={(e) => {
-                        setScheduledDate(e.target.value)
-                        setCustomWhenLabel(undefined)
-                        setWhen('scheduled')
-                      }}
-                    />
-                  </Field>
-                  <div>
-                    <p className="mb-2 text-[13px] font-medium" style={{ color: BODY }}>
-                      Time window
+              {needsClockTime(when) ? (
+                <div
+                  className="mt-4 space-y-3 rounded-lg bg-[#F4F8FD] p-4"
+                  data-testid="post-time-window"
+                >
+                  {when === 'scheduled' || pickingSchedule ? (
+                    <Field label="Date">
+                      <TextInput
+                        type="date"
+                        value={scheduledDate}
+                        min={todayISO}
+                        onChange={(e) => {
+                          setScheduledDate(e.target.value)
+                          setWhen('scheduled')
+                          setPickingSchedule(true)
+                        }}
+                        data-testid="post-scheduled-date"
+                      />
+                    </Field>
+                  ) : (
+                    <p className="text-[13px]" style={{ color: MUTED }} data-testid="post-when-date-summary">
+                      Selected date:{' '}
+                      <span className="font-semibold" style={{ color: INK }}>
+                        {activeDateISO ? formatShortDate(activeDateISO) : '—'}
+                      </span>
+                      <span className="ml-1 text-[12px]">(your local time)</span>
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                      {(['Morning', 'Afternoon', 'Evening'] as TimeWindow[]).map((w) => (
-                        <button
-                          key={w}
-                          type="button"
-                          onClick={() => {
-                            setTimeWindow(w)
-                            setCustomWhenLabel(undefined)
-                            setWhen('scheduled')
-                          }}
-                          className={`rounded-md px-3.5 py-1.5 text-[13px] font-semibold transition ${
-                            timeWindow === w
-                              ? 'bg-[#1D5CE5] text-white'
-                              : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330]'
-                          }`}
-                        >
-                          {w}
-                        </button>
-                      ))}
-                    </div>
+                  )}
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Field label="Start time" hint="Local time">
+                      <TextInput
+                        type="time"
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                        required
+                        data-testid="post-start-time"
+                      />
+                    </Field>
+                    <Field label="End time (optional)" hint="Must be after start">
+                      <TextInput
+                        type="time"
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
+                        data-testid="post-end-time"
+                      />
+                    </Field>
                   </div>
-                  {scheduledDate ? (
-                    <p className="text-[13px]" style={{ color: MUTED }}>
-                      Shows as <span style={{ color: INK }}>{computedWhenLabel}</span>
-                    </p>
-                  ) : null}
+
+                  <p className="text-[13px]" style={{ color: MUTED }}>
+                    Shows as <span style={{ color: INK }}>{computedWhenLabel}</span>
+                  </p>
                 </div>
               ) : null}
             </section>
@@ -878,7 +928,10 @@ export function PostRequest() {
 
               {budgetType === 'fixed' ? (
                 <div className="mt-4 space-y-3">
-                  <Field label="Budget (USD)" hint="Helpers still name their price — this sets expectations.">
+                  <Field
+                    label="Budget (USD)"
+                    hint="Helpers still name their price — this sets expectations."
+                  >
                     <div className="relative">
                       <span
                         className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] font-semibold"
@@ -926,6 +979,7 @@ export function PostRequest() {
                 className="rounded-lg px-4 py-3 text-[14px]"
                 style={{ backgroundColor: '#FEF2F2', color: '#B91C1C' }}
                 role="alert"
+                data-testid="post-error"
               >
                 {error}
               </p>
@@ -943,14 +997,13 @@ export function PostRequest() {
             <div className="pointer-events-none select-none" aria-hidden>
               <RequestCard request={draft} />
             </div>
-            <div
-              className="mt-4 rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-3.5"
-            >
+            <div className="mt-4 rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-3.5">
               <p className="text-[14px] font-semibold" style={{ color: INK }}>
                 {matchCount} helper{matchCount === 1 ? '' : 's'} nearby
               </p>
               <p className="mt-0.5 text-[13px]" style={{ color: MUTED }}>
-                Based on category, timing, and your {radiusMiles}-mile radius.
+                Based on category, timing, and job location. Helpers choose their own travel distance
+                when browsing.
               </p>
             </div>
             <p className="mt-3 text-[13px]" style={{ color: MUTED }}>

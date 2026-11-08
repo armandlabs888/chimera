@@ -2,14 +2,13 @@
 
 import {
   ArrowRight,
-  Bell,
   ChevronDown,
   LogOut,
   Plus,
   UserRound,
 } from 'lucide-react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { BottomNav } from './BottomNav'
 import { BeamWordmark } from '@/components/BeamMark'
@@ -21,7 +20,6 @@ import { LandingFooter } from '@/components/landing/LandingFooter'
 import { LandingNav } from '@/components/landing/LandingNav'
 import { useBeam } from '@/context/BeamContext'
 import { useBrowseLocation } from '@/hooks/useBrowseLocation'
-import { relativeTime } from '@/lib/matching'
 import { Avatar } from '@/components/ui'
 
 const primaryNav = [
@@ -50,21 +48,9 @@ function navItemActive(pathname: string, href: string) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
-  const router = useRouter()
-  const {
-    currentUser,
-    mode,
-    ready,
-    authUser,
-    state,
-    markNotificationRead,
-    markAllNotificationsRead,
-    signOut,
-  } = useBeam()
+  const { currentUser, mode, ready, authUser, state, signOut } = useBeam()
   const hideChrome = shouldHideAppChrome(pathname)
-  const [notifOpen, setNotifOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
-  const notifRef = useRef<HTMLDivElement>(null)
   const accountRef = useRef<HTMLDivElement>(null)
   // Live guests get marketing chrome on public discovery routes.
   // Demo mode always uses the authenticated marketplace top nav.
@@ -78,17 +64,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const messagesWorkspaceMain = isMessagesPath
 
   const notifications = state.notifications ?? []
-  const unreadCount = useMemo(
-    () => notifications.filter((n) => !n.readAt && n.userId === currentUser.id).length,
-    [notifications, currentUser.id],
-  )
-  const myNotifications = useMemo(
-    () =>
-      notifications
-        .filter((n) => n.userId === currentUser.id || mode === 'demo')
-        .slice(0, 12),
-    [notifications, currentUser.id, mode],
-  )
   const unreadMessageCount = useMemo(
     () =>
       notifications.filter(
@@ -101,26 +76,19 @@ export function AppShell({ children }: { children: ReactNode }) {
   )
 
   useEffect(() => {
-    setNotifOpen(false)
     setAccountOpen(false)
   }, [pathname])
 
   useEffect(() => {
-    if (!notifOpen && !accountOpen) return
+    if (!accountOpen) return
     function onDoc(e: MouseEvent) {
       const target = e.target as Node
-      if (notifOpen && notifRef.current && !notifRef.current.contains(target)) {
-        setNotifOpen(false)
-      }
       if (accountOpen && accountRef.current && !accountRef.current.contains(target)) {
         setAccountOpen(false)
       }
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setNotifOpen(false)
-        setAccountOpen(false)
-      }
+      if (e.key === 'Escape') setAccountOpen(false)
     }
     document.addEventListener('mousedown', onDoc)
     document.addEventListener('keydown', onKey)
@@ -128,7 +96,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       document.removeEventListener('mousedown', onDoc)
       document.removeEventListener('keydown', onKey)
     }
-  }, [notifOpen, accountOpen])
+  }, [accountOpen])
 
   // Must stay above early returns — hooks cannot be conditional.
   const { origin: browseOrigin } = useBrowseLocation(currentUser)
@@ -250,7 +218,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </nav>
             </div>
 
-            {/* Right: location + CTA + notifications + account */}
+            {/* Right: location + CTA + account (Messages nav carries unread; no bell) */}
             <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
               {process.env.NODE_ENV !== 'production' ? (
                 <span className="hidden rounded-md border border-[#E2E8F0] px-2 py-1 text-[11px] font-semibold text-[#64748B] lg:inline-flex">
@@ -276,81 +244,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </Link>
               ) : null}
 
-              <div className="relative" ref={notifRef}>
-                <button
-                  type="button"
-                  data-testid="notifications-bell"
-                  aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`}
-                  aria-expanded={notifOpen}
-                  aria-haspopup="dialog"
-                  onClick={() => {
-                    setNotifOpen((o) => !o)
-                    setAccountOpen(false)
-                  }}
-                  className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#475569] transition hover:bg-[#F8FAFC] hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
-                >
-                  <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
-                  {unreadCount > 0 ? (
-                    <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-md bg-[#1D5CE5] px-1 text-[10px] font-bold text-white">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  ) : null}
-                </button>
-                {notifOpen ? (
-                  <div
-                    className="absolute right-0 top-11 z-50 w-[min(340px,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)]"
-                    role="dialog"
-                    aria-label="Notifications"
-                  >
-                    <div className="flex items-center justify-between border-b border-[#F1F5F9] px-4 py-3">
-                      <p className="text-[14px] font-bold text-[#071330]">Notifications</p>
-                      <button
-                        type="button"
-                        className="text-[12px] font-semibold text-[#1D5CE5] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35"
-                        onClick={() => void markAllNotificationsRead()}
-                      >
-                        Mark all read
-                      </button>
-                    </div>
-                    <ul className="max-h-[360px] overflow-y-auto">
-                      {myNotifications.length === 0 ? (
-                        <li className="px-4 py-8 text-center text-[13px] text-[#64748B]">
-                          You’re all caught up.
-                        </li>
-                      ) : (
-                        myNotifications.map((n) => (
-                          <li key={n.id}>
-                            <button
-                              type="button"
-                              className={`flex w-full flex-col gap-0.5 px-4 py-3 text-left transition hover:bg-[#F8FAFC] focus-visible:bg-[#F8FAFC] focus-visible:outline-none ${
-                                !n.readAt ? 'bg-[#F8FAFC]/80' : ''
-                              }`}
-                              onClick={() => {
-                                void markNotificationRead(n.id)
-                                setNotifOpen(false)
-                                router.push(n.href)
-                              }}
-                            >
-                              <span className="text-[13px] font-semibold text-[#071330]">
-                                {n.title}
-                              </span>
-                              {n.body ? (
-                                <span className="line-clamp-2 text-[12px] text-[#64748B]">
-                                  {n.body}
-                                </span>
-                              ) : null}
-                              <span className="text-[11px] text-[#94A3B8]">
-                                {relativeTime(n.createdAt)}
-                              </span>
-                            </button>
-                          </li>
-                        ))
-                      )}
-                    </ul>
-                  </div>
-                ) : null}
-              </div>
-
               <div className="relative" ref={accountRef}>
                 <button
                   type="button"
@@ -360,7 +253,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                   aria-haspopup="menu"
                   onClick={() => {
                     setAccountOpen((o) => !o)
-                    setNotifOpen(false)
                   }}
                   className="inline-flex h-9 max-w-[11rem] items-center gap-2 rounded-lg px-2 transition hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 sm:max-w-[14rem]"
                 >

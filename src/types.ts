@@ -94,7 +94,10 @@ export interface HelpRequest {
   budget: number
   status: RequestStatus
   requesterId: string
+  /** Cover image (first of `images`) for cards / legacy. */
   image: string
+  /** Ordered listing photos (0–5). */
+  images?: string[]
   createdAt: string
   acceptedOfferId?: string
   helperId?: string
@@ -102,9 +105,12 @@ export interface HelpRequest {
   exactAddress?: string
   lat?: number | null
   lng?: number | null
+  /** Legacy helper-match radius; not set by new listing UI. */
   radiusMiles?: number
   budgetType?: BudgetType
   scheduledFor?: string | null
+  /** Optional end of requester time window. */
+  scheduledEnd?: string | null
   preferredHelperId?: string | null
   publicOfferCount?: number
 }

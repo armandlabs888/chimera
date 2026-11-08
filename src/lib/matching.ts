@@ -43,7 +43,6 @@ export function rankHelpersForRequest(
   excludeIds: string[] = [],
 ): MatchScore[] {
   const needed = slotsForWhen(request.when)
-  const reqRadius = request.radiusMiles ?? 5
   const categoryLabel = formatCategoryLabel(
     request.category,
     request.categoryCustom,
@@ -57,8 +56,9 @@ export function rankHelpersForRequest(
     })
     .map((person) => {
       const miles = resolveDistance(request, person)
+      // Posters no longer pick Search radius — helpers choose travel distance.
       const helperRadius = person.serviceRadiusMiles ?? 5
-      const withinRadius = miles <= Math.max(reqRadius, helperRadius)
+      const withinRadius = miles <= helperRadius + 0.5
       const skillMatch = person.skills.includes(request.category)
       const slotFit = person.availability.some((s) => needed.includes(s))
       const liveNow = Boolean(person.availableNow)
@@ -94,7 +94,7 @@ export function rankHelpersForRequest(
     })
     .filter((m) => {
       const helperRadius = m.person.serviceRadiusMiles ?? 5
-      return m.distanceMiles <= Math.max(reqRadius, helperRadius) + 0.5 || m.skillMatch
+      return m.distanceMiles <= helperRadius + 0.5 || m.skillMatch
     })
     .sort((a, b) => b.score - a.score)
 }

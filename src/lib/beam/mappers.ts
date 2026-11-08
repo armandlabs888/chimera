@@ -79,6 +79,11 @@ export function mapRequest(
     status: row.status as HelpRequest['status'],
     requesterId: row.requester_id,
     image: row.image,
+    images: Array.isArray(row.images)
+      ? (row.images as string[]).filter(Boolean)
+      : row.image
+        ? [row.image]
+        : [],
     createdAt: row.created_at,
     acceptedOfferId: row.accepted_offer_id ?? undefined,
     helperId: row.helper_id ?? undefined,
@@ -89,6 +94,7 @@ export function mapRequest(
     radiusMiles: row.radius_miles ?? 5,
     budgetType: (row.budget_type as BudgetType) || (Number(row.budget) === 0 ? 'open' : 'fixed'),
     scheduledFor: row.scheduled_for,
+    scheduledEnd: row.scheduled_end ?? null,
     preferredHelperId: row.preferred_helper_id,
     publicOfferCount: row.offer_count,
   }
@@ -217,6 +223,11 @@ export function mapPublicRequest(row: Record<string, unknown>): HelpRequest {
     status: 'open',
     requesterId: String(row.requester_id),
     image: String(row.image ?? ''),
+    images: Array.isArray(row.images)
+      ? (row.images as string[]).filter(Boolean)
+      : row.image
+        ? [String(row.image)]
+        : [],
     createdAt: String(row.created_at ?? new Date().toISOString()),
     locationLabel: String(row.location_label ?? ''),
     lat: (row.lat as number | null) ?? null,
@@ -224,6 +235,7 @@ export function mapPublicRequest(row: Record<string, unknown>): HelpRequest {
     radiusMiles: Number(row.radius_miles ?? 5),
     budgetType: (row.budget_type as BudgetType) || (budget === 0 ? 'open' : 'fixed'),
     scheduledFor: (row.scheduled_for as string | null) ?? null,
+    scheduledEnd: (row.scheduled_end as string | null) ?? null,
     publicOfferCount: Number(row.offer_count ?? 0),
   }
 }

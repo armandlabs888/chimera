@@ -714,9 +714,10 @@ async function checkLandingBrowser() {
         (await page.locator('[data-testid="account-menu-trigger"]').count()) >= 1,
         'signed-in topnav has account menu',
       )
-      assert.ok(
-        (await page.locator('[data-testid="notifications-bell"]').count()) >= 1,
-        'signed-in topnav has notifications',
+      assert.equal(
+        await page.locator('[data-testid="notifications-bell"]').count(),
+        0,
+        'signed-in topnav has no notifications bell (Messages carries unread)',
       )
 
       // Topnav is Browse + Messages only — Home & Safety live elsewhere.

@@ -8,6 +8,7 @@ import { Avatar } from './ui'
 import { useBeam } from '@/context/BeamContext'
 import { formatLocation, relativeTime } from '../lib/matching'
 import { formatPublicRating } from '@/lib/ratingDisplay'
+import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import type { HelpRequest } from '../types'
 
@@ -21,6 +22,10 @@ export function RequestCard({
   const { state } = useBeam()
   const categoryLabel = formatCategoryLabel(request.category, request.categoryCustom)
   const location = formatLocation(request)
+  const cover = listingCoverImage(
+    normalizeListingImages(request.images, request.image),
+    request.image,
+  )
 
   const requester = useMemo(
     () => state.people.find((p) => p.id === request.requesterId),
@@ -46,9 +51,9 @@ export function RequestCard({
       className="group flex flex-col overflow-hidden rounded-lg border border-[#E2E8F0] bg-white transition-[border-color,box-shadow] duration-150 hover:border-[#CBD5E1] hover:shadow-[0_6px_18px_-6px_rgba(7,19,48,0.08)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1D5CE5]"
     >
       <div className="relative aspect-[16/9] max-h-[140px] w-full overflow-hidden bg-[#F1F5F9]">
-        {request.image ? (
+        {cover ? (
           <Image
-            src={request.image}
+            src={cover}
             alt=""
             fill
             sizes="(min-width:1280px) 320px, (min-width:640px) 45vw, 100vw"
