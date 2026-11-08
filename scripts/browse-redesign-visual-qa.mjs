@@ -223,7 +223,7 @@ async function main() {
       )
       assert.equal(
         await page.locator('[data-testid="browse-fresh-empty"]').getAttribute('data-empty-layout'),
-        'copy-only',
+        'gradient-hero',
       )
       assert.ok(await page.locator('[data-testid="browse-while-you-wait"]').count())
       assert.equal(
@@ -297,7 +297,7 @@ async function main() {
       )
       assert.equal(
         await page.locator('[data-testid="browse-fresh-empty"]').getAttribute('data-empty-layout'),
-        'copy-only',
+        'gradient-hero',
       )
       assert.ok(await page.locator('[data-testid="browse-mode-tabs"]').count())
       assert.match(await page.locator('[data-testid="browse-fresh-empty"]').innerText(), /Be the first on Beam/)
@@ -391,7 +391,7 @@ async function main() {
     assert.equal(await page.locator('[data-testid="browse-map-view"]').count(), 0)
     assert.equal(
       await page.locator('[data-testid="browse-fresh-empty"]').getAttribute('data-empty-layout'),
-      'copy-only',
+      'gradient-hero',
     )
     assert.match(await page.locator('[data-testid="browse-fresh-empty"]').innerText(), /Be the first on Beam/)
     assert.doesNotMatch(

@@ -234,8 +234,8 @@ async function assertHelperJobsOnly(page, label, { expectPopulated = false, expe
     )
     assert.equal(
       await page.locator('[data-testid="browse-fresh-empty"]').getAttribute('data-empty-layout'),
-      'copy-only',
-      `${label}: copy-only empty layout`,
+      'gradient-hero',
+      `${label}: gradient-hero empty layout`,
     )
   }
   return m

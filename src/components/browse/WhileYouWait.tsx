@@ -4,6 +4,9 @@ import Link from 'next/link'
 import { Bell, MapPinned, UserRound } from 'lucide-react'
 import type { HelperProfileProgress } from '@/lib/helperProfileProgress'
 
+const cardClass =
+  'rounded-[12px] border border-[#E2E8F0] bg-white p-4 shadow-[0_4px_14px_-8px_rgba(7,19,48,0.12)]'
+
 export function WhileYouWait({
   alertsEnabled,
   onToggleAlerts,
@@ -19,11 +22,11 @@ export function WhileYouWait({
 }) {
   return (
     <section className="mt-5" data-testid="browse-while-you-wait" aria-labelledby="while-you-wait-heading">
-      <div className="mb-2.5 flex flex-wrap items-end justify-between gap-2">
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
         <h3 id="while-you-wait-heading" className="text-[15px] font-semibold text-[#071330]">
           While you wait
         </h3>
-        <p className="text-[12.5px] text-[#94A3B8]">Get ready for the next open job</p>
+        <p className="text-[12.5px] text-[#94A3B8]">Useful next steps nearby</p>
       </div>
 
       <div
@@ -31,7 +34,7 @@ export function WhileYouWait({
           showProfileCard ? 'md:grid-cols-3' : 'md:grid-cols-2'
         }`}
       >
-        <article className="rounded-lg border border-[#E2E8F0] bg-white p-3.5 shadow-[0_1px_2px_rgba(7,19,48,0.03)]">
+        <article className={cardClass}>
           <div className="flex items-start justify-between gap-3">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#EEF4FF] text-[#1D5CE5]">
               <Bell className="h-4 w-4" strokeWidth={1.85} aria-hidden />
@@ -40,46 +43,45 @@ export function WhileYouWait({
               type="button"
               role="switch"
               aria-checked={alertsEnabled}
-              aria-label="In-app job alerts"
+              aria-label="In-app job alerts preference"
               onClick={onToggleAlerts}
               data-testid="browse-alerts-toggle"
-              className={`relative inline-flex h-6 w-10 shrink-0 items-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 ${
+              className={`relative inline-flex h-6 w-10 shrink-0 items-center rounded-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 ${
                 alertsEnabled ? 'bg-[#1D5CE5]' : 'bg-[#E2E8F0]'
               }`}
             >
               <span
-                className={`inline-block h-4 w-4 rounded-full bg-white shadow transition ${
+                className={`inline-block h-4 w-4 rounded-md bg-white shadow transition ${
                   alertsEnabled ? 'translate-x-5' : 'translate-x-1'
                 }`}
               />
             </button>
           </div>
-          <h4 className="mt-3 text-[14px] font-semibold text-[#071330]">Instant job alerts</h4>
+          <h4 className="mt-3 text-[14px] font-semibold text-[#071330]">In-app job alerts</h4>
           <p className="mt-1 text-[12.5px] leading-[1.45] text-[#64748B]">
-            Save an in-app preference so new nearby jobs stand out in Notifications when you come
-            back. No push or SMS.
+            Save a preference so new nearby jobs stand out when you come back. No push or SMS.
           </p>
           <p
-            className={`mt-3 text-[12px] font-semibold ${
-              alertsEnabled ? 'text-[#059669]' : 'text-[#94A3B8]'
+            className={`mt-3 text-[12.5px] font-semibold ${
+              alertsEnabled ? 'text-[#1D5CE5]' : 'text-[#94A3B8]'
             }`}
           >
             {alertsEnabled ? 'Alerts are on' : 'Alerts are off'}
           </p>
         </article>
 
-        <article className="rounded-lg border border-[#E2E8F0] bg-white p-3.5 shadow-[0_1px_2px_rgba(7,19,48,0.03)]">
+        <article className={cardClass}>
           <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#EEF4FF] text-[#1D5CE5]">
             <MapPinned className="h-4 w-4" strokeWidth={1.85} aria-hidden />
           </span>
           <h4 className="mt-3 text-[14px] font-semibold text-[#071330]">Widen your service area</h4>
           <p className="mt-1 text-[12.5px] leading-[1.45] text-[#64748B]">
-            Expand the browse radius to catch open jobs a bit farther from your pin.
+            Expand the browse travel distance to catch open jobs a bit farther from your pin.
           </p>
           <button
             type="button"
             onClick={onWidenRadius}
-            className="mt-3 inline-flex text-[12.5px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
+            className="mt-3 inline-flex rounded-lg text-[12.5px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35"
             data-testid="browse-widen-radius"
           >
             Set to 25 mi →
@@ -87,12 +89,12 @@ export function WhileYouWait({
         </article>
 
         {showProfileCard ? (
-          <article className="rounded-lg border border-[#E2E8F0] bg-white p-3.5 shadow-[0_1px_2px_rgba(7,19,48,0.03)]">
+          <article className={cardClass} data-testid="browse-profile-progress-card">
             <div className="flex items-start justify-between gap-3">
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
                 <UserRound className="h-4 w-4" strokeWidth={1.85} aria-hidden />
               </span>
-              <span className="inline-flex items-center rounded-md bg-[#F1F5F9] px-2 py-0.5 text-[11.5px] font-bold tabular-nums text-[#334155]">
+              <span className="inline-flex items-center rounded-lg bg-[#F1F5F9] px-2 py-0.5 text-[11.5px] font-bold tabular-nums text-[#334155]">
                 {profileProgress.percent}%
               </span>
             </div>
@@ -104,15 +106,15 @@ export function WhileYouWait({
                   }`
                 : 'Profile checklist looks complete — keep skills and rate up to date.'}
             </p>
-            <div className="mt-3 h-1.5 overflow-hidden rounded-md bg-[#E2E8F0]">
+            <div className="mt-3 h-1.5 overflow-hidden rounded-lg bg-[#E2E8F0]">
               <div
-                className="h-full rounded-md bg-emerald-500 transition-[width] duration-300"
+                className="h-full rounded-lg bg-[#1D5CE5] transition-[width] duration-300 motion-reduce:transition-none"
                 style={{ width: `${profileProgress.percent}%` }}
               />
             </div>
             <Link
               href="/onboarding/helper"
-              className="mt-3 inline-flex text-[12.5px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
+              className="mt-3 inline-flex rounded-lg text-[12.5px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35"
               data-testid="browse-continue-profile"
             >
               Continue →
