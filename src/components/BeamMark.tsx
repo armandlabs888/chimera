@@ -37,12 +37,14 @@ export function BeamWordmark({
   markWidth?: number
   markHeight?: number
   wordClassName?: string
-  tone?: 'ink' | 'white' | 'royal'
+  tone?: 'ink' | 'white' | 'royal' | 'onDark'
 }) {
   const colors = {
     ink: { mark: '#1D5CE5', word: 'text-[#071330]' },
     white: { mark: '#FFFFFF', word: 'text-white' },
     royal: { mark: '#1D5CE5', word: 'text-[#1D5CE5]' },
+    /** Blue mark + white word for navy/slate surfaces */
+    onDark: { mark: '#1D5CE5', word: 'text-white' },
   }[tone]
 
   return (

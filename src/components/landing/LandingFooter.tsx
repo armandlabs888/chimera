@@ -8,7 +8,7 @@ import { BROWSE_PARENTS } from '@/lib/taxonomy'
 import { hidesPeerHelperDiscovery } from '@/lib/roles'
 
 const linkClass =
-  'rounded-sm text-[14px] font-medium leading-snug text-[#475569] transition hover:text-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F8FD]'
+  'rounded-sm text-[14px] font-medium leading-snug text-[#CBD5E1] transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1e293b]'
 
 function FooterGroup({
   id,
@@ -24,7 +24,7 @@ function FooterGroup({
     <nav aria-labelledby={id} className="min-w-0">
       <h2
         id={id}
-        className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#071330]"
+        className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white"
       >
         {title}
       </h2>
@@ -120,7 +120,7 @@ export function LandingFooter({
 
   return (
     <footer
-      className={`shrink-0 border-t border-[rgba(7,19,48,0.08)] bg-[#F4F8FD] ${
+      className={`shrink-0 border-t border-white/10 bg-[#1e293b] ${
         dockPadding ? 'pb-24 md:pb-0' : ''
       }`}
       data-testid="landing-footer"
@@ -132,17 +132,17 @@ export function LandingFooter({
           <div className="flex max-w-[32ch] flex-col lg:col-span-4">
             <Link
               href="/"
-              className="inline-flex w-fit rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F8FD]"
+              className="inline-flex w-fit rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1e293b]"
               aria-label="Beam home"
             >
               <BeamWordmark
                 markWidth={24}
                 markHeight={24}
                 wordClassName="text-[22px] tracking-[-0.03em]"
-                tone="ink"
+                tone="onDark"
               />
             </Link>
-            <p className="mt-2.5 text-[13.5px] leading-[1.45] text-[#334155]">
+            <p className="mt-2.5 text-[13.5px] leading-[1.45] text-[#CBD5E1]">
               Peer-to-peer everyday local help — home, auto, junk removal, pets, and other casual
               tasks.
             </p>
@@ -156,10 +156,10 @@ export function LandingFooter({
         </div>
       </div>
 
-      <div className="border-t border-[rgba(7,19,48,0.08)] bg-white/70" data-testid="footer-legal">
+      <div className="border-t border-white/10" data-testid="footer-legal">
         <div className="beam-container flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-          <p className="shrink-0 text-[12.5px] leading-[1.35] text-[#475569]">© 2026 Beam</p>
-          <p className="max-w-[68ch] text-[12px] leading-[1.45] text-[#475569] sm:text-right">
+          <p className="shrink-0 text-[12.5px] leading-[1.35] text-[#E2E8F0]">© 2026 Beam</p>
+          <p className="max-w-[68ch] text-[12px] leading-[1.45] text-[#E2E8F0] sm:text-right">
             Payments are arranged directly between neighbors. Not for licensed trades, childcare,
             medical/senior care, or passenger driving.
           </p>
