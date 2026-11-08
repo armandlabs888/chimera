@@ -223,7 +223,7 @@ async function main() {
       )
       assert.equal(
         await page.locator('[data-testid="browse-fresh-empty"]').getAttribute('data-empty-layout'),
-        'copy-only',
+        'gradient-hero',
       )
       assert.ok(await page.locator('[data-testid="browse-while-you-wait"]').count())
       assert.equal(
@@ -297,7 +297,7 @@ async function main() {
       )
       assert.equal(
         await page.locator('[data-testid="browse-fresh-empty"]').getAttribute('data-empty-layout'),
-        'copy-only',
+        'gradient-hero',
       )
       assert.ok(await page.locator('[data-testid="browse-mode-tabs"]').count())
       assert.match(await page.locator('[data-testid="browse-fresh-empty"]').innerText(), /Be the first on Beam/)
@@ -391,7 +391,7 @@ async function main() {
     assert.equal(await page.locator('[data-testid="browse-map-view"]').count(), 0)
     assert.equal(
       await page.locator('[data-testid="browse-fresh-empty"]').getAttribute('data-empty-layout'),
-      'copy-only',
+      'gradient-hero',
     )
     assert.match(await page.locator('[data-testid="browse-fresh-empty"]').innerText(), /Be the first on Beam/)
     assert.doesNotMatch(
@@ -517,6 +517,106 @@ async function main() {
     await page.getByLabel('Search browse').focus()
     const tag = await page.evaluate(() => document.activeElement?.getAttribute('aria-label'))
     assert.equal(tag, 'Search browse')
+
+    // --- Mobile compact adaptation: reduced artwork + single-row command bar + filters a11y ---
+    await page.setViewportSize({ width: 390, height: 844 })
+    await seedHelper(page, { emptyJobs: true })
+    await page.waitForSelector('[data-testid="browse-fresh-empty"]')
+    const mobileEmptyMetrics = await page.evaluate(() => {
+      const art = document.querySelector('[data-testid="browse-empty-artwork"]')
+      const hero = document.querySelector('[data-testid="browse-fresh-empty"]')
+      const bar = document.querySelector('[data-testid="browse-command-bar"] > div')
+      const wait = document.querySelector('[data-testid="browse-while-you-wait"]')
+      const artRect = art?.getBoundingClientRect()
+      const heroRect = hero?.getBoundingClientRect()
+      const barRect = bar?.getBoundingClientRect()
+      const waitRect = wait?.getBoundingClientRect()
+      const artStyle = art ? getComputedStyle(art) : null
+      return {
+        artVisible:
+          !!art &&
+          artStyle?.display !== 'none' &&
+          artStyle?.visibility !== 'hidden' &&
+          (artRect?.width || 0) > 40 &&
+          (artRect?.height || 0) > 60,
+        artWidth: artRect?.width || 0,
+        artHeight: artRect?.height || 0,
+        heroHeight: heroRect?.height || 0,
+        commandBarHeight: barRect?.height || 0,
+        waitY: waitRect?.top || 0,
+        overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+      }
+    })
+    assert.equal(mobileEmptyMetrics.artVisible, true, 'mobile empty keeps reduced artwork visible')
+    assert.ok(mobileEmptyMetrics.artWidth <= 120, `mobile art width compact (got ${mobileEmptyMetrics.artWidth})`)
+    assert.ok(mobileEmptyMetrics.heroHeight < 320, `mobile hero compact (got ${mobileEmptyMetrics.heroHeight})`)
+    assert.ok(
+      mobileEmptyMetrics.commandBarHeight <= 56,
+      `mobile command bar single-row (got ${mobileEmptyMetrics.commandBarHeight})`,
+    )
+    assert.equal(mobileEmptyMetrics.overflowX, false, 'mobile empty: no x-overflow')
+    assert.ok(mobileEmptyMetrics.waitY < 620, 'while-you-wait appears sooner on mobile')
+    summary.shots.push(await shot(page, 'helper-empty-mobile-compact-390x844.png'))
+    summary.checks.push({ state: 'mobile-empty-compact-art', ok: true, metrics: mobileEmptyMetrics })
+
+    // Populated mobile + open filters drawer
+    await seedHelper(page, { emptyJobs: false })
+    await page.waitForSelector('[data-testid="browse-feed-scroll"] a[href^="/requests/"]')
+    summary.shots.push(await shot(page, 'helper-populated-mobile-390x844.png'))
+    const filtersTrigger = page.getByTestId('browse-mobile-filters-trigger')
+    await filtersTrigger.focus()
+    await filtersTrigger.click()
+    await page.waitForSelector('[data-testid="browse-mobile-filters-panel"]')
+    assert.equal(await filtersTrigger.getAttribute('aria-expanded'), 'true')
+    summary.shots.push(await shot(page, 'helper-filters-open-mobile-390x844.png'))
+
+    // Escape closes filters and restores focus to trigger
+    await page.keyboard.press('Escape')
+    await page.waitForSelector('[data-testid="browse-mobile-filters-panel"]', {
+      state: 'detached',
+      timeout: 5000,
+    })
+    const focusAfterEscape = await page.evaluate(
+      () => document.activeElement?.getAttribute('data-testid') || '',
+    )
+    assert.equal(
+      focusAfterEscape,
+      'browse-mobile-filters-trigger',
+      `Escape restores focus to Filters trigger (got ${focusAfterEscape})`,
+    )
+    summary.checks.push({ state: 'mobile-filters-escape-focus-restore', ok: true })
+
+    // Tablet + footer-below-workspace evidence
+    await page.setViewportSize({ width: 768, height: 1024 })
+    await seedHelper(page, { emptyJobs: false })
+    await page.waitForSelector('[data-testid="browse-feed-scroll"] a[href^="/requests/"]')
+    summary.shots.push(await shot(page, 'helper-populated-tablet-768x1024.png'))
+    const footerProbe = await page.evaluate(() => {
+      const footer = document.querySelector('[data-testid="landing-footer"], [data-app-footer="true"]')
+      // Layout.tsx: main is the fixed viewport workspace; footer is a sibling below it.
+      const main = document.querySelector('main')
+      const f = footer?.getBoundingClientRect()
+      const m = main?.getBoundingClientRect()
+      return {
+        footerExists: !!footer,
+        mainBottom: m?.bottom || 0,
+        footerTop: f?.top || 0,
+        footerBelowMain: !!f && !!m && f.top >= m.bottom - 2,
+        documentScrollablePastViewport:
+          document.documentElement.scrollHeight > document.documentElement.clientHeight + 40,
+      }
+    })
+    assert.equal(footerProbe.footerExists, true, 'site footer present')
+    assert.equal(footerProbe.footerBelowMain, true, 'footer sits below browse main workspace')
+    assert.equal(
+      footerProbe.documentScrollablePastViewport,
+      true,
+      'page scroll reaches footer below workspace',
+    )
+    // Scroll footer into view for evidence shot
+    await page.locator('[data-testid="landing-footer"], [data-app-footer="true"]').first().scrollIntoViewIfNeeded()
+    summary.shots.push(await shot(page, 'helper-footer-below-workspace-768x1024.png'))
+    summary.checks.push({ state: 'tablet-footer-below-workspace', ok: true, metrics: footerProbe })
 
     writeFileSync(join(OUT, 'browse-redesign-visual-qa.json'), JSON.stringify(summary, null, 2))
     writeFileSync(join(LOCAL, 'browse-redesign-visual-qa.json'), JSON.stringify(summary, null, 2))

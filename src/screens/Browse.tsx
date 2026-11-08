@@ -205,10 +205,31 @@ export function Browse() {
   )
   const areaRef = useRef<HTMLDivElement>(null)
   const sortRef = useRef<HTMLDivElement>(null)
+  const filtersTriggerRef = useRef<HTMLButtonElement>(null)
+  const mobileFiltersPanelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setQDraft(qParam)
   }, [qParam])
+
+  // Mobile filters panel: Escape closes and restores focus to the trigger.
+  useEffect(() => {
+    if (!mobileFiltersOpen) return
+    const panel = mobileFiltersPanelRef.current
+    const first = panel?.querySelector<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    )
+    first?.focus()
+
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'Escape') return
+      e.preventDefault()
+      setMobileFiltersOpen(false)
+      queueMicrotask(() => filtersTriggerRef.current?.focus())
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [mobileFiltersOpen])
 
   // Role-aware deep-link / history guard: normalize helper-discovery URLs to jobs.
   useEffect(() => {
@@ -602,23 +623,42 @@ export function Browse() {
 
   const filterSurface = 'rounded-lg border border-[#E2E8F0] bg-white'
 
-  function renderFiltersSidebar() {
+  function closeMobileFilters() {
+    setMobileFiltersOpen(false)
+    // Restore focus to the Filters trigger after keyboard/dismiss close.
+    queueMicrotask(() => filtersTriggerRef.current?.focus())
+  }
+
+  function renderFiltersSidebar(opts?: { onDismiss?: () => void }) {
     return (
       <div className={`${filterSurface} flex h-fit max-h-full flex-col overflow-hidden`}>
         <div className="flex items-center justify-between gap-3 border-b border-[#F1F5F9] px-3.5 py-2.5">
           <h2 className="text-[13px] font-semibold text-[#071330]">Filters</h2>
-          <button
-            type="button"
-            onClick={clearFilters}
-            className={`text-[12px] font-semibold transition ${
-              hasActiveFilters
-                ? 'text-[#1D5CE5] hover:text-[#1649BD]'
-                : 'text-[#94A3B8] hover:text-[#64748B]'
-            }`}
-            data-testid="browse-filters-reset"
-          >
-            Reset
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={clearFilters}
+              className={`text-[12px] font-semibold transition ${
+                hasActiveFilters
+                  ? 'text-[#1D5CE5] hover:text-[#1649BD]'
+                  : 'text-[#94A3B8] hover:text-[#64748B]'
+              }`}
+              data-testid="browse-filters-reset"
+            >
+              Reset
+            </button>
+            {opts?.onDismiss ? (
+              <button
+                type="button"
+                onClick={opts.onDismiss}
+                className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-[#64748B] transition hover:bg-[#F8FAFC] hover:text-[#071330]"
+                aria-label="Close filters"
+                data-testid="browse-mobile-filters-close"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden />
+              </button>
+            ) : null}
+          </div>
         </div>
 
         <div className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-3 py-3">
@@ -715,13 +755,13 @@ export function Browse() {
           ) : null}
         </div>
 
-        <div className="mt-auto border-t border-[#F1F5F9] px-3.5 py-2.5">
+        <div className="mt-auto border-t border-[#F1F5F9] px-3 py-3">
           <Link
             href="/safety"
-            className="flex items-center gap-2 text-[11.5px] font-medium text-[#64748B] transition hover:text-[#1D5CE5]"
+            className="flex items-start gap-2.5 rounded-[10px] border border-[#DBEAFE] bg-[#EFF6FF] px-3 py-2.5 text-[12px] font-medium leading-snug text-[#1E3A8A] transition hover:border-[#BFDBFE] hover:bg-[#DBEAFE]/70"
           >
-            <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-600" aria-hidden />
-            Safety guidelines for every listing
+            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#1D5CE5]" aria-hidden />
+            <span>Safety guidelines for every listing</span>
           </Link>
         </div>
       </div>
@@ -922,16 +962,16 @@ export function Browse() {
               ) : null}
             </div>
 
-            {/* Command bar: search + distance/timing + sort */}
-            <div className="relative z-30 mt-3" data-testid="browse-command-bar">
-              <div className="flex w-full flex-col gap-1 rounded-lg border border-[#E2E8F0] bg-white px-2 py-1 shadow-[0_1px_2px_rgba(7,19,48,0.04)] sm:flex-row sm:items-center sm:gap-0">
-                <label className="relative flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg px-2">
+            {/* Command bar: compact single-row on mobile (search + distance + sort + filters) */}
+            <div className="relative z-30 mt-2.5 sm:mt-3" data-testid="browse-command-bar">
+              <div className="flex w-full flex-row flex-nowrap items-center gap-0 rounded-lg border border-[#E2E8F0] bg-white px-1 py-0.5 shadow-[0_1px_2px_rgba(7,19,48,0.04)] sm:gap-0 sm:px-2 sm:py-1">
+                <label className="relative flex h-8 min-w-0 flex-1 items-center gap-1.5 rounded-lg px-1.5 sm:h-9 sm:gap-2 sm:px-2">
                   <Search className="h-4 w-4 shrink-0 text-[#64748B]" aria-hidden />
                   <span className="sr-only">Search browse</span>
                   <input
                     value={qDraft}
                     onChange={(e) => setQDraft(e.target.value)}
-                    placeholder="Search titles, skills, neighborhoods…"
+                    placeholder="Search titles, skills…"
                     aria-label="Search browse"
                     className="min-w-0 flex-1 bg-transparent text-[13px] text-[#071330] outline-none placeholder:text-[#94A3B8]"
                   />
@@ -939,13 +979,13 @@ export function Browse() {
                     <button
                       type="button"
                       onClick={clearSearch}
-                      className="inline-flex h-6 w-6 items-center justify-center rounded-md text-[#64748B] transition hover:bg-[#F8FAFC] hover:text-[#071330]"
+                      className="inline-flex h-6 w-6 items-center justify-center rounded-lg text-[#64748B] transition hover:bg-[#F8FAFC] hover:text-[#071330]"
                       aria-label="Clear search"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
                   ) : (
-                    <kbd className="hidden rounded-md border border-[#E2E8F0] bg-[#F8FAFC] px-1.5 py-0.5 text-[10.5px] font-semibold text-[#94A3B8] sm:inline-flex">
+                    <kbd className="hidden rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-1.5 py-0.5 text-[10.5px] font-semibold text-[#94A3B8] sm:inline-flex">
                       ⌘K
                     </kbd>
                   )}
@@ -954,14 +994,14 @@ export function Browse() {
                 <span className="mx-0.5 hidden h-5 w-px bg-[#E2E8F0] sm:block" aria-hidden />
 
                 <div
-                  className="relative min-w-0 max-w-[180px] flex-1 sm:flex-none sm:w-[180px]"
+                  className="relative w-[5.75rem] shrink-0 grow-0 sm:w-[180px] sm:max-w-[180px] sm:flex-none"
                   ref={areaRef}
                 >
                   {isGuest ? (
                     <>
                       <button
                         type="button"
-                        className="flex h-9 w-full items-center gap-1.5 rounded-lg px-2 text-left"
+                        className="flex h-8 w-full items-center gap-0.5 rounded-lg px-1 text-left sm:h-9 sm:gap-1.5 sm:px-2"
                         aria-expanded={areaOpen}
                         aria-haspopup="listbox"
                         aria-controls={guestMiddleListboxId}
@@ -980,14 +1020,14 @@ export function Browse() {
                       >
                         <Clock className="h-3.5 w-3.5 shrink-0 text-[#64748B]" aria-hidden />
                         <span
-                          className={`min-w-0 flex-1 truncate text-[13px] ${
+                          className={`min-w-0 flex-1 truncate text-[11.5px] sm:text-[13px] ${
                             guestMiddleIsDefault ? 'text-[#64748B]' : 'font-medium text-[#071330]'
                           }`}
                         >
                           {guestMiddleLabel}
                         </span>
                         <ChevronDown
-                          className={`h-3.5 w-3.5 shrink-0 text-[#94A3B8] transition-transform ${
+                          className={`hidden h-3.5 w-3.5 shrink-0 text-[#94A3B8] transition-transform sm:block ${
                             areaOpen ? 'rotate-180' : ''
                           }`}
                         />
@@ -997,7 +1037,7 @@ export function Browse() {
                           id={guestMiddleListboxId}
                           role="listbox"
                           data-testid={guestMiddleListboxId}
-                          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-lg border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:right-auto sm:min-w-[16rem]"
+                          className="absolute left-0 top-[calc(100%+6px)] z-50 max-h-[min(18rem,50vh)] w-[min(16rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-lg border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:right-auto sm:min-w-[16rem]"
                           onKeyDown={(e) =>
                             onListboxKeyDown(
                               e,
@@ -1037,7 +1077,7 @@ export function Browse() {
                     <>
                       <button
                         type="button"
-                        className="flex h-9 w-full items-center gap-1.5 rounded-lg px-2 text-left"
+                        className="flex h-8 w-full items-center gap-0.5 rounded-lg px-1 text-left sm:h-9 sm:gap-1.5 sm:px-2"
                         aria-expanded={areaOpen}
                         aria-haspopup="listbox"
                         aria-controls="browse-radius-listbox"
@@ -1056,14 +1096,14 @@ export function Browse() {
                       >
                         <Crosshair className="h-3.5 w-3.5 shrink-0 text-[#64748B]" aria-hidden />
                         <span
-                          className={`min-w-0 flex-1 truncate text-[13px] ${
+                          className={`min-w-0 flex-1 truncate text-[11.5px] sm:text-[13px] ${
                             radius === 'all' ? 'text-[#64748B]' : 'font-medium text-[#071330]'
                           }`}
                         >
                           {radiusLabel}
                         </span>
                         <ChevronDown
-                          className={`h-3.5 w-3.5 shrink-0 text-[#94A3B8] transition-transform ${
+                          className={`hidden h-3.5 w-3.5 shrink-0 text-[#94A3B8] transition-transform sm:block ${
                             areaOpen ? 'rotate-180' : ''
                           }`}
                         />
@@ -1073,7 +1113,7 @@ export function Browse() {
                           id="browse-radius-listbox"
                           role="listbox"
                           data-testid="browse-radius-listbox"
-                          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain rounded-lg border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:right-auto sm:min-w-[16rem]"
+                          className="absolute left-0 top-[calc(100%+6px)] z-50 max-h-[min(18rem,50vh)] w-[min(16rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-lg border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:right-auto sm:min-w-[16rem]"
                           onKeyDown={(e) =>
                             onListboxKeyDown(e, radiusOptionIds, radius, setRadius, () =>
                               setAreaOpen(false),
@@ -1111,12 +1151,12 @@ export function Browse() {
                 <span className="mx-0.5 hidden h-5 w-px bg-[#E2E8F0] sm:block" aria-hidden />
 
                 <div
-                  className="relative min-w-0 max-w-[160px] flex-1 sm:flex-none sm:w-[150px]"
+                  className="relative w-[5.25rem] shrink-0 grow-0 sm:w-[150px] sm:max-w-[160px] sm:flex-none"
                   ref={sortRef}
                 >
                   <button
                     type="button"
-                    className="flex h-9 w-full items-center gap-1.5 rounded-lg px-2 text-left"
+                    className="flex h-8 w-full items-center gap-0.5 rounded-lg px-1 text-left sm:h-9 sm:gap-1.5 sm:px-2"
                     aria-expanded={sortOpen}
                     aria-haspopup="listbox"
                     aria-controls="browse-sort-listbox"
@@ -1135,11 +1175,11 @@ export function Browse() {
                     }}
                   >
                     <ArrowUpDown className="h-3.5 w-3.5 shrink-0 text-[#64748B]" aria-hidden />
-                    <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-[#071330]">
+                    <span className="min-w-0 flex-1 truncate text-[11.5px] font-medium text-[#071330] sm:text-[13px]">
                       {sortLabel}
                     </span>
                     <ChevronDown
-                      className={`h-3.5 w-3.5 shrink-0 text-[#94A3B8] transition-transform ${
+                      className={`hidden h-3.5 w-3.5 shrink-0 text-[#94A3B8] transition-transform sm:block ${
                         sortOpen ? 'rotate-180' : ''
                       }`}
                     />
@@ -1149,7 +1189,7 @@ export function Browse() {
                       id="browse-sort-listbox"
                       role="listbox"
                       data-testid="browse-sort-listbox"
-                      className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-y-auto rounded-lg border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:left-auto sm:right-0 sm:min-w-[13rem]"
+                      className="absolute right-0 top-[calc(100%+6px)] z-50 w-[min(13rem,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-[#E2E8F0] bg-white py-1.5 shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)] sm:left-auto sm:min-w-[13rem]"
                       onKeyDown={(e) =>
                         onListboxKeyDown(e, sortOptionIds, sort, setSort, () => setSortOpen(false))
                       }
@@ -1179,20 +1219,37 @@ export function Browse() {
                 </div>
 
                 <button
+                  ref={filtersTriggerRef}
                   type="button"
-                  onClick={() => setMobileFiltersOpen((v) => !v)}
-                  className={`ml-1 inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[12.5px] font-semibold transition xl:hidden ${
+                  onClick={() => {
+                    setMobileFiltersOpen((v) => !v)
+                    setAreaOpen(false)
+                    setSortOpen(false)
+                  }}
+                  aria-expanded={mobileFiltersOpen}
+                  aria-controls="browse-mobile-filters-panel"
+                  data-testid="browse-mobile-filters-trigger"
+                  className={`ml-0.5 inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-1.5 text-[11.5px] font-semibold transition sm:h-9 sm:gap-1.5 sm:px-2.5 sm:text-[12.5px] xl:hidden ${
                     mobileFiltersOpen || hasActiveFilters
                       ? 'bg-[#1D5CE5] text-white'
                       : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#071330]'
                   }`}
                 >
                   <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
-                  Filters
+                  <span className="sm:inline">Filters</span>
                 </button>
               </div>
               {mobileFiltersOpen ? (
-                <div className="mt-3 xl:hidden">{renderFiltersSidebar()}</div>
+                <div
+                  id="browse-mobile-filters-panel"
+                  ref={mobileFiltersPanelRef}
+                  className="mt-2.5 xl:hidden"
+                  data-testid="browse-mobile-filters-panel"
+                  role="region"
+                  aria-label="Browse filters"
+                >
+                  {renderFiltersSidebar({ onDismiss: closeMobileFilters })}
+                </div>
               ) : null}
             </div>
 
@@ -1238,6 +1295,7 @@ export function Browse() {
                   cityLabel={cityOrArea || 'your area'}
                   onEnableAlerts={enableAlerts}
                   alertsEnabled={alertsEnabled}
+                  onWidenRadius={hidePeerDiscovery ? () => setRadius('25') : undefined}
                 />
                 {showWhileYouWait ? (
                   <WhileYouWait
@@ -1345,13 +1403,21 @@ function WhenChipRow({
               key={opt.id}
               type="button"
               onClick={() => onSelect(opt.id)}
-              className={`inline-flex h-7 items-center gap-1 rounded-md px-2.5 text-[12px] font-medium transition ${
+              className={`inline-flex h-7 items-center gap-1 rounded-lg px-2.5 text-[12px] font-medium transition ${
                 active
-                  ? 'bg-[#1D5CE5]/[0.08] font-semibold text-[#1D5CE5]'
+                  ? opt.id === 'asap'
+                    ? 'bg-[#FEF08A] font-semibold text-[#071330]'
+                    : 'bg-[#1D5CE5]/[0.08] font-semibold text-[#1D5CE5]'
                   : 'bg-[#F8FAFC] text-[#475569] hover:bg-[#F1F5F9] hover:text-[#071330]'
               }`}
             >
-              {opt.id === 'asap' ? <Zap className="h-3 w-3" strokeWidth={2.25} aria-hidden /> : null}
+              {opt.id === 'asap' ? (
+                <Zap
+                  className={`h-3 w-3 ${active ? 'text-[#CA8A04]' : 'text-[#94A3B8]'}`}
+                  strokeWidth={2.25}
+                  aria-hidden
+                />
+              ) : null}
               {opt.label}
             </button>
           )
@@ -1415,18 +1481,20 @@ function CategoryRow({
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13px] transition ${
+      className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-[13px] transition ${
         active
-          ? 'bg-[#1D5CE5]/[0.08] font-semibold text-[#1D5CE5]'
+          ? 'bg-[#1D5CE5]/[0.09] font-semibold text-[#1D5CE5]'
           : 'font-medium text-[#475569] hover:bg-[#F8FAFC] hover:text-[#071330]'
       }`}
     >
-      <Icon
-        className="h-3.5 w-3.5 shrink-0"
-        strokeWidth={2}
-        aria-hidden
+      <span
+        className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+          active ? 'bg-white text-[#1D5CE5] shadow-[0_1px_2px_rgba(7,19,48,0.06)]' : 'bg-[#F1F5F9] text-[#64748B]'
+        }`}
         style={tint && !active ? { color: tint } : undefined}
-      />
+      >
+        <Icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+      </span>
       <span className="min-w-0 flex-1 truncate">{label}</span>
       <span
         className={`inline-flex min-w-[1.25rem] items-center justify-center text-[11px] font-semibold tabular-nums ${
