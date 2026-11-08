@@ -29,8 +29,13 @@ export function categoryLabel(id: string, custom?: string | null): string {
   return formatCategoryLabel(id, custom)
 }
 
+/**
+ * Browse filter chips + legacy when ids.
+ * New posts only write asap | scheduled; today/tomorrow/this-week remain for read/filter.
+ * ASAP filter stays short "ASAP"; full phrase is used on new listing whenLabel.
+ */
 export const WHEN_OPTIONS = [
-  { id: 'asap' as const, label: 'ASAP', detail: 'Within the next few hours' },
+  { id: 'asap' as const, label: 'ASAP', detail: 'Looking for help now' },
   { id: 'today' as const, label: 'Today', detail: 'Sometime today' },
   { id: 'tomorrow' as const, label: 'Tomorrow', detail: 'Anytime tomorrow' },
   { id: 'this-week' as const, label: 'This week', detail: 'Flexible this week' },
@@ -38,5 +43,6 @@ export const WHEN_OPTIONS = [
 
 export function whenLabel(id: WhenOption): string {
   if (id === 'scheduled') return 'Scheduled'
+  if (id === 'asap') return 'As soon as possible'
   return WHEN_OPTIONS.find((w) => w.id === id)?.label ?? id
 }

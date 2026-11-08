@@ -28,10 +28,10 @@ import {
   listingCoverImage,
 } from '@/lib/listingPhotos'
 import {
+  ASAP_ARRIVAL_NOTE,
   addLocalDays,
   buildWhenLabel,
   combineLocalDateTime,
-  formatShortDate,
   formatTimeInput,
   localDateISO,
   parseTimeInput,
@@ -90,9 +90,23 @@ function cardClass(extra = '') {
   return `rounded-lg border border-[rgba(7,19,48,0.08)] bg-white p-5 sm:p-6 ${extra}`
 }
 
-function needsClockTime(when: WhenOption): boolean {
-  return when === 'today' || when === 'tomorrow' || when === 'scheduled'
+/** New post form: only asap | scheduled expose / hide the clock UI. */
+function isScheduledMode(when: WhenOption): boolean {
+  return when === 'scheduled'
 }
+
+const WHEN_MODES = [
+  {
+    id: 'asap' as const,
+    title: 'As soon as possible',
+    body: 'You’re looking for help now. Helpers respond with their price and timing.',
+  },
+  {
+    id: 'scheduled' as const,
+    title: 'Schedule a date',
+    body: 'Pick a date and start time. Optional end time keeps the window clear.',
+  },
+]
 
 export function PostRequest() {
   const { postRequest, getPerson, state, mode, currentUser, authUser } = useBeam()
@@ -132,8 +146,8 @@ export function PostRequest() {
   const [showSuggestions, setShowSuggestions] = useState(false)
 
   const [nowTick, setNowTick] = useState(() => Date.now())
-  const [when, setWhen] = useState<WhenOption>('today')
-  const [pickingSchedule, setPickingSchedule] = useState(false)
+  // Default ASAP: urgency without inventing a concrete appointment.
+  const [when, setWhen] = useState<WhenOption>('asap')
   const [scheduledDate, setScheduledDate] = useState('')
   const [startTime, setStartTime] = useState(formatTimeInput(DEFAULT_START))
   const [endTime, setEndTime] = useState('')
@@ -151,29 +165,30 @@ export function PostRequest() {
   const todayISO = localDateISO(new Date(nowTick))
   const tomorrowISO = addLocalDays(todayISO, 1)
 
-  const activeDateISO =
-    when === 'today' ? todayISO : when === 'tomorrow' ? tomorrowISO : scheduledDate || null
+  const activeDateISO = isScheduledMode(when) ? scheduledDate || null : null
 
-  const startClock = parseTimeInput(startTime)
-  const endClock = endTime ? parseTimeInput(endTime) : null
+  const startClock = isScheduledMode(when) ? parseTimeInput(startTime) : null
+  const endClock =
+    isScheduledMode(when) && endTime ? parseTimeInput(endTime) : null
 
   const computedWhenLabel = useMemo(
     () =>
       buildWhenLabel({
-        when,
+        when: isScheduledMode(when) ? 'scheduled' : 'asap',
         dateISO: activeDateISO,
-        start: needsClockTime(when) ? startClock : null,
-        end: needsClockTime(when) ? endClock : null,
+        start: startClock,
+        end: endClock,
       }),
     [when, activeDateISO, startClock, endClock],
   )
 
+  // ASAP must never persist leftover schedule fields after a mode switch.
   const scheduledFor =
-    needsClockTime(when) && activeDateISO && startClock
+    isScheduledMode(when) && activeDateISO && startClock
       ? combineLocalDateTime(activeDateISO, startClock).toISOString()
       : null
   const scheduledEnd =
-    needsClockTime(when) && activeDateISO && endClock
+    isScheduledMode(when) && activeDateISO && endClock
       ? combineLocalDateTime(activeDateISO, endClock).toISOString()
       : null
 
@@ -408,15 +423,11 @@ export function PostRequest() {
       if (data.category && isCategoryId(data.category)) setCategory(data.category)
       if (data.title) setTitle(data.title.slice(0, TITLE_MAX))
       if (data.details) setDetails(data.details.slice(0, DETAILS_MAX))
-      // Only accept coarse when chips — never invent Morning/Afternoon windows or radius.
-      if (
-        data.when === 'asap' ||
-        data.when === 'today' ||
-        data.when === 'tomorrow' ||
-        data.when === 'this-week'
-      ) {
-        setWhen(data.when)
-        setPickingSchedule(false)
+      // Only asap | scheduled — never reintroduce today/tomorrow/this-week chips.
+      if (data.when === 'scheduled') {
+        selectWhenMode('scheduled')
+      } else if (data.when === 'asap' || !data.when) {
+        selectWhenMode('asap')
       }
       if (typeof data.suggestedBudget === 'number' && data.suggestedBudget >= 10) {
         setBudget(data.suggestedBudget)
@@ -429,17 +440,18 @@ export function PostRequest() {
     }
   }
 
-  function selectWhenChip(id: WhenOption | 'pick') {
-    if (id === 'pick') {
-      setPickingSchedule(true)
-      setWhen('scheduled')
-      if (!scheduledDate) setScheduledDate(tomorrowISO)
+  function selectWhenMode(id: 'asap' | 'scheduled') {
+    if (id === 'asap') {
+      setWhen('asap')
+      // Clear draft schedule so a later submit cannot pick up stale hidden values.
+      setScheduledDate('')
+      setStartTime(formatTimeInput(DEFAULT_START))
+      setEndTime('')
       return
     }
-    setPickingSchedule(false)
-    setWhen(id)
-    if (id === 'today') setScheduledDate(todayISO)
-    if (id === 'tomorrow') setScheduledDate(tomorrowISO)
+    setWhen('scheduled')
+    setScheduledDate((prev) => prev || tomorrowISO)
+    setStartTime((prev) => prev || formatTimeInput(DEFAULT_START))
   }
 
   async function onSubmit(e: FormEvent) {
@@ -462,9 +474,9 @@ export function PostRequest() {
       setError('Budget should be at least $10.')
       return
     }
-    if (needsClockTime(when)) {
+    if (isScheduledMode(when)) {
       const check = validateTimeWindow({
-        when,
+        when: 'scheduled',
         dateISO: activeDateISO,
         start: startClock,
         end: endClock,
@@ -511,13 +523,6 @@ export function PostRequest() {
     }
   }
 
-  const whenChips: { id: WhenOption | 'pick'; label: string }[] = [
-    { id: 'asap', label: 'ASAP' },
-    { id: 'today', label: `Today · ${formatShortDate(todayISO)}` },
-    { id: 'tomorrow', label: `Tomorrow · ${formatShortDate(tomorrowISO)}` },
-    { id: 'this-week', label: 'This week' },
-    { id: 'pick', label: 'Pick date & time' },
-  ]
 
   return (
     <div className="min-h-full py-2 sm:py-4" style={{ backgroundColor: PAGE_BG }}>
@@ -808,63 +813,88 @@ export function PostRequest() {
               </div>
             </section>
 
-            {/* When */}
+            {/* When — exactly two modes; not a pill chip row */}
             <section className={cardClass()} data-testid="post-when-section">
-              <h2 className="mb-4 text-[16px] font-semibold" style={{ color: INK }}>
+              <h2
+                id="post-when-heading"
+                className="mb-1 text-[16px] font-semibold"
+                style={{ color: INK }}
+              >
                 When
               </h2>
-              <div className="flex flex-wrap gap-2">
-                {whenChips.map((chip) => {
-                  const selected =
-                    chip.id === 'pick'
-                      ? pickingSchedule || when === 'scheduled'
-                      : when === chip.id && !pickingSchedule
+              <p className="mb-4 text-[13px]" style={{ color: MUTED }}>
+                Choose urgency or a specific date. Arrival is still agreed when you accept a helper.
+              </p>
+
+              <div
+                role="radiogroup"
+                aria-labelledby="post-when-heading"
+                className="grid gap-2"
+                data-testid="post-when-mode-group"
+              >
+                {WHEN_MODES.map((mode) => {
+                  const selected = when === mode.id
                   return (
                     <button
-                      key={chip.id}
+                      key={mode.id}
                       type="button"
-                      data-testid={`post-when-${chip.id}`}
-                      onClick={() => selectWhenChip(chip.id)}
-                      className={`rounded-md px-3.5 py-2 text-[13px] font-semibold transition ${
+                      role="radio"
+                      aria-checked={selected}
+                      data-testid={`post-when-${mode.id}`}
+                      onClick={() => selectWhenMode(mode.id)}
+                      className={`flex items-start gap-3 rounded-lg border px-4 py-3.5 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
                         selected
-                          ? 'bg-[#1D5CE5] text-white'
-                          : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330] hover:bg-[#F4F8FD]'
+                          ? 'border-[#1D5CE5] bg-[#F5F9FF] ring-1 ring-[#1D5CE5]/20'
+                          : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
                       }`}
                     >
-                      {chip.label}
+                      <span
+                        className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                          selected
+                            ? 'border-[#1D5CE5] bg-[#1D5CE5]'
+                            : 'border-[#CBD5E1] bg-white'
+                        }`}
+                        aria-hidden
+                      >
+                        {selected ? (
+                          <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                        ) : null}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[15px] font-semibold text-[#071330]">
+                          {mode.title}
+                        </span>
+                        <span className="mt-0.5 block text-[13px] leading-[1.45] text-[#64748B]">
+                          {mode.body}
+                        </span>
+                      </span>
                     </button>
                   )
                 })}
               </div>
 
-              {needsClockTime(when) ? (
+              {when === 'asap' ? (
+                <p
+                  className="mt-4 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3 text-[13.5px] leading-relaxed text-[#475569]"
+                  data-testid="post-asap-note"
+                >
+                  {ASAP_ARRIVAL_NOTE}
+                </p>
+              ) : (
                 <div
-                  className="mt-4 space-y-3 rounded-lg bg-[#F4F8FD] p-4"
+                  className="mt-4 space-y-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-4"
                   data-testid="post-time-window"
                 >
-                  {when === 'scheduled' || pickingSchedule ? (
-                    <Field label="Date">
-                      <TextInput
-                        type="date"
-                        value={scheduledDate}
-                        min={todayISO}
-                        onChange={(e) => {
-                          setScheduledDate(e.target.value)
-                          setWhen('scheduled')
-                          setPickingSchedule(true)
-                        }}
-                        data-testid="post-scheduled-date"
-                      />
-                    </Field>
-                  ) : (
-                    <p className="text-[13px]" style={{ color: MUTED }} data-testid="post-when-date-summary">
-                      Selected date:{' '}
-                      <span className="font-semibold" style={{ color: INK }}>
-                        {activeDateISO ? formatShortDate(activeDateISO) : '—'}
-                      </span>
-                      <span className="ml-1 text-[12px]">(your local time)</span>
-                    </p>
-                  )}
+                  <Field label="Date">
+                    <TextInput
+                      type="date"
+                      value={scheduledDate}
+                      min={todayISO}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      required
+                      data-testid="post-scheduled-date"
+                    />
+                  </Field>
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Field label="Start time" hint="Local time">
@@ -886,11 +916,14 @@ export function PostRequest() {
                     </Field>
                   </div>
 
-                  <p className="text-[13px]" style={{ color: MUTED }}>
-                    Shows as <span style={{ color: INK }}>{computedWhenLabel}</span>
+                  <p className="text-[13px]" style={{ color: MUTED }} data-testid="post-when-preview">
+                    Shows as{' '}
+                    <span className="font-semibold" style={{ color: INK }}>
+                      {computedWhenLabel}
+                    </span>
                   </p>
                 </div>
-              ) : null}
+              )}
             </section>
 
             {/* Budget */}

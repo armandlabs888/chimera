@@ -49,14 +49,25 @@ function inferCategory(prompt: string, hint?: CategoryId): CategoryId {
 
 function inferWhen(prompt: string): { when: WhenOption; whenLabel: string } {
   const t = prompt.toLowerCase()
-  if (/\b(asap|right away|immediately|urgent|now)\b/.test(t))
-    return { when: 'asap', whenLabel: 'ASAP' }
-  if (/\b(today|this afternoon|tonight|this evening)\b/.test(t))
-    return { when: 'today', whenLabel: 'Today' }
-  if (/\b(tomorrow)\b/.test(t)) return { when: 'tomorrow', whenLabel: 'Tomorrow' }
-  if (/\b(this week|weekend|saturday|sunday)\b/.test(t))
-    return { when: 'this-week', whenLabel: 'This week' }
-  return { when: 'today', whenLabel: 'Today' }
+  // New post form only accepts asap | scheduled. Mentions of a calendar day → scheduled
+  // (customer still picks concrete date/time in the form). Urgency language → asap.
+  if (
+    /\b(tomorrow|saturday|sunday|monday|tuesday|wednesday|thursday|friday)\b/.test(t) ||
+    /\b(next week|this weekend|schedule[d]?|on the \d)/.test(t) ||
+    /\b\d{1,2}\/\d{1,2}\b/.test(t)
+  ) {
+    return { when: 'scheduled', whenLabel: 'Scheduled' }
+  }
+  return { when: 'asap', whenLabel: 'As soon as possible' }
+}
+
+/** Strip removed timing chips (today/tomorrow/this-week) from model output. */
+function sanitizeDraftWhen(draft: DraftResult): DraftResult {
+  if (draft.when === 'scheduled') {
+    return { ...draft, when: 'scheduled', whenLabel: draft.whenLabel || 'Scheduled' }
+  }
+  // Default + map legacy urgency chips to asap — never reintroduce today/tomorrow/this-week.
+  return { ...draft, when: 'asap', whenLabel: 'As soon as possible' }
 }
 
 function estimateBudget(category: CategoryId, prompt: string): {
@@ -129,14 +140,14 @@ function smartDraft(prompt: string, categoryHint?: CategoryId): DraftResult {
   const category = inferCategory(prompt, categoryHint)
   const { when, whenLabel } = inferWhen(prompt)
   const budget = estimateBudget(category, prompt)
-  return {
+  return sanitizeDraftWhen({
     category,
     title: synthesizeTitle(category, prompt),
     details: synthesizeDetails(prompt),
     when,
     whenLabel,
     ...budget,
-  }
+  })
 }
 
 async function llmDraft(
@@ -157,7 +168,8 @@ async function llmDraft(
   const system = `You are Beam's Smart Task Drafter for a peer-to-peer local help marketplace.
 Allowed categories ONLY: house-cleaning, carpet-cleaning, auto-detailing, junk-removal, pet-sitting, grooming, other.
 Never suggest licensed trades, childcare, medical/elder care, or passenger rides. Same exclusions apply when category is other.
-Return JSON with keys: category, title (<=70 chars), details, when (asap|today|tomorrow|this-week), whenLabel, suggestedMin, suggestedMax, suggestedBudget.
+Return JSON with keys: category, title (<=70 chars), details, when (asap|scheduled ONLY — never today, tomorrow, or this-week), whenLabel, suggestedMin, suggestedMax, suggestedBudget.
+Use when=asap when the customer wants help soon / urgently (not a guaranteed dispatch). Use when=scheduled only if they clearly name a future day or appointment.
 ${hasPhoto ? 'A photo was attached — mention checking the photo in details.' : ''}
 ${categoryHint ? `Prefer category ${categoryHint} if it fits.` : ''}`
 
@@ -211,7 +223,7 @@ export async function POST(req: NextRequest) {
 
   const llm = await llmDraft(prompt, Boolean(body.hasPhoto), body.categoryHint)
   if (llm && llm.category && isCategoryId(llm.category) && llm.title) {
-    return NextResponse.json(llm)
+    return NextResponse.json(sanitizeDraftWhen(llm))
   }
 
   return NextResponse.json(smartDraft(prompt, body.categoryHint))
