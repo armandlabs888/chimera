@@ -37,7 +37,6 @@ const EXPECTED_SERVICES = [
   'Junk Removal',
   'Pet Sitting',
   'Grooming',
-  'Other',
 ]
 
 const summary = { ok: true, checks: [] }
@@ -219,16 +218,22 @@ try {
     if ((await page.getByTestId('available-services-detail').count()) > 0) {
       throw new Error(`Selector/detail panel still present @ ${vp.name}`)
     }
-    const serviceCards = servicesRoot.locator('[data-testid="available-services-row"] a[data-service-card]')
+    const serviceCards = servicesRoot.locator('[data-testid="available-services-grid"] a[data-service-card]')
     const serviceCount = await serviceCards.count()
     if (serviceCount !== EXPECTED_SERVICES.length) {
       throw new Error(`Expected ${EXPECTED_SERVICES.length} service cards, got ${serviceCount} @ ${vp.name}`)
     }
+    if ((await page.getByTestId('available-service-other').count()) > 0) {
+      throw new Error(`Other card still present in Available services @ ${vp.name}`)
+    }
+    if ((await page.getByTestId('available-services-controls').count()) > 0) {
+      throw new Error(`Carousel controls still present @ ${vp.name}`)
+    }
     await page.waitForFunction(() => {
       const imgs = [
-        ...document.querySelectorAll('[data-testid="available-services-row"] a[data-service-card] img'),
+        ...document.querySelectorAll('[data-testid="available-services-grid"] a[data-service-card] img'),
       ]
-      return imgs.length >= 7 && imgs.every((img) => img.complete && img.naturalWidth >= 200)
+      return imgs.length === 6 && imgs.every((img) => img.complete && img.naturalWidth >= 200)
     }, null, { timeout: 20000 })
     const serviceLabels = []
     for (let i = 0; i < serviceCount; i++) {
@@ -243,7 +248,7 @@ try {
       throw new Error(`Legacy shortLabel tiles still present @ ${vp.name}`)
     }
     const cardMeta = await servicesRoot.evaluate((root) => {
-      return Array.from(root.querySelectorAll('[data-testid="available-services-row"] a[data-service-card]')).map(
+      return Array.from(root.querySelectorAll('[data-testid="available-services-grid"] a[data-service-card]')).map(
         (a) => {
           const img = a.querySelector('img')
           const cs = getComputedStyle(a)
