@@ -118,8 +118,9 @@ function analyzeGeometry(data) {
     issues.push(data.error)
     return { ok: false, issues, rows: [] }
   }
-  if (data.childCount !== 7) {
-    issues.push(`Expected 7 bento items, found ${data.childCount}`)
+  // Default All filter: House Cleaning + quote + Pets + Custom = 4
+  if (data.childCount !== 4) {
+    issues.push(`Expected 4 bento items (All filter), found ${data.childCount}`)
   }
 
   const { grid, kids, quoteOverflow } = data
@@ -293,6 +294,176 @@ try {
       console.log(' Other landing grid trailing gaps:', other.suspects)
     }
 
+    await page.close()
+  }
+
+  // Filter tabs must show matching tiles only (desktop).
+  {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+    await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
+    await page.locator('#categories').scrollIntoViewIfNeeded()
+
+    const filterChecks = []
+    async function visibleTiles() {
+      return page.evaluate(() => {
+        const grid = document.querySelector('[data-testid="categories-bento"]')
+        if (!grid) return { error: 'missing bento' }
+        const kids = Array.from(grid.children).map((el) => el.getAttribute('data-testid') || el.tagName)
+        return {
+          count: kids.length,
+          kids,
+          hasCleaning: !!grid.querySelector('[data-testid="categories-tile-cleaning"]'),
+          hasPets: !!grid.querySelector('[data-testid="categories-tile-pets"]'),
+          hasCustom: !!grid.querySelector('[data-testid="categories-tile-custom"]'),
+          hasQuote: !!grid.querySelector('[data-testid="categories-quote"]'),
+          illustrative: /Illustrative example/i.test(grid.textContent || ''),
+          verifiedLie: /Verified neighbor/i.test(grid.textContent || ''),
+        }
+      })
+    }
+
+    for (const [tab, expect] of [
+      ['all', { hasCleaning: true, hasPets: true, hasCustom: true, hasQuote: true, count: 4 }],
+      ['home', { hasCleaning: true, hasPets: false, hasCustom: false, hasQuote: true, count: 2 }],
+      ['pets', { hasCleaning: false, hasPets: true, hasCustom: false, hasQuote: false, count: 1 }],
+      ['other', { hasCleaning: false, hasPets: false, hasCustom: true, hasQuote: false, count: 1 }],
+    ]) {
+      await page.getByTestId(`categories-filter-${tab}`).click()
+      await page.waitForTimeout(120)
+      const state = await visibleTiles()
+      const ok =
+        !state.error &&
+        state.count === expect.count &&
+        state.hasCleaning === expect.hasCleaning &&
+        state.hasPets === expect.hasPets &&
+        state.hasCustom === expect.hasCustom &&
+        state.hasQuote === expect.hasQuote &&
+        state.illustrative === (expect.hasQuote === true ? true : state.illustrative) &&
+        state.verifiedLie === false
+      filterChecks.push({ tab, ok, state, expect })
+      if (!ok) failed = true
+      console.log(`\n=== filter:${tab} ===`)
+      console.log(ok ? 'PASS' : 'FAIL', JSON.stringify(state))
+    }
+
+    // Link hrefs
+    await page.getByTestId('categories-filter-all').click()
+    const hrefs = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('[data-testid="categories-bento"] a')).map((a) =>
+        a.getAttribute('href'),
+      ),
+    )
+    const hrefOk =
+      hrefs.includes('/browse?category=home') &&
+      hrefs.includes('/browse?category=pets') &&
+      hrefs.includes('/browse?category=other')
+    if (!hrefOk) failed = true
+    console.log('\n=== bento hrefs ===', hrefOk ? 'PASS' : 'FAIL', hrefs)
+
+    // Accessibility semantics: toggle filter buttons (not ARIA tabs)
+    const a11y = await page.evaluate(() => {
+      const group = document.querySelector('[data-testid="categories-filter-tabs"]')
+      const buttons = [...document.querySelectorAll('[data-testid^="categories-filter-"]')].filter(
+        (el) => el.tagName === 'BUTTON',
+      )
+      return {
+        groupRole: group?.getAttribute('role') || null,
+        hasTablist: !!document.querySelector('#categories [role="tablist"]'),
+        hasTab: !!document.querySelector('#categories [role="tab"]'),
+        hasTabpanel: !!document.querySelector('#categories [role="tabpanel"]'),
+        pressed: buttons.map((b) => ({
+          id: b.getAttribute('data-testid'),
+          pressed: b.getAttribute('aria-pressed'),
+          label: (b.textContent || '').trim(),
+        })),
+      }
+    })
+    const a11yOk =
+      a11y.groupRole === 'group' &&
+      !a11y.hasTablist &&
+      !a11y.hasTab &&
+      !a11y.hasTabpanel &&
+      a11y.pressed.every((b) => b.pressed === 'true' || b.pressed === 'false') &&
+      a11y.pressed.find((b) => b.id === 'categories-filter-all')?.pressed === 'true'
+    if (!a11yOk) failed = true
+    console.log('\n=== filter a11y semantics ===', a11yOk ? 'PASS' : 'FAIL', JSON.stringify(a11y))
+
+    // Keyboard: Tab focuses filters; Enter / Space toggles aria-pressed + content
+    const homeBtn = page.getByTestId('categories-filter-home')
+    const petsBtn = page.getByTestId('categories-filter-pets')
+    await homeBtn.focus()
+    const homeFocused = await homeBtn.evaluate((el) => el === document.activeElement)
+    await page.keyboard.press('Enter')
+    await page.waitForTimeout(80)
+    const afterEnter = await visibleTiles()
+    const enterOk =
+      homeFocused &&
+      afterEnter.hasCleaning &&
+      afterEnter.hasQuote &&
+      !afterEnter.hasPets &&
+      !afterEnter.hasCustom &&
+      (await homeBtn.getAttribute('aria-pressed')) === 'true' &&
+      (await page.getByTestId('categories-filter-all').getAttribute('aria-pressed')) === 'false'
+    if (!enterOk) failed = true
+    console.log('\n=== filter keyboard Enter ===', enterOk ? 'PASS' : 'FAIL')
+
+    await petsBtn.focus()
+    await page.keyboard.press('Space')
+    await page.waitForTimeout(80)
+    const afterSpace = await visibleTiles()
+    const spaceOk =
+      afterSpace.hasPets &&
+      !afterSpace.hasCleaning &&
+      !afterSpace.hasCustom &&
+      !afterSpace.hasQuote &&
+      (await petsBtn.getAttribute('aria-pressed')) === 'true' &&
+      (await homeBtn.getAttribute('aria-pressed')) === 'false'
+    if (!spaceOk) failed = true
+    console.log('\n=== filter keyboard Space ===', spaceOk ? 'PASS' : 'FAIL')
+
+    // Tab order reaches successive filter buttons
+    await page.getByTestId('categories-filter-all').focus()
+    await page.keyboard.press('Tab')
+    const tabToHome = await homeBtn.evaluate((el) => el === document.activeElement)
+    await page.keyboard.press('Tab')
+    const tabToPets = await petsBtn.evaluate((el) => el === document.activeElement)
+    const tabOk = tabToHome && tabToPets
+    if (!tabOk) failed = true
+    console.log('\n=== filter keyboard Tab ===', tabOk ? 'PASS' : 'FAIL', { tabToHome, tabToPets })
+
+    // Cleaning photo crop: tile tall enough + object-position keeps face band visible
+    await page.getByTestId('categories-filter-all').click()
+    await page.waitForTimeout(100)
+    const crop = await page.evaluate(() => {
+      const tile = document.querySelector('[data-testid="categories-tile-cleaning"]')
+      const img = tile?.querySelector('img')
+      if (!tile || !img) return { error: 'missing cleaning tile' }
+      const tr = tile.getBoundingClientRect()
+      const style = getComputedStyle(img)
+      return {
+        height: Math.round(tr.height),
+        width: Math.round(tr.width),
+        aspect: Number((tr.width / tr.height).toFixed(2)),
+        objectPosition: style.objectPosition,
+      }
+    })
+    const cropOk =
+      !crop.error &&
+      crop.height >= 400 &&
+      crop.aspect <= 2.4 &&
+      String(crop.objectPosition).includes('18%')
+    if (!cropOk) failed = true
+    console.log('\n=== cleaning crop metrics ===', cropOk ? 'PASS' : 'FAIL', JSON.stringify(crop))
+
+    report.push({
+      viewport: 'filter-tabs',
+      ok: !failed,
+      filterChecks,
+      hrefs,
+      a11y,
+      keyboard: { enterOk, spaceOk, tabOk },
+      crop,
+    })
     await page.close()
   }
 } finally {

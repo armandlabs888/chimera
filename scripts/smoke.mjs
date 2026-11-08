@@ -78,12 +78,16 @@ async function checkLandingMarkup() {
   assert.match(text, /Local help, made easy\./, 'landing headline')
   assert.match(text, /Trusted across local neighborhoods/, 'hero social proof')
   assert.match(text, /Post a task|Post a request/, 'landing primary CTA')
-  assert.match(text, /Browse nearby help|View all requests|Services/, 'landing browse CTA')
+  assert.match(text, /Browse nearby help|View all requests|Services|Popular services/, 'landing browse CTA')
   assert.match(text, /What help do you need\?/, 'hero search placeholder')
   assert.match(text, /href="\/post"/, 'post route wired')
   assert.match(text, /href="\/browse"/, 'browse route wired')
   assert.match(text, /href="\/browse\?category=home"/, 'home category browse link')
   assert.match(text, /href="\/browse\?category=junk-removal"/, 'junk-removal category browse link')
+  assert.match(text, /href="\/browse\?category=pets"/, 'pets category browse link')
+  assert.match(text, /href="\/browse\?category=other"/, 'other category browse link')
+  assert.match(text, /Illustrative example/, 'categories quote marked illustrative')
+  assert.doesNotMatch(text, /Elena R\.\s*·\s*Verified neighbor/, 'no fabricated verified testimonial')
   assert.match(text, /href="\/auth\?mode=signin"/, 'landing Log in')
   assert.match(text, /href="\/auth\?mode=signup/, 'landing Sign up')
   assert.match(text, /How it works/, 'nav How it works')
@@ -491,7 +495,7 @@ async function checkLandingBrowser() {
     await page.waitForFunction(
       () => {
         const imgs = [...document.querySelectorAll('img')]
-        return imgs.length >= 14 && imgs.every((img) => img.complete)
+        return imgs.length >= 12 && imgs.every((img) => img.complete)
       },
       null,
       { timeout: 20000 },
@@ -530,8 +534,8 @@ async function checkLandingBrowser() {
       }
     })
     assert.ok(
-      landingImages.count >= 14,
-      `landing should render >=14 <img> elements, got ${landingImages.count}`,
+      landingImages.count >= 12,
+      `landing should render >=12 <img> elements, got ${landingImages.count}`,
     )
     assert.equal(landingImages.allComplete, true, 'every landing <img> must be complete')
     assert.ok(
@@ -1993,10 +1997,16 @@ async function checkSubtleRadii() {
             /No helpers nearby yet/i.test(el.textContent || ''),
           )
           let emptyBox = emptyTitle?.parentElement || null
-          // Walk up to the bordered EmptyState wrapper.
+          // Walk up to the bordered EmptyState wrapper (PR60+: rounded-[10px] + cool canvas).
           while (emptyBox && emptyBox !== document.body) {
             const cls = String(emptyBox.className || '')
-            if (/rounded-lg/.test(cls) && /border/.test(cls) && /bg-white/.test(cls)) break
+            if (
+              (/rounded-lg/.test(cls) || /rounded-\[10px\]/.test(cls)) &&
+              /border/.test(cls) &&
+              (/bg-white/.test(cls) || /bg-\[#FBFDFF\]/.test(cls))
+            ) {
+              break
+            }
             emptyBox = emptyBox.parentElement
           }
           peopleEmpty = emptyBox
