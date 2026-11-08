@@ -170,17 +170,17 @@ export function LandingCategories() {
               href="/browse?category=other"
               data-testid="categories-tile-custom"
               aria-label="Custom everyday help — post any task and see who’s nearby"
-              className={`group flex h-full min-h-[200px] flex-col items-center justify-center gap-3 overflow-hidden rounded-[10px] border border-[rgba(7,19,48,0.08)] bg-[#F1F5F9] px-6 py-8 text-center transition hover:bg-[#E8EEF7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1D5CE5] sm:min-h-[220px] lg:min-h-0 ${
+              className={`group flex h-full min-h-[200px] flex-col items-center justify-center gap-3 overflow-hidden rounded-[10px] border border-[#1649BD] bg-[#1D5CE5] px-6 py-8 text-center text-white transition hover:bg-[#1649BD] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#071330] sm:min-h-[220px] lg:min-h-0 ${
                 isAll ? 'sm:col-span-2 lg:col-span-2' : 'sm:col-span-2 lg:col-span-2'
               }`}
             >
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-dashed border-[#14B8A6] text-[#0F766E]">
+              <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-dashed border-white/80 text-white">
                 <CircleAlert className="h-5 w-5" strokeWidth={2.25} aria-hidden />
               </span>
-              <span className="font-display text-[clamp(1.25rem,2vw,1.6rem)] font-bold tracking-[-0.02em] text-[#071330]">
+              <span className="font-display text-[clamp(1.25rem,2vw,1.6rem)] font-bold tracking-[-0.02em] text-white">
                 Custom everyday help
               </span>
-              <span className="max-w-[28ch] text-[14.5px] leading-snug text-[#475569]">
+              <span className="max-w-[28ch] text-[14.5px] font-medium leading-snug text-white">
                 Post any task and see who’s nearby
               </span>
             </Link>
