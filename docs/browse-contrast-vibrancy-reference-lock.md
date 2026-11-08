@@ -24,5 +24,11 @@ Pale blue canvas + crisp white/tint surfaces; **energetic coherent blue→teal**
 ## Preserve
 Roles, no map/radar/bell, listing When/photos/categories, empty hero signature artwork, crisp corners.
 
+## Empty hero text a11y
+White copy lives on an **intentional opaque navy text panel** (`bg-[#071330]`, `data-testid="browse-empty-text-panel"`). Gradient energy remains around/beside the panel + artwork. Do not claim compliance from translucent scrims or “text stays on blue stop” assumptions. Raw white/`#2DD4BF` remains unsafe. Pixel-sample worst-case under live text at each breakpoint.
+
 ## Rejects
-All-text equally bold; multicolor noise; neon glow; map motifs; global `* !important` restyles.
+All-text equally bold; multicolor noise; neon glow; map motifs; global `* !important` restyles; bogus WCAG `ok:true` from non-composited / assumed backgrounds.
+
+## Measurement
+See `scripts/browse-contrast-vibrancy-qa.mjs`: composited ancestor backgrounds for solid surfaces; element PNG worst-luminance pixel samples for hero text across desktop/tablet/mobile.
