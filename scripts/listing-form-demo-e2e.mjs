@@ -112,15 +112,15 @@ async function main() {
     '[DEMO] re-add to 5',
   )
 
-  // --- When: Today + times ---
-  await page.getByRole('button', { name: /Today/i }).first().click()
-  await page.locator('input[type="time"]').first().fill('15:30')
-  const endInputs = page.locator('input[type="time"]')
-  if ((await endInputs.count()) > 1) await endInputs.nth(1).fill('17:00')
+  // --- When: Schedule a date + times ---
+  await page.locator('[data-testid="post-when-scheduled"]').click()
+  await page.waitForSelector('[data-testid="post-time-window"]')
+  await page.locator('[data-testid="post-start-time"]').fill('15:30')
+  await page.locator('[data-testid="post-end-time"]').fill('17:00')
   await page.waitForTimeout(200)
   const whenText = await page.evaluate(() => document.body.innerText)
-  assert.match(whenText, /Today · Nov/i, '[DEMO] today date in when')
   assert.match(whenText, /3:30\s*PM/i, '[DEMO] start time label')
+  assert.match(whenText, /Schedule a date/i, '[DEMO] schedule mode')
 
   // Past start / end-before covered in unit tests; UI end-before-start:
   await page.locator('[data-testid="post-start-time"]').fill('16:00')
@@ -160,7 +160,7 @@ async function main() {
     })
     assert.ok(detail.photoCount >= 5, `[DEMO] detail photos ${detail.photoCount}`)
     assert.match(detail.text, /Demo verify five photos/)
-    assert.match(detail.text, /Today · Nov/i)
+    assert.match(detail.text, /3:30\s*PM/i)
     assert.equal(detail.withinMi, false, '[DEMO] no Within X mi on detail')
     await page.screenshot({ path: join(ART, 'demo-detail-5-photos-desktop.png'), fullPage: false })
 
@@ -170,22 +170,20 @@ async function main() {
     const afterReload = await page.locator('[data-testid="request-detail-photos"] img').count()
     assert.ok(afterReload >= 5, `[DEMO] reload photos ${afterReload}`)
   } else {
-    // Still capture form state if submit didn't navigate (title binding flake)
     console.warn('[DEMO] submit did not navigate — capturing form with 5 thumbs')
     await page.screenshot({ path: join(ART, 'demo-post-5-photos-desktop.png'), fullPage: false })
   }
 
   // Mobile framed shot of form with 5 thumbs
   await page.goto(`${BASE}/post`, { waitUntil: 'networkidle' })
-  // Re-add photos for mobile shot
   await page.setInputFiles('[data-testid="post-photo-input"]', files.slice(0, 5))
   await page.waitForTimeout(1000)
-  await page.getByRole('button', { name: /Today/i }).first().click()
-  await page.locator('input[type="time"]').first().fill('15:30')
+  await page.locator('[data-testid="post-when-scheduled"]').click()
+  await page.locator('[data-testid="post-start-time"]').fill('15:30')
   await page.setViewportSize({ width: 390, height: 844 })
   await page.locator('[data-testid="post-photos-section"]').scrollIntoViewIfNeeded()
   await page.screenshot({ path: join(ART, 'demo-post-5-photos-mobile.png'), fullPage: false })
-  await page.locator('text=When').first().scrollIntoViewIfNeeded()
+  await page.locator('[data-testid="post-when-section"]').scrollIntoViewIfNeeded()
   await page.screenshot({ path: join(ART, 'demo-post-when-mobile.png'), fullPage: false })
 
   // Header still no bell

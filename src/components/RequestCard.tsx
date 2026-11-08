@@ -40,7 +40,10 @@ export function RequestCard({
 
   const requesterFirstName = requester?.name?.split(/\s+/)[0] ?? 'Neighbor'
   const isAsap = request.when === 'asap'
-  const timingLabel = isAsap ? 'ASAP' : request.whenLabel
+  // Prefer persisted whenLabel (new ASAP = "As soon as possible"; legacy may still say "ASAP").
+  const timingLabel =
+    request.whenLabel?.trim() ||
+    (isAsap ? 'As soon as possible' : request.when)
   const isOpenBudget = request.budgetType === 'open' || !request.budget || request.budget <= 0
   const ratingLabel = requester ? formatPublicRating(requester) : null
   const neighborhood = location.split(',')[0]?.trim() || location
