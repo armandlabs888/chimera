@@ -21,8 +21,8 @@ export function WhileYouWait({
   showProfileCard: boolean
 }) {
   return (
-    <section className="mt-5" data-testid="browse-while-you-wait" aria-labelledby="while-you-wait-heading">
-      <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+    <section className="mt-3.5 sm:mt-5" data-testid="browse-while-you-wait" aria-labelledby="while-you-wait-heading">
+      <div className="mb-2.5 flex flex-wrap items-end justify-between gap-2 sm:mb-3">
         <h3 id="while-you-wait-heading" className="text-[15px] font-semibold text-[#071330]">
           While you wait
         </h3>

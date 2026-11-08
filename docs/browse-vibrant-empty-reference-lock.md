@@ -14,8 +14,10 @@ Quiet pale gray-blue canvas + white compact chrome surrounding **one** vivid blu
 - Shadow: soft restrained `0 8px 24px -12px rgba(7,19,48,0.18)` on hero; light card shadows
 
 ## Media
-- Artwork: `/images/browse/empty-helper.jpg` — dimensional helper with cleaning kit (no map/radar/magnifier)
-- Role: right-side hero illustration, decorative (`alt=""`), hidden/reduced on small mobile
+- Artwork: `/images/browse/empty-helper.png` — dimensional helper with cleaning kit (no map/radar/magnifier)
+- Role: right-side hero illustration, decorative (`alt=""`)
+- Mobile: **reduced**, always visible (~88×112px beside copy) — never silently remove signature artwork
+- Desktop/tablet: larger art column; compact command bar stays single-row on mobile
 
 ## Decisions
 1. Rich gradient hero **only** for genuine zero-results (`showFreshMarketplace`); filter no-match keeps plain EmptyState + reset
