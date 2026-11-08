@@ -316,7 +316,12 @@ export function PostRequest() {
       if (fileRef.current) fileRef.current.value = ''
       return
     }
-    const files = Array.from(fileList).slice(0, remaining)
+    const selected = Array.from(fileList)
+    const truncated = selected.length > remaining
+    const files = selected.slice(0, remaining)
+    if (truncated) {
+      setPhotoError(`Only ${LISTING_PHOTO_MAX} photos allowed — kept the first ${remaining}.`)
+    }
     setPhotoPending(true)
     const uploaded: string[] = []
     try {
@@ -618,7 +623,11 @@ export function PostRequest() {
                 </span>
               </div>
               {photoError ? (
-                <p className="mt-2 text-[13px] font-medium text-red-600" role="alert">
+                <p
+                  className="mt-2 text-[13px] font-medium text-red-600"
+                  role="alert"
+                  data-testid="post-photo-error"
+                >
                   {photoError}
                 </p>
               ) : null}
@@ -681,6 +690,7 @@ export function PostRequest() {
                   onChange={(e) => setTitle(e.target.value.slice(0, TITLE_MAX))}
                   placeholder="What do you need done?"
                   required
+                  data-testid="post-title"
                 />
               </Field>
 
@@ -697,6 +707,7 @@ export function PostRequest() {
                     placeholder="A few sentences helpers can trust…"
                     rows={5}
                     required
+                    data-testid="post-details"
                   />
                 </Field>
               </div>

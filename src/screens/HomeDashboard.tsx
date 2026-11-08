@@ -143,7 +143,7 @@ export function HomeDashboard() {
         const miles = distanceBetween(currentUser, request)
         const within =
           miles == null ||
-          miles <= Math.max(request.radiusMiles ?? 5, currentUser.serviceRadiusMiles ?? 5) + 0.5
+          miles <= (currentUser.serviceRadiusMiles ?? 5) + 0.5
         const skillMatch = currentUser.skills.includes(request.category)
         if (!self && !skillMatch) return null
         if (!within && !skillMatch) return null

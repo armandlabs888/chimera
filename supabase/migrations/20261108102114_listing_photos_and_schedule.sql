@@ -1,6 +1,9 @@
 -- Listing form: multi-photo gallery + optional schedule end time.
 -- Additive only. Legacy `image` remains the cover (first photo) for cards/RPC.
 -- Storage bucket `beam-media` already has owner-folder RLS; do not broaden.
+--
+-- History note: applied on chimera via MCP as version 20261108102114
+-- (filename aligned to that version; do not re-apply).
 
 alter table public.help_requests
   add column if not exists images text[] not null default '{}';

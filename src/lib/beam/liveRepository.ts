@@ -26,6 +26,7 @@ import {
   mapReview,
   mapThread,
 } from '@/lib/beam/mappers'
+import { assertOwnedListingPhotoUrls } from '@/lib/listingPhotos'
 
 // Untyped client keeps app compiling while schema evolves; runtime RLS still enforces authz.
 type Client = SupabaseClient
@@ -257,13 +258,18 @@ export async function createLiveRequest(
   input: CreateRequestInput,
 ): Promise<HelpRequest> {
   const budgetType = input.budgetType ?? (input.budget === 0 ? 'open' : 'fixed')
-  const images = (input.images ?? [])
-    .filter((u) => typeof u === 'string' && u.trim().length > 0)
-    .slice(0, 5)
-  if (images.length > 5) {
-    throw new Error('You can add up to 5 photos.')
-  }
+  const owned = assertOwnedListingPhotoUrls(input.images ?? [], userId)
+  if (!owned.ok) throw new Error(owned.error)
+  const images = owned.urls
+  // Cover may be a category stock image when the listing has zero photos.
   const cover = images[0] || input.image || ''
+  if (images.length === 0 && cover && !assertOwnedListingPhotoUrls([cover], userId).ok) {
+    // Stock/category covers are app-served paths (e.g. /images/...), not beam-media — allow those.
+    // Reject only if someone tries to persist a third-party https cover without upload.
+    if (/^https?:\/\//i.test(cover) && !cover.includes('/storage/v1/object/public/beam-media/')) {
+      throw new Error('Photos must be uploaded through Beam — external image links are not allowed.')
+    }
+  }
   const { data, error } = await client
     .from('help_requests')
     .insert({
@@ -284,7 +290,8 @@ export async function createLiveRequest(
       location_label: input.locationLabel?.trim() || '',
       lat: input.lat ?? null,
       lng: input.lng ?? null,
-      // Legacy column — posters no longer pick this; keep a stable default for matching.
+      // Legacy column kept for schema compatibility. Matching uses helper travel
+      // distance (service_radius_miles), not this poster radius.
       radius_miles: input.radiusMiles ?? 5,
       scheduled_for: input.scheduledFor ?? null,
       scheduled_end: input.scheduledEnd ?? null,

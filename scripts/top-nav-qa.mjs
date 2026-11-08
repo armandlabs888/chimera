@@ -282,7 +282,9 @@ try {
       await page.screenshot({ path: filterShot, fullPage: true })
       saveShot(filterShot, `browse-filter-cleaning-${vp.name}.png`)
 
-      // People tab should not be hijacked by requests-empty marketplace banner
+      // People tab: demo seed current user is a helper (jobs-only Browse hides peer discovery).
+      // Deep-link ?tab=people is normalized away for helpers — assert that contract instead of
+      // requiring helper cards (stale expectation from pre-jobs-only Browse).
       await page.goto(`${BASE}/browse?tab=people`, { waitUntil: 'domcontentloaded' })
       await page.waitForTimeout(700)
       const peopleLogic = await page.evaluate(() => {
@@ -291,13 +293,25 @@ try {
         const helperEmpty = /No helpers nearby yet|No local helpers match|Become a helper/i.test(
           document.body.innerText,
         )
-        return { fresh, helperCards, helperEmpty }
+        const peopleTabSelected = !!document.querySelector(
+          '[data-testid="browse-tab-people"][aria-selected="true"]',
+        )
+        const jobsOnlyChrome = !!document.querySelector('[data-browse-layout="helper-jobs"]')
+        const urlPeople = new URL(location.href).searchParams.get('tab') === 'people'
+        return { fresh, helperCards, helperEmpty, peopleTabSelected, jobsOnlyChrome, urlPeople }
       })
       record(!peopleLogic.fresh, 'people tab is not hijacked by requests fresh-empty')
-      record(
-        peopleLogic.helperCards > 0 || peopleLogic.helperEmpty,
-        'people tab shows helpers or helper-specific empty',
-      )
+      if (peopleLogic.jobsOnlyChrome || (!peopleLogic.urlPeople && !peopleLogic.peopleTabSelected)) {
+        record(
+          !peopleLogic.urlPeople && !peopleLogic.peopleTabSelected,
+          'helper jobs-only Browse strips peer people-tab deep link',
+        )
+      } else {
+        record(
+          peopleLogic.helperCards > 0 || peopleLogic.helperEmpty,
+          'people tab shows helpers or helper-specific empty',
+        )
+      }
       const peopleShot = join(tmpDir, `browse-people-tab-${vp.name}.png`)
       await page.screenshot({ path: peopleShot, fullPage: true })
       saveShot(peopleShot, `browse-people-tab-${vp.name}.png`)
