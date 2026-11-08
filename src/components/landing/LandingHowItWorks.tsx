@@ -173,9 +173,8 @@ function DemoCompareOffers() {
         Select a sample offer
       </p>
       <div
-        role="listbox"
+        role="group"
         aria-labelledby={groupId}
-        aria-activedescendant={`how-offer-${offerId}`}
         className="space-y-2"
         data-testid="how-demo-offers"
       >
@@ -185,9 +184,7 @@ function DemoCompareOffers() {
             <button
               key={offer.id}
               type="button"
-              role="option"
-              id={`how-offer-${offer.id}`}
-              aria-selected={selectedOffer}
+              aria-pressed={selectedOffer}
               data-testid={`how-demo-offer-${offer.id}`}
               onClick={() => setOfferId(offer.id)}
               className={`flex w-full items-center gap-2.5 rounded-[10px] border bg-white px-2.5 py-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#EEF4FF] ${
@@ -263,14 +260,17 @@ function DemoChatReview() {
                 aria-label={`Set sample rating to ${value} star${value === 1 ? '' : 's'}`}
                 aria-pressed={rating === value}
                 data-testid={`how-demo-star-${value}`}
+                data-active={active ? 'true' : 'false'}
                 onClick={() => setRating(value)}
                 className={`inline-flex h-9 w-9 items-center justify-center rounded-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/45 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:hover:scale-105 motion-reduce:transform-none ${
-                  active ? 'text-[#F5B942]' : 'text-[#CBD5E1] hover:text-[#F5B942]'
+                  active
+                    ? 'bg-[#FFF7ED] text-[#B45309] ring-1 ring-[#92400E]/45'
+                    : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#071330]'
                 }`}
               >
                 <Star
                   className={`h-5 w-5 ${active ? 'fill-current' : ''}`}
-                  strokeWidth={active ? 0 : 1.75}
+                  strokeWidth={active ? 1.5 : 2}
                   aria-hidden
                 />
               </button>

@@ -24,3 +24,5 @@
 | Body text `#475569` on warm wash | PR60 contrast craft | ≥4.5:1; not faint gray |
 | `prefers-reduced-motion` skips hover scale | A11y | Motion optional |
 | Money strings prefixed “Sample” in UI chrome | Truthfulness | No live pricing implication |
+| Offer picker = `role="group"` + `aria-pressed` buttons | PR64 a11y review | Avoid incomplete listbox; match PR61 filter pattern |
+| Rating stars `#B45309` / `#475569` on white (+ ring) | PR64 a11y review | UI control contrast ≥3:1; clear selected fill+ring |
