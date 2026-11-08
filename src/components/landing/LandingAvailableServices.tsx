@@ -1,61 +1,128 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
-import { useId, useState } from 'react'
-import { ArrowRight } from 'lucide-react'
-import { CATEGORY_ICONS } from '@/lib/categoryIcons'
-import {
-  SERVICE_CATEGORIES,
-  type ServiceCategoryId,
-} from '@/lib/taxonomy'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { ArrowLeft, ArrowRight, ChevronRight } from 'lucide-react'
+import type { ServiceCategoryId } from '@/lib/taxonomy'
 
-/**
- * Framed “Available services on Beam” strip — replaces the yellow scalloped chip row.
- * Types Beam supports (not live helper supply / counts / prices).
- */
-const AVAILABLE_SERVICE_IDS: ServiceCategoryId[] = [
-  'house-cleaning',
-  'carpet-cleaning',
-  'auto-detailing',
-  'junk-removal',
-  'pet-sitting',
-  'grooming',
-  'other',
-]
-
-const SERVICE_BLURBS: Record<ServiceCategoryId, string> = {
-  'house-cleaning':
-    'Everyday home cleans — kitchens, baths, and tidy resets from neighbors who know the drill.',
-  'carpet-cleaning':
-    'Room, stair, and spot carpet help when a vacuum alone will not cut it.',
-  'auto-detailing':
-    'Interior and exterior car detailing at your place — casual, non-shop help.',
-  'junk-removal':
-    'Haul-away for household junk and clutter when you need an extra set of hands and a truck.',
-  'pet-sitting':
-    'Drop-ins, walks, and sitting for pets you already know how to care for at home.',
-  grooming:
-    'At-home bath, brush, and nail trims — friendly pet help, not a clinic or salon.',
-  other:
-    'Custom everyday tasks that still fit Beam’s casual local-help rules — describe what you need.',
+type ServiceCard = {
+  id: ServiceCategoryId
+  label: string
+  href: string
+  image: string
+  alt: string
+  objectPosition: string
 }
 
-const SERVICES = AVAILABLE_SERVICE_IDS.map((id) => {
-  const cat = SERVICE_CATEGORIES.find((c) => c.id === id)!
-  return {
-    id: cat.id,
-    label: cat.label,
-    description: SERVICE_BLURBS[cat.id],
-    icon: CATEGORY_ICONS[cat.id],
-  }
-})
+/**
+ * Horizontal image-led “Available services on Beam” row.
+ * Whole card = Browse leaf link. Scroll-snap + prev/next when overflow.
+ */
+const SERVICES: ServiceCard[] = [
+  {
+    id: 'house-cleaning',
+    label: 'House Cleaning',
+    href: '/browse?category=house-cleaning',
+    image: '/images/landing/avail-house-cleaning.jpg',
+    alt: 'Three neighbors with vacuums and a mop ready for a home cleaning job',
+    objectPosition: 'object-[50%_30%]',
+  },
+  {
+    id: 'carpet-cleaning',
+    label: 'Carpet Cleaning',
+    href: '/browse?category=carpet-cleaning',
+    image: '/images/landing/avail-carpet-cleaning.jpg',
+    alt: 'Vacuum cleaning a patterned living-room rug',
+    objectPosition: 'object-center',
+  },
+  {
+    id: 'auto-detailing',
+    label: 'Auto Detailing',
+    href: '/browse?category=auto-detailing',
+    image: '/images/landing/avail-auto-detailing.jpg',
+    alt: 'Neighbor hand-washing a car with sponge and soapy wash buckets',
+    objectPosition: 'object-[40%_40%]',
+  },
+  {
+    id: 'junk-removal',
+    label: 'Junk Removal',
+    href: '/browse?category=junk-removal',
+    image: '/images/landing/avail-junk-removal.jpg',
+    alt: 'Two neighbors carrying a chair toward a pickup truck for haul-away',
+    objectPosition: 'object-[50%_35%]',
+  },
+  {
+    id: 'pet-sitting',
+    label: 'Pet Sitting',
+    href: '/browse?category=pet-sitting',
+    image: '/images/landing/avail-pet-sitting.jpg',
+    alt: 'Neighbor walking several dogs together on a sunny path',
+    objectPosition: 'object-[50%_45%]',
+  },
+  {
+    id: 'grooming',
+    label: 'Grooming',
+    href: '/browse?category=grooming',
+    image: '/images/landing/avail-grooming.jpg',
+    alt: 'Neighbor bathing a golden dog in a home bathtub',
+    objectPosition: 'object-[45%_35%]',
+  },
+  {
+    id: 'other',
+    label: 'Other',
+    href: '/browse?category=other',
+    image: '/images/landing/avail-other.jpg',
+    alt: 'Neighbors setting an outdoor table for everyday local help',
+    objectPosition: 'object-[50%_30%]',
+  },
+]
 
 export function LandingAvailableServices() {
-  const [selectedId, setSelectedId] = useState<ServiceCategoryId>('house-cleaning')
   const headingId = useId()
-  const groupId = useId()
-  const selected = SERVICES.find((s) => s.id === selectedId) ?? SERVICES[0]
-  const SelectedIcon = selected.icon
+  const scrollerRef = useRef<HTMLDivElement>(null)
+  const [canPrev, setCanPrev] = useState(false)
+  const [canNext, setCanNext] = useState(false)
+
+  const updateOverflow = useCallback(() => {
+    const el = scrollerRef.current
+    if (!el) return
+    const max = el.scrollWidth - el.clientWidth
+    const overflow = max > 4
+    setCanPrev(overflow && el.scrollLeft > 4)
+    setCanNext(overflow && el.scrollLeft < max - 4)
+  }, [])
+
+  useEffect(() => {
+    const el = scrollerRef.current
+    if (!el) return
+    updateOverflow()
+    const onScroll = () => updateOverflow()
+    el.addEventListener('scroll', onScroll, { passive: true })
+    const ro = new ResizeObserver(() => updateOverflow())
+    ro.observe(el)
+    window.addEventListener('resize', updateOverflow)
+    return () => {
+      el.removeEventListener('scroll', onScroll)
+      ro.disconnect()
+      window.removeEventListener('resize', updateOverflow)
+    }
+  }, [updateOverflow])
+
+  const scrollByCard = (dir: -1 | 1) => {
+    const el = scrollerRef.current
+    if (!el) return
+    const card = el.querySelector<HTMLElement>('[data-service-card]')
+    const delta = (card?.offsetWidth ?? 220) + 16
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    // Prefer 'instant' when supported; 'auto' follows CSS (motion-reduce:scroll-auto).
+    const behavior: ScrollBehavior = reduceMotion ? 'instant' : 'smooth'
+    try {
+      el.scrollBy({ left: dir * delta, behavior })
+    } catch {
+      el.scrollBy({ left: dir * delta, behavior: reduceMotion ? 'auto' : 'smooth' })
+    }
+  }
 
   return (
     <div
@@ -64,118 +131,101 @@ export function LandingAvailableServices() {
       data-testid="available-services"
     >
       <div className="beam-container">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="inline-flex rounded-md bg-[#1D5CE5] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white">
-            On Beam
-          </p>
-          <h2
-            id={headingId}
-            className="mt-3 font-display text-[clamp(1.65rem,3vw,2.35rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330] text-balance"
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0 max-w-2xl">
+            <p className="inline-flex rounded-md bg-[#1D5CE5] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white">
+              On Beam
+            </p>
+            <h2
+              id={headingId}
+              className="mt-3 font-display text-[clamp(1.65rem,3vw,2.35rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330] text-balance"
+            >
+              Available services on Beam
+            </h2>
+            <p className="mt-2 max-w-[46ch] text-[15px] leading-[1.55] text-[#334155]">
+              Everyday help types Beam supports — open a card to browse tasks in that category.
+            </p>
+          </div>
+
+          <div
+            className="flex shrink-0 items-center gap-2"
+            data-testid="available-services-controls"
           >
-            Available services on Beam
-          </h2>
-          <p className="mx-auto mt-2.5 max-w-[46ch] text-[15px] leading-[1.55] text-[#334155]">
-            Service types Beam supports today — pick one to see what it covers, then browse open
-            tasks in that category.
-          </p>
+            <button
+              type="button"
+              aria-label="Show previous services"
+              data-testid="available-services-prev"
+              disabled={!canPrev}
+              onClick={() => scrollByCard(-1)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-[8px] border border-[#64748B] bg-white text-[#071330] transition enabled:hover:border-[#1D5CE5] enabled:hover:text-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/55 focus-visible:ring-offset-2 focus-visible:ring-offset-[#EEF4FF] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ArrowLeft className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+            </button>
+            <button
+              type="button"
+              aria-label="Show next services"
+              data-testid="available-services-next"
+              disabled={!canNext}
+              onClick={() => scrollByCard(1)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-[8px] border border-[#64748B] bg-white text-[#071330] transition enabled:hover:border-[#1D5CE5] enabled:hover:text-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/55 focus-visible:ring-offset-2 focus-visible:ring-offset-[#EEF4FF] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ArrowRight className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+            </button>
+          </div>
         </div>
 
-        <div className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-stretch lg:gap-5">
+        <div className="relative mt-7">
           <div
-            role="group"
-            aria-labelledby={groupId}
-            className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-2.5"
-            data-testid="available-services-group"
+            ref={scrollerRef}
+            role="list"
+            aria-labelledby={headingId}
+            data-testid="available-services-row"
+            className="flex gap-4 overflow-x-auto scroll-auto motion-safe:scroll-smooth motion-reduce:scroll-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory [&::-webkit-scrollbar]:hidden"
           >
-            <p id={groupId} className="sr-only">
-              Choose a service type Beam supports
-            </p>
-            {SERVICES.map((service) => {
-              const Icon = service.icon
-              const pressed = service.id === selectedId
-              return (
-                <button
-                  key={service.id}
-                  type="button"
-                  aria-pressed={pressed}
-                  data-testid={`available-service-${service.id}`}
-                  data-selected={pressed ? 'true' : 'false'}
-                  onClick={() => setSelectedId(service.id)}
-                  style={
-                    pressed
-                      ? {
-                          backgroundColor: '#1D5CE5',
-                          color: '#FFFFFF',
-                          borderColor: '#1D5CE5',
-                        }
-                      : {
-                          backgroundColor: '#FFFFFF',
-                          color: '#071330',
-                          borderColor: '#64748B',
-                        }
-                  }
-                  className="flex min-h-[72px] flex-col items-start gap-2 rounded-[10px] border px-3 py-3 text-left shadow-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/55 focus-visible:ring-offset-2 focus-visible:ring-offset-[#EEF4FF] motion-safe:hover:-translate-y-0.5 motion-reduce:transform-none data-[selected=true]:shadow-[0_12px_28px_-16px_rgba(29,92,229,0.65)]"
-                >
-                  <span
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-[8px]"
-                    style={
-                      pressed
-                        ? { backgroundColor: 'rgba(255,255,255,0.18)', color: '#FFFFFF' }
-                        : { backgroundColor: '#DBEAFE', color: '#1D5CE5' }
-                    }
-                    aria-hidden
-                  >
-                    <Icon className="h-4 w-4" strokeWidth={2} />
-                  </span>
-                  <span className="text-[13px] font-semibold leading-snug sm:text-[13.5px]">
+            {SERVICES.map((service) => (
+              <Link
+                key={service.id}
+                role="listitem"
+                href={service.href}
+                data-service-card
+                data-testid={`available-service-${service.id}`}
+                aria-label={`${service.label} — browse tasks`}
+                className="group relative flex w-[min(72vw,220px)] shrink-0 snap-start flex-col overflow-hidden rounded-[10px] border border-[#64748B] bg-white transition motion-safe:hover:-translate-y-0.5 motion-safe:hover:border-[#1D5CE5] motion-safe:hover:shadow-[0_16px_36px_-20px_rgba(29,92,229,0.55)] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/55 focus-visible:ring-offset-2 focus-visible:ring-offset-[#EEF4FF] sm:w-[200px] lg:w-[220px]"
+              >
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#DBEAFE]">
+                  <Image
+                    src={service.image}
+                    alt={service.alt}
+                    fill
+                    // Request a >=640px source so smoke naturalWidth>=400 stays honest.
+                    sizes="(min-width:1024px) 440px, 70vw"
+                    priority
+                    className={`object-cover ${service.objectPosition} transition duration-300 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none`}
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-2 px-3.5 py-3">
+                  <span className="min-w-0 truncate text-[14px] font-bold leading-snug text-[#071330]">
                     {service.label}
                   </span>
-                </button>
-              )
-            })}
-          </div>
-
-          <div
-            className="flex flex-col justify-between rounded-[12px] border border-[#1D5CE5]/25 bg-white p-5 shadow-[0_16px_40px_-24px_rgba(7,19,48,0.35)] sm:p-6"
-            data-testid="available-services-detail"
-            aria-live="polite"
-          >
-            <div>
-              <div className="flex items-center gap-3">
-                <span
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-[8px] bg-[#EEF4FF] text-[#1D5CE5]"
-                  aria-hidden
-                >
-                  <SelectedIcon className="h-5 w-5" strokeWidth={2} />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1D5CE5]">
-                    Service type
-                  </p>
-                  <h3 className="truncate text-[18px] font-bold text-[#071330]">{selected.label}</h3>
+                  <span
+                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] bg-[#EEF4FF] text-[#1D5CE5] transition group-hover:bg-[#1D5CE5] group-hover:text-white"
+                    aria-hidden
+                  >
+                    <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
+                  </span>
                 </div>
-              </div>
-              <p
-                className="mt-3 text-[14.5px] leading-[1.55] text-[#334155]"
-                data-testid="available-services-blurb"
-              >
-                {selected.description}
-              </p>
-              <p className="mt-3 text-[12.5px] leading-snug text-[#475569]">
-                Browse shows open tasks neighbors posted in this category — not a live helper
-                roster or guaranteed availability.
-              </p>
-            </div>
-
-            <Link
-              href={`/browse?category=${selected.id}`}
-              className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[8px] bg-[#1D5CE5] px-4 text-[14.5px] font-semibold text-white transition hover:bg-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/55 focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:w-auto"
-              data-testid="available-services-browse"
-            >
-              Browse {selected.label}
-              <ArrowRight className="h-4 w-4" strokeWidth={2.25} aria-hidden />
-            </Link>
+              </Link>
+            ))}
           </div>
+
+          {/* Visible next-card cue when more content exists to the right */}
+          <div
+            aria-hidden
+            className={`pointer-events-none absolute inset-y-0 right-0 w-14 bg-gradient-to-l from-[#EEF4FF] to-transparent transition-opacity ${
+              canNext ? 'opacity-100' : 'opacity-0'
+            }`}
+            data-testid="available-services-next-cue"
+          />
         </div>
       </div>
     </div>

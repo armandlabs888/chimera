@@ -210,20 +210,29 @@ try {
       summary.checks.push({ name: `why-beam-geometry-${vp.name}`, ok: true, geo })
     }
 
-    // Available services strip: launch taxonomy + Other (no legacy Moving/Handyman/Tutoring)
+    // Available services photo row: launch taxonomy + Other (image-led link cards)
     const servicesRoot = page.getByTestId('available-services')
     await servicesRoot.scrollIntoViewIfNeeded()
     if (!(await page.getByText(/Available services on Beam/i).count())) {
       throw new Error(`Missing Available services heading @ ${vp.name}`)
     }
-    const serviceButtons = servicesRoot.locator('[data-testid="available-services-group"] button')
-    const serviceCount = await serviceButtons.count()
-    if (serviceCount !== EXPECTED_SERVICES.length) {
-      throw new Error(`Expected ${EXPECTED_SERVICES.length} service tiles, got ${serviceCount} @ ${vp.name}`)
+    if ((await page.getByTestId('available-services-detail').count()) > 0) {
+      throw new Error(`Selector/detail panel still present @ ${vp.name}`)
     }
+    const serviceCards = servicesRoot.locator('[data-testid="available-services-row"] a[data-service-card]')
+    const serviceCount = await serviceCards.count()
+    if (serviceCount !== EXPECTED_SERVICES.length) {
+      throw new Error(`Expected ${EXPECTED_SERVICES.length} service cards, got ${serviceCount} @ ${vp.name}`)
+    }
+    await page.waitForFunction(() => {
+      const imgs = [
+        ...document.querySelectorAll('[data-testid="available-services-row"] a[data-service-card] img'),
+      ]
+      return imgs.length >= 7 && imgs.every((img) => img.complete && img.naturalWidth >= 200)
+    }, null, { timeout: 20000 })
     const serviceLabels = []
     for (let i = 0; i < serviceCount; i++) {
-      serviceLabels.push((await serviceButtons.nth(i).innerText()).replace(/\s+/g, ' ').trim())
+      serviceLabels.push((await serviceCards.nth(i).innerText()).replace(/\s+/g, ' ').trim())
     }
     for (const expected of EXPECTED_SERVICES) {
       if (!serviceLabels.some((l) => l.includes(expected))) {
@@ -233,30 +242,34 @@ try {
     if (serviceLabels.some((l) => l === 'Moving' || l === 'Cleaning' || l === 'Handyman')) {
       throw new Error(`Legacy shortLabel tiles still present @ ${vp.name}`)
     }
-    // Unselected tiles stay white; exactly one pressed (selected) may be Beam blue
-    const tileStyles = await servicesRoot.evaluate((root) => {
-      return Array.from(root.querySelectorAll('[data-testid="available-services-group"] button')).map((btn) => {
-        const cs = getComputedStyle(btn)
-        return {
-          bg: cs.backgroundColor,
-          pressed: btn.getAttribute('aria-pressed'),
-          text: (btn.textContent || '').trim(),
-        }
-      })
+    const cardMeta = await servicesRoot.evaluate((root) => {
+      return Array.from(root.querySelectorAll('[data-testid="available-services-row"] a[data-service-card]')).map(
+        (a) => {
+          const img = a.querySelector('img')
+          const cs = getComputedStyle(a)
+          return {
+            href: a.getAttribute('href'),
+            bg: cs.backgroundColor,
+            hasImg: !!img && img.complete && img.naturalWidth >= 200,
+            text: (a.textContent || '').trim(),
+          }
+        },
+      )
     })
-    const pressedCount = tileStyles.filter((t) => t.pressed === 'true').length
-    if (pressedCount !== 1) {
-      throw new Error(`Expected exactly 1 pressed service tile @ ${vp.name}, got ${pressedCount}`)
+    if (cardMeta.some((c) => !c.hasImg)) {
+      throw new Error(`Service card image missing/broken @ ${vp.name}`)
     }
-    const unselectedNonWhite = tileStyles.filter((t) => {
-      if (t.pressed === 'true') return false
-      const m = t.bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+    if (cardMeta.some((c) => !/^\/browse\?category=/.test(c.href || ''))) {
+      throw new Error(`Service card href not leaf Browse @ ${vp.name}: ${JSON.stringify(cardMeta)}`)
+    }
+    const nonWhiteCards = cardMeta.filter((c) => {
+      const m = c.bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
       if (!m) return true
       const [, r, g, b] = m.map(Number)
       return !(r >= 245 && g >= 245 && b >= 245)
     })
-    if (unselectedNonWhite.length) {
-      throw new Error(`Unselected service tiles not white @ ${vp.name}: ${JSON.stringify(unselectedNonWhite)}`)
+    if (nonWhiteCards.length) {
+      throw new Error(`Service cards not white chrome @ ${vp.name}: ${JSON.stringify(nonWhiteCards)}`)
     }
 
     const whyShot = join('/tmp', `why-beam-${vp.name}.png`)
