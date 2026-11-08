@@ -30,13 +30,14 @@ function assertNoAustin(label, text) {
   }
 }
 
-const EXPECTED_PILLS = [
+const EXPECTED_SERVICES = [
   'House Cleaning',
   'Carpet Cleaning',
   'Auto Detailing',
   'Junk Removal',
   'Pet Sitting',
   'Grooming',
+  'Other',
 ]
 
 const summary = { ok: true, checks: [] }
@@ -143,9 +144,14 @@ try {
       throw new Error(`Why Beam still has native select @ ${vp.name}`)
     }
 
-    const whyHeading = (await why.locator('h2').innerText()).replace(/\s+/g, ' ').trim()
+    const whyHeading = (await why.getByRole('heading', { level: 2, name: 'Why choose Beam' }).innerText())
+      .replace(/\s+/g, ' ')
+      .trim()
     if (whyHeading !== 'Why choose Beam') {
       throw new Error(`Why Beam h2 mismatch: "${whyHeading}"`)
+    }
+    if ((await why.getByRole('heading', { level: 2, name: 'Available services on Beam' }).count()) !== 1) {
+      throw new Error(`Available services heading missing inside Why Beam @ ${vp.name}`)
     }
     assertNoAustin(`why-beam subtitle @ ${vp.name}`, await why.getByTestId('why-beam-copy').innerText())
 
@@ -204,62 +210,69 @@ try {
       summary.checks.push({ name: `why-beam-geometry-${vp.name}`, ok: true, geo })
     }
 
-    // Task pills: casual-launch services (no legacy Moving/Handyman/Tutoring)
-    const pillsRoot = page.getByTestId('why-beam-task-pills')
-    await pillsRoot.scrollIntoViewIfNeeded()
-    const pillLinks = pillsRoot.locator('a')
-    const pillCount = await pillLinks.count()
-    if (pillCount !== EXPECTED_PILLS.length) {
-      throw new Error(`Expected ${EXPECTED_PILLS.length} task pills, got ${pillCount} @ ${vp.name}`)
+    // Available services strip: launch taxonomy + Other (no legacy Moving/Handyman/Tutoring)
+    const servicesRoot = page.getByTestId('available-services')
+    await servicesRoot.scrollIntoViewIfNeeded()
+    if (!(await page.getByText(/Available services on Beam/i).count())) {
+      throw new Error(`Missing Available services heading @ ${vp.name}`)
     }
-    const pillLabels = []
-    for (let i = 0; i < pillCount; i++) {
-      pillLabels.push((await pillLinks.nth(i).innerText()).replace(/\s+/g, ' ').trim())
+    const serviceButtons = servicesRoot.locator('[data-testid="available-services-group"] button')
+    const serviceCount = await serviceButtons.count()
+    if (serviceCount !== EXPECTED_SERVICES.length) {
+      throw new Error(`Expected ${EXPECTED_SERVICES.length} service tiles, got ${serviceCount} @ ${vp.name}`)
     }
-    for (const expected of EXPECTED_PILLS) {
-      if (!pillLabels.some((l) => l.includes(expected))) {
-        throw new Error(`Missing pill "${expected}" @ ${vp.name}: ${pillLabels.join(', ')}`)
+    const serviceLabels = []
+    for (let i = 0; i < serviceCount; i++) {
+      serviceLabels.push((await serviceButtons.nth(i).innerText()).replace(/\s+/g, ' ').trim())
+    }
+    for (const expected of EXPECTED_SERVICES) {
+      if (!serviceLabels.some((l) => l.includes(expected))) {
+        throw new Error(`Missing service "${expected}" @ ${vp.name}: ${serviceLabels.join(', ')}`)
       }
     }
-    // No bare "Moving" / "Cleaning" category short labels as extra pills
-    if (pillLabels.some((l) => l === 'Moving' || l === 'Cleaning')) {
-      throw new Error(`Duplicate CATEGORIES shortLabel pills still present @ ${vp.name}`)
+    if (serviceLabels.some((l) => l === 'Moving' || l === 'Cleaning' || l === 'Handyman')) {
+      throw new Error(`Legacy shortLabel tiles still present @ ${vp.name}`)
     }
-
-    const pillStyles = await pillsRoot.evaluate((root) => {
-      return Array.from(root.querySelectorAll('a')).map((a) => {
-        const cs = getComputedStyle(a)
+    // Unselected tiles stay white; exactly one pressed (selected) may be Beam blue
+    const tileStyles = await servicesRoot.evaluate((root) => {
+      return Array.from(root.querySelectorAll('[data-testid="available-services-group"] button')).map((btn) => {
+        const cs = getComputedStyle(btn)
         return {
           bg: cs.backgroundColor,
-          text: (a.textContent || '').trim(),
+          pressed: btn.getAttribute('aria-pressed'),
+          text: (btn.textContent || '').trim(),
         }
       })
     })
-    const nonWhite = pillStyles.filter((p) => {
-      // white-ish
-      const m = p.bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+    const pressedCount = tileStyles.filter((t) => t.pressed === 'true').length
+    if (pressedCount !== 1) {
+      throw new Error(`Expected exactly 1 pressed service tile @ ${vp.name}, got ${pressedCount}`)
+    }
+    const unselectedNonWhite = tileStyles.filter((t) => {
+      if (t.pressed === 'true') return false
+      const m = t.bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
       if (!m) return true
       const [, r, g, b] = m.map(Number)
       return !(r >= 245 && g >= 245 && b >= 245)
     })
-    if (nonWhite.length) {
-      throw new Error(`Non-white task pills @ ${vp.name}: ${JSON.stringify(nonWhite)}`)
+    if (unselectedNonWhite.length) {
+      throw new Error(`Unselected service tiles not white @ ${vp.name}: ${JSON.stringify(unselectedNonWhite)}`)
     }
 
     const whyShot = join('/tmp', `why-beam-${vp.name}.png`)
     await why.screenshot({ path: whyShot })
     const whyArtifact = saveShot(whyShot, `why-beam-${vp.name}.png`)
 
-    const pillsShot = join('/tmp', `why-beam-pills-${vp.name}.png`)
-    await pillsRoot.screenshot({ path: pillsShot })
-    const pillsArtifact = saveShot(pillsShot, `why-beam-pills-${vp.name}.png`)
+    const servicesShot = join('/tmp', `available-services-${vp.name}.png`)
+    await servicesRoot.screenshot({ path: servicesShot })
+    const servicesArtifact = saveShot(servicesShot, `available-services-strip-${vp.name}.png`)
 
     summary.checks.push({
       name: `why-beam-${vp.name}`,
       ok: true,
-      pillLabels,
+      serviceLabels,
       imgNaturalWidth: imgOk.naturalWidth,
-      artifacts: { why: whyArtifact, pills: pillsArtifact },
+      artifacts: { why: whyArtifact, services: servicesArtifact },
     })
     console.log(`PASS why-beam @ ${vp.name} → ${whyArtifact}`)
 
