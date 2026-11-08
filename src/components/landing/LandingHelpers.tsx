@@ -1,5 +1,10 @@
 import Link from 'next/link'
 
+/**
+ * Portrait helpers with launch-safe specialties only.
+ * Headshots are not service scenes — avoid claiming Auto Detailing / Carpet Cleaning
+ * without matching imagery. Omitted prior Handyman / Tutoring / Events promo labels.
+ */
 const HELPERS = [
   {
     name: 'Marcus T.',
@@ -11,23 +16,9 @@ const HELPERS = [
   {
     name: 'Sofia R.',
     trackRecord: '54 tasks completed',
-    specialty: 'Home Cleaning',
+    specialty: 'House Cleaning',
     rating: '5.0',
     src: '/images/landing/helper-sofia.jpg',
-  },
-  {
-    name: 'Jordan P.',
-    trackRecord: '42 tasks completed',
-    specialty: 'Auto Detailing',
-    rating: '4.8',
-    src: '/images/landing/helper-jordan.jpg',
-  },
-  {
-    name: 'Aisha K.',
-    trackRecord: '29 tasks completed',
-    specialty: 'Carpet Cleaning',
-    rating: '4.9',
-    src: '/images/landing/helper-aisha.jpg',
   },
   {
     name: 'Noah L.',
@@ -39,7 +30,7 @@ const HELPERS = [
   {
     name: 'Priya M.',
     trackRecord: '26 tasks completed',
-    specialty: 'Other · Photo help',
+    specialty: 'Other',
     rating: '5.0',
     src: '/images/landing/helper-priya.jpg',
   },

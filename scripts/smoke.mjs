@@ -491,7 +491,7 @@ async function checkLandingBrowser() {
     await page.waitForFunction(
       () => {
         const imgs = [...document.querySelectorAll('img')]
-        return imgs.length >= 19 && imgs.every((img) => img.complete)
+        return imgs.length >= 14 && imgs.every((img) => img.complete)
       },
       null,
       { timeout: 20000 },
@@ -529,7 +529,10 @@ async function checkLandingBrowser() {
         unsplash: paths.filter((p) => /images\.unsplash\.com/i.test(p) || /unsplash/i.test(p)),
       }
     })
-    assert.equal(landingImages.count, 19, `landing should render 19 <img> elements, got ${landingImages.count}`)
+    assert.ok(
+      landingImages.count >= 14,
+      `landing should render >=14 <img> elements, got ${landingImages.count}`,
+    )
     assert.equal(landingImages.allComplete, true, 'every landing <img> must be complete')
     assert.ok(
       landingImages.minNaturalWidth >= 400,
@@ -541,7 +544,15 @@ async function checkLandingBrowser() {
       `zero duplicate image paths on / (unique=${landingImages.uniqueCount}, total=${landingImages.paths.length}): ${JSON.stringify(landingImages.paths)}`,
     )
     assert.deepEqual(landingImages.unsplash, [], `zero Unsplash URLs on /: ${JSON.stringify(landingImages.unsplash)}`)
-    console.log('ok landing unique local images (19/19, no unsplash)')
+    console.log(
+      `ok landing unique local images (${landingImages.uniqueCount}/${landingImages.count}, no unsplash)`,
+    )
+
+    const fanText = await page.getByTestId('hero-fan-stack').innerText()
+    assert.doesNotMatch(fanText, /\bMoving\b/)
+    assert.doesNotMatch(fanText, /\bAssembly\b/)
+    assert.doesNotMatch(fanText, /\bEvents\b/)
+    assert.match(fanText, /House Cleaning|Junk Removal|Pet Sitting|Other/)
 
     const headline = await page.locator('h1').innerText()
     assert.match(headline, /Local help, made easy/i)

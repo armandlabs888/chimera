@@ -4,13 +4,11 @@ import { SERVICE_CATEGORIES, getBrowseParent } from '@/lib/taxonomy'
 import { LIFESTYLE } from '@/data/media'
 
 /**
- * Flush popular-services bento for casual-launch taxonomy.
- * Keeps fitting lifestyle assets; does not invent new photos or relabel mismatches.
- * Layout: Home (tall) + Auto + quote; Junk + Pets; House Cleaning + Other.
+ * Popular-services bento — only tiles with matching lifestyle photos.
+ * Auto Detailing omitted (no car/detailing asset). Assembly/handyman photo unused.
  */
 export function LandingCategories() {
   const house = SERVICE_CATEGORIES.find((c) => c.id === 'house-cleaning')!
-  const auto = SERVICE_CATEGORIES.find((c) => c.id === 'auto-detailing')!
   const junk = SERVICE_CATEGORIES.find((c) => c.id === 'junk-removal')!
   const pets = getBrowseParent('pets')
   const other = SERVICE_CATEGORIES.find((c) => c.id === 'other')!
@@ -27,7 +25,7 @@ export function LandingCategories() {
               Popular services
             </h2>
             <p className="mt-2 max-w-[42ch] text-[16px] text-[#64748B]">
-              Home, Auto, Junk Removal, Pets, and everyday Other help nearby.
+              Home, Junk Removal, Pets, and everyday Other help nearby.
             </p>
           </div>
           <Link
@@ -51,11 +49,11 @@ export function LandingCategories() {
             className="col-span-1 lg:col-span-3 lg:row-span-2"
           />
           <ServiceTile
-            href={`/browse?category=auto`}
-            image={auto.image}
-            label={`${auto.shortLabel} · ${auto.typicalRange}`}
-            alt="Neighbor detailing a car exterior in a driveway"
-            objectPosition="object-[50%_35%]"
+            href={`/browse?category=junk-removal`}
+            image={junk.image}
+            label={`${junk.shortLabel} · ${junk.typicalRange}`}
+            alt="Neighbors loading household items into a truck for haul-away"
+            objectPosition="object-[50%_40%]"
             className="col-span-1 lg:col-span-4"
           />
           <blockquote className="col-span-2 flex h-full min-h-0 flex-col justify-center overflow-hidden rounded-lg bg-[#F4F8FD] p-5 sm:p-7 lg:col-span-5 lg:p-8">
@@ -68,29 +66,20 @@ export function LandingCategories() {
           </blockquote>
 
           <ServiceTile
-            href={`/browse?category=junk-removal`}
-            image={junk.image}
-            label={`${junk.shortLabel} · ${junk.typicalRange}`}
-            alt="Neighbors loading household items into a truck for haul-away"
-            objectPosition="object-[50%_40%]"
-            className="col-span-1 lg:col-span-5"
-          />
-          <ServiceTile
             href={`/browse?category=pets`}
             image={LIFESTYLE.petcare}
             label={`${pets.label} · Sitting & grooming`}
             alt="Neighbor walking two dogs on a sunny tree-lined sidewalk"
             objectPosition="object-[58%_8%]"
-            className="col-span-1 lg:col-span-4"
+            className="col-span-1 lg:col-span-5"
           />
-
           <ServiceTile
             href={`/browse?category=other`}
             image={other.image}
             label={`${other.shortLabel} · Custom everyday help`}
             alt="Neighbors arranging items for a casual local task"
             objectPosition="object-[50%_40%]"
-            className="col-span-2 lg:col-span-12"
+            className="col-span-1 lg:col-span-7"
           />
         </div>
       </div>

@@ -113,7 +113,9 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     label: 'Auto Detailing',
     shortLabel: 'Auto Detailing',
     description: 'Interior / exterior car detailing',
-    image: LIFESTYLE.handyman,
+    // No dedicated auto-detailing photo in the asset set — do not reuse assembly imagery.
+    // Cards fall back to requester photo / neutral placeholder when image is empty.
+    image: '',
     tintBg: '#FFEDD5',
     tintFg: '#C2410C',
     typicalRange: '$75–$200',
@@ -321,7 +323,11 @@ export function formatCategoryLabel(
 }
 
 export function getCategoryImage(id: string | null | undefined): string {
-  if (id && isServiceCategoryId(id)) return SERVICE_BY_ID[id].image
+  if (id && isServiceCategoryId(id)) {
+    const image = SERVICE_BY_ID[id].image
+    // Empty = no matching asset (e.g. auto-detailing); do not substitute mismatched photos.
+    return image || ''
+  }
   if (id && isLegacyCategoryId(id)) {
     const map: Record<LegacyCategoryId, string> = {
       moving: LIFESTYLE.moving,

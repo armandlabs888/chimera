@@ -289,8 +289,9 @@ export function LandingHero() {
         >
           <div className="flex items-end justify-center gap-[-12px] sm:gap-0">
             {FAN_HELPERS.map((helper, i) => {
-              const isEdge = i === 0 || i === 4
-              const isNear = i === 1 || i === 3
+              const last = FAN_HELPERS.length - 1
+              const isEdge = i === 0 || i === last
+              const isNear = !helper.hero && !isEdge
               return (
                 <div
                   key={helper.name}

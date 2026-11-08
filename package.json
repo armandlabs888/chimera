@@ -15,6 +15,7 @@
     "test:main-auth": "node scripts/main-auth-qa.mjs",
     "test:taxonomy": "node scripts/taxonomy-unit.mjs",
     "test:casual-categories": "node scripts/casual-categories-qa.mjs",
+    "test:other-persistence": "node scripts/other-persistence-qa.mjs",
     "test:live": "node --env-file=.env.local scripts/live-persistence.mjs"
   },
   "dependencies": {
