@@ -1,5 +1,5 @@
 /**
- * Interaction + contrast + responsive QA for Available services on Beam strip.
+ * Photo-row Available services QA: links, scroll controls, crops, contrast, responsive.
  */
 import { chromium } from 'playwright'
 import { mkdirSync, writeFileSync, copyFileSync } from 'node:fs'
@@ -30,13 +30,13 @@ function contrast(a, b) {
 }
 
 const EXPECTED = [
-  'house-cleaning',
-  'carpet-cleaning',
-  'auto-detailing',
-  'junk-removal',
-  'pet-sitting',
-  'grooming',
-  'other',
+  ['house-cleaning', '/browse?category=house-cleaning', 'House Cleaning'],
+  ['carpet-cleaning', '/browse?category=carpet-cleaning', 'Carpet Cleaning'],
+  ['auto-detailing', '/browse?category=auto-detailing', 'Auto Detailing'],
+  ['junk-removal', '/browse?category=junk-removal', 'Junk Removal'],
+  ['pet-sitting', '/browse?category=pet-sitting', 'Pet Sitting'],
+  ['grooming', '/browse?category=grooming', 'Grooming'],
+  ['other', '/browse?category=other', 'Other'],
 ]
 
 let failed = false
@@ -47,186 +47,190 @@ try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
   await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
   await page.getByTestId('available-services').scrollIntoViewIfNeeded()
+  await page.waitForFunction(() => {
+    const imgs = [
+      ...document.querySelectorAll('[data-testid="available-services-row"] a[data-service-card] img'),
+    ]
+    return imgs.length === 7 && imgs.every((img) => img.complete && img.naturalWidth >= 400)
+  }, null, { timeout: 20000 })
 
-  // Structure + framing
-  const structure = await page.evaluate(() => {
+  const structure = await page.evaluate((expected) => {
     const root = document.querySelector('[data-testid="available-services"]')
-    const group = document.querySelector('[data-testid="available-services-group"]')
-    const buttons = [...(group?.querySelectorAll('button') || [])]
-    const scallop = !!document.querySelector('.scallop-band')
-    const nestedLinksInButtons = buttons.some((b) => b.querySelector('a'))
+    const row = document.querySelector('[data-testid="available-services-row"]')
+    const cards = [...(row?.querySelectorAll('a[data-service-card]') || [])]
+    const detail = document.querySelector('[data-testid="available-services-detail"]')
+    const groupButtons = document.querySelector('[data-testid="available-services-group"]')
+    const imgs = cards.map((a) => a.querySelector('img')).filter(Boolean)
+    const paths = imgs.map((img) => {
+      const raw = img.getAttribute('src') || img.currentSrc || ''
+      try {
+        const u = new URL(raw, location.origin)
+        if (u.pathname === '/_next/image') return decodeURIComponent(u.searchParams.get('url') || '')
+        return u.pathname
+      } catch {
+        return raw
+      }
+    })
+    const landingImgs = [...document.querySelectorAll('img')].map((img) => {
+      const raw = img.getAttribute('src') || img.currentSrc || ''
+      try {
+        const u = new URL(raw, location.origin)
+        if (u.pathname === '/_next/image') return decodeURIComponent(u.searchParams.get('url') || '')
+        return u.pathname
+      } catch {
+        return raw
+      }
+    })
     return {
-      hasHeading: /Available services on Beam/i.test(root?.innerText || ''),
-      anchorId: root?.id || null,
-      role: group?.getAttribute('role'),
-      buttonCount: buttons.length,
-      ids: buttons.map((b) => b.getAttribute('data-testid')),
-      pressed: buttons.map((b) => b.getAttribute('aria-pressed')),
-      optionRoles: buttons.map((b) => b.getAttribute('role')),
-      scallop,
-      nestedLinksInButtons,
-      categoriesBentoIntact: !!document.querySelector('#categories'),
+      heading: /Available services on Beam/i.test(root?.innerText || ''),
+      hasDisclaimer: /not a live helper roster|guaranteed availability/i.test(root?.innerText || ''),
+      hasSelectorPanel: !!detail || !!groupButtons,
+      cardCount: cards.length,
+      hrefs: cards.map((a) => a.getAttribute('href')),
+      labels: cards.map((a) => (a.textContent || '').replace(/\s+/g, ' ').trim()),
+      imagePaths: paths,
+      imagesComplete: imgs.every((img) => img.complete && img.naturalWidth >= 400),
+      minNaturalWidth: Math.min(...imgs.map((img) => img.naturalWidth || 0)),
+      uniqueLandingPaths: new Set(landingImgs).size === landingImgs.length,
+      landingPathCount: landingImgs.length,
+      landingUnique: new Set(landingImgs).size,
+      unsplashHotlink: landingImgs.some((p) => /unsplash/i.test(p)),
+      rowRole: row?.getAttribute('role'),
+      expectedOk: expected.every(([id, href, label], i) => {
+        const card = cards[i]
+        return (
+          card?.getAttribute('data-testid') === `available-service-${id}` &&
+          card?.getAttribute('href') === href &&
+          (card?.textContent || '').includes(label)
+        )
+      }),
+      bentoIntact: !!document.querySelector('[data-testid="categories-bento"]'),
+      anchor: root?.id,
     }
-  })
+  }, EXPECTED)
+
   const structureOk =
-    structure.hasHeading &&
-    structure.anchorId === 'neighborhoods' &&
-    structure.role === 'group' &&
-    structure.buttonCount === EXPECTED.length &&
-    EXPECTED.every((id) => structure.ids.includes(`available-service-${id}`)) &&
-    structure.pressed.filter((p) => p === 'true').length === 1 &&
-    structure.optionRoles.every((r) => r == null) &&
-    !structure.scallop &&
-    !structure.nestedLinksInButtons &&
-    structure.categoriesBentoIntact
+    structure.heading &&
+    !structure.hasDisclaimer &&
+    !structure.hasSelectorPanel &&
+    structure.cardCount === EXPECTED.length &&
+    structure.expectedOk &&
+    structure.imagesComplete &&
+    structure.minNaturalWidth >= 400 &&
+    structure.uniqueLandingPaths &&
+    !structure.unsplashHotlink &&
+    structure.rowRole === 'list' &&
+    structure.bentoIntact &&
+    structure.anchor === 'neighborhoods'
   if (!structureOk) failed = true
   report.push({ name: 'structure', ok: structureOk, structure })
   console.log('structure', structureOk ? 'PASS' : 'FAIL', JSON.stringify(structure))
 
-  // Keyboard select (Enter) → detail + browse href
-  const carpet = page.getByTestId('available-service-carpet-cleaning')
-  await carpet.focus()
+  // Keyboard: Tab to a card and activate with Enter
+  await page.getByTestId('available-service-carpet-cleaning').focus()
   await page.keyboard.press('Enter')
-  await page.waitForTimeout(200)
-  await page.waitForFunction(
-    () =>
-      document.querySelector('[data-testid="available-service-carpet-cleaning"]')?.getAttribute('aria-pressed') ===
-      'true',
-  )
-  const afterEnter = {
-    pressed: await carpet.getAttribute('aria-pressed'),
-    blurb: await page.getByTestId('available-services-blurb').innerText(),
-    href: await page.getByTestId('available-services-browse').getAttribute('href'),
-    label: await page.getByTestId('available-services-browse').innerText(),
-  }
-  const enterOk =
-    afterEnter.pressed === 'true' &&
-    /carpet/i.test(afterEnter.blurb) &&
-    afterEnter.href === '/browse?category=carpet-cleaning' &&
-    /Carpet Cleaning/i.test(afterEnter.label)
+  await page.waitForURL(/\/browse\?category=carpet-cleaning/, { timeout: 15000 })
+  const enterOk = page.url().includes('/browse?category=carpet-cleaning')
   if (!enterOk) failed = true
-  report.push({ name: 'keyboard-enter', ok: enterOk, afterEnter })
-  console.log('keyboard-enter', enterOk ? 'PASS' : 'FAIL')
+  report.push({ name: 'keyboard-enter-link', ok: enterOk, url: page.url() })
+  console.log('keyboard-enter-link', enterOk ? 'PASS' : 'FAIL')
 
-  // Space on Other
-  const other = page.getByTestId('available-service-other')
-  await other.focus()
-  await page.keyboard.press('Space')
-  await page.waitForTimeout(200)
-  await page.waitForFunction(
-    () =>
-      document.querySelector('[data-testid="available-service-other"]')?.getAttribute('aria-pressed') === 'true',
-  )
-  const afterSpace = {
-    pressed: await other.getAttribute('aria-pressed'),
-    carpetPressed: await carpet.getAttribute('aria-pressed'),
-    href: await page.getByTestId('available-services-browse').getAttribute('href'),
-  }
-  const spaceOk =
-    afterSpace.pressed === 'true' &&
-    afterSpace.carpetPressed === 'false' &&
-    afterSpace.href === '/browse?category=other'
-  if (!spaceOk) failed = true
-  report.push({ name: 'keyboard-space', ok: spaceOk, afterSpace })
-  console.log('keyboard-space', spaceOk ? 'PASS' : 'FAIL')
-
-  // Touch-ish click junk
-  await page.getByTestId('available-service-junk-removal').tap().catch(async () => {
-    await page.getByTestId('available-service-junk-removal').click()
-  })
-  await page.waitForTimeout(80)
-  const junkHref = await page.getByTestId('available-services-browse').getAttribute('href')
-  const touchOk = junkHref === '/browse?category=junk-removal'
-  if (!touchOk) failed = true
-  report.push({ name: 'touch-select', ok: touchOk, junkHref })
-  console.log('touch-select', touchOk ? 'PASS' : 'FAIL')
-
-  // Follow browse link route
-  await page.getByTestId('available-services-browse').click()
-  await page.waitForURL(/\/browse\?category=junk-removal/, { timeout: 15000 })
-  const routeOk = page.url().includes('/browse?category=junk-removal')
-  if (!routeOk) failed = true
-  report.push({ name: 'browse-route', ok: routeOk, url: page.url() })
-  console.log('browse-route', routeOk ? 'PASS' : 'FAIL', page.url())
-
-  // Back to landing for contrast + screenshots
-  await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
+  await page.goto(`${BASE}/`, { waitUntil: 'networkidle' })
   await page.getByTestId('available-services').scrollIntoViewIfNeeded()
-  await page.getByTestId('available-service-pet-sitting').click()
-  await page.waitForFunction(
-    () =>
-      document.querySelector('[data-testid="available-service-pet-sitting"]')?.getAttribute('aria-pressed') ===
-      'true',
-  )
-  await page.mouse.move(0, 0)
-  await page.waitForTimeout(150)
 
+  // Touch-ish click junk card
+  await page.getByTestId('available-service-junk-removal').click()
+  await page.waitForURL(/\/browse\?category=junk-removal/, { timeout: 15000 })
+  const clickOk = page.url().includes('/browse?category=junk-removal')
+  if (!clickOk) failed = true
+  report.push({ name: 'card-click-route', ok: clickOk, url: page.url() })
+  console.log('card-click-route', clickOk ? 'PASS' : 'FAIL')
+
+  await page.goto(`${BASE}/`, { waitUntil: 'networkidle' })
+  await page.getByTestId('available-services').scrollIntoViewIfNeeded()
+
+  // Scroll controls
+  const next = page.getByTestId('available-services-next')
+  const prev = page.getByTestId('available-services-prev')
+  const beforeScroll = await page.evaluate(
+    () => document.querySelector('[data-testid="available-services-row"]')?.scrollLeft || 0,
+  )
+  const nextEnabled = await next.isEnabled()
+  if (nextEnabled) {
+    await next.click()
+    await page.waitForTimeout(350)
+  }
+  const afterNext = await page.evaluate(
+    () => document.querySelector('[data-testid="available-services-row"]')?.scrollLeft || 0,
+  )
+  const scrollOk = !nextEnabled || afterNext > beforeScroll + 8
+  if (!scrollOk) failed = true
+  report.push({
+    name: 'scroll-next',
+    ok: scrollOk,
+    beforeScroll,
+    afterNext,
+    nextEnabled,
+  })
+  console.log('scroll-next', scrollOk ? 'PASS' : 'FAIL')
+
+  if (await prev.isEnabled()) {
+    await prev.click()
+    await page.waitForTimeout(350)
+  }
+
+  // Contrast on chrome (title/body/card label on white)
   const colors = await page.evaluate(() => {
     const root = document.querySelector('[data-testid="available-services"]')
-    const group = root.querySelector('[data-testid="available-services-group"]')
     const title = root.querySelector('h2')
     const body = root.querySelector('h2 + p')
-    const selected = group.querySelector('[data-testid="available-service-pet-sitting"]')
-    const unselected = group.querySelector('[data-testid="available-service-house-cleaning"]')
-    const blurb = root.querySelector('[data-testid="available-services-blurb"]')
-    const detail = root.querySelector('[data-testid="available-services-detail"]')
+    const card = root.querySelector('a[data-service-card]')
+    const label = card?.querySelector('span')
     return {
       sectionBg: getComputedStyle(root).backgroundColor,
       title: getComputedStyle(title).color,
       body: getComputedStyle(body).color,
-      selectedBg: getComputedStyle(selected).backgroundColor,
-      selectedFg: getComputedStyle(selected).color,
-      unselectedBg: getComputedStyle(unselected).backgroundColor,
-      unselectedFg: getComputedStyle(unselected).color,
-      unselectedBorder: getComputedStyle(unselected).borderTopColor,
-      blurb: getComputedStyle(blurb).color,
-      detailBg: getComputedStyle(detail).backgroundColor,
-      selectedPressed: selected?.getAttribute('aria-pressed'),
-      unselectedPressed: unselected?.getAttribute('aria-pressed'),
-      selectedTestId: selected?.getAttribute('data-testid'),
-      unselectedTestId: unselected?.getAttribute('data-testid'),
+      cardBg: getComputedStyle(card).backgroundColor,
+      label: label ? getComputedStyle(label).color : null,
+      border: getComputedStyle(card).borderTopColor,
+      radius: getComputedStyle(card).borderTopLeftRadius,
     }
   })
   const sectionBg = parseRgb(colors.sectionBg)
   const titleC = parseRgb(colors.title)
   const bodyC = parseRgb(colors.body)
-  const selBg = parseRgb(colors.selectedBg)
-  const selFg = parseRgb(colors.selectedFg)
-  const unsBg = parseRgb(colors.unselectedBg)
-  const unsFg = parseRgb(colors.unselectedFg)
-  const unsBorder = parseRgb(colors.unselectedBorder)
-  const blurbC = parseRgb(colors.blurb)
-  const detailBg = parseRgb(colors.detailBg)
+  const cardBg = parseRgb(colors.cardBg)
+  const labelC = colors.label ? parseRgb(colors.label) : null
+  const borderC = parseRgb(colors.border)
   const pairs = {
-    titleOnSection: Number(contrast(titleC, sectionBg).toFixed(2)),
-    bodyOnSection: Number(contrast(bodyC, sectionBg).toFixed(2)),
-    selectedFgOnBg: Number(contrast(selFg, selBg).toFixed(2)),
-    unselectedFgOnBg: Number(contrast(unsFg, unsBg).toFixed(2)),
-    blurbOnDetail: Number(contrast(blurbC, detailBg).toFixed(2)),
-    unselectedBorderOnSection: unsBorder ? Number(contrast(unsBorder, sectionBg).toFixed(2)) : 0,
+    title: Number(contrast(titleC, sectionBg).toFixed(2)),
+    body: Number(contrast(bodyC, sectionBg).toFixed(2)),
+    labelOnCard: labelC ? Number(contrast(labelC, cardBg).toFixed(2)) : 0,
+    borderOnSection: borderC ? Number(contrast(borderC, sectionBg).toFixed(2)) : 0,
   }
   const contrastOk =
-    pairs.titleOnSection >= 4.5 &&
-    pairs.bodyOnSection >= 4.5 &&
-    pairs.selectedFgOnBg >= 4.5 &&
-    pairs.unselectedFgOnBg >= 4.5 &&
-    pairs.blurbOnDetail >= 4.5 &&
-    pairs.unselectedBorderOnSection >= 3
+    pairs.title >= 4.5 &&
+    pairs.body >= 4.5 &&
+    pairs.labelOnCard >= 4.5 &&
+    pairs.borderOnSection >= 3 &&
+    colors.radius === '10px'
   if (!contrastOk) failed = true
   report.push({ name: 'contrast', ok: contrastOk, colors, pairs })
   console.log('contrast', contrastOk ? 'PASS' : 'FAIL', JSON.stringify(pairs))
 
-  // Reduced motion still interactive
+  // Reduced motion still navigates
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.getByTestId('available-service-grooming').click()
-  const reducedHref = await page.getByTestId('available-services-browse').getAttribute('href')
-  const reducedOk = reducedHref === '/browse?category=grooming'
+  await page.waitForURL(/\/browse\?category=grooming/, { timeout: 15000 })
+  const reducedOk = page.url().includes('/browse?category=grooming')
   if (!reducedOk) failed = true
-  report.push({ name: 'reduced-motion', ok: reducedOk, reducedHref })
+  report.push({ name: 'reduced-motion', ok: reducedOk })
   console.log('reduced-motion', reducedOk ? 'PASS' : 'FAIL')
 
+  await page.goto(`${BASE}/`, { waitUntil: 'networkidle' })
+  await page.getByTestId('available-services').scrollIntoViewIfNeeded()
   await page.mouse.move(0, 0)
-  await page.waitForTimeout(100)
+  await page.waitForTimeout(120)
   await page.getByTestId('available-services').screenshot({ path: join(OUT, 'desktop-1440.png') })
   copyFileSync(join(OUT, 'desktop-1440.png'), join(ART, 'available-services-desktop.png'))
 
@@ -240,6 +244,16 @@ try {
   if (overflow390) failed = true
   report.push({ name: 'mobile-overflow', ok: !overflow390 })
   console.log('mobile-overflow', !overflow390 ? 'PASS' : 'FAIL')
+
+  // Mobile row should be scrollable horizontally inside
+  const rowOverflow = await page.evaluate(() => {
+    const row = document.querySelector('[data-testid="available-services-row"]')
+    return row ? row.scrollWidth > row.clientWidth + 4 : false
+  })
+  report.push({ name: 'mobile-row-scrollable', ok: rowOverflow, rowOverflow })
+  console.log('mobile-row-scrollable', rowOverflow ? 'PASS' : 'FAIL')
+  if (!rowOverflow) failed = true
+
   await page.getByTestId('available-services').screenshot({ path: join(OUT, 'mobile-390.png') })
   copyFileSync(join(OUT, 'mobile-390.png'), join(ART, 'available-services-mobile.png'))
 
@@ -250,7 +264,7 @@ try {
   await page.getByTestId('available-services').screenshot({ path: join(OUT, 'tablet-768.png') })
   copyFileSync(join(OUT, 'tablet-768.png'), join(ART, 'available-services-tablet.png'))
 
-  // Role regression: guest still sees Meet helpers path in helpers section (discovery intact)
+  // Guest discovery intact
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto(`${BASE}/`, { waitUntil: 'networkidle' })
   const helpersLink = await page.locator('a[href="/browse?tab=people"]').count()
