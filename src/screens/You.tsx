@@ -14,8 +14,8 @@ import {
   EmptyState,
 } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import { getCategory } from '@/data/categories'
 import { formatLocationLabel } from '@/lib/location'
+import { formatCategoryLabel } from '@/lib/taxonomy'
 import { formatRate, relativeTime } from '@/lib/matching'
 import { hidesPeerHelperDiscovery } from '@/lib/roles'
 
@@ -321,7 +321,10 @@ export function You() {
                     key={s}
                     className="inline-flex rounded-md bg-[#F4F8FD] px-3 py-1.5 text-[12.5px] font-semibold text-[#071330]"
                   >
-                    {getCategory(s).shortLabel}
+                    {formatCategoryLabel(
+                      s,
+                      s === 'other' ? currentUser.otherSkillLabel : null,
+                    )}
                   </span>
                 ))}
               </div>

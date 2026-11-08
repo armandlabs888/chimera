@@ -89,7 +89,7 @@ async function seedHelper(page, { emptyJobs }) {
               id: 'req-visual-qa-1',
               title: 'Help move a couch upstairs',
               details: 'Need careful help with furniture.',
-              category: 'moving',
+              category: 'junk-removal',
               neighborhood: 'east-austin',
               when: 'asap',
               whenLabel: 'ASAP',
@@ -145,7 +145,7 @@ async function seedCustomer(page, { emptyJobs = false, emptyHelpers = false } = 
         }
         if (!(p.isHelper || (p.skills || []).length)) {
           p.isHelper = true
-          p.skills = ['moving', 'cleaning']
+          p.skills = ['junk-removal', 'house-cleaning']
           if (!(p.hourlyRate > 0)) p.hourlyRate = 35
         }
         return p
@@ -169,7 +169,7 @@ async function seedCustomer(page, { emptyJobs = false, emptyHelpers = false } = 
               id: 'req-visual-qa-customer-1',
               title: 'Help move a couch upstairs',
               details: 'Need careful help with furniture.',
-              category: 'moving',
+              category: 'junk-removal',
               neighborhood: 'east-austin',
               when: 'asap',
               whenLabel: 'ASAP',
@@ -252,9 +252,14 @@ async function main() {
         'helper: no location eyebrow',
       )
       assert.equal(
-        await page.getByRole('button', { name: 'Moving & lifting' }).count(),
+        await page.locator('[data-testid="browse-category-chips"]').count(),
         0,
         'helper: no horizontal category chips',
+      )
+      assert.equal(
+        await page.getByRole('button', { name: 'Moving & lifting' }).count(),
+        0,
+        'helper: old category chips removed',
       )
       // No fabricated social proof
       const body = await page.locator('body').innerText()
@@ -337,7 +342,7 @@ async function main() {
         if (p.id !== me) {
           if (!(p.isHelper || (p.skills || []).length)) {
             p.isHelper = true
-            p.skills = ['moving', 'cleaning']
+            p.skills = ['junk-removal', 'house-cleaning']
             p.hourlyRate = p.hourlyRate || 35
           }
           return p
@@ -478,16 +483,16 @@ async function main() {
     await seedHelper(page, { emptyJobs: false })
     assert.equal(await page.locator('[data-testid="browse-location-eyebrow"]').count(), 0)
     assert.equal(
-      await page.getByRole('button', { name: 'Moving & lifting' }).count(),
+      await page.locator('[data-testid="browse-category-chips"]').count(),
       0,
       'horizontal category chips removed',
     )
     await page
       .locator('[data-testid="browse-filters-sidebar"]')
-      .getByRole('button', { name: /^Moving\b/ })
+      .getByRole('button', { name: /^Junk Removal\b/ })
       .click()
     await page.waitForTimeout(300)
-    assert.match(page.url(), /category=moving/)
+    assert.match(page.url(), /category=junk-removal/)
     // Force no matches by searching nonsense
     await page.getByLabel('Search browse').fill('zzzz-no-match-zzzz')
     await page.waitForSelector('[data-testid="browse-reset-filters"]', { timeout: 10000 })

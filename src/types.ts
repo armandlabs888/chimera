@@ -1,10 +1,7 @@
-export type CategoryId =
-  | 'moving'
-  | 'cleaning'
-  | 'tutoring'
-  | 'petcare'
-  | 'handyman'
-  | 'events'
+import type { ServiceCategoryId } from '@/lib/taxonomy'
+
+/** Active selectable service / skill ids (casual launch taxonomy). */
+export type CategoryId = ServiceCategoryId
 
 export type NeighborhoodId =
   | 'east-austin'
@@ -37,22 +34,7 @@ export type NotificationKind =
   | 'job_completed'
   | 'new_review'
 
-export interface Category {
-  id: CategoryId
-  label: string
-  shortLabel: string
-  description: string
-  image: string
-  /** Soft tile background for category icon badges */
-  tintBg: string
-  /** Deep foreground for category icons / labels */
-  tintFg: string
-  /** Typical budget range shown on marketing tiles */
-  typicalRange: string
-  /** Arrival expectation shown on marketing tiles */
-  arrival: string
-  templates: RequestTemplate[]
-}
+export type { ServiceCategory as Category } from '@/lib/taxonomy'
 
 export interface RequestTemplate {
   title: string
@@ -72,7 +54,10 @@ export interface Person {
   avatar: string
   bio: string
   neighborhood: NeighborhoodId | ''
-  skills: CategoryId[]
+  /** Active service ids and/or legacy historical skill ids. */
+  skills: Array<CategoryId | string>
+  /** When skills includes `other`, the helper-described service name. */
+  otherSkillLabel?: string | null
   hourlyRate: number
   availability: AvailabilitySlot[]
   rating: number
@@ -99,7 +84,10 @@ export interface HelpRequest {
   id: string
   title: string
   details: string
-  category: CategoryId
+  /** Active service id, or a legacy/historical category string. */
+  category: CategoryId | string
+  /** Required when category === 'other'. */
+  categoryCustom?: string | null
   neighborhood: NeighborhoodId | ''
   when: WhenOption
   whenLabel: string

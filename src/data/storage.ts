@@ -30,6 +30,7 @@ function normalizePerson(p: Person): Person {
     onboardingCompletedAt: p.onboardingCompletedAt ?? null,
     safetyDisclaimerAcceptedAt: p.safetyDisclaimerAcceptedAt ?? null,
     safetyDisclaimerVersion: p.safetyDisclaimerVersion ?? null,
+    otherSkillLabel: p.otherSkillLabel ?? null,
   }
 }
 
@@ -43,6 +44,7 @@ function normalizeRequest(r: HelpRequest): HelpRequest {
     budgetType: r.budgetType ?? (r.budget === 0 ? 'open' : 'fixed'),
     scheduledFor: r.scheduledFor ?? null,
     preferredHelperId: r.preferredHelperId ?? null,
+    categoryCustom: r.categoryCustom ?? null,
   }
 }
 

@@ -100,7 +100,7 @@ async function seedRole(page, role) {
             ...p,
             accountRole: 'helper',
             isHelper: true,
-            skills: p.skills?.length ? p.skills : ['moving', 'handyman'],
+            skills: p.skills?.length ? p.skills : ['house-cleaning', 'junk-removal'],
             hourlyRate: p.hourlyRate || 35,
             onboardingCompletedAt: p.onboardingCompletedAt || new Date().toISOString(),
             safetyDisclaimerAcceptedAt:
@@ -136,7 +136,7 @@ async function seedRole(page, role) {
       if (role === 'populated-jobs') {
         const open = (state.requests || []).filter((r) => r.status === 'open')
         if (open.length < 3) {
-          const cats = ['moving', 'cleaning', 'handyman']
+          const cats = ['house-cleaning', 'junk-removal', 'auto-detailing']
           const extras = Array.from({ length: 6 }, (_, i) => ({
             id: `req-role-qa-${i}`,
             title: `Neighborhood job ${i + 1}`,
@@ -317,11 +317,11 @@ function runUnit() {
     assert.equal(got, expected, `unit ${name}`)
     report.unit.push({ name, expected, got })
   }
-  const stripped = stripHelperDiscoveryParams('tab=people&free=1&avail=mornings&category=moving&q=sofa')
+  const stripped = stripHelperDiscoveryParams('tab=people&free=1&avail=mornings&category=home&q=sofa')
   assert.equal(stripped.get('tab'), null)
   assert.equal(stripped.get('free'), null)
   assert.equal(stripped.get('avail'), null)
-  assert.equal(stripped.get('category'), 'moving')
+  assert.equal(stripped.get('category'), 'home')
   assert.equal(stripped.get('q'), 'sofa')
   report.unit.push({ name: 'strip params', ok: true })
 }

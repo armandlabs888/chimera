@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useMemo } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
 import { useBeam } from '@/context/BeamContext'
-import { CATEGORIES } from '@/data/categories'
+import { BROWSE_PARENTS } from '@/lib/taxonomy'
 import { hidesPeerHelperDiscovery } from '@/lib/roles'
 
 const linkClass =
@@ -98,9 +98,9 @@ export function LandingFooter({
       {
         id: 'footer-services',
         title: 'Services',
-        links: CATEGORIES.map((c) => ({
-          href: `/browse?category=${c.id}`,
-          label: c.shortLabel,
+        links: BROWSE_PARENTS.map((p) => ({
+          href: `/browse?category=${p.id}`,
+          label: p.shortLabel,
         })),
       },
       { id: 'footer-start', title: 'Get started', links: start },
@@ -143,8 +143,8 @@ export function LandingFooter({
               />
             </Link>
             <p className="mt-2.5 text-[13.5px] leading-[1.45] text-[#64748B]">
-              Peer-to-peer everyday local help — moving, cleaning, assembly, pet care, tutoring, and
-              events.
+              Peer-to-peer everyday local help — home, auto, junk removal, pets, and other casual
+              tasks.
             </p>
           </div>
 

@@ -59,6 +59,7 @@ export type PostRequestInput = {
   title: string
   details: string
   category: CategoryId
+  categoryCustom?: string | null
   neighborhood?: NeighborhoodId | ''
   when: WhenOption
   whenLabel?: string
@@ -548,6 +549,7 @@ export function BeamProvider({
               title: input.title,
               details: input.details,
               category: input.category,
+              categoryCustom: input.category === 'other' ? input.categoryCustom ?? null : null,
               neighborhood: input.neighborhood ?? '',
               when: input.when,
               whenLabel: label,
@@ -579,6 +581,8 @@ export function BeamProvider({
           title: input.title.trim(),
           details: input.details.trim(),
           category: input.category,
+          categoryCustom:
+            input.category === 'other' ? input.categoryCustom?.trim() || null : null,
           neighborhood: input.neighborhood ?? '',
           when: input.when,
           whenLabel: label,
@@ -1374,7 +1378,8 @@ export type ProfileForm = {
   bio: string
   neighborhood: NeighborhoodId | ''
   locationLabel?: string
-  skills: CategoryId[]
+  skills: Array<CategoryId | string>
+  otherSkillLabel?: string | null
   hourlyRate: number
   availability: AvailabilitySlot[]
   rateType?: Person['rateType']

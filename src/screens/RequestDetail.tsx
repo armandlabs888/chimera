@@ -14,8 +14,11 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Avatar, Button, ButtonLink, EmptyState, TextArea } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import { getCategory } from '@/data/categories'
 import { CATEGORY_ICONS } from '@/lib/categoryIcons'
+import {
+  formatCategoryLabel,
+  isServiceCategoryId,
+} from '@/lib/taxonomy'
 import {
   formatBudget,
   formatLocation,
@@ -73,8 +76,13 @@ export function RequestDetail() {
 
   const request = getRequest(id)
   const requester = request ? getPerson(request.requesterId) : undefined
-  const category = request ? getCategory(request.category) : undefined
-  const CategoryIcon = request ? CATEGORY_ICONS[request.category] : null
+  const categoryLabel = request
+    ? formatCategoryLabel(request.category, request.categoryCustom)
+    : undefined
+  const CategoryIcon =
+    request && isServiceCategoryId(request.category)
+      ? CATEGORY_ICONS[request.category]
+      : null
 
   const isOwner = request?.requesterId === currentUser.id
   const isAcceptedHelper = Boolean(request?.helperId && request.helperId === currentUser.id)
@@ -138,7 +146,7 @@ export function RequestDetail() {
   const [reviewComment, setReviewComment] = useState('')
   const [reviewPending, setReviewPending] = useState(false)
 
-  if (!request || !category || !requester) {
+  if (!request || !categoryLabel || !requester) {
     return (
       <div className="py-10">
         <EmptyState
@@ -241,7 +249,7 @@ export function RequestDetail() {
                       aria-hidden
                     />
                   ) : null}
-                  {category.shortLabel}
+                  {categoryLabel}
                 </span>
                 <span
                   className={`inline-flex items-center rounded-md px-2.5 py-1 text-[12px] font-semibold capitalize ${

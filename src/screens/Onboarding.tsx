@@ -368,8 +368,8 @@ export function Onboarding() {
             </div>
 
             <p className="mt-5 text-[14px] leading-[1.55] text-[#64748B]">
-              Beam is strictly for 6 everyday categories — moving &amp; lifting, home cleaning,
-              handyman &amp; assembly, pet care, tutoring &amp; tech help, and events &amp; photo.{' '}
+              Beam is for everyday local help — Home, Auto, Junk Removal, Pets, and Other casual
+              tasks. The same safety exclusions apply to custom Other requests.{' '}
               <Link
                 href="/safety"
                 target="_blank"

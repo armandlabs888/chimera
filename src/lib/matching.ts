@@ -1,6 +1,6 @@
 import { distanceMiles as neighborhoodDistance } from '../data/neighborhoods'
 import { distanceBetween, formatLocation } from '@/lib/location'
-import { getCategory } from '@/data/categories'
+import { formatCategoryLabel } from '@/lib/taxonomy'
 import type {
   AvailabilitySlot,
   HelpRequest,
@@ -44,7 +44,10 @@ export function rankHelpersForRequest(
 ): MatchScore[] {
   const needed = slotsForWhen(request.when)
   const reqRadius = request.radiusMiles ?? 5
-  const categoryLabel = getCategory(request.category).shortLabel
+  const categoryLabel = formatCategoryLabel(
+    request.category,
+    request.categoryCustom,
+  )
 
   return people
     .filter((p) => {

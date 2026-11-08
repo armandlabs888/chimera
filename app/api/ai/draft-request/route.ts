@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isCategoryId } from '@/lib/taxonomy'
 import type { CategoryId, WhenOption } from '@/types'
 
 const BLOCK_REASON =
@@ -35,17 +36,15 @@ function detectBlocked(prompt: string): string | null {
 function inferCategory(prompt: string, hint?: CategoryId): CategoryId {
   if (hint) return hint
   const t = prompt.toLowerCase()
-  if (/\b(couch|sofa|sectional|u-?haul|boxes|mattress|lift|stairs|move|moving)\b/.test(t))
-    return 'moving'
+  if (/\b(carpet|rug|upholstery)\b/.test(t)) return 'carpet-cleaning'
   if (/\b(clean|mop|kitchen|bathroom|move-?out|deep clean|fridge|vacuum|tidy)\b/.test(t))
-    return 'cleaning'
-  if (/\b(ikea|mount|tv|shelf|dresser|assemble|curtain|handyman|hang|fix)\b/.test(t))
-    return 'handyman'
-  if (/\b(dog|cat|walk|puppy|pet|feed|litter|sitter)\b/.test(t)) return 'petcare'
-  if (/\b(tutor|math|spanish|wifi|wi-?fi|printer|laptop|calculus|python|homework)\b/.test(t))
-    return 'tutoring'
-  if (/\b(party|photo|headshot|setup|chairs|balloon|event|cater)\b/.test(t)) return 'events'
-  return 'handyman'
+    return 'house-cleaning'
+  if (/\b(car|auto|detail|vehicle|interior wipe|wax)\b/.test(t)) return 'auto-detailing'
+  if (/\b(junk|haul|debris|trash haul|couch|sofa|sectional|u-?haul|boxes|mattress|lift|stairs|move|moving)\b/.test(t))
+    return 'junk-removal'
+  if (/\b(groom|bath|nail trim|brush-out)\b/.test(t)) return 'grooming'
+  if (/\b(dog|cat|walk|puppy|pet|feed|litter|sitter)\b/.test(t)) return 'pet-sitting'
+  return 'other'
 }
 
 function inferWhen(prompt: string): { when: WhenOption; whenLabel: string } {
@@ -66,12 +65,13 @@ function estimateBudget(category: CategoryId, prompt: string): {
   suggestedBudget: number
 } {
   const bases: Record<CategoryId, [number, number]> = {
-    moving: [45, 120],
-    cleaning: [60, 140],
-    handyman: [45, 110],
-    petcare: [25, 65],
-    tutoring: [35, 85],
-    events: [50, 150],
+    'house-cleaning': [60, 140],
+    'carpet-cleaning': [80, 180],
+    'auto-detailing': [75, 200],
+    'junk-removal': [60, 250],
+    'pet-sitting': [25, 75],
+    grooming: [40, 120],
+    other: [40, 120],
   }
   let [min, max] = bases[category]
   const t = prompt.toLowerCase()
@@ -100,12 +100,13 @@ function synthesizeTitle(category: CategoryId, prompt: string): string {
     return capped.length > 70 ? capped.slice(0, 67) + '…' : capped
   }
   const labels: Record<CategoryId, string> = {
-    moving: 'Need help moving',
-    cleaning: 'Need a home cleaning',
-    handyman: 'Need handyman help',
-    petcare: 'Need pet care help',
-    tutoring: 'Need tutoring / tech help',
-    events: 'Need event / photo help',
+    'house-cleaning': 'Need house cleaning',
+    'carpet-cleaning': 'Need carpet cleaning',
+    'auto-detailing': 'Need auto detailing',
+    'junk-removal': 'Need junk removal',
+    'pet-sitting': 'Need pet sitting',
+    grooming: 'Need pet grooming',
+    other: 'Need local help',
   }
   const base = labels[category]
   const snippet = cleaned.slice(0, 50).replace(/\s+\S*$/, '')
@@ -154,8 +155,8 @@ async function llmDraft(
   const model = openaiKey ? 'gpt-4o-mini' : 'grok-3-mini'
 
   const system = `You are Beam's Smart Task Drafter for a peer-to-peer local help marketplace.
-Allowed categories ONLY: moving, cleaning, handyman, petcare, tutoring, events.
-Never suggest licensed trades, childcare, medical/elder care, or passenger rides.
+Allowed categories ONLY: house-cleaning, carpet-cleaning, auto-detailing, junk-removal, pet-sitting, grooming, other.
+Never suggest licensed trades, childcare, medical/elder care, or passenger rides. Same exclusions apply when category is other.
 Return JSON with keys: category, title (<=70 chars), details, when (asap|today|tomorrow|this-week), whenLabel, suggestedMin, suggestedMax, suggestedBudget.
 ${hasPhoto ? 'A photo was attached — mention checking the photo in details.' : ''}
 ${categoryHint ? `Prefer category ${categoryHint} if it fits.` : ''}`
@@ -209,7 +210,7 @@ export async function POST(req: NextRequest) {
   }
 
   const llm = await llmDraft(prompt, Boolean(body.hasPhoto), body.categoryHint)
-  if (llm && llm.category && llm.title) {
+  if (llm && llm.category && isCategoryId(llm.category) && llm.title) {
     return NextResponse.json(llm)
   }
 

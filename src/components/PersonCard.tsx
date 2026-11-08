@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { Heart, MapPin, Star } from 'lucide-react'
 import { useBeam } from '@/context/BeamContext'
-import { getCategory } from '../data/categories'
 import { formatLocation, formatRate } from '../lib/matching'
+import { formatCategoryLabel } from '@/lib/taxonomy'
 import { formatPublicRating } from '@/lib/ratingDisplay'
 import type { AvailabilitySlot, MatchScore, Person } from '../types'
 import { Avatar } from './ui'
@@ -34,7 +34,9 @@ export function PersonCard({
   compact?: boolean
 }) {
   const { authUser, state, toggleSavedHelper } = useBeam()
-  const skills = person.skills.slice(0, 3).map((s) => getCategory(s).shortLabel)
+  const skills = person.skills.slice(0, 3).map((s) =>
+    formatCategoryLabel(s, s === 'other' ? person.otherSkillLabel : null),
+  )
   const locationLabel =
     match && authUser ? `${match.distanceMiles.toFixed(1)} mi away` : formatLocation(person)
   const rateLabel = formatRate(person)

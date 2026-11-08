@@ -1,22 +1,33 @@
 import type { LucideIcon } from 'lucide-react'
 import {
-  GraduationCap,
+  Car,
   LayoutGrid,
-  PartyPopper,
+  Home,
   PawPrint,
-  Sofa,
+  Scissors,
   SprayCan,
-  Wrench,
+  Trash2,
+  Droplets,
+  MoreHorizontal,
 } from 'lucide-react'
-import type { CategoryId } from '@/types'
+import type { BrowseParentId, ServiceCategoryId } from '@/lib/taxonomy'
 
-export const CATEGORY_ICONS: Record<CategoryId, LucideIcon> = {
-  moving: Sofa,
-  cleaning: SprayCan,
-  handyman: Wrench,
-  petcare: PawPrint,
-  tutoring: GraduationCap,
-  events: PartyPopper,
+export const CATEGORY_ICONS: Record<ServiceCategoryId, LucideIcon> = {
+  'house-cleaning': SprayCan,
+  'carpet-cleaning': Droplets,
+  'auto-detailing': Car,
+  'junk-removal': Trash2,
+  'pet-sitting': PawPrint,
+  grooming: Scissors,
+  other: MoreHorizontal,
+}
+
+export const PARENT_ICONS: Record<BrowseParentId, LucideIcon> = {
+  home: Home,
+  auto: Car,
+  'junk-removal': Trash2,
+  pets: PawPrint,
+  other: MoreHorizontal,
 }
 
 export const ALL_CATEGORY_ICON: LucideIcon = LayoutGrid

@@ -123,8 +123,8 @@ async function main() {
       await page.goto(`${BASE_URL}/onboarding/helper`, { waitUntil: 'networkidle' })
       await page.waitForSelector('[data-testid="helper-onboarding-root"]', { timeout: 15000 })
       // Select a couple skills for the filled screenshot
-      await page.getByTestId('helper-skill-moving').click().catch(() => {})
-      await page.getByTestId('helper-skill-handyman').click().catch(() => {})
+      await page.getByTestId('helper-skill-parent-home').click().catch(() => {})
+      await page.getByTestId('helper-skill-parent-junk-removal').click().catch(() => {})
 
       const helperProbe = await probeHelper(page)
       assert.equal(helperProbe.hasRoot, true, `${vp.name} helper root`)

@@ -20,17 +20,16 @@ const COMMITMENTS = [
   },
   {
     title: 'Scoped, everyday tasks',
-    body: 'Six practical categories. Nothing that needs a license, overnight care, or driving for hire.',
+    body: 'Home, Auto, Junk Removal, Pets, and Other everyday help. Nothing that needs a license, overnight care, or driving for hire.',
   },
 ]
 
 const PERMITTED = [
-  'Moving & lifting',
-  'Home cleaning',
-  'Handyman & assembly (non-licensed)',
-  'Pet care',
-  'Tutoring & tech help',
-  'Events & photo',
+  'Home — House Cleaning, Carpet Cleaning',
+  'Auto — Auto Detailing',
+  'Junk Removal',
+  'Pets — Pet Sitting, Grooming',
+  'Other — described everyday tasks (same safety exclusions apply)',
 ]
 
 const EXCLUDED = [

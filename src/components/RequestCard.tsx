@@ -6,9 +6,9 @@ import { MapPin } from 'lucide-react'
 import { useMemo } from 'react'
 import { Avatar } from './ui'
 import { useBeam } from '@/context/BeamContext'
-import { getCategory } from '../data/categories'
 import { formatLocation, relativeTime } from '../lib/matching'
 import { formatPublicRating } from '@/lib/ratingDisplay'
+import { formatCategoryLabel } from '@/lib/taxonomy'
 import type { HelpRequest } from '../types'
 
 export function RequestCard({
@@ -19,7 +19,7 @@ export function RequestCard({
   compact?: boolean
 }) {
   const { state } = useBeam()
-  const category = getCategory(request.category)
+  const categoryLabel = formatCategoryLabel(request.category, request.categoryCustom)
   const location = formatLocation(request)
 
   const requester = useMemo(
@@ -53,8 +53,8 @@ export function RequestCard({
           sizes="(min-width:1280px) 320px, (min-width:640px) 45vw, 100vw"
           className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
         />
-        <span className="absolute left-2.5 top-2.5 inline-flex items-center rounded-md bg-white/95 px-2 py-0.5 text-[11px] font-semibold text-[#071330] shadow-xs">
-          {category.shortLabel}
+        <span className="absolute left-2.5 top-2.5 inline-flex max-w-[70%] truncate items-center rounded-md bg-white/95 px-2 py-0.5 text-[11px] font-semibold text-[#071330] shadow-xs">
+          {categoryLabel}
         </span>
         <span
           className={`absolute right-2.5 top-2.5 inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold ${

@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, MapPin } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
@@ -10,9 +10,9 @@ import {
 } from '@/components/onboarding/UsCityCombobox'
 import { Avatar, Button, InlineBanner } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import { CATEGORIES } from '@/data/categories'
+import { CategorySelect } from '@/components/CategorySelect'
+import { normalizeOtherCustom, type ServiceCategoryId } from '@/lib/taxonomy'
 import { uploadBeamMedia } from '@/lib/beam/storageUpload'
-import { CATEGORY_ICONS } from '@/lib/categoryIcons'
 import { createClient } from '@/lib/supabase/client'
 import {
   loadUsPlacesIndex,
@@ -20,7 +20,7 @@ import {
   searchUsCities,
   type UsCity,
 } from '@/lib/usPlaces'
-import type { AvailabilitySlot, CategoryId, RateType } from '@/types'
+import type { AvailabilitySlot, RateType } from '@/types'
 
 const SLOTS: { id: AvailabilitySlot; label: string }[] = [
   { id: 'mornings', label: 'Mornings' },
@@ -46,7 +46,13 @@ export function HelperOnboarding() {
   const [avatar, setAvatar] = useState(currentUser.avatar || '')
   const [name, setName] = useState(currentUser.name || '')
   const [bio, setBio] = useState(currentUser.bio || '')
-  const [skills, setSkills] = useState<CategoryId[]>(currentUser.skills ?? [])
+  const [skills, setSkills] = useState<ServiceCategoryId[]>(
+    (currentUser.skills ?? []).filter((s): s is ServiceCategoryId =>
+      ['house-cleaning','carpet-cleaning','auto-detailing','junk-removal','pet-sitting','grooming','other'].includes(s),
+    ),
+  )
+  const [otherSkillLabel, setOtherSkillLabel] = useState(currentUser.otherSkillLabel ?? '')
+  const [otherError, setOtherError] = useState('')
   const [city, setCity] = useState<UsCity | null>(null)
   const [customLocationLabel, setCustomLocationLabel] = useState('')
   const [lat, setLat] = useState<number | null>(currentUser.lat ?? null)
@@ -127,8 +133,15 @@ export function HelperOnboarding() {
     currentUser.locationLabel,
   ])
 
-  function toggleSkill(id: CategoryId) {
-    setSkills((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]))
+  function toggleSkill(id: ServiceCategoryId) {
+    setSkills((prev) => {
+      const next = prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+      if (!next.includes('other')) {
+        setOtherSkillLabel('')
+        setOtherError('')
+      }
+      return next
+    })
   }
 
   function toggleSlot(slot: AvailabilitySlot) {
@@ -236,6 +249,16 @@ export function HelperOnboarding() {
       setError('Pick at least one skill so we can match you to open requests.')
       return
     }
+    let otherLabel: string | null = null
+    if (skills.includes('other')) {
+      const normalized = normalizeOtherCustom(otherSkillLabel)
+      if (!normalized.ok) {
+        setOtherError(normalized.error)
+        setError(normalized.error)
+        return
+      }
+      otherLabel = normalized.value
+    }
 
     const resolvedCity = city ?? cityRef.current?.tryCommitQuery() ?? null
     if (resolvedCity && !city) setCity(resolvedCity)
@@ -263,6 +286,7 @@ export function HelperOnboarding() {
       bio: bio.trim(),
       avatar: avatar || currentUser.avatar,
       skills,
+      otherSkillLabel: otherLabel,
       locationLabel,
       city: resolvedCity?.name ?? currentUser.city ?? null,
       stateCode: resolvedCity?.stateCode ?? currentUser.stateCode ?? null,
@@ -390,45 +414,21 @@ export function HelperOnboarding() {
                 What tasks do you take?
               </h2>
             </div>
-            <div
-              className="grid grid-cols-2 gap-2.5 sm:grid-cols-3"
-              data-testid="helper-skills-grid"
-            >
-              {CATEGORIES.map((c) => {
-                const on = skills.includes(c.id)
-                const Icon = CATEGORY_ICONS[c.id]
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => toggleSkill(c.id)}
-                    data-testid={`helper-skill-${c.id}`}
-                    className={`relative flex min-h-[72px] flex-col items-start gap-2 rounded-lg border px-3.5 py-3 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
-                      on
-                        ? 'border-[#1D5CE5] bg-[#F5F9FF] text-[#071330] ring-1 ring-[#1D5CE5]/20'
-                        : 'border-[#E2E8F0] bg-white text-[#475569] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
-                    }`}
-                  >
-                    <span className="flex w-full items-center justify-between gap-2">
-                      <Icon
-                        className={`h-[18px] w-[18px] ${on ? 'text-[#1D5CE5]' : 'text-[#64748B]'}`}
-                        strokeWidth={1.9}
-                        aria-hidden
-                      />
-                      {on ? (
-                        <span
-                          className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#1D5CE5] text-white"
-                          aria-hidden
-                        >
-                          <Check className="h-3 w-3" strokeWidth={3} />
-                        </span>
-                      ) : null}
-                    </span>
-                    <span className="text-[13.5px] font-semibold leading-tight">{c.shortLabel}</span>
-                  </button>
-                )
-              })}
+            <div data-testid="helper-skills-grid">
+              <CategorySelect
+                mode="multi"
+                serviceId={skills[0] ?? null}
+                selectedSkills={skills}
+                onToggleSkill={toggleSkill}
+                customLabel={otherSkillLabel}
+                onServiceChange={() => {}}
+                onCustomChange={(v) => {
+                  setOtherSkillLabel(v)
+                  setOtherError('')
+                }}
+                customError={otherError}
+                testIdPrefix="helper-skill"
+              />
             </div>
           </section>
 

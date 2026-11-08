@@ -31,14 +31,12 @@ function assertNoAustin(label, text) {
 }
 
 const EXPECTED_PILLS = [
-  'Couch Moving',
-  'Deep Cleaning',
-  'Furniture Assembly',
-  'TV Mounting',
-  'Dog Walking',
-  'Yard Cleanup',
-  'Event Setup',
-  'Tech & Tutoring',
+  'House Cleaning',
+  'Carpet Cleaning',
+  'Auto Detailing',
+  'Junk Removal',
+  'Pet Sitting',
+  'Grooming',
 ]
 
 const summary = { ok: true, checks: [] }
@@ -102,8 +100,8 @@ try {
     if (!/All categories/i.test(allText)) {
       throw new Error(`Guest all-option expected "All categories", got "${allText}"`)
     }
-    if (!/Moving & lifting/i.test(listText)) {
-      throw new Error(`Guest category listbox missing Moving & lifting @ ${vp.name}`)
+    if (!/Home/i.test(listText) || !/Pets/i.test(listText) || !/Other/i.test(listText)) {
+      throw new Error(`Guest category listbox missing casual parents @ ${vp.name}`)
     }
     await page.keyboard.press('Escape')
     await listbox.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
@@ -206,13 +204,13 @@ try {
       summary.checks.push({ name: `why-beam-geometry-${vp.name}`, ok: true, geo })
     }
 
-    // Task pills: exactly 8 white pills, no Moving/Cleaning duplicates
+    // Task pills: casual-launch services (no legacy Moving/Handyman/Tutoring)
     const pillsRoot = page.getByTestId('why-beam-task-pills')
     await pillsRoot.scrollIntoViewIfNeeded()
     const pillLinks = pillsRoot.locator('a')
     const pillCount = await pillLinks.count()
-    if (pillCount !== 8) {
-      throw new Error(`Expected 8 task pills, got ${pillCount} @ ${vp.name}`)
+    if (pillCount !== EXPECTED_PILLS.length) {
+      throw new Error(`Expected ${EXPECTED_PILLS.length} task pills, got ${pillCount} @ ${vp.name}`)
     }
     const pillLabels = []
     for (let i = 0; i < pillCount; i++) {
@@ -275,12 +273,8 @@ try {
     // Guest subtitle must stay location-neutral (no Austin assumption in heading/subtitle).
     const browseH1 = (await page.locator('h1').first().innerText()).replace(/\s+/g, ' ').trim()
     assertNoAustin(`guest browse h1 @ ${vp.name}`, browseH1)
-    if (
-      !/Compare open neighborhood requests with upfront budgets/i.test(browseBody) &&
-      !/Open requests and nearby helpers across local neighborhoods/i.test(browseBody) &&
-      !/Open requests and nearby helpers in your area/i.test(browseBody)
-    ) {
-      throw new Error(`Guest /browse missing location-neutral subtitle @ ${vp.name}`)
+    if (!/Browse Local Jobs/i.test(browseH1)) {
+      throw new Error(`Guest /browse missing location-neutral title @ ${vp.name}: ${browseH1}`)
     }
     if (/Austin/i.test(browseBody.split('\n').slice(0, 12).join('\n'))) {
       // First viewport chrome + header should stay Austin-free for guests
@@ -292,42 +286,27 @@ try {
     if ((await page.getByTestId('browse-neighborhood-trigger').count()) > 0) {
       throw new Error(`Guest /browse still shows Austin neighborhood trigger @ ${vp.name}`)
     }
-    const whenTrigger = page.getByTestId('browse-when-trigger')
-    if ((await whenTrigger.count()) < 1) {
-      throw new Error(`Guest /browse missing timing trigger @ ${vp.name}`)
+    // Timing lives in Filters sidebar (xl) or mobile Filters sheet.
+    const filtersBtn = page.getByRole('button', { name: 'Filters' })
+    if ((await filtersBtn.count()) > 0 && (await filtersBtn.isVisible())) {
+      await filtersBtn.click()
     }
-    const whenLabel = (await whenTrigger.innerText()).trim()
-    if (!/Any timing/i.test(whenLabel)) {
-      throw new Error(`Guest timing default expected Any timing, got "${whenLabel}" @ ${vp.name}`)
+    const whenInFilters = page.getByRole('button', { name: /^ASAP$/ })
+    if ((await whenInFilters.count()) < 1) {
+      throw new Error(`Guest /browse missing timing filters @ ${vp.name}`)
     }
-    await whenTrigger.click()
-    const whenList = page.getByTestId('browse-when-listbox')
-    await whenList.waitFor({ state: 'visible', timeout: 10000 })
-    const whenText = await whenList.innerText()
-    for (const name of [
-      'East Austin',
-      'Hyde Park',
-      'Mueller',
-      'Zilker',
-      'South Congress',
-      'Travis Heights',
-      'Clarksville',
-      'The Domain',
-    ]) {
-      if (whenText.includes(name)) {
-        throw new Error(`Guest timing listbox includes Austin neighborhood "${name}" @ ${vp.name}`)
+    // Category filters must be casual parents, not legacy Austin-era taxonomy.
+    for (const bad of ['Moving & lifting', 'Handyman & assembly', 'Tutoring & tech help']) {
+      if ((await page.getByRole('button', { name: new RegExp(bad) }).count()) > 0) {
+        throw new Error(`Guest browse still exposes legacy category "${bad}" @ ${vp.name}`)
       }
     }
-    await page.keyboard.press('Escape')
 
     const sortTrigger = page.getByTestId('browse-sort-trigger')
     await sortTrigger.click()
     const sortList = page.getByTestId('browse-sort-listbox')
     await sortList.waitFor({ state: 'visible', timeout: 10000 })
     const sortText = await sortList.innerText()
-    if (/Nearest/i.test(sortText)) {
-      throw new Error(`Guest sort still offers Nearest @ ${vp.name}`)
-    }
     if (!/Newest first/i.test(sortText)) {
       throw new Error(`Guest sort missing Newest first @ ${vp.name}`)
     }
