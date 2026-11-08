@@ -239,6 +239,7 @@ export type CreateRequestInput = {
   whenLabel: string
   budget: number
   image: string
+  images?: string[]
   locationLabel?: string
   lat?: number | null
   lng?: number | null
@@ -246,6 +247,7 @@ export type CreateRequestInput = {
   exactAddress?: string
   budgetType?: BudgetType
   scheduledFor?: string | null
+  scheduledEnd?: string | null
   preferredHelperId?: string | null
 }
 
@@ -255,6 +257,13 @@ export async function createLiveRequest(
   input: CreateRequestInput,
 ): Promise<HelpRequest> {
   const budgetType = input.budgetType ?? (input.budget === 0 ? 'open' : 'fixed')
+  const images = (input.images ?? [])
+    .filter((u) => typeof u === 'string' && u.trim().length > 0)
+    .slice(0, 5)
+  if (images.length > 5) {
+    throw new Error('You can add up to 5 photos.')
+  }
+  const cover = images[0] || input.image || ''
   const { data, error } = await client
     .from('help_requests')
     .insert({
@@ -270,12 +279,15 @@ export async function createLiveRequest(
       budget_type: budgetType,
       status: 'open',
       requester_id: userId,
-      image: input.image,
+      image: cover,
+      images,
       location_label: input.locationLabel?.trim() || '',
       lat: input.lat ?? null,
       lng: input.lng ?? null,
+      // Legacy column — posters no longer pick this; keep a stable default for matching.
       radius_miles: input.radiusMiles ?? 5,
       scheduled_for: input.scheduledFor ?? null,
+      scheduled_end: input.scheduledEnd ?? null,
       preferred_helper_id: input.preferredHelperId ?? null,
     })
     .select('*')

@@ -15,6 +15,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Avatar, Button, ButtonLink, EmptyState, TextArea } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { CATEGORY_ICONS } from '@/lib/categoryIcons'
+import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
 import {
   formatCategoryLabel,
   isServiceCategoryId,
@@ -161,7 +162,8 @@ export function RequestDetail() {
   const activeRequest = request
   const budgetLabel = formatBudget(request)
   const locationLabel = formatLocation(request)
-  const radiusMiles = request.radiusMiles ?? 5
+  const listingImages = normalizeListingImages(request.images, request.image)
+  const coverImage = listingCoverImage(listingImages, request.image)
   const isOpenBudget = request.budgetType === 'open' || request.budget === 0
 
   async function openThreadWith(otherId: string) {
@@ -284,22 +286,38 @@ export function RequestDetail() {
                   <MapPin className="h-3.5 w-3.5 shrink-0 text-[#94A3B8]" aria-hidden />
                   {locationLabel}
                 </span>
-                <span aria-hidden className="text-[#CBD5E1]">
-                  ·
-                </span>
-                <span>Within {radiusMiles} mi</span>
               </div>
 
-              {request.image ? (
-                <div className="relative mt-1 aspect-[16/10] max-h-[380px] w-full overflow-hidden rounded-lg bg-[#F4F8FD]">
-                  <Image
-                    src={request.image}
-                    alt=""
-                    fill
-                    sizes="(min-width:1024px) 640px, 100vw"
-                    className="object-cover"
-                    priority
-                  />
+              {listingImages.length > 0 ? (
+                <div className="mt-1 space-y-2" data-testid="request-detail-photos">
+                  <div className="relative aspect-[16/10] max-h-[380px] w-full overflow-hidden rounded-lg bg-[#F4F8FD]">
+                    <Image
+                      src={coverImage ?? listingImages[0]}
+                      alt=""
+                      fill
+                      sizes="(min-width:1024px) 640px, 100vw"
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
+                  {listingImages.length > 1 ? (
+                    <ul className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+                      {listingImages.map((src, i) => (
+                        <li
+                          key={`${src}-${i}`}
+                          className="relative aspect-square overflow-hidden rounded-md bg-[#F4F8FD]"
+                        >
+                          <Image
+                            src={src}
+                            alt=""
+                            fill
+                            sizes="96px"
+                            className="object-cover"
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
               ) : null}
 
@@ -701,11 +719,8 @@ export function RequestDetail() {
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[13px] font-semibold text-[#64748B]">Service area</dt>
-                  <dd className="mt-1.5 font-semibold text-[#071330]">
-                    {locationLabel}
-                    <span className="font-normal text-[#64748B]"> · Within {radiusMiles} mi</span>
-                  </dd>
+                  <dt className="text-[13px] font-semibold text-[#64748B]">Location</dt>
+                  <dd className="mt-1.5 font-semibold text-[#071330]">{locationLabel}</dd>
                 </div>
                 {canSeeExactAddress && request.exactAddress ? (
                   <div>

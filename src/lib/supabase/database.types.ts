@@ -26,6 +26,7 @@ export type Database = {
           helper_id: string | null
           id: string
           image: string
+          images: string[]
           lat: number | null
           lng: number | null
           location_label: string
@@ -33,6 +34,7 @@ export type Database = {
           preferred_helper_id: string | null
           radius_miles: number
           requester_id: string
+          scheduled_end: string | null
           scheduled_for: string | null
           status: string
           title: string
@@ -51,6 +53,7 @@ export type Database = {
           helper_id?: string | null
           id?: string
           image?: string
+          images?: string[]
           lat?: number | null
           lng?: number | null
           location_label?: string
@@ -58,6 +61,7 @@ export type Database = {
           preferred_helper_id?: string | null
           radius_miles?: number
           requester_id: string
+          scheduled_end?: string | null
           scheduled_for?: string | null
           status?: string
           title: string
@@ -76,6 +80,7 @@ export type Database = {
           helper_id?: string | null
           id?: string
           image?: string
+          images?: string[]
           lat?: number | null
           lng?: number | null
           location_label?: string
@@ -83,6 +88,7 @@ export type Database = {
           preferred_helper_id?: string | null
           radius_miles?: number
           requester_id?: string
+          scheduled_end?: string | null
           scheduled_for?: string | null
           status?: string
           title?: string

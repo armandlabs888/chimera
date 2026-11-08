@@ -186,7 +186,7 @@ try {
           if (m.topnav) {
             record(true, `${label}: app-topnav present`)
             record(m.accountTrigger, `${label}: account menu trigger`)
-            record(m.notifBell, `${label}: notifications bell`)
+            record(!m.notifBell, `${label}: no notifications bell (Messages carries unread)`)
             record(m.locationPill, `${label}: location pill`)
             record(!m.commandSearch, `${label}: no command-bar search clutter`)
             record(!m.landingNav, `${label}: no double landing nav`)
