@@ -924,7 +924,7 @@ export function Browse() {
 
   const liveCount = tab === 'requests' ? openRequests.length : people.length
   const feedSubtitle = hidePeerDiscovery
-    ? 'Helper view · open jobs only · no Local helpers or Trending helpers'
+    ? 'Helper view · open jobs only'
     : tab === 'requests'
       ? liveCount === 0
         ? '0 open requests near your selected location'
