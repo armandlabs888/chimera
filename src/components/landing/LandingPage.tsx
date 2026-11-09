@@ -6,7 +6,7 @@ import { LandingWhyBeam } from './LandingWhyBeam'
 import { LandingClosingCta } from './LandingClosingCta'
 import { LandingFooter } from './LandingFooter'
 
-/** Paper-approved service-first landing — independent section composition. */
+/** Landing v2 — floating glass nav, atmospheric hero, stacked Browse preview. */
 export function LandingPage() {
   return (
     <div className="landing-root relative min-h-dvh bg-white text-[#071330]">

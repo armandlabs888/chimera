@@ -88,7 +88,12 @@ async function checkLandingMarkup() {
   assert.match(text, /href="\/browse\?category=junk-removal"/, 'junk-removal category browse link')
   assert.match(text, /href="\/browse\?category=pets"/, 'pets category browse link')
   assert.match(text, /href="\/browse\?category=other"/, 'other category browse link')
-  assert.match(text, /Illustrative example/, 'how-it-works sample marked illustrative')
+  assert.match(
+    text,
+    /sample jobs \(illustrative\)|Illustrative samples for design review|· sample/i,
+    'browse preview samples labeled illustrative',
+  )
+  assert.match(text, /data-testid="landing-browse-preview"/, 'landing browse preview present')
   assert.doesNotMatch(text, /Elena R\.\s*·\s*Verified neighbor/, 'no fabricated verified testimonial')
   assert.doesNotMatch(text, /why-beam-live-offers|Trusted across local neighborhoods|hero-fan-stack/, 'no legacy hero/live-proof markup')
   assert.match(text, /href="\/auth\?mode=signin"/, 'landing Log in')
@@ -115,7 +120,7 @@ async function checkLandingMarkup() {
     /data-testid="landing-nav"[\s\S]*?>[\s\S]*?Post a task[\s\S]*?<\/header>/i,
     'landing nav has no Post a task button',
   )
-  assert.doesNotMatch(text, /window-chrome|traffic-lights/, 'no macOS window chrome')
+  // Landing v2 Browse preview uses decorative browser chrome; still forbid live-map chrome.
   assert.doesNotMatch(text, /data-testid="austin-map"/, 'no cartoon map')
   assert.doesNotMatch(text, /landing-section-full/, 'no sparse full-viewport section class')
   assert.doesNotMatch(text, /hero-stage|HeroProofStage|hero-beam-art|beam-stack|scrim-hero/i, 'no experimental markup')
@@ -523,7 +528,11 @@ async function checkLandingBrowser() {
           return raw
         }
       }
-      const imgs = [...document.querySelectorAll('img')]
+      // Marketing images only — exclude decorative Browse preview samples
+      // (intentionally compact / may reuse category look in the mock).
+      const imgs = [...document.querySelectorAll('img')].filter(
+        (img) => !img.closest('[data-testid="landing-browse-preview"]'),
+      )
       const paths = imgs.map((img) => normalizeSrc(img.getAttribute('src') || img.currentSrc || ''))
       const uniquePaths = new Set(paths)
       return {
@@ -539,11 +548,13 @@ async function checkLandingBrowser() {
           naturalWidth: img.naturalWidth,
         })),
         unsplash: paths.filter((p) => /images\.unsplash\.com/i.test(p) || /unsplash/i.test(p)),
+        previewPresent: !!document.querySelector('[data-testid="landing-browse-preview"]'),
       }
     })
+    assert.equal(landingImages.previewPresent, true, 'browse preview present for sample imagery')
     assert.ok(
       landingImages.count >= 8,
-      `landing should render >=8 <img> elements, got ${landingImages.count}`,
+      `landing should render >=8 marketing <img> elements, got ${landingImages.count}`,
     )
     assert.equal(landingImages.allComplete, true, 'every landing <img> must be complete')
     assert.ok(
