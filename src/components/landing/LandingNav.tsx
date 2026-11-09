@@ -27,12 +27,11 @@ export function LandingNav({
     () => [
       { href: '/browse', label: 'Services' },
       { href: '/#how-it-works', label: 'How it works' },
-      { href: '/#neighborhoods', label: 'Neighborhoods' },
       {
         href: canOnboardHelper
           ? '/onboarding/helper'
           : '/auth?mode=signup&next=%2Fonboarding%2Fhelper',
-        label: 'Become a helper',
+        label: 'Find work',
       },
     ],
     [canOnboardHelper],
@@ -65,8 +64,8 @@ export function LandingNav({
     : 'hidden text-[15px] font-medium text-white transition hover:text-white/85 sm:inline'
 
   const ctaClass = light
-    ? 'hidden h-9 items-center justify-center rounded-lg bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD] sm:inline-flex'
-    : 'hidden h-9 items-center justify-center rounded-lg bg-white px-4 text-[13.5px] font-semibold text-[#1D5CE5] transition hover:bg-blue-50 sm:inline-flex'
+    ? 'hidden h-9 min-h-11 items-center justify-center rounded-[10px] bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD] sm:inline-flex sm:min-h-9'
+    : 'hidden h-9 min-h-11 items-center justify-center rounded-[10px] bg-white px-4 text-[13.5px] font-semibold text-[#1D5CE5] transition hover:bg-blue-50 sm:inline-flex sm:min-h-9'
 
   const primaryHref = onboardingDone ? '/browse' : '/onboarding'
   const primaryLabel = onboardingDone ? 'Browse' : 'Continue setup'

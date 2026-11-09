@@ -21,7 +21,7 @@ const dmSans = DM_Sans({
 
 const title = 'Beam — Local help, made easy'
 const description =
-  'Post what you need done today and get priced offers with arrival times from vetted neighbors nearby. Peer-to-peer same-day help in your neighborhood.'
+  'Describe the job, compare priced offers, and choose local help that fits — home, auto, junk removal, pets, and other everyday tasks.'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.yariapp.com'),

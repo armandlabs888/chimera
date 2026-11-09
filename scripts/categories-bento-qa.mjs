@@ -118,9 +118,9 @@ function analyzeGeometry(data) {
     issues.push(data.error)
     return { ok: false, issues, rows: [] }
   }
-  // Default All filter: House Cleaning + quote + Pets + Custom = 4
-  if (data.childCount !== 4) {
-    issues.push(`Expected 4 bento items (All filter), found ${data.childCount}`)
+  // Paper All filter: House Cleaning + Pets + Custom = 3 (quote tile retired)
+  if (data.childCount !== 3) {
+    issues.push(`Expected 3 bento items (All filter), found ${data.childCount}`)
   }
 
   const { grid, kids, quoteOverflow } = data
@@ -323,8 +323,8 @@ try {
     }
 
     for (const [tab, expect] of [
-      ['all', { hasCleaning: true, hasPets: true, hasCustom: true, hasQuote: true, count: 4 }],
-      ['home', { hasCleaning: true, hasPets: false, hasCustom: false, hasQuote: true, count: 2 }],
+      ['all', { hasCleaning: true, hasPets: true, hasCustom: true, hasQuote: false, count: 3 }],
+      ['home', { hasCleaning: true, hasPets: false, hasCustom: false, hasQuote: false, count: 1 }],
       ['pets', { hasCleaning: false, hasPets: true, hasCustom: false, hasQuote: false, count: 1 }],
       ['other', { hasCleaning: false, hasPets: false, hasCustom: true, hasQuote: false, count: 1 }],
     ]) {
@@ -338,7 +338,6 @@ try {
         state.hasPets === expect.hasPets &&
         state.hasCustom === expect.hasCustom &&
         state.hasQuote === expect.hasQuote &&
-        state.illustrative === (expect.hasQuote === true ? true : state.illustrative) &&
         state.verifiedLie === false
       filterChecks.push({ tab, ok, state, expect })
       if (!ok) failed = true
@@ -399,7 +398,7 @@ try {
     const enterOk =
       homeFocused &&
       afterEnter.hasCleaning &&
-      afterEnter.hasQuote &&
+      !afterEnter.hasQuote &&
       !afterEnter.hasPets &&
       !afterEnter.hasCustom &&
       (await homeBtn.getAttribute('aria-pressed')) === 'true' &&
@@ -449,11 +448,25 @@ try {
     })
     const cropOk =
       !crop.error &&
-      crop.height >= 400 &&
-      crop.aspect <= 2.4 &&
-      String(crop.objectPosition).includes('18%')
+      crop.height >= 280 &&
+      crop.aspect <= 2.6 &&
+      /35%|30%|center|50%/.test(String(crop.objectPosition))
+    const srcOk = await page.evaluate(() => {
+      const img = document.querySelector('[data-testid="categories-tile-cleaning"] img')
+      const src = img?.currentSrc || img?.getAttribute('src') || ''
+      return /avail-house-cleaning/.test(src)
+    })
+    if (!srcOk) failed = true
+    console.log('\n=== cleaning asset (Paper orange-crew) ===', srcOk ? 'PASS' : 'FAIL')
     if (!cropOk) failed = true
     console.log('\n=== cleaning crop metrics ===', cropOk ? 'PASS' : 'FAIL', JSON.stringify(crop))
+
+    report.push({
+      viewport: 'cleaning-asset',
+      ok: srcOk && cropOk,
+      srcOk,
+      crop,
+    })
 
     report.push({
       viewport: 'filter-tabs',

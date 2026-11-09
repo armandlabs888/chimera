@@ -1,11 +1,12 @@
 import { LandingHero } from './LandingHero'
 import { LandingCategories } from './LandingCategories'
 import { LandingHowItWorks } from './LandingHowItWorks'
+import { LandingAvailableServices } from './LandingAvailableServices'
 import { LandingWhyBeam } from './LandingWhyBeam'
-import { LandingHelpers } from './LandingHelpers'
+import { LandingClosingCta } from './LandingClosingCta'
 import { LandingFooter } from './LandingFooter'
 
-/** Daylight Home Services marketplace landing — Dribbble shot 27708245. */
+/** Paper-approved service-first landing — independent section composition. */
 export function LandingPage() {
   return (
     <div className="landing-root relative min-h-dvh bg-white text-[#071330]">
@@ -13,8 +14,9 @@ export function LandingPage() {
         <LandingHero />
         <LandingCategories />
         <LandingHowItWorks />
+        <LandingAvailableServices />
         <LandingWhyBeam />
-        <LandingHelpers />
+        <LandingClosingCta />
       </main>
       <LandingFooter />
     </div>

@@ -8,7 +8,7 @@ import { BROWSE_PARENTS } from '@/lib/taxonomy'
 import { hidesPeerHelperDiscovery } from '@/lib/roles'
 
 const linkClass =
-  'rounded-sm text-[14px] font-medium leading-snug text-[#CBD5E1] transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1e293b]'
+  'rounded-sm text-[14px] font-medium leading-snug text-[#CBD5E1] transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330]'
 
 function FooterGroup({
   id,
@@ -42,8 +42,8 @@ function FooterGroup({
 }
 
 /**
- * Shared grouped site footer used on marketing + AppShell/auth.
- * Content-led footprint (~280–340px desktop) — not a fixed-height mega-footer.
+ * Shared grouped site footer — Paper navy (#071330), compact spacing.
+ * Functional groups preserved for marketing + AppShell/auth.
  */
 export function LandingFooter({
   dockPadding = false,
@@ -65,7 +65,7 @@ export function LandingFooter({
         : []),
       { href: '/#categories', label: 'Popular services' },
       { href: '/#how-it-works', label: 'How it works' },
-      { href: '/#neighborhoods', label: 'Neighborhoods' },
+      { href: '/#neighborhoods', label: 'Available services' },
     ]
 
     const start = signedIn
@@ -76,7 +76,7 @@ export function LandingFooter({
             label:
               currentUser.accountRole === 'helper' || currentUser.isHelper
                 ? 'Helper profile'
-                : 'Become a helper',
+                : 'Find work',
           },
           { href: '/you', label: 'Profile & account' },
           { href: '/home', label: 'My activity' },
@@ -87,7 +87,7 @@ export function LandingFooter({
             href: canOnboardHelper
               ? '/onboarding/helper'
               : '/auth?mode=signup&next=%2Fonboarding%2Fhelper',
-            label: 'Become a helper',
+            label: 'Find work',
           },
           { href: '/auth?mode=signup', label: 'Create account' },
           { href: '/auth?mode=signin', label: 'Sign in' },
@@ -120,7 +120,7 @@ export function LandingFooter({
 
   return (
     <footer
-      className={`shrink-0 border-t border-white/10 bg-[#1e293b] ${
+      className={`shrink-0 border-t border-white/10 bg-[#071330] ${
         dockPadding ? 'pb-24 md:pb-0' : ''
       }`}
       data-testid="landing-footer"
@@ -132,7 +132,7 @@ export function LandingFooter({
           <div className="flex max-w-[32ch] flex-col lg:col-span-4">
             <Link
               href="/"
-              className="inline-flex w-fit rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1e293b]"
+              className="inline-flex w-fit rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330]"
               aria-label="Beam home"
             >
               <BeamWordmark
@@ -158,8 +158,8 @@ export function LandingFooter({
 
       <div className="border-t border-white/10" data-testid="footer-legal">
         <div className="beam-container flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-          <p className="shrink-0 text-[12.5px] leading-[1.35] text-[#E2E8F0]">© 2026 Beam</p>
-          <p className="max-w-[68ch] text-[12px] leading-[1.45] text-[#E2E8F0] sm:text-right">
+          <p className="shrink-0 text-[12.5px] leading-[1.35] text-[#94A3B8]">© Beam</p>
+          <p className="max-w-[68ch] text-[12px] leading-[1.45] text-[#94A3B8] sm:text-right">
             Payments are arranged directly between neighbors. Not for licensed trades, childcare,
             medical/senior care, or passenger driving.
           </p>
