@@ -40,3 +40,18 @@
 4. **“All categories”** wording retained for accessibility/regression locks.
 5. **Existing Beam logo** in topnav retained.
 6. **Fresh-marketplace empty** (`BrowseFreshEmpty` + While you wait) retained when marketplace is truly empty with no filters — Paper’s Auto-selected empty is the filtered path.
+
+## Test evidence (this PR)
+
+| Check | Result |
+|-------|--------|
+| `tsc --noEmit` | pass |
+| lint | pass (pre-existing warnings only) |
+| `npm run build` | pass |
+| `scripts/smoke.mjs` | pass |
+| `helper-browse-role-qa.mjs` | pass |
+| `browse-redesign-visual-qa.mjs` | pass |
+| `browse-3col-visual-qa.mjs` | pass |
+| `browse-marketplace-qa.mjs` | pass |
+| `casual-categories-qa.mjs` | pass |
+| Browser QA 1440/1024/768/390/320 | pass — artifacts in `/opt/cursor/artifacts/browse-paper-qa/` |
