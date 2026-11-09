@@ -60,9 +60,13 @@ try {
     }
     assertNoAustin(`guest h1 @ ${vp.name}`, h1)
 
-    const eyebrow = await page.locator('p').filter({ hasText: /Rated/ }).first().innerText()
+    const eyebrow = await page
+      .locator('p')
+      .filter({ hasText: /Local services/i })
+      .first()
+      .innerText()
     assertNoAustin(`guest eyebrow @ ${vp.name}`, eyebrow)
-    if (!/Trusted across local neighborhoods/i.test(eyebrow)) {
+    if (!/Local services/i.test(eyebrow) || !/everyday help/i.test(eyebrow)) {
       throw new Error(`Guest eyebrow missing location-neutral copy: "${eyebrow}"`)
     }
 
@@ -126,12 +130,11 @@ try {
     })
     console.log(`PASS guest-home @ ${vp.name} → ${heroArtifact}`)
 
-    // ——— Why Beam section ———
+    // ——— Why Beam section (factual pillars; no live offers / nested Available services) ———
     const why = page.getByTestId('why-beam-section')
     await why.scrollIntoViewIfNeeded()
     await page.waitForTimeout(200)
 
-    // No duplicate mini-form
     const formCount = await why.locator('form').count()
     if (formCount !== 0) {
       throw new Error(`Why Beam still has ${formCount} form(s) @ ${vp.name}`)
@@ -142,74 +145,32 @@ try {
     if ((await why.locator('select').count()) > 0) {
       throw new Error(`Why Beam still has native select @ ${vp.name}`)
     }
+    if ((await why.getByTestId('available-services').count()) > 0) {
+      throw new Error(`Available services still nested inside Why Beam @ ${vp.name}`)
+    }
+    if ((await page.getByTestId('why-beam-live-offers').count()) > 0) {
+      throw new Error(`Hardcoded live offers restored @ ${vp.name}`)
+    }
+    if ((await page.getByTestId('why-beam-showcase').count()) > 0) {
+      throw new Error(`Why Beam showcase collage still present @ ${vp.name}`)
+    }
 
-    const whyHeading = (await why.getByRole('heading', { level: 2, name: 'Why choose Beam' }).innerText())
+    const whyHeading = (
+      await why.getByRole('heading', { level: 2, name: /Know what you.?re choosing/i }).innerText()
+    )
       .replace(/\s+/g, ' ')
       .trim()
-    if (whyHeading !== 'Why choose Beam') {
+    if (!/Know what you.?re choosing/i.test(whyHeading)) {
       throw new Error(`Why Beam h2 mismatch: "${whyHeading}"`)
     }
-    if ((await why.getByRole('heading', { level: 2, name: 'Available services on Beam' }).count()) !== 1) {
-      throw new Error(`Available services heading missing inside Why Beam @ ${vp.name}`)
-    }
-    assertNoAustin(`why-beam subtitle @ ${vp.name}`, await why.getByTestId('why-beam-copy').innerText())
-
-    // Live offers card present
-    const offers = page.getByTestId('why-beam-live-offers')
-    await offers.waitFor({ state: 'visible' })
-    const offersText = await offers.innerText()
-    if (!/Help carry dresser/i.test(offersText) || !/\$65/.test(offersText) || !/\$75/.test(offersText)) {
-      throw new Error(`Live offers card missing expected content @ ${vp.name}: ${offersText.slice(0, 120)}`)
-    }
-
-    // Showcase image must load
-    const imgOk = await page.evaluate(() => {
-      const root = document.querySelector('[data-testid="why-beam-showcase"]')
-      if (!root) return { ok: false, reason: 'showcase missing' }
-      const imgs = Array.from(root.querySelectorAll('img'))
-      const broken = imgs.filter((img) => !img.complete || img.naturalWidth === 0)
-      const hero = imgs[0]
-      return {
-        ok: broken.length === 0 && !!hero && hero.naturalWidth >= 800,
-        count: imgs.length,
-        naturalWidth: hero?.naturalWidth ?? 0,
-        broken: broken.map((i) => i.src),
+    assertNoAustin(`why-beam body @ ${vp.name}`, await why.innerText())
+    for (const claim of [/same-day/i, /vetted/i, /verified badge/i, /\+\d{2,}/]) {
+      if (claim.test(await why.innerText())) {
+        throw new Error(`Why Beam still invents claim matching ${claim} @ ${vp.name}`)
       }
-    })
-    if (!imgOk.ok) {
-      throw new Error(`Why Beam showcase images failed @ ${vp.name}: ${JSON.stringify(imgOk)}`)
     }
 
-    // Layout geometry: two columns flush on desktop
-    if (vp.width >= 1024) {
-      const geo = await page.evaluate(() => {
-        const copy = document.querySelector('[data-testid="why-beam-copy"]')
-        const showcase = document.querySelector('[data-testid="why-beam-showcase"]')
-        const container = copy?.closest('.beam-container')
-        if (!copy || !showcase || !container) return { ok: false, reason: 'missing nodes' }
-        const c = copy.getBoundingClientRect()
-        const s = showcase.getBoundingClientRect()
-        const box = container.getBoundingClientRect()
-        const topDelta = Math.abs(c.top - s.top)
-        const bottomDelta = Math.abs(c.bottom - s.bottom)
-        const leftFlush = Math.abs(c.left - (box.left + 20)) < 48 || c.left >= box.left
-        const rightFlush = Math.abs(s.right - box.right) < 48 || s.right <= box.right + 2
-        return {
-          ok: topDelta < 8 && bottomDelta < 48 && leftFlush && rightFlush && c.width > 200 && s.width > 200,
-          topDelta,
-          bottomDelta,
-          copyH: Math.round(c.height),
-          showcaseH: Math.round(s.height),
-          gap: Math.round(s.left - c.right),
-        }
-      })
-      if (!geo.ok) {
-        throw new Error(`Why Beam columns not balanced @ ${vp.name}: ${JSON.stringify(geo)}`)
-      }
-      summary.checks.push({ name: `why-beam-geometry-${vp.name}`, ok: true, geo })
-    }
-
-    // Available services photo row: launch taxonomy + Other (image-led link cards)
+    // Available services is an independent sibling section (not nested in Why Beam)
     const servicesRoot = page.getByTestId('available-services')
     await servicesRoot.scrollIntoViewIfNeeded()
     if (!(await page.getByText(/Available services on Beam/i).count())) {
@@ -289,7 +250,6 @@ try {
       name: `why-beam-${vp.name}`,
       ok: true,
       serviceLabels,
-      imgNaturalWidth: imgOk.naturalWidth,
       artifacts: { why: whyArtifact, services: servicesArtifact },
     })
     console.log(`PASS why-beam @ ${vp.name} → ${whyArtifact}`)

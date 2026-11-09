@@ -288,11 +288,44 @@ try {
   report.push({ name: 'other-elsewhere-intact', ok: otherOk, otherElsewhere })
   console.log('other-elsewhere-intact', otherOk ? 'PASS' : 'FAIL')
 
-  const helpersLink = await page.locator('a[href="/browse?tab=people"]').count()
-  const roleOk = helpersLink >= 1
+  // Helper jobs-only gating: demo helper must not expose peer discovery; customer must.
+  const STORAGE_KEY = 'beam-demo-v1'
+  await page.evaluate((key) => {
+    const raw = localStorage.getItem(key)
+    if (!raw) return
+    const state = JSON.parse(raw)
+    const me = state.people?.find((p) => p.id === state.currentUserId) || state.people?.[0]
+    if (me) {
+      me.accountRole = 'helper'
+      me.isHelper = true
+      localStorage.setItem(key, JSON.stringify(state))
+    }
+  }, STORAGE_KEY)
+  await page.goto(`${BASE}/`, { waitUntil: 'networkidle' })
+  const helperGated = (await page.locator('a[href="/browse?tab=people"]').count()) === 0
+  await page.evaluate((key) => {
+    const raw = localStorage.getItem(key)
+    if (!raw) return
+    const state = JSON.parse(raw)
+    const me = state.people?.find((p) => p.id === state.currentUserId) || state.people?.[0]
+    if (me) {
+      me.accountRole = 'customer'
+      me.isHelper = false
+      me.skills = []
+      localStorage.setItem(key, JSON.stringify(state))
+    }
+  }, STORAGE_KEY)
+  await page.goto(`${BASE}/`, { waitUntil: 'networkidle' })
+  const customerSees = (await page.locator('a[href="/browse?tab=people"]').count()) >= 1
+  const roleOk = helperGated && customerSees
   if (!roleOk) failed = true
-  report.push({ name: 'guest-discovery-intact', ok: roleOk, helpersLink })
-  console.log('guest-discovery-intact', roleOk ? 'PASS' : 'FAIL')
+  report.push({
+    name: 'guest-discovery-intact',
+    ok: roleOk,
+    helperGated,
+    customerSees,
+  })
+  console.log('guest-discovery-intact', roleOk ? 'PASS' : 'FAIL', { helperGated, customerSees })
 
   await page.close()
 } finally {

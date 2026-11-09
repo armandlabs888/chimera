@@ -76,29 +76,35 @@ async function checkLandingMarkup() {
   const { res, text } = await fetchText('/')
   assert.equal(res.status, 200, 'landing status')
   assert.match(text, /Local help, made easy\./, 'landing headline')
-  assert.match(text, /Trusted across local neighborhoods/, 'hero social proof')
+  assert.match(text, /Local services/, 'hero overline')
   assert.match(text, /Post a task|Post a request/, 'landing primary CTA')
   assert.match(text, /Browse nearby help|View all requests|Services|Popular services/, 'landing browse CTA')
   assert.match(text, /What help do you need\?/, 'hero search placeholder')
+  assert.match(text, /Find help/, 'hero find help CTA')
+  assert.match(text, /All categories/, 'guest category picker')
   assert.match(text, /href="\/post"/, 'post route wired')
   assert.match(text, /href="\/browse"/, 'browse route wired')
   assert.match(text, /href="\/browse\?category=home"/, 'home category browse link')
   assert.match(text, /href="\/browse\?category=junk-removal"/, 'junk-removal category browse link')
   assert.match(text, /href="\/browse\?category=pets"/, 'pets category browse link')
   assert.match(text, /href="\/browse\?category=other"/, 'other category browse link')
-  assert.match(text, /Illustrative example/, 'categories quote marked illustrative')
+  assert.match(text, /Illustrative example/, 'how-it-works sample marked illustrative')
   assert.doesNotMatch(text, /Elena R\.\s*·\s*Verified neighbor/, 'no fabricated verified testimonial')
+  assert.doesNotMatch(text, /why-beam-live-offers|Trusted across local neighborhoods|hero-fan-stack/, 'no legacy hero/live-proof markup')
   assert.match(text, /href="\/auth\?mode=signin"/, 'landing Log in')
   assert.match(text, /href="\/auth\?mode=signup/, 'landing Sign up')
   assert.match(text, /How it works/, 'nav How it works')
+  assert.match(text, /Find work/, 'nav Find work')
   assert.match(text, /Safety/, 'Safety link present')
-  assert.match(text, /beam-hero-moving-v2/, 'hero v2 image referenced')
   assert.match(text, /id="how-it-works"/, 'how-it-works section')
-  assert.match(text, /Book in minutes, not days/, 'how-it-works heading')
+  assert.match(text, /From to-do to done/, 'how-it-works heading')
   assert.match(text, /Post your task/, 'how-it-works step 1')
-  assert.match(text, /Compare fast offers/, 'how-it-works step 2')
+  assert.match(text, /Compare offers/, 'how-it-works step 2')
   assert.match(text, /Chat, finish/, 'how-it-works step 3')
-
+  assert.match(text, /Know what you.?re choosing/, 'why-beam heading')
+  assert.match(text, /One less thing on your list/, 'closing CTA')
+  assert.match(text, /Available services on Beam/, 'available services heading')
+  assert.match(text, /data-testid="available-services"/, 'available services section')
   assert.match(text, /id="neighborhoods"/, 'neighborhoods section')
   assert.match(text, /id="categories"/, 'categories section')
   assert.match(text, /data-testid="landing-nav"/, 'daylight landing nav')
@@ -118,8 +124,9 @@ async function checkLandingMarkup() {
     /Y Combinator|backed by|guaranteed same-day|try free for 14 days|payius|Sequoia|\+2,300 more|ID-checked helpers/i,
     'no invented claims',
   )
-  const imgRes = await fetch(`${BASE_URL}/images/beam-hero-moving-v2.jpg`)
-  assert.equal(imgRes.status, 200, 'hero v2 asset HTTP 200')
+  // Hero is image-free; below-fold service photos still ship as local assets.
+  const cleaningRes = await fetch(`${BASE_URL}/images/landing/avail-house-cleaning.jpg`)
+  assert.equal(cleaningRes.status, 200, 'available-services house cleaning asset HTTP 200')
   console.log('ok landing markup')
 }
 
@@ -495,7 +502,8 @@ async function checkLandingBrowser() {
     await page.waitForFunction(
       () => {
         const imgs = [...document.querySelectorAll('img')]
-        return imgs.length >= 12 && imgs.every((img) => img.complete)
+        // Paper landing: image-free hero + bento photos + six available-service cards.
+        return imgs.length >= 8 && imgs.every((img) => img.complete)
       },
       null,
       { timeout: 20000 },
@@ -524,7 +532,7 @@ async function checkLandingBrowser() {
         uniqueCount: uniquePaths.size,
         allComplete: imgs.every((img) => img.complete),
         minNaturalWidth: Math.min(...imgs.map((img) => img.naturalWidth || 0)),
-        broken: imgs.filter((img) => !img.complete || img.naturalWidth < 400).map((img, i) => ({
+        broken: imgs.filter((img) => !img.complete || img.naturalWidth < 250).map((img, i) => ({
           i,
           src: paths[i],
           complete: img.complete,
@@ -534,13 +542,18 @@ async function checkLandingBrowser() {
       }
     })
     assert.ok(
-      landingImages.count >= 12,
-      `landing should render >=12 <img> elements, got ${landingImages.count}`,
+      landingImages.count >= 8,
+      `landing should render >=8 <img> elements, got ${landingImages.count}`,
     )
     assert.equal(landingImages.allComplete, true, 'every landing <img> must be complete')
     assert.ok(
-      landingImages.minNaturalWidth >= 400,
-      `every landing <img> naturalWidth >= 400 (min=${landingImages.minNaturalWidth}); broken=${JSON.stringify(landingImages.broken)}`,
+      landingImages.minNaturalWidth >= 250,
+      `every landing <img> naturalWidth >= 250 (min=${landingImages.minNaturalWidth}); broken=${JSON.stringify(landingImages.broken)}`,
+    )
+    assert.equal(
+      landingImages.broken.filter((b) => b.naturalWidth < 250).length,
+      0,
+      `no broken/tiny landing images: ${JSON.stringify(landingImages.broken)}`,
     )
     assert.equal(
       landingImages.uniqueCount,
@@ -552,20 +565,27 @@ async function checkLandingBrowser() {
       `ok landing unique local images (${landingImages.uniqueCount}/${landingImages.count}, no unsplash)`,
     )
 
-    const fanText = await page.getByTestId('hero-fan-stack').innerText()
-    assert.doesNotMatch(fanText, /\bMoving\b/)
-    assert.doesNotMatch(fanText, /\bAssembly\b/)
-    assert.doesNotMatch(fanText, /\bEvents\b/)
-    assert.match(fanText, /House Cleaning|Junk Removal|Pet Sitting|Other/)
+    // Image-free hero: no fan stack / portrait collage.
+    assert.equal(await page.getByTestId('hero-fan-stack').count(), 0, 'no hero fan stack')
+    assert.equal(
+      await page.locator('[data-testid="landing-hero"] img').count(),
+      0,
+      'hero must contain no images',
+    )
 
     const headline = await page.locator('h1').innerText()
     assert.match(headline, /Local help, made easy/i)
-    assert.ok(await page.getByText(/Trusted across local neighborhoods/i).count() >= 1)
+    assert.ok(await page.getByText(/Local services/i).count() >= 1)
     assert.equal(await page.getByPlaceholder('What help do you need?').count(), 1)
+    assert.ok(await page.getByRole('button', { name: /Find help/i }).count() >= 1)
     assert.ok(await page.getByRole('link', { name: /Post a task/i }).count() >= 1)
     assert.ok(await page.getByTestId('hero-category-trigger').count() >= 1)
     assert.equal(await page.getByTestId('hero-neighborhood-trigger').count(), 0)
     assert.ok(await page.getByRole('link', { name: 'Log in' }).count() >= 1)
+    assert.ok(await page.getByTestId('available-services').count() >= 1)
+    assert.ok(await page.getByTestId('why-beam-section').count() >= 1)
+    assert.ok(await page.getByTestId('landing-closing-cta').count() >= 1)
+    assert.equal(await page.getByTestId('why-beam-live-offers').count(), 0)
 
     // Uber-style landing nav: Log in text + Sign up pill; no Post a task in the nav.
     const nav = page.getByTestId('landing-nav')
@@ -642,8 +662,8 @@ async function checkLandingBrowser() {
     )
     assert.match(
       geo.h1Font,
-      /UberMove|DM Sans|__DM_Sans|system-ui/i,
-      `h1 geometric display stack: ${geo.h1Font}`,
+      /Inter|UberMoveText|__Inter|system-ui/i,
+      `h1 Inter/body stack: ${geo.h1Font}`,
     )
     assert.ok(geo.h1Px >= 40 && geo.h1Px <= 110, `hero size ${geo.h1Px}`)
     assert.equal(geo.overflowX, false, 'no horizontal overflow desktop')
@@ -1970,7 +1990,7 @@ async function checkSubtleRadii() {
             px: radiusPx(el),
             text: (el.textContent || '').trim().slice(0, 40),
           }))
-          .filter((c) => c.px > 10)
+          .filter((c) => c.px > 12)
 
         const controls = [
           ...document.querySelectorAll('button, a.inline-flex, a[class*="rounded"]'),
@@ -1987,7 +2007,7 @@ async function checkSubtleRadii() {
             text: (el.textContent || '').trim().slice(0, 36),
             px: radiusPx(el),
           }))
-          .filter((c) => c.px > 10)
+          .filter((c) => c.px > 12)
 
         // Explicit people-tab empty state + Become a helper CTA
         let peopleEmpty = null
@@ -2029,12 +2049,12 @@ async function checkSubtleRadii() {
       assert.deepEqual(
         probe.cardOffenders,
         [],
-        `${pathName} card/panel radius >10px: ${JSON.stringify(probe.cardOffenders)}`,
+        `${pathName} card/panel radius >12px: ${JSON.stringify(probe.cardOffenders)}`,
       )
       assert.deepEqual(
         probe.controlOffenders,
         [],
-        `${pathName} button/CTA radius >10px: ${JSON.stringify(probe.controlOffenders)}`,
+        `${pathName} button/CTA radius >12px: ${JSON.stringify(probe.controlOffenders)}`,
       )
       if (pathName === '/browse?tab=people') {
         assert.ok(probe.peopleEmpty, 'people tab EmptyState found')

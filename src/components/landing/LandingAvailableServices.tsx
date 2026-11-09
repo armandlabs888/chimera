@@ -13,7 +13,7 @@ type ServiceCard = {
 }
 
 /**
- * Available services on Beam — fixed image-led card grid (desktop 3×2).
+ * Available services on Beam — fixed image-led card grid (desktop 3×2 / tablet 2 / mobile 1).
  * Whole card = Browse leaf link. Other stays elsewhere (bento/footer/forms).
  */
 const SERVICES: ServiceCard[] = [
@@ -69,24 +69,31 @@ const SERVICES: ServiceCard[] = [
 
 export function LandingAvailableServices() {
   return (
-    <div
+    <section
       id="neighborhoods"
-      className="mt-16 border-y border-[#C7D7F0] bg-[#EEF4FF] py-12 sm:mt-20 sm:py-14"
+      className="bg-white py-16 sm:py-20"
       data-testid="available-services"
     >
       <div className="beam-container">
-        <div className="mx-auto max-w-2xl text-center lg:mx-0 lg:max-w-3xl lg:text-left">
-          <p className="inline-flex rounded-md bg-[#1D5CE5] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white">
-            On Beam
+        <div className="max-w-3xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1D5CE5]">
+            03 / Explore all six
           </p>
           <h2
             id="available-services-heading"
-            className="mt-3 font-display text-[clamp(1.65rem,3vw,2.35rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330] text-balance"
+            className="mt-3 font-sans text-[clamp(1.75rem,3.2vw,2.5rem)] font-bold leading-[1.12] tracking-[-0.02em] text-[#071330] text-balance"
           >
             Available services on Beam
           </h2>
-          <p className="mx-auto mt-2 max-w-[46ch] text-[15px] leading-[1.55] text-[#334155] lg:mx-0">
-            Everyday help types Beam supports — open a card to browse tasks in that category.
+          <p className="mt-2 max-w-[52ch] text-[15px] leading-[1.55] text-[#475569]">
+            Choose a service to explore. Have something else in mind?{' '}
+            <Link
+              href="/browse?category=other"
+              className="font-semibold text-[#1D5CE5] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
+            >
+              Post a custom task
+            </Link>
+            .
           </p>
         </div>
 
@@ -94,7 +101,7 @@ export function LandingAvailableServices() {
           role="list"
           aria-labelledby="available-services-heading"
           data-testid="available-services-grid"
-          className="mt-7 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 lg:gap-5"
+          className="mt-8 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 lg:gap-5"
         >
           {SERVICES.map((service) => (
             <Link
@@ -104,7 +111,7 @@ export function LandingAvailableServices() {
               data-service-card
               data-testid={`available-service-${service.id}`}
               aria-label={`${service.label} — browse tasks`}
-              className="group relative flex w-full flex-col overflow-hidden rounded-[10px] border border-[#64748B] bg-white transition motion-safe:hover:-translate-y-0.5 motion-safe:hover:border-[#1D5CE5] motion-safe:hover:shadow-[0_16px_36px_-20px_rgba(29,92,229,0.55)] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/55 focus-visible:ring-offset-2 focus-visible:ring-offset-[#EEF4FF]"
+              className="group relative flex w-full flex-col overflow-hidden rounded-[10px] border border-[#64748B] bg-white transition motion-safe:hover:-translate-y-0.5 motion-safe:hover:border-[#1D5CE5] motion-safe:hover:shadow-[0_16px_36px_-20px_rgba(29,92,229,0.45)] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/55 focus-visible:ring-offset-2"
             >
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#DBEAFE]">
                 <Image
@@ -112,6 +119,7 @@ export function LandingAvailableServices() {
                   alt={service.alt}
                   fill
                   sizes="(min-width:1024px) 33vw, (min-width:420px) 50vw, 90vw"
+                  loading="lazy"
                   className={`object-cover ${service.objectPosition} transition duration-300 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none`}
                 />
               </div>
@@ -130,6 +138,6 @@ export function LandingAvailableServices() {
           ))}
         </div>
       </div>
-    </div>
+    </section>
   )
 }

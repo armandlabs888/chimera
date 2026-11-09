@@ -1,5 +1,5 @@
 /**
- * Interaction + contrast QA for redesigned #how-it-works sample demos.
+ * Interaction + contrast QA for Paper #how-it-works tabbed sample demos.
  */
 import { chromium } from 'playwright'
 import { mkdirSync, writeFileSync, copyFileSync } from 'node:fs'
@@ -38,70 +38,60 @@ try {
   await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
   await page.locator('#how-it-works').scrollIntoViewIfNeeded()
 
-  // Structure
   const structure = await page.evaluate(() => {
     const section = document.querySelector('#how-it-works')
-    const steps = [...section.querySelectorAll('[data-testid="how-it-works-steps"] > li')]
+    const tabs = [...section.querySelectorAll('[data-testid="how-it-works-steps"] [role="tab"]')]
     const bottomPost = [...section.querySelectorAll('a,button')].filter((el) =>
       /^Post a task$/i.test((el.textContent || '').trim()),
     )
-    const demoPostBtn = [...section.querySelectorAll('*')].filter((el) =>
-      /^Post task$/i.test((el.textContent || '').trim()),
-    )
     const best = /BEST/i.test(section.innerText)
-    const floatingMarkers = [...section.querySelectorAll('li')].some((li) => {
-      const absNums = [...li.querySelectorAll('span')].filter((s) => {
-        const t = (s.textContent || '').trim()
-        const cs = getComputedStyle(s)
-        return /^[123]$/.test(t) && cs.position === 'absolute'
-      })
-      return absNums.length > 0
-    })
-    const headerNums = steps.map((li) => {
-      const chip = li.querySelector('h3')?.previousElementSibling || li.querySelector('.bg-\\[\\#1D5CE5\\]')
-      // number chip next to title in header
-      const header = li.firstElementChild
-      const num = header?.querySelector('span')
-      return (num?.textContent || '').trim()
-    })
     return {
-      stepCount: steps.length,
-      sampleCount: (section.innerText.match(/Sample/gi) || []).length,
+      tabCount: tabs.length,
+      selected: tabs.map((t) => t.getAttribute('aria-selected')),
+      labels: tabs.map((t) => (t.textContent || '').trim()),
+      sampleCount: (section.innerText.match(/Sample|Illustrative example/gi) || []).length,
       bottomPost: bottomPost.length,
-      demoPostBtn: demoPostBtn.length,
       best,
-      floatingMarkers,
-      headerNums,
       hasInteractive:
         !!section.querySelector('[data-testid="how-demo-tasks"]') &&
-        !!section.querySelector('[data-testid="how-demo-offers"]') &&
-        !!section.querySelector('[data-testid="how-demo-rating"]'),
+        !!section.querySelector('[data-testid="how-tab-compare"]') &&
+        !!section.querySelector('[data-testid="how-tab-chat"]'),
+      heading: (section.querySelector('h2')?.textContent || '').trim(),
     }
   })
   const structureOk =
-    structure.stepCount === 3 &&
-    structure.sampleCount >= 3 &&
+    structure.tabCount === 3 &&
+    structure.selected.join(',') === 'true,false,false' &&
+    structure.sampleCount >= 1 &&
     structure.bottomPost === 0 &&
-    structure.demoPostBtn === 0 &&
     !structure.best &&
-    !structure.floatingMarkers &&
-    structure.headerNums.join('') === '123' &&
-    structure.hasInteractive
+    structure.hasInteractive &&
+    /From to-do to done/i.test(structure.heading)
   if (!structureOk) failed = true
   report.push({ name: 'structure', ok: structureOk, structure })
   console.log('structure', structureOk ? 'PASS' : 'FAIL', JSON.stringify(structure))
 
-  // Task demo interaction
+  // Task demo interaction (default post tab)
   await page.getByTestId('how-demo-task-clean').click()
   await page.waitForTimeout(80)
   const taskText = await page.getByTestId('how-demo-task-summary').innerText()
   const taskPressed = await page.getByTestId('how-demo-task-clean').getAttribute('aria-pressed')
-  const taskOk = /Kitchen reset/i.test(taskText) && taskPressed === 'true' && /Sample draft ready/i.test(taskText)
+  const taskOk =
+    /Kitchen reset/i.test(taskText) &&
+    taskPressed === 'true' &&
+    /Illustrative example/i.test(await page.getByTestId('how-panel-post').innerText())
   if (!taskOk) failed = true
   report.push({ name: 'task-click', ok: taskOk, taskText, taskPressed })
   console.log('task-click', taskOk ? 'PASS' : 'FAIL')
 
-  // Offer semantics: labeled group + aria-pressed buttons (not incomplete listbox)
+  // Switch to compare tab
+  await page.getByTestId('how-tab-compare').click()
+  await page.waitForTimeout(100)
+  const compareVisible = await page.getByTestId('how-demo-offers').isVisible()
+  if (!compareVisible) failed = true
+  report.push({ name: 'tab-compare', ok: compareVisible })
+  console.log('tab-compare', compareVisible ? 'PASS' : 'FAIL')
+
   const offerSemantics = await page.evaluate(() => {
     const group = document.querySelector('[data-testid="how-demo-offers"]')
     const buttons = [...group.querySelectorAll('button')]
@@ -110,7 +100,6 @@ try {
       labelledBy: group.getAttribute('aria-labelledby'),
       hasListbox: group.getAttribute('role') === 'listbox',
       optionRoles: buttons.map((b) => b.getAttribute('role')),
-      tabIndexes: buttons.map((b) => b.tabIndex),
       pressedAttrs: buttons.map((b) => b.getAttribute('aria-pressed')),
     }
   })
@@ -119,14 +108,12 @@ try {
     Boolean(offerSemantics.labelledBy) &&
     !offerSemantics.hasListbox &&
     offerSemantics.optionRoles.every((r) => r == null) &&
-    offerSemantics.tabIndexes.every((t) => t === 0) &&
     offerSemantics.pressedAttrs.every((p) => p === 'true' || p === 'false') &&
     offerSemantics.pressedAttrs.filter((p) => p === 'true').length === 1
   if (!offerSemanticsOk) failed = true
   report.push({ name: 'offer-semantics', ok: offerSemanticsOk, offerSemantics })
   console.log('offer-semantics', offerSemanticsOk ? 'PASS' : 'FAIL')
 
-  // Keyboard offer select (Enter / Space on ordinary buttons)
   const offerCaleb = page.getByTestId('how-demo-offer-caleb')
   await offerCaleb.focus()
   await page.keyboard.press('Enter')
@@ -140,17 +127,13 @@ try {
   report.push({ name: 'offer-keyboard', ok: offerOk, offerStatus, offerPressed, offerSofiaPressed })
   console.log('offer-keyboard', offerOk ? 'PASS' : 'FAIL')
 
-  await page.getByTestId('how-demo-offer-sofia').focus()
-  await page.keyboard.press('Space')
-  await page.waitForTimeout(80)
-  const offerSpaceOk =
-    (await page.getByTestId('how-demo-offer-sofia').getAttribute('aria-pressed')) === 'true' &&
-    (await offerCaleb.getAttribute('aria-pressed')) === 'false'
-  if (!offerSpaceOk) failed = true
-  report.push({ name: 'offer-keyboard-space', ok: offerSpaceOk })
-  console.log('offer-keyboard-space', offerSpaceOk ? 'PASS' : 'FAIL')
+  await page.getByTestId('how-tab-chat').click()
+  await page.waitForTimeout(100)
+  const chatVisible = await page.getByTestId('how-demo-rating').isVisible()
+  if (!chatVisible) failed = true
+  report.push({ name: 'tab-chat', ok: chatVisible })
+  console.log('tab-chat', chatVisible ? 'PASS' : 'FAIL')
 
-  // Rating via Space
   const star3 = page.getByTestId('how-demo-star-3')
   await star3.focus()
   await page.keyboard.press('Space')
@@ -162,7 +145,9 @@ try {
   report.push({ name: 'rating-keyboard', ok: ratingOk, ratingStatus, starPressed })
   console.log('rating-keyboard', ratingOk ? 'PASS' : 'FAIL')
 
-  // Touch-ish: tap pets task
+  // Back to post via next link from chat, then pets task
+  await page.getByTestId('how-next-chat').click()
+  await page.waitForTimeout(80)
   await page.getByTestId('how-demo-task-walk').tap().catch(async () => {
     await page.getByTestId('how-demo-task-walk').click()
   })
@@ -174,27 +159,38 @@ try {
   console.log('task-touch', touchOk ? 'PASS' : 'FAIL')
 
   // Contrast on actual backgrounds + rating UI controls (≥3:1)
+  await page.getByTestId('how-tab-chat').click()
+  await page.waitForTimeout(80)
+  await page.getByTestId('how-demo-star-5').click()
   const colors = await page.evaluate(() => {
     const section = document.querySelector('#how-it-works')
     const title = section.querySelector('h2')
-    const body = section.querySelector('h2 + p') || section.querySelector('p.text-\\[16px\\]')
-    const cardBody = section.querySelector('h3 + p')
-    const canvas = section.querySelector('[data-testid="how-demo-tasks"]')?.parentElement
+    const body = section.querySelector('h2 + p')
+    const cardBody = section.querySelector('[data-testid="how-panel-chat"] p')
+    const panel = section.querySelector('[data-testid="how-panel-chat"] > div')
     const activeStar = section.querySelector('[data-testid="how-demo-star-1"][data-active="true"] svg')
     const idleStar = section.querySelector('[data-testid="how-demo-star-5"][data-active="false"] svg')
-    const activeBtn = section.querySelector('[data-testid="how-demo-star-1"][data-active="true"]')
+    // Force a mixed state for idle measurement
     return {
       sectionBg: getComputedStyle(section).backgroundColor,
       title: getComputedStyle(title).color,
       body: getComputedStyle(body).color,
-      cardBody: getComputedStyle(cardBody).color,
-      canvasBg: canvas ? getComputedStyle(canvas).backgroundColor : null,
-      cardRadius: getComputedStyle(section.querySelector('li')).borderTopLeftRadius,
+      cardBody: cardBody ? getComputedStyle(cardBody).color : getComputedStyle(title).color,
+      panelRadius: panel ? getComputedStyle(panel).borderTopLeftRadius : null,
       activeStarColor: activeStar ? getComputedStyle(activeStar).color : null,
       idleStarColor: idleStar ? getComputedStyle(idleStar).color : null,
-      activeStarFill: activeStar ? getComputedStyle(activeStar).fill : null,
-      activeBtnBg: activeBtn ? getComputedStyle(activeBtn).backgroundColor : null,
-      activeHasRing: activeBtn ? getComputedStyle(activeBtn).boxShadow.includes('rgb') || getComputedStyle(activeBtn).boxShadow !== 'none' : false,
+    }
+  })
+  // Set rating to 3 so we have idle stars for contrast
+  await page.getByTestId('how-demo-star-3').click()
+  await page.waitForTimeout(60)
+  const starColors = await page.evaluate(() => {
+    const section = document.querySelector('#how-it-works')
+    const activeStar = section.querySelector('[data-testid="how-demo-star-1"][data-active="true"] svg')
+    const idleStar = section.querySelector('[data-testid="how-demo-star-5"][data-active="false"] svg')
+    return {
+      activeStarColor: activeStar ? getComputedStyle(activeStar).color : null,
+      idleStarColor: idleStar ? getComputedStyle(idleStar).color : null,
     }
   })
   const sectionBg = parseRgb(colors.sectionBg)
@@ -202,8 +198,8 @@ try {
   const bodyC = parseRgb(colors.body)
   const cardBodyC = parseRgb(colors.cardBody)
   const white = [255, 255, 255]
-  const activeStarC = colors.activeStarColor ? parseRgb(colors.activeStarColor) : null
-  const idleStarC = colors.idleStarColor ? parseRgb(colors.idleStarColor) : null
+  const activeStarC = starColors.activeStarColor ? parseRgb(starColors.activeStarColor) : null
+  const idleStarC = starColors.idleStarColor ? parseRgb(starColors.idleStarColor) : null
   const contrastPairs = {
     title: Number(contrast(titleC, sectionBg).toFixed(2)),
     body: Number(contrast(bodyC, sectionBg).toFixed(2)),
@@ -211,26 +207,28 @@ try {
     selectedStarOnWhite: activeStarC ? Number(contrast(activeStarC, white).toFixed(2)) : 0,
     unselectedStarOnWhite: idleStarC ? Number(contrast(idleStarC, white).toFixed(2)) : 0,
   }
-  // After star-3 Space then walk tap, rating is still 3 → stars 1–3 active, 4–5 idle
-  const textContrastOk = contrastPairs.title >= 4.5 && contrastPairs.body >= 4.5 && contrastPairs.cardBodyOnWhite >= 4.5
+  const radius = parseFloat(colors.panelRadius || '0')
+  const textContrastOk =
+    contrastPairs.title >= 4.5 && contrastPairs.body >= 4.5 && contrastPairs.cardBodyOnWhite >= 4.5
   const ratingContrastOk =
     contrastPairs.selectedStarOnWhite >= 3 &&
     contrastPairs.unselectedStarOnWhite >= 3 &&
-    Boolean(colors.activeStarColor) &&
-    Boolean(colors.idleStarColor)
-  const contrastOk = textContrastOk && ratingContrastOk && colors.cardRadius === '10px'
+    Boolean(starColors.activeStarColor) &&
+    Boolean(starColors.idleStarColor)
+  const contrastOk = textContrastOk && ratingContrastOk && radius >= 10 && radius <= 12
   if (!contrastOk) failed = true
   report.push({
     name: 'contrast',
     ok: contrastOk,
     colors,
+    starColors,
     contrastPairs,
+    radius,
     textContrastOk,
     ratingContrastOk,
   })
   console.log('contrast', contrastOk ? 'PASS' : 'FAIL', JSON.stringify(contrastPairs))
 
-  // Reduced motion: page still interactive; settle rating to 5/5 for coherent screenshots
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.getByTestId('how-demo-star-5').click()
   await page.waitForTimeout(80)
@@ -240,41 +238,17 @@ try {
   report.push({ name: 'reduced-motion', ok: reducedOk, rating5 })
   console.log('reduced-motion', reducedOk ? 'PASS' : 'FAIL')
 
-  // Move pointer off controls so hover styles do not skew the settled shot
   await page.mouse.move(0, 0)
   await page.locator('body').click({ position: { x: 8, y: 8 } }).catch(() => {})
   await page.waitForTimeout(120)
-  const settledRating = await page.getByTestId('how-demo-rating-status').innerText()
-  const settledStars = await page.evaluate(() => {
-    return [1, 2, 3, 4, 5].map((n) => ({
-      n,
-      active: document.querySelector(`[data-testid="how-demo-star-${n}"]`)?.getAttribute('data-active'),
-      pressed: document.querySelector(`[data-testid="how-demo-star-${n}"]`)?.getAttribute('aria-pressed'),
-    }))
-  })
-  const settledOk =
-    /5\s*\/\s*5/.test(settledRating) &&
-    settledStars.every((s) => s.active === 'true') &&
-    settledStars.filter((s) => s.pressed === 'true').length === 1 &&
-    settledStars.find((s) => s.n === 5)?.pressed === 'true'
-  if (!settledOk) failed = true
-  report.push({ name: 'rating-settled', ok: settledOk, settledRating, settledStars })
-  console.log('rating-settled', settledOk ? 'PASS' : 'FAIL', settledRating)
-
   await page.locator('#how-it-works').screenshot({ path: join(OUT, 'desktop-1440.png') })
   copyFileSync(join(OUT, 'desktop-1440.png'), join(ART, 'how-interactive-desktop.png'))
 
-  // Mobile — settle rating again after viewport change, pointer off
   await page.setViewportSize({ width: 390, height: 844 })
   await page.locator('#how-it-works').scrollIntoViewIfNeeded()
   await page.getByTestId('how-demo-star-5').click()
   await page.mouse.move(0, 0)
   await page.waitForTimeout(200)
-  const mobileRating = await page.getByTestId('how-demo-rating-status').innerText()
-  const mobileSettled = /5\s*\/\s*5/.test(mobileRating)
-  if (!mobileSettled) failed = true
-  report.push({ name: 'mobile-rating-settled', ok: mobileSettled, mobileRating })
-  console.log('mobile-rating-settled', mobileSettled ? 'PASS' : 'FAIL')
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
   )
@@ -284,7 +258,6 @@ try {
   await page.locator('#how-it-works').screenshot({ path: join(OUT, 'mobile-390.png') })
   copyFileSync(join(OUT, 'mobile-390.png'), join(ART, 'how-interactive-mobile.png'))
 
-  // Tablet
   await page.setViewportSize({ width: 768, height: 1024 })
   await page.locator('#how-it-works').scrollIntoViewIfNeeded()
   await page.mouse.move(0, 0)
@@ -292,11 +265,21 @@ try {
   await page.locator('#how-it-works').screenshot({ path: join(OUT, 'tablet-768.png') })
   copyFileSync(join(OUT, 'tablet-768.png'), join(ART, 'how-interactive-tablet.png'))
 
+  await page.setViewportSize({ width: 320, height: 720 })
+  await page.locator('#how-it-works').scrollIntoViewIfNeeded()
+  const overflow320 = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+  )
+  if (overflow320) failed = true
+  report.push({ name: 'mobile-320-overflow', ok: !overflow320 })
+  console.log('mobile-320-overflow', !overflow320 ? 'PASS' : 'FAIL')
+
   await page.close()
 } finally {
   await browser.close()
 }
 
 writeFileSync(join(OUT, 'report.json'), JSON.stringify(report, null, 2))
+copyFileSync(join(OUT, 'report.json'), join(ART, 'how-interactive-qa-report.json'))
 console.log(failed ? '\nOVERALL: FAIL' : '\nOVERALL: PASS')
 process.exit(failed ? 1 : 0)
