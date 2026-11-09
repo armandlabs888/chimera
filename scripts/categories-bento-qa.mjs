@@ -450,9 +450,23 @@ try {
       !crop.error &&
       crop.height >= 280 &&
       crop.aspect <= 2.6 &&
-      /22%|center|50%/.test(String(crop.objectPosition))
+      /35%|30%|center|50%/.test(String(crop.objectPosition))
+    const srcOk = await page.evaluate(() => {
+      const img = document.querySelector('[data-testid="categories-tile-cleaning"] img')
+      const src = img?.currentSrc || img?.getAttribute('src') || ''
+      return /avail-house-cleaning/.test(src)
+    })
+    if (!srcOk) failed = true
+    console.log('\n=== cleaning asset (Paper orange-crew) ===', srcOk ? 'PASS' : 'FAIL')
     if (!cropOk) failed = true
     console.log('\n=== cleaning crop metrics ===', cropOk ? 'PASS' : 'FAIL', JSON.stringify(crop))
+
+    report.push({
+      viewport: 'cleaning-asset',
+      ok: srcOk && cropOk,
+      srcOk,
+      crop,
+    })
 
     report.push({
       viewport: 'filter-tabs',

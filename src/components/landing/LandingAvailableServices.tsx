@@ -21,9 +21,11 @@ const SERVICES: ServiceCard[] = [
     id: 'house-cleaning',
     label: 'House Cleaning',
     href: '/browse?category=house-cleaning',
-    image: '/images/landing/avail-house-cleaning.jpg',
-    alt: 'Three neighbors with vacuums and a mop ready for a home cleaning job',
-    objectPosition: 'object-[50%_30%]',
+    // Kitchen lifestyle — distinct from Popular bento orange-crew (Paper lock).
+    // Paper also showed crew here; uniqueness forbids dual use of the same shot.
+    image: '/images/landing/service-cleaning.jpg',
+    alt: 'Neighbor wiping a sunlit kitchen counter during a home cleaning job',
+    objectPosition: 'object-[50%_22%]',
   },
   {
     id: 'carpet-cleaning',

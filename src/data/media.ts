@@ -48,6 +48,11 @@ export const HERO_HELPERS: HeroHelper[] = [
 export const LIFESTYLE = {
   /** Neighbor wiping a sunlit kitchen counter */
   cleaning: '/images/landing/service-cleaning.jpg',
+  /**
+   * Orange-overalls cleaning crew (Pexels 6195125) — Paper Popular bento lock.
+   * File lives under avail-* path from PR66; do not also render it in the six-grid.
+   */
+  cleaningCrew: '/images/landing/avail-house-cleaning.jpg',
   /** Neighbors carrying a sofa on a sunny driveway — used for junk haul-away */
   moving: '/images/landing/service-moving.jpg',
   /** Furniture/shelf assembly — kept as asset; not used for active Auto marketing */

@@ -3,7 +3,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useId, useState } from 'react'
-import { SERVICE_CATEGORIES } from '@/lib/taxonomy'
 import { LIFESTYLE } from '@/data/media'
 
 type FilterId = 'all' | 'home' | 'pets' | 'other'
@@ -20,7 +19,6 @@ const FILTERS: { id: FilterId; label: string }[] = [
  * Filters are aria-pressed toggles (not ARIA tabs). Other lives here, not in six-grid.
  */
 export function LandingCategories() {
-  const house = SERVICE_CATEGORIES.find((c) => c.id === 'house-cleaning')!
   const [filter, setFilter] = useState<FilterId>('all')
   const filterLabelId = useId()
 
@@ -103,12 +101,12 @@ export function LandingCategories() {
             >
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#DBEAFE] lg:aspect-auto lg:min-h-[240px] lg:flex-1">
                 <Image
-                  src={house.image || LIFESTYLE.cleaning}
-                  alt="Neighbors with cleaning gear ready for a home cleaning job"
+                  src={LIFESTYLE.cleaningCrew}
+                  alt="Three neighbors in orange overalls with vacuums and a mop ready for a home cleaning job"
                   fill
                   sizes="(min-width:1024px) 50vw, 90vw"
                   priority
-                  className="object-cover object-[50%_22%] transition duration-500 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none"
+                  className="object-cover object-[50%_35%] transition duration-500 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none"
                 />
               </div>
               <div className="flex flex-col gap-1.5 px-5 py-5 sm:px-6 sm:py-6">
