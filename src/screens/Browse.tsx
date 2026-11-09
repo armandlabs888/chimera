@@ -212,23 +212,48 @@ export function Browse() {
     setQDraft(qParam)
   }, [qParam])
 
-  // Mobile filters panel: Escape closes and restores focus to the trigger.
+  // Mobile filters bottom sheet: focus trap, Escape, restore focus to trigger.
   useEffect(() => {
     if (!mobileFiltersOpen) return
     const panel = mobileFiltersPanelRef.current
-    const first = panel?.querySelector<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    )
+    const focusables = () =>
+      Array.from(
+        panel?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter((el) => !el.hasAttribute('disabled') && el.offsetParent !== null)
+
+    const first = focusables()[0]
     first?.focus()
 
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
     function onKey(e: KeyboardEvent) {
-      if (e.key !== 'Escape') return
-      e.preventDefault()
-      setMobileFiltersOpen(false)
-      queueMicrotask(() => filtersTriggerRef.current?.focus())
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setMobileFiltersOpen(false)
+        queueMicrotask(() => filtersTriggerRef.current?.focus())
+        return
+      }
+      if (e.key !== 'Tab' || !panel) return
+      const items = focusables()
+      if (!items.length) return
+      const firstEl = items[0]
+      const lastEl = items[items.length - 1]
+      if (e.shiftKey && document.activeElement === firstEl) {
+        e.preventDefault()
+        lastEl.focus()
+      } else if (!e.shiftKey && document.activeElement === lastEl) {
+        e.preventDefault()
+        firstEl.focus()
+      }
     }
     document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = previousOverflow
+    }
   }, [mobileFiltersOpen])
 
   // Role-aware deep-link / history guard: normalize helper-discovery URLs to jobs.
@@ -621,7 +646,8 @@ export function Browse() {
       ? `Active near ${cityOrArea}`
       : 'Active near you'
 
-  const filterSurface = 'rounded-[10px] border border-[#C7D7F0] bg-[#FBFDFF]'
+  const filterSurface =
+    'rounded-[12px] border border-[#D7E3F4] bg-white shadow-[0_1px_2px_rgba(7,19,48,0.04)]'
 
   function closeMobileFilters() {
     setMobileFiltersOpen(false)
@@ -629,139 +655,178 @@ export function Browse() {
     queueMicrotask(() => filtersTriggerRef.current?.focus())
   }
 
-  function renderFiltersSidebar(opts?: { onDismiss?: () => void }) {
+  function renderFiltersBody() {
     return (
-      <div className={`${filterSurface} flex h-fit max-h-full flex-col overflow-hidden`}>
-        <div className="flex items-center justify-between gap-3 border-b border-[#D7E3F4] px-3.5 py-2.5">
-          <h2 className="text-[13.5px] font-bold text-[#071330]">Filters</h2>
-          <div className="flex items-center gap-2">
+      <>
+        <div className="space-y-1.5">
+          <p className="px-0.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B]">
+            Category
+          </p>
+          <ul className="space-y-0.5">
+            <li>
+              <CategoryRow
+                active={category === 'all'}
+                onClick={() => setCategory('all')}
+                label="All categories"
+                icon={ALL_CATEGORY_ICON}
+                count={categoryCounts.all}
+              />
+            </li>
+            {BROWSE_PARENTS.map((p) => (
+              <li key={p.id}>
+                <CategoryRow
+                  active={category === p.id}
+                  onClick={() => setCategory(p.id)}
+                  label={p.shortLabel}
+                  icon={PARENT_ICONS[p.id]}
+                  count={categoryCounts[p.id] ?? 0}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="space-y-3 border-t border-[#E8F1FC] pt-3">
+          {isGuest ? (
+            tab === 'requests' ? (
+              <WhenChipRow current={when} onSelect={setWhen} />
+            ) : (
+              <AvailChipRow current={avail} onSelect={setAvail} />
+            )
+          ) : (
+            <>
+              <div className="space-y-2">
+                <p className="px-0.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B]">
+                  Miles radius
+                </p>
+                <div
+                  className="grid grid-cols-5 gap-0.5 rounded-[10px] bg-[#F4F8FD] p-0.5"
+                  role="group"
+                  aria-label="Miles radius"
+                >
+                  {RADIUS_SEGMENT_OPTIONS.map((opt) => {
+                    const active = radius === opt.id
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setRadius(opt.id)}
+                        className={`inline-flex h-7 items-center justify-center rounded-[8px] text-[12px] font-semibold transition ${
+                          active
+                            ? 'bg-white text-[#071330] shadow-[0_1px_3px_rgba(29,92,229,0.18)]'
+                            : 'text-[#334155] hover:bg-white/70 hover:text-[#071330]'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              {tab === 'requests' ? (
+                <WhenChipRow current={when} onSelect={setWhen} />
+              ) : (
+                <AvailChipRow current={avail} onSelect={setAvail} />
+              )}
+            </>
+          )}
+        </div>
+
+        {tab === 'people' || freeOnly ? (
+          <div className="border-t border-[#E8F1FC] pt-3">
             <button
               type="button"
-              onClick={clearFilters}
-              className={`text-[12px] font-semibold transition ${
-                hasActiveFilters
-                  ? 'text-[#1D5CE5] hover:text-[#1649BD]'
-                  : 'text-[#475569] hover:text-[#334155]'
+              onClick={toggleFree}
+              className={`flex w-full items-center gap-2 rounded-[10px] px-2.5 py-1.5 text-left text-[13px] font-semibold transition ${
+                freeOnly
+                  ? 'bg-[#F4F8FD] text-[#1D5CE5]'
+                  : 'text-[#475569] hover:bg-[#F4F8FD] hover:text-[#071330]'
               }`}
+            >
+              <Sun className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
+              <Clock className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
+              Afternoons &amp; evenings
+            </button>
+          </div>
+        ) : null}
+      </>
+    )
+  }
+
+  function renderFiltersSidebar(opts?: { onDismiss?: () => void; sheet?: boolean }) {
+    if (opts?.sheet) {
+      return (
+        <div className="flex max-h-[min(82dvh,40rem)] flex-col overflow-hidden rounded-t-[16px] border border-[#D7E3F4] bg-white shadow-[0_-8px_32px_-12px_rgba(7,19,48,0.18)]">
+          <div className="flex items-center justify-between gap-3 border-b border-[#E8F1FC] px-4 py-3">
+            <h2 className="text-[16px] font-bold text-[#071330]">Filters</h2>
+            <button
+              type="button"
+              onClick={opts.onDismiss}
+              className="text-[13px] font-semibold text-[#64748B] transition hover:text-[#071330]"
+              data-testid="browse-mobile-filters-close"
+            >
+              Close
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 space-y-3.5 overflow-y-auto overscroll-contain px-4 py-3.5">
+            {renderFiltersBody()}
+          </div>
+          <div className="grid grid-cols-2 gap-2.5 border-t border-[#E8F1FC] px-4 py-3">
+            <button
+              type="button"
+              onClick={() => {
+                clearFilters()
+              }}
+              className="inline-flex h-10 items-center justify-center rounded-[10px] border border-[#D7E3F4] bg-white text-[13px] font-semibold text-[#071330] transition hover:border-[#C7D7F0] hover:bg-[#F4F8FD]"
               data-testid="browse-filters-reset"
             >
               Reset
             </button>
-            {opts?.onDismiss ? (
-              <button
-                type="button"
-                onClick={opts.onDismiss}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-[#334155] transition hover:bg-[#F0F7FF] hover:text-[#071330]"
-                aria-label="Close filters"
-                data-testid="browse-mobile-filters-close"
-              >
-                <X className="h-3.5 w-3.5" aria-hidden />
-              </button>
-            ) : null}
+            <button
+              type="button"
+              onClick={opts.onDismiss}
+              className="inline-flex h-10 items-center justify-center rounded-[10px] bg-[#1D5CE5] text-[13px] font-semibold text-white transition hover:bg-[#1649BD]"
+              data-testid="browse-mobile-filters-apply"
+            >
+              Apply filters
+            </button>
           </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className={`${filterSurface} flex h-fit max-h-full flex-col overflow-hidden`}>
+        <div className="flex items-center justify-between gap-3 border-b border-[#E8F1FC] px-3.5 py-2.5">
+          <h2 className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#64748B]">
+            Filters
+          </h2>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className={`text-[12px] font-semibold transition ${
+              hasActiveFilters
+                ? 'text-[#1D5CE5] hover:text-[#1649BD]'
+                : 'text-[#64748B] hover:text-[#334155]'
+            }`}
+            data-testid="browse-filters-reset"
+          >
+            Reset
+          </button>
         </div>
 
         <div className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-3 py-3">
-          <div className="space-y-1.5">
-            <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#334155]">
-              Categories
-            </p>
-            <ul className="space-y-0.5">
-              <li>
-                <CategoryRow
-                  active={category === 'all'}
-                  onClick={() => setCategory('all')}
-                  label="All categories"
-                  icon={ALL_CATEGORY_ICON}
-                  count={categoryCounts.all}
-                />
-              </li>
-              {BROWSE_PARENTS.map((p) => (
-                <li key={p.id}>
-                  <CategoryRow
-                    active={category === p.id}
-                    onClick={() => setCategory(p.id)}
-                    label={p.shortLabel}
-                    icon={PARENT_ICONS[p.id]}
-                    count={categoryCounts[p.id] ?? 0}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="space-y-3 border-t border-[#D7E3F4] pt-3">
-            {isGuest ? (
-              tab === 'requests' ? (
-                <WhenChipRow current={when} onSelect={setWhen} />
-              ) : (
-                <AvailChipRow current={avail} onSelect={setAvail} />
-              )
-            ) : (
-              <>
-                <div className="space-y-2">
-                  <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#334155]">
-                    Miles radius
-                  </p>
-                  <div
-                    className="grid grid-cols-5 gap-0.5 rounded-lg bg-[#E8F1FC] p-0.5"
-                    role="group"
-                    aria-label="Miles radius"
-                  >
-                    {RADIUS_SEGMENT_OPTIONS.map((opt) => {
-                      const active = radius === opt.id
-                      return (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          onClick={() => setRadius(opt.id)}
-                          className={`inline-flex h-7 items-center justify-center rounded-md text-[12px] font-semibold transition ${
-                            active
-                              ? 'bg-white text-[#071330] shadow-[0_1px_3px_rgba(29,92,229,0.18)]'
-                              : 'text-[#334155] hover:bg-white/70 hover:text-[#071330]'
-                          }`}
-                        >
-                          {opt.label}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-                {tab === 'requests' ? (
-                  <WhenChipRow current={when} onSelect={setWhen} />
-                ) : (
-                  <AvailChipRow current={avail} onSelect={setAvail} />
-                )}
-              </>
-            )}
-          </div>
-
-          {tab === 'people' || freeOnly ? (
-            <div className="border-t border-[#D7E3F4] pt-3">
-              <button
-                type="button"
-                onClick={toggleFree}
-                className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13px] font-semibold transition ${
-                  freeOnly
-                    ? 'bg-[#DBEAFE] text-[#1D5CE5]'
-                    : 'text-[#475569] hover:bg-[#F0F7FF] hover:text-[#071330]'
-                }`}
-              >
-                <Sun className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
-                <Clock className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
-                Afternoons &amp; evenings
-              </button>
-            </div>
-          ) : null}
+          {renderFiltersBody()}
         </div>
 
-        <div className="mt-auto border-t border-[#D7E3F4] px-3 py-3">
+        <div className="mt-auto border-t border-[#E8F1FC] px-3.5 py-3">
           <Link
             href="/safety"
-            className="flex items-start gap-2.5 rounded-[10px] border border-[#DBEAFE] bg-[#EFF6FF] px-3 py-2.5 text-[12px] font-medium leading-snug text-[#1E3A8A] transition hover:border-[#BFDBFE] hover:bg-[#DBEAFE]/70"
+            className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
           >
-            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#1D5CE5]" aria-hidden />
-            <span>Safety guidelines for every listing</span>
+            <ShieldCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            Safety guidelines
+            <span aria-hidden>→</span>
           </Link>
         </div>
       </div>
@@ -775,14 +840,14 @@ export function Browse() {
         className={`${filterSurface} flex h-fit max-h-full flex-col overflow-y-auto`}
         data-testid={opts?.omitTestId ? undefined : 'browse-trending-helpers'}
       >
-        <div className="border-b border-[#D7E3F4] px-4 py-3">
+        <div className="border-b border-[#E8F1FC] px-4 py-3">
           <h2 className="text-[15px] font-bold text-[#071330]">Trending helpers</h2>
-          <p className="mt-0.5 text-[12.5px] font-medium text-[#475569]">{trendingSubtitle}</p>
+          <p className="mt-0.5 text-[12.5px] font-medium text-[#64748B]">{trendingSubtitle}</p>
         </div>
 
         {trendingHelpers.length === 0 ? (
           <div className="px-4 py-6 text-center">
-            <span className="mx-auto inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#CCFBF1] text-[#0D9488]">
+            <span className="mx-auto inline-flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#F4F8FD] text-[#1D5CE5]">
               <Users className="h-4 w-4" strokeWidth={1.75} aria-hidden />
             </span>
             <p className="mt-3 text-[13px] font-semibold text-[#071330]">
@@ -809,7 +874,7 @@ export function Browse() {
                 <li key={helper.id}>
                   <Link
                     href={`/people/${helper.id}`}
-                    className="flex gap-2.5 rounded-lg px-3 py-2.5 transition hover:bg-[#F0F7FF]"
+                    className="flex gap-2.5 rounded-[10px] px-3 py-2.5 transition hover:bg-[#F4F8FD]"
                   >
                     <span className="relative shrink-0">
                       <Avatar src={helper.avatar} name={helper.name} size={36} />
@@ -829,27 +894,13 @@ export function Browse() {
                           {formatRate(helper)}
                         </span>
                       </span>
-                      <span className="mt-0.5 flex items-center gap-1.5 text-[12px] text-[#334155]">
-                        {ratingLabel ? (
-                          <span>★ {ratingLabel}</span>
-                        ) : (
-                          <span className="rounded bg-[#E8F1FC] px-1.5 py-0.5 text-[10.5px] font-medium text-[#334155]">
-                            New
-                          </span>
-                        )}
+                      <span className="mt-0.5 block truncate text-[12px] text-[#64748B]">
+                        {skillLabels.length
+                          ? skillLabels.join(' · ')
+                          : ratingLabel
+                            ? `★ ${ratingLabel}`
+                            : 'New helper'}
                       </span>
-                      {skillLabels.length ? (
-                        <span className="mt-1.5 flex flex-wrap gap-1">
-                          {skillLabels.map((label) => (
-                            <span
-                              key={label}
-                              className="rounded-md border border-[#99F6E4]/70 bg-[#F0FDFA] px-1.5 py-0.5 text-[11px] font-bold text-[#0F766E]"
-                            >
-                              {label}
-                            </span>
-                          ))}
-                        </span>
-                      ) : null}
                     </span>
                   </Link>
                 </li>
@@ -858,8 +909,8 @@ export function Browse() {
           </ul>
         )}
 
-        <div className="mt-auto flex items-center justify-between gap-2 rounded-b-lg border-t border-[#D7E3F4] bg-[#F0F7FF] px-4 py-2.5">
-          <p className="truncate text-[12px] text-[#334155]">Need something done today?</p>
+        <div className="mt-auto flex items-center justify-between gap-2 rounded-b-[12px] border-t border-[#E8F1FC] bg-[#F4F8FD] px-4 py-2.5">
+          <p className="truncate text-[12px] text-[#64748B]">Need something done today?</p>
           <Link
             href="/post"
             className="shrink-0 text-[12px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
@@ -872,16 +923,27 @@ export function Browse() {
   }
 
   const liveCount = tab === 'requests' ? openRequests.length : people.length
+  const feedSubtitle = hidePeerDiscovery
+    ? 'Helper view · open jobs only · no Local helpers or Trending helpers'
+    : tab === 'requests'
+      ? liveCount === 0
+        ? '0 open requests near your selected location'
+        : `${liveCount} open request${liveCount === 1 ? '' : 's'} near your selected location`
+      : `${liveCount} local helper${liveCount === 1 ? '' : 's'} near your selected location`
+  const filteredEmptyBody =
+    category !== 'all' && categoryLabel
+      ? `${categoryLabel} is selected and no jobs match right now. Clear filters or post a request for your neighborhood.`
+      : 'Try clearing filters or post a request for your neighborhood.'
 
   return (
     <div className="xl:flex xl:h-full xl:min-h-0 xl:flex-col">
       <div
         data-testid="browse-3col-grid"
         data-browse-layout={showDiscoveryChrome ? 'discovery' : 'helper-jobs'}
-        className={`grid grid-cols-1 gap-5 xl:h-full xl:min-h-0 xl:items-stretch xl:gap-5 ${
+        className={`grid grid-cols-1 gap-4 xl:h-full xl:min-h-0 xl:items-stretch xl:gap-4 ${
           showDiscoveryChrome
-            ? 'xl:grid-cols-[248px_minmax(0,1fr)_292px]'
-            : 'xl:grid-cols-[248px_minmax(0,1fr)]'
+            ? 'xl:grid-cols-[240px_minmax(0,1fr)_280px]'
+            : 'xl:grid-cols-[240px_minmax(0,1fr)]'
         }`}
       >
         <aside
@@ -895,113 +957,87 @@ export function Browse() {
           data-testid="browse-feed-main"
           className="flex min-w-0 flex-col xl:h-full xl:min-h-0"
         >
-          <div className="shrink-0 pb-3.5">
+          <div className="shrink-0 pb-3">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
               <div className="min-w-0">
-                <div className="flex min-w-0 items-center gap-2.5">
-                  <h1 className="text-[24px] font-bold leading-tight tracking-[-0.025em] text-[#071330] sm:text-[26px]">
-                    Browse Local Jobs
-                  </h1>
-                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#DBEAFE] px-1.5 text-[12px] font-bold tabular-nums text-[#1D5CE5]">
-                    {liveCount}
-                  </span>
-                </div>
+                <h1 className="text-[24px] font-bold leading-tight tracking-[-0.025em] text-[#071330] sm:text-[26px]">
+                  Browse Local Jobs
+                </h1>
+                <p className="mt-1 text-[13px] font-medium text-[#64748B]">{feedSubtitle}</p>
               </div>
 
               {showDiscoveryChrome ? (
-                <div className="flex shrink-0 flex-wrap items-center gap-2 self-start sm:self-auto">
-                  <div
-                    className="inline-flex h-9 shrink-0 rounded-lg border border-[#C7D7F0] bg-white p-0.5"
-                    role="tablist"
-                    aria-label="Browse mode"
-                    data-testid="browse-mode-tabs"
+                <div
+                  className="flex w-full shrink-0 flex-wrap items-center gap-2 self-start sm:w-auto sm:self-auto"
+                  role="tablist"
+                  aria-label="Browse mode"
+                  data-testid="browse-mode-tabs"
+                >
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === 'requests'}
+                    onClick={() => setTab('requests')}
+                    className={`inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-[10px] px-3 text-[12.5px] font-semibold transition sm:flex-none ${
+                      tab === 'requests'
+                        ? 'bg-[#1D5CE5] text-white'
+                        : 'border border-[#D7E3F4] bg-white text-[#071330] hover:border-[#C7D7F0] hover:bg-[#F4F8FD]'
+                    }`}
                   >
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={tab === 'requests'}
-                      onClick={() => setTab('requests')}
-                      className={`inline-flex h-full items-center gap-1.5 rounded-md px-3 text-[12.5px] font-semibold transition ${
-                        tab === 'requests'
-                          ? 'bg-[#1D5CE5] text-white'
-                          : 'text-[#334155] hover:text-[#071330]'
-                      }`}
-                    >
-                      Open requests
-                      <span
-                        className={`tabular-nums ${
-                          tab === 'requests' ? 'text-white/90' : 'text-[#475569]'
-                        }`}
-                      >
-                        {openRequestCount}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={tab === 'people'}
-                      onClick={() => setTab('people')}
-                      data-testid="browse-tab-local-helpers"
-                      className={`inline-flex h-full items-center gap-1.5 rounded-md px-3 text-[12.5px] font-semibold transition ${
-                        tab === 'people'
-                          ? 'bg-[#1D5CE5] text-white'
-                          : 'text-[#334155] hover:text-[#071330]'
-                      }`}
-                    >
-                      Local helpers
-                      <span
-                        className={`tabular-nums ${
-                          tab === 'people' ? 'text-white/90' : 'text-[#475569]'
-                        }`}
-                      >
-                        {helperCount}
-                      </span>
-                    </button>
-                  </div>
+                    Open requests · {openRequestCount}
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === 'people'}
+                    onClick={() => setTab('people')}
+                    data-testid="browse-tab-local-helpers"
+                    className={`inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-[10px] px-3 text-[12.5px] font-semibold transition sm:flex-none ${
+                      tab === 'people'
+                        ? 'bg-[#1D5CE5] text-white'
+                        : 'border border-[#D7E3F4] bg-white text-[#071330] hover:border-[#C7D7F0] hover:bg-[#F4F8FD]'
+                    }`}
+                  >
+                    Local helpers · {helperCount}
+                  </button>
                 </div>
               ) : null}
             </div>
 
             {/* Command bar: compact single-row on mobile (search + distance + sort + filters) */}
             <div className="relative z-30 mt-2.5 sm:mt-3" data-testid="browse-command-bar">
-              <div className="flex w-full flex-row flex-nowrap items-center gap-0 rounded-lg border border-[#C7D7F0] bg-white px-1 py-0.5 shadow-[0_2px_8px_-2px_rgba(29,92,229,0.14)] sm:gap-0 sm:px-2 sm:py-1">
-                <label className="relative flex h-8 min-w-0 flex-1 items-center gap-1.5 rounded-lg px-1.5 sm:h-9 sm:gap-2 sm:px-2">
-                  <Search className="h-4 w-4 shrink-0 text-[#334155]" aria-hidden />
+              <div className="flex w-full flex-row flex-nowrap items-center gap-1.5 sm:gap-2">
+                <label className="relative flex h-9 min-w-0 flex-1 items-center gap-1.5 rounded-[10px] border border-[#D7E3F4] bg-white px-2.5 shadow-[0_1px_2px_rgba(7,19,48,0.04)] sm:gap-2 sm:px-3">
+                  <Search className="h-4 w-4 shrink-0 text-[#64748B]" aria-hidden />
                   <span className="sr-only">Search browse</span>
                   <input
                     value={qDraft}
                     onChange={(e) => setQDraft(e.target.value)}
-                    placeholder="Search titles, skills…"
+                    placeholder="Search jobs"
                     aria-label="Search browse"
-                    className="min-w-0 flex-1 bg-transparent text-[13px] text-[#071330] outline-none placeholder:text-[#64748B]"
+                    className="min-w-0 flex-1 bg-transparent text-[13px] text-[#071330] outline-none placeholder:text-[#94A3B8]"
                   />
                   {qDraft ? (
                     <button
                       type="button"
                       onClick={clearSearch}
-                      className="inline-flex h-6 w-6 items-center justify-center rounded-lg text-[#334155] transition hover:bg-[#F0F7FF] hover:text-[#071330]"
+                      className="inline-flex h-6 w-6 items-center justify-center rounded-[8px] text-[#64748B] transition hover:bg-[#F4F8FD] hover:text-[#071330]"
                       aria-label="Clear search"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
-                  ) : (
-                    <kbd className="hidden rounded-lg border border-[#C7D7F0] bg-[#F0F7FF] px-1.5 py-0.5 text-[10.5px] font-semibold text-[#475569] sm:inline-flex">
-                      ⌘K
-                    </kbd>
-                  )}
+                  ) : null}
                 </label>
 
-                <span className="mx-0.5 hidden h-5 w-px bg-[#C7D7F0] sm:block" aria-hidden />
-
                 <div
-                  className="relative w-[5.75rem] shrink-0 grow-0 sm:w-[180px] sm:max-w-[180px] sm:flex-none"
+                  className="relative hidden w-[148px] shrink-0 grow-0 sm:block sm:w-[168px]"
                   ref={areaRef}
                 >
                   {isGuest ? (
                     <>
                       <button
                         type="button"
-                        className="flex h-8 w-full items-center gap-0.5 rounded-lg px-1 text-left sm:h-9 sm:gap-1.5 sm:px-2"
+                        className="flex h-9 w-full items-center gap-1.5 rounded-[10px] border border-[#D7E3F4] bg-white px-2.5 text-left shadow-[0_1px_2px_rgba(7,19,48,0.04)]"
                         aria-expanded={areaOpen}
                         aria-haspopup="listbox"
                         aria-controls={guestMiddleListboxId}
@@ -1018,16 +1054,16 @@ export function Browse() {
                           }
                         }}
                       >
-                        <Clock className="h-3.5 w-3.5 shrink-0 text-[#334155]" aria-hidden />
+                        <Clock className="h-3.5 w-3.5 shrink-0 text-[#64748B]" aria-hidden />
                         <span
-                          className={`min-w-0 flex-1 truncate text-[11.5px] sm:text-[13px] ${
-                            guestMiddleIsDefault ? 'text-[#334155]' : 'font-medium text-[#071330]'
+                          className={`min-w-0 flex-1 truncate text-[13px] ${
+                            guestMiddleIsDefault ? 'text-[#64748B]' : 'font-medium text-[#071330]'
                           }`}
                         >
                           {guestMiddleLabel}
                         </span>
                         <ChevronDown
-                          className={`hidden h-3.5 w-3.5 shrink-0 text-[#475569] transition-transform sm:block ${
+                          className={`h-3.5 w-3.5 shrink-0 text-[#64748B] transition-transform ${
                             areaOpen ? 'rotate-180' : ''
                           }`}
                         />
@@ -1077,7 +1113,7 @@ export function Browse() {
                     <>
                       <button
                         type="button"
-                        className="flex h-8 w-full items-center gap-0.5 rounded-lg px-1 text-left sm:h-9 sm:gap-1.5 sm:px-2"
+                        className="flex h-9 w-full items-center gap-1.5 rounded-[10px] border border-[#D7E3F4] bg-white px-2.5 text-left shadow-[0_1px_2px_rgba(7,19,48,0.04)]"
                         aria-expanded={areaOpen}
                         aria-haspopup="listbox"
                         aria-controls="browse-radius-listbox"
@@ -1094,16 +1130,16 @@ export function Browse() {
                           }
                         }}
                       >
-                        <Crosshair className="h-3.5 w-3.5 shrink-0 text-[#334155]" aria-hidden />
+                        <Crosshair className="h-3.5 w-3.5 shrink-0 text-[#64748B]" aria-hidden />
                         <span
-                          className={`min-w-0 flex-1 truncate text-[11.5px] sm:text-[13px] ${
-                            radius === 'all' ? 'text-[#334155]' : 'font-medium text-[#071330]'
+                          className={`min-w-0 flex-1 truncate text-[13px] ${
+                            radius === 'all' ? 'text-[#64748B]' : 'font-medium text-[#071330]'
                           }`}
                         >
                           {radiusLabel}
                         </span>
                         <ChevronDown
-                          className={`hidden h-3.5 w-3.5 shrink-0 text-[#475569] transition-transform sm:block ${
+                          className={`h-3.5 w-3.5 shrink-0 text-[#64748B] transition-transform ${
                             areaOpen ? 'rotate-180' : ''
                           }`}
                         />
@@ -1148,15 +1184,13 @@ export function Browse() {
                   )}
                 </div>
 
-                <span className="mx-0.5 hidden h-5 w-px bg-[#C7D7F0] sm:block" aria-hidden />
-
                 <div
-                  className="relative w-[5.25rem] shrink-0 grow-0 sm:w-[150px] sm:max-w-[160px] sm:flex-none"
+                  className="relative w-[7.5rem] shrink-0 grow-0 sm:w-[150px] sm:max-w-[160px] sm:flex-none"
                   ref={sortRef}
                 >
                   <button
                     type="button"
-                    className="flex h-8 w-full items-center gap-0.5 rounded-lg px-1 text-left sm:h-9 sm:gap-1.5 sm:px-2"
+                    className="flex h-9 w-full items-center gap-1 rounded-[10px] border border-[#D7E3F4] bg-white px-2 text-left shadow-[0_1px_2px_rgba(7,19,48,0.04)] sm:gap-1.5 sm:px-2.5"
                     aria-expanded={sortOpen}
                     aria-haspopup="listbox"
                     aria-controls="browse-sort-listbox"
@@ -1174,12 +1208,12 @@ export function Browse() {
                       }
                     }}
                   >
-                    <ArrowUpDown className="h-3.5 w-3.5 shrink-0 text-[#334155]" aria-hidden />
+                    <ArrowUpDown className="h-3.5 w-3.5 shrink-0 text-[#64748B]" aria-hidden />
                     <span className="min-w-0 flex-1 truncate text-[11.5px] font-medium text-[#071330] sm:text-[13px]">
-                      {sortLabel}
+                      {`Sort: ${sortLabel.replace(/ first$/, '')}`}
                     </span>
                     <ChevronDown
-                      className={`hidden h-3.5 w-3.5 shrink-0 text-[#475569] transition-transform sm:block ${
+                      className={`hidden h-3.5 w-3.5 shrink-0 text-[#64748B] transition-transform sm:block ${
                         sortOpen ? 'rotate-180' : ''
                       }`}
                     />
@@ -1229,29 +1263,39 @@ export function Browse() {
                   aria-expanded={mobileFiltersOpen}
                   aria-controls="browse-mobile-filters-panel"
                   data-testid="browse-mobile-filters-trigger"
-                  className={`ml-0.5 inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-1.5 text-[11.5px] font-semibold transition sm:h-9 sm:gap-1.5 sm:px-2.5 sm:text-[12.5px] xl:hidden ${
+                  className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[10px] border px-2.5 text-[12.5px] font-semibold transition xl:hidden ${
                     mobileFiltersOpen || hasActiveFilters
-                      ? 'bg-[#1D5CE5] text-white'
-                      : 'text-[#475569] hover:bg-[#F0F7FF] hover:text-[#071330]'
+                      ? 'border-[#1D5CE5] bg-[#1D5CE5] text-white'
+                      : 'border-[#D7E3F4] bg-white text-[#071330] hover:bg-[#F4F8FD]'
                   }`}
                 >
                   <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
-                  <span className="sm:inline">Filters</span>
+                  Filters
                 </button>
               </div>
-              {mobileFiltersOpen ? (
+            </div>
+
+            {mobileFiltersOpen ? (
+              <div className="fixed inset-0 z-[80] xl:hidden" data-browse-filters-sheet="true">
+                <button
+                  type="button"
+                  className="absolute inset-0 bg-[#071330]/35"
+                  aria-label="Dismiss filters"
+                  onClick={closeMobileFilters}
+                />
                 <div
                   id="browse-mobile-filters-panel"
                   ref={mobileFiltersPanelRef}
-                  className="mt-2.5 xl:hidden"
+                  className="absolute inset-x-0 bottom-0 max-h-[min(88dvh,44rem)] outline-none"
                   data-testid="browse-mobile-filters-panel"
-                  role="region"
+                  role="dialog"
+                  aria-modal="true"
                   aria-label="Browse filters"
                 >
-                  {renderFiltersSidebar({ onDismiss: closeMobileFilters })}
+                  {renderFiltersSidebar({ onDismiss: closeMobileFilters, sheet: true })}
                 </div>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
 
             {hasActiveFilters ? (
               <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
@@ -1308,20 +1352,35 @@ export function Browse() {
                 ) : null}
               </>
             ) : showFilteredRequestsEmpty ? (
-              <EmptyState
-                title="No open requests match"
-                body="Try clearing filters or post a request for your neighborhood."
-                action={
+              <div
+                className="rounded-[12px] border border-[#D7E3F4] bg-white px-6 py-12 text-center shadow-[0_1px_2px_rgba(7,19,48,0.04)]"
+                data-testid="browse-filtered-empty"
+              >
+                <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#F4F8FD] text-[#1D5CE5]">
+                  <Search className="h-5 w-5" strokeWidth={2} aria-hidden />
+                </span>
+                <h3 className="mt-4 text-[17px] font-bold text-[#071330]">No open requests match</h3>
+                <p className="mx-auto mt-2 max-w-md text-[13.5px] font-medium leading-relaxed text-[#64748B]">
+                  {filteredEmptyBody}
+                </p>
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="inline-flex h-9 items-center justify-center rounded-lg bg-[#1D5CE5] px-4 text-[13px] font-semibold text-white transition hover:bg-[#1649BD]"
+                    className="inline-flex h-10 items-center justify-center rounded-[10px] bg-[#1D5CE5] px-4 text-[13px] font-semibold text-white transition hover:bg-[#1649BD]"
                     data-testid="browse-reset-filters"
                   >
                     Reset filters
                   </button>
-                }
-              />
+                  <Link
+                    href="/post"
+                    className="inline-flex h-10 items-center justify-center rounded-[10px] border border-[#1D5CE5] bg-white px-4 text-[13px] font-semibold text-[#1D5CE5] transition hover:bg-[#F4F8FD]"
+                    data-testid="browse-empty-post-cta"
+                  >
+                    Post a request
+                  </Link>
+                </div>
+              </div>
             ) : tab === 'requests' ? (
               <div className="grid grid-cols-1 content-start items-start gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
                 {openRequests.map((request) => (
@@ -1392,9 +1451,7 @@ function WhenChipRow({
 }) {
   return (
     <div className="space-y-2">
-      <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#334155]">
-        When
-      </p>
+      <p className="px-0.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B]">Timing</p>
       <div className="flex flex-wrap gap-1.5">
         {WHEN_FILTER_OPTIONS.map((opt) => {
           const active = current === opt.id
@@ -1403,17 +1460,15 @@ function WhenChipRow({
               key={opt.id}
               type="button"
               onClick={() => onSelect(opt.id)}
-              className={`inline-flex h-7 items-center gap-1 rounded-lg px-2.5 text-[12px] font-medium transition ${
+              className={`inline-flex h-8 items-center gap-1 rounded-[10px] px-2.5 text-[12px] font-semibold transition ${
                 active
-                  ? opt.id === 'asap'
-                    ? 'bg-[#FEF08A] font-semibold text-[#071330]'
-                    : 'bg-[#DBEAFE] font-semibold text-[#1D5CE5]'
-                  : 'bg-[#F0F7FF] text-[#475569] hover:bg-[#E8F1FC] hover:text-[#071330]'
+                  ? 'bg-[#071330] text-white'
+                  : 'border border-[#D7E3F4] bg-white text-[#071330] hover:bg-[#F4F8FD]'
               }`}
             >
               {opt.id === 'asap' ? (
                 <Zap
-                  className={`h-3 w-3 ${active ? 'text-[#CA8A04]' : 'text-[#1D5CE5]'}`}
+                  className={`h-3 w-3 ${active ? 'text-white' : 'text-[#1D5CE5]'}`}
                   strokeWidth={2.25}
                   aria-hidden
                 />
@@ -1436,7 +1491,7 @@ function AvailChipRow({
 }) {
   return (
     <div className="space-y-2">
-      <p className="px-0.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#334155]">
+      <p className="px-0.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B]">
         Availability
       </p>
       <div className="flex flex-wrap gap-1.5">
@@ -1447,10 +1502,10 @@ function AvailChipRow({
               key={opt.id}
               type="button"
               onClick={() => onSelect(opt.id)}
-              className={`inline-flex h-7 items-center rounded-md px-2.5 text-[12px] font-medium transition ${
+              className={`inline-flex h-8 items-center rounded-[10px] px-2.5 text-[12px] font-semibold transition ${
                 active
-                  ? 'bg-[#DBEAFE] font-semibold text-[#1D5CE5]'
-                  : 'bg-[#F0F7FF] text-[#475569] hover:bg-[#E8F1FC] hover:text-[#071330]'
+                  ? 'bg-[#071330] text-white'
+                  : 'border border-[#D7E3F4] bg-white text-[#071330] hover:bg-[#F4F8FD]'
               }`}
             >
               {opt.label}
@@ -1481,15 +1536,17 @@ function CategoryRow({
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-[13px] transition ${
+      className={`flex w-full items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-left text-[13px] transition ${
         active
-          ? 'bg-[#DBEAFE] font-bold text-[#1D5CE5]'
-          : 'font-semibold text-[#334155] hover:bg-[#F0F7FF] hover:text-[#071330]'
+          ? 'bg-[#F4F8FD] font-bold text-[#1D5CE5]'
+          : 'font-semibold text-[#334155] hover:bg-[#F4F8FD] hover:text-[#071330]'
       }`}
     >
       <span
-        className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
-          active ? 'bg-[#1D5CE5] text-white shadow-[0_1px_3px_rgba(29,92,229,0.35)]' : 'bg-[#DBEAFE] text-[#1D5CE5]'
+        className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] ${
+          active
+            ? 'bg-[#1D5CE5] text-white shadow-[0_1px_3px_rgba(29,92,229,0.35)]'
+            : 'bg-[#F4F8FD] text-[#1D5CE5]'
         }`}
         style={tint && !active ? { color: tint } : undefined}
       >
@@ -1498,7 +1555,7 @@ function CategoryRow({
       <span className="min-w-0 flex-1 truncate">{label}</span>
       <span
         className={`inline-flex min-w-[1.25rem] items-center justify-center text-[11px] font-semibold tabular-nums ${
-          active ? 'text-[#1D5CE5]' : 'text-[#334155]'
+          active ? 'text-[#1D5CE5]' : 'text-[#64748B]'
         }`}
       >
         {count}

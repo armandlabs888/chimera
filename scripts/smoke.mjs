@@ -705,7 +705,7 @@ async function checkLandingBrowser() {
       landingNav: !!document.querySelector('[data-testid="landing-nav"]'),
       commandSearch: !!document.querySelector('#app-command-search'),
       browseSearch: [...document.querySelectorAll('input')].filter((i) =>
-        /Search titles|Search requests|Search tasks/i.test(i.placeholder || ''),
+        /Search titles|Search requests|Search tasks|Search jobs/i.test(i.placeholder || ''),
       ).length,
       neighborhoodTrigger: !!document.querySelector('[data-testid="browse-neighborhood-trigger"]'),
       whenDefault:
