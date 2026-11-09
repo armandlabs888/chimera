@@ -5,8 +5,8 @@ import Image from 'next/image'
  * Clearly labeled SAMPLE jobs — never presented as live marketplace data.
  */
 /**
- * Preview-only photos. Prefer full-size unused assets so smoke naturalWidth ≥250
- * while staying unique vs Popular (crew + petcare) and Available six-grid.
+ * Category-matched sample photos (must look like the job). Paths are unique
+ * within this preview; may overlap marketing sections (smoke excludes preview).
  */
 const SAMPLE_JOBS = [
   {
@@ -14,49 +14,49 @@ const SAMPLE_JOBS = [
     category: 'House Cleaning',
     title: 'Deep clean after move-out',
     meta: 'Today · Sample area',
-    src: '/images/landing/step-01-post.jpg',
+    src: '/images/landing/avail-house-cleaning.jpg',
   },
   {
     id: 'auto',
     category: 'Auto Detailing',
     title: 'Interior wipe for weekend trip',
     meta: 'Tomorrow · Sample area',
-    src: '/images/landing/step-02-offers.jpg',
+    src: '/images/landing/avail-auto-detailing.jpg',
   },
   {
     id: 'pets',
     category: 'Pet Sitting',
     title: 'Afternoon walk · 2 dogs',
     meta: 'This week · Sample area',
-    src: '/images/landing/step-03-finish.jpg',
+    src: '/images/landing/avail-pet-sitting.jpg',
   },
   {
     id: 'junk',
     category: 'Junk Removal',
     title: 'Haul old dresser to curb',
     meta: 'ASAP · Sample area',
-    src: '/images/landing/service-moving.jpg',
+    src: '/images/landing/avail-junk-removal.jpg',
   },
   {
     id: 'carpet',
     category: 'Carpet Cleaning',
     title: 'Living room rug refresh',
     meta: 'Today · Sample area',
-    src: '/images/landing/why-beam-dresser.jpg',
+    src: '/images/landing/avail-carpet-cleaning.jpg',
   },
   {
     id: 'groom',
     category: 'Grooming',
     title: 'Bath for medium dog',
     meta: 'Tomorrow · Sample area',
-    src: '/images/landing/auth-showcase.jpg',
+    src: '/images/landing/avail-grooming.jpg',
   },
 ] as const
 
 export function LandingBrowsePreview() {
   return (
     <div
-      className="relative z-0 mx-auto -mt-2 max-w-[1200px] px-4 pb-8 md:mt-4 md:px-8 md:pb-10"
+      className="relative z-0 mx-auto mt-8 max-w-[1200px] px-4 pb-8 md:mt-12 md:px-8 md:pb-10"
       data-testid="landing-browse-preview"
     >
       <div

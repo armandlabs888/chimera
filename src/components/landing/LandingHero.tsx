@@ -299,7 +299,7 @@ export function LandingHero() {
             </div>
           </form>
 
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5 pb-2 md:pb-0">
             <Link
               href="/post"
               className="inline-flex h-10 items-center rounded-[10px] bg-[#071330] px-5 text-[14px] font-semibold text-white transition-colors hover:bg-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"

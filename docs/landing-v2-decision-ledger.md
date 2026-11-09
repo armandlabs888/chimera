@@ -22,7 +22,7 @@
 ## Deviations
 
 1. **Beam logo** — keep existing `BeamWordmark` (not generic lowercase text-only).
-2. **Preview photos** — different assets than Available grid to preserve uniqueness smoke lock (mockup reused avail-* URLs).
+2. **Preview photos** — category-matched `avail-*.jpg` (House Cleaning crew, Auto detailing, Pet sitting, Junk haul, Carpet vacuum, Grooming bath). Smoke excludes preview from uniqueness so marketing grids stay unique; preview paths are unique within the frame.
 3. **Popular cleaning** — still orange-crew `avail-house-cleaning.jpg` (prior Paper uniqueness lock vs kitchen shot in Available).
 4. **Guest browse header** — not floating; floating is landing-route only.
 5. **How-it-works interactive demos** — removed; QA updated to static steps.

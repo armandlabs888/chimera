@@ -83,6 +83,16 @@
   z-index: 1;
 }
 
+/* Ghost frames create the desktop stack; hide on small screens so they
+   don't collide with hero CTAs above the preview. */
+@media (max-width: 767px) {
+  .landing-preview-stack::before,
+  .landing-preview-stack::after {
+    content: none;
+    display: none;
+  }
+}
+
 .landing-float-nav {
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(20px) saturate(1.35);
