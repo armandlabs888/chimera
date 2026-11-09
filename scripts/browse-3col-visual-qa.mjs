@@ -113,8 +113,11 @@ async function main() {
       await shot(page, 'browse-3col-requests-1440x900.png')
       summary.checks.push({ name: 'requests-1440', ok: true, metrics: m })
 
-      // Active category + distance filter (demo signed-in)
-      await page.getByRole('button', { name: /^Moving/ }).first().click()
+      // Active parent category + distance filter (demo signed-in)
+      await page
+        .locator('[data-testid="browse-filters-sidebar"]')
+        .getByRole('button', { name: /^Home\b/ })
+        .click()
       const radius = page.getByTestId('browse-radius-trigger')
       if ((await radius.count()) > 0) {
         await radius.click()

@@ -69,7 +69,7 @@ async function main() {
       await seedDemo(page)
       await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
       await page.getByRole('button', { name: 'Filters' }).click()
-      const mobileFilters = page.locator('[data-testid="browse-command-bar"]')
+      const mobileFilters = page.locator('[data-testid="browse-mobile-filters-panel"]')
       await mobileFilters.getByTestId('browse-filters-reset').waitFor({ state: 'visible', timeout: 10000 })
       await mobileFilters.getByText('All categories', { exact: true }).waitFor({ state: 'visible' })
       for (const label of ['Home', 'Auto', 'Junk Removal', 'Pets', 'Other']) {
