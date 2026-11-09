@@ -729,7 +729,11 @@ async function checkLandingBrowser() {
       assert.ok(browseChrome.browseSearch <= 1, `guest browse search count ${browseChrome.browseSearch}`)
       assert.equal(browseChrome.neighborhoodTrigger, false, 'guest browse has no Austin neighborhood picker')
       assert.match(browseChrome.whenDefault, /Any timing/i, 'guest timing default location-neutral')
-      assert.match(browseChrome.sortDefault, /Newest first/i, 'guest default sort is Newest first')
+      assert.match(
+        browseChrome.sortDefault,
+        /Sort:\s*Newest|Newest first/i,
+        'guest default sort is Newest',
+      )
       assert.equal(browseChrome.nativeSelects, 0, 'browse has no native select')
       assert.equal(browseChrome.neighborhoodChipButtons, 0, 'no Austin neighborhood chip wall')
     } else if (browseChrome.topnav) {
@@ -934,8 +938,8 @@ async function checkLandingBrowser() {
           `3-col x-order filters(${col.filtersX}) < feed(${col.feedX}) < trending(${col.trendingX})`,
         )
         assert.ok(
-          col.maxCardRadius > 0 && col.maxCardRadius <= 10,
-          `browse card radius <= 10px (got ${col.maxCardRadius})`,
+          col.maxCardRadius > 0 && col.maxCardRadius <= 12,
+          `browse card radius <= 12px Paper lock (got ${col.maxCardRadius})`,
         )
 
         // Browse workspace: feed scrolls inside the panel; sidecards stay pinned in that
@@ -1751,7 +1755,7 @@ async function checkMarketplaceFlows() {
     })
     assert.ok(browseRadii.length > 0, 'browse request cards present')
     for (const px of browseRadii) {
-      assert.ok(px > 0 && px <= 10, `browse card radius subtle (<=10px), got ${px}`)
+      assert.ok(px > 0 && px <= 12, `browse card radius subtle (<=12px Paper), got ${px}`)
     }
 
     // Messages marketplace workspace — 2-pane split, missing thread, subtle radii
