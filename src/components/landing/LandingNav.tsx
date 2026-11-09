@@ -11,14 +11,16 @@ export function LandingNav({
   variant = 'hero',
   browseLocationLabel,
 }: {
-  variant?: 'hero' | 'light'
+  /** `float` = Landing v2 glass pill (landing route only). `light`/`hero` = guest browse shell. */
+  variant?: 'hero' | 'light' | 'float'
   /** Guest Browse: reuse topnav location control without a page eyebrow. */
   browseLocationLabel?: string
 }) {
   const { authUser, mode, currentUser, signOut } = useBeam()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const light = variant === 'light' || scrolled
+  const isFloat = variant === 'float'
+  const light = variant === 'light' || variant === 'float' || scrolled
   const signedInLive = mode === 'live' && Boolean(authUser)
   const onboardingDone = Boolean(currentUser?.onboardingCompletedAt)
   const canOnboardHelper = Boolean(authUser) || mode === 'demo'
@@ -38,7 +40,7 @@ export function LandingNav({
   )
 
   useEffect(() => {
-    if (variant === 'light') return
+    if (variant !== 'hero') return
     function onScroll() {
       setScrolled(window.scrollY > 40)
     }
@@ -55,20 +57,212 @@ export function LandingNav({
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
-  const linkClass = light
-    ? 'text-[15px] font-medium text-[#475569] transition hover:text-[#071330]'
-    : 'text-[15px] font-medium text-white/90 transition hover:text-white'
+  const linkClass = isFloat
+    ? 'text-[14px] font-medium text-[#071330] transition-colors hover:text-[#1D5CE5]'
+    : light
+      ? 'text-[15px] font-medium text-[#475569] transition hover:text-[#071330]'
+      : 'text-[15px] font-medium text-white/90 transition hover:text-white'
 
-  const loginClass = light
-    ? 'hidden text-[15px] font-medium text-[#071330] transition hover:text-[#1D5CE5] sm:inline'
-    : 'hidden text-[15px] font-medium text-white transition hover:text-white/85 sm:inline'
+  const loginClass = isFloat
+    ? 'hidden text-[13px] font-medium text-[#071330] transition hover:text-[#1D5CE5] sm:inline'
+    : light
+      ? 'hidden text-[15px] font-medium text-[#071330] transition hover:text-[#1D5CE5] sm:inline'
+      : 'hidden text-[15px] font-medium text-white transition hover:text-white/85 sm:inline'
 
-  const ctaClass = light
-    ? 'hidden h-9 min-h-11 items-center justify-center rounded-[10px] bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD] sm:inline-flex sm:min-h-9'
-    : 'hidden h-9 min-h-11 items-center justify-center rounded-[10px] bg-white px-4 text-[13.5px] font-semibold text-[#1D5CE5] transition hover:bg-blue-50 sm:inline-flex sm:min-h-9'
+  const ctaClass = isFloat
+    ? 'inline-flex h-9 min-h-11 items-center justify-center rounded-[10px] bg-[#071330] px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D5CE5] sm:min-h-9'
+    : light
+      ? 'hidden h-9 min-h-11 items-center justify-center rounded-[10px] bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD] sm:inline-flex sm:min-h-9'
+      : 'hidden h-9 min-h-11 items-center justify-center rounded-[10px] bg-white px-4 text-[13.5px] font-semibold text-[#1D5CE5] transition hover:bg-blue-50 sm:inline-flex sm:min-h-9'
 
   const primaryHref = onboardingDone ? '/browse' : '/onboarding'
   const primaryLabel = onboardingDone ? 'Browse' : 'Continue setup'
+
+  const bar = (
+    <>
+      <Link href="/" className="relative z-10 pl-1">
+        <BeamWordmark
+          tone={light ? 'ink' : 'white'}
+          markWidth={18}
+          markHeight={18}
+          wordClassName={
+            isFloat
+              ? 'text-[20px] font-bold tracking-[-0.03em] text-[#1D5CE5]'
+              : 'text-[18px] font-bold tracking-[-0.025em]'
+          }
+        />
+      </Link>
+
+      <nav
+        className={`hidden items-center lg:flex ${isFloat ? 'gap-6' : 'gap-8'}`}
+        aria-label="Marketing"
+      >
+        {navLinks.map((l) =>
+          l.href.startsWith('/#') ? (
+            <a key={l.href} href={l.href} className={linkClass}>
+              {l.label}
+            </a>
+          ) : (
+            <Link key={l.href} href={l.href} className={linkClass}>
+              {l.label}
+            </Link>
+          ),
+        )}
+      </nav>
+
+      <div className={`flex items-center ${isFloat ? 'gap-2 md:gap-3' : 'gap-3 sm:gap-5'}`}>
+        {browseLocationLabel ? (
+          <BrowseLocationTrigger
+            label={browseLocationLabel}
+            className={`inline-flex h-9 max-w-[9.5rem] items-center gap-1.5 rounded-[10px] px-2 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:px-2.5 ${
+              isFloat
+                ? 'border border-[#D7E0EC]/80 bg-white/70 text-[#071330] hover:bg-white'
+                : light
+                  ? 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#071330]'
+                  : 'text-white/90 hover:bg-white/10 hover:text-white'
+            }`}
+          />
+        ) : null}
+        {signedInLive ? (
+          <>
+            <button
+              type="button"
+              className={loginClass}
+              data-testid="landing-sign-out"
+              onClick={() => void signOut()}
+            >
+              Sign out
+            </button>
+            <Link href={primaryHref} className={ctaClass} data-testid="landing-nav-primary">
+              {primaryLabel}
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link href="/auth?mode=signin" className={loginClass}>
+              Log in
+            </Link>
+            <Link
+              href="/auth?mode=signup&next=%2Fonboarding"
+              className={ctaClass}
+              data-testid="landing-nav-signup"
+            >
+              Sign up
+            </Link>
+          </>
+        )}
+        <button
+          type="button"
+          className={`inline-flex h-9 w-9 items-center justify-center rounded-[10px] border lg:hidden ${
+            isFloat
+              ? 'border-[#D7E0EC]/80 bg-white/70 text-[#071330]'
+              : light
+                ? 'border-[#E2E8F0] text-[#071330]'
+                : 'border-white/30 text-white'
+          }`}
+          aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={mobileOpen}
+          onClick={() => setMobileOpen((v) => !v)}
+        >
+          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
+    </>
+  )
+
+  const mobileMenu = mobileOpen ? (
+    <div
+      className={`relative z-50 overflow-hidden rounded-[12px] border border-[rgba(7,19,48,0.12)] bg-white shadow-[0_18px_40px_-12px_rgba(12,42,102,0.28)] lg:hidden ${
+        isFloat ? 'mx-0 mt-2' : 'mx-4 mb-3'
+      }`}
+      data-testid="landing-mobile-menu"
+    >
+      <div className="flex flex-col py-2">
+        {navLinks.map((l) =>
+          l.href.startsWith('/#') ? (
+            <a
+              key={l.href}
+              href={l.href}
+              className="px-4 py-3 text-[15px] text-[#071330]"
+              onClick={() => setMobileOpen(false)}
+            >
+              {l.label}
+            </a>
+          ) : (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="px-4 py-3 text-[15px] text-[#071330]"
+              onClick={() => setMobileOpen(false)}
+            >
+              {l.label}
+            </Link>
+          ),
+        )}
+        <div className="my-1 border-t border-[rgba(7,19,48,0.08)]" />
+        {signedInLive ? (
+          <>
+            <button
+              type="button"
+              className="px-4 py-3 text-left text-[15px] text-[#071330]"
+              data-testid="landing-mobile-sign-out"
+              onClick={() => {
+                setMobileOpen(false)
+                void signOut()
+              }}
+            >
+              Sign out
+            </button>
+            <div className="px-4 pb-3 pt-1">
+              <Link
+                href={primaryHref}
+                className="inline-flex h-9 w-full items-center justify-center rounded-[10px] bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white transition hover:bg-[#1649BD]"
+                data-testid="landing-mobile-primary"
+                onClick={() => setMobileOpen(false)}
+              >
+                {primaryLabel}
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <Link
+              href="/auth?mode=signin"
+              className="px-4 py-3 text-[15px] text-[#071330]"
+              onClick={() => setMobileOpen(false)}
+            >
+              Log in
+            </Link>
+            <div className="px-4 pb-3 pt-1">
+              <Link
+                href="/auth?mode=signup&next=%2Fonboarding"
+                className="inline-flex h-9 w-full items-center justify-center rounded-[10px] bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white transition hover:bg-[#1649BD]"
+                data-testid="landing-mobile-signup"
+                onClick={() => setMobileOpen(false)}
+              >
+                Sign up
+              </Link>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  ) : null
+
+  if (isFloat) {
+    return (
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-50 px-4 pt-4 md:px-8 md:pt-5">
+        <header
+          className="landing-float-nav pointer-events-auto mx-auto flex h-14 max-w-[1120px] items-center justify-between rounded-[16px] border border-white/70 px-3 shadow-[0_8px_28px_rgba(7,19,48,0.10),0_1px_2px_rgba(7,19,48,0.04)] md:px-4"
+          data-testid="landing-nav"
+          data-nav-style="float"
+        >
+          {bar}
+        </header>
+        <div className="pointer-events-auto mx-auto max-w-[1120px]">{mobileMenu}</div>
+      </div>
+    )
+  }
 
   return (
     <header
@@ -81,165 +275,8 @@ export function LandingNav({
       }`}
       data-testid="landing-nav"
     >
-      <div className="beam-container flex h-14 items-center justify-between lg:h-16">
-        <Link href="/" className="relative z-10">
-          <BeamWordmark
-            tone={light ? 'ink' : 'white'}
-            markWidth={18}
-            markHeight={18}
-            wordClassName="text-[18px] font-bold tracking-[-0.025em]"
-          />
-        </Link>
-
-        <nav className="hidden items-center gap-8 lg:flex" aria-label="Marketing">
-          {navLinks.map((l) =>
-            l.href.startsWith('/#') ? (
-              <a key={l.href} href={l.href} className={linkClass}>
-                {l.label}
-              </a>
-            ) : (
-              <Link key={l.href} href={l.href} className={linkClass}>
-                {l.label}
-              </Link>
-            ),
-          )}
-        </nav>
-
-        <div className="flex items-center gap-3 sm:gap-5">
-          {browseLocationLabel ? (
-            <BrowseLocationTrigger
-              label={browseLocationLabel}
-              className={`inline-flex h-9 max-w-[9.5rem] items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:px-2.5 ${
-                light
-                  ? 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#071330]'
-                  : 'text-white/90 hover:bg-white/10 hover:text-white'
-              }`}
-            />
-          ) : null}
-          {signedInLive ? (
-            <>
-              <button
-                type="button"
-                className={loginClass}
-                data-testid="landing-sign-out"
-                onClick={() => void signOut()}
-              >
-                Sign out
-              </button>
-              <Link
-                href={primaryHref}
-                className={ctaClass}
-                data-testid="landing-nav-primary"
-              >
-                {primaryLabel}
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link href="/auth?mode=signin" className={loginClass}>
-                Log in
-              </Link>
-              <Link
-                href="/auth?mode=signup&next=%2Fonboarding"
-                className={ctaClass}
-                data-testid="landing-nav-signup"
-              >
-                Sign up
-              </Link>
-            </>
-          )}
-          <button
-            type="button"
-            className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border lg:hidden ${
-              light
-                ? 'border-[#E2E8F0] text-[#071330]'
-                : 'border-white/30 text-white'
-            }`}
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((v) => !v)}
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-      </div>
-
-      {mobileOpen ? (
-        <div
-          className="relative z-50 mx-4 mb-3 overflow-hidden rounded-lg border border-[rgba(7,19,48,0.12)] bg-white shadow-[0_18px_40px_-12px_rgba(12,42,102,0.28)] lg:hidden"
-          data-testid="landing-mobile-menu"
-        >
-          <div className="flex flex-col py-2">
-            {navLinks.map((l) =>
-              l.href.startsWith('/#') ? (
-                <a
-                  key={l.href}
-                  href={l.href}
-                  className="px-4 py-3 text-[15px] text-[#071330]"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {l.label}
-                </a>
-              ) : (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className="px-4 py-3 text-[15px] text-[#071330]"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {l.label}
-                </Link>
-              ),
-            )}
-            <div className="my-1 border-t border-[rgba(7,19,48,0.08)]" />
-            {signedInLive ? (
-              <>
-                <button
-                  type="button"
-                  className="px-4 py-3 text-left text-[15px] text-[#071330]"
-                  data-testid="landing-mobile-sign-out"
-                  onClick={() => {
-                    setMobileOpen(false)
-                    void signOut()
-                  }}
-                >
-                  Sign out
-                </button>
-                <div className="px-4 pb-3 pt-1">
-                  <Link
-                    href={primaryHref}
-                    className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white transition hover:bg-[#1649BD]"
-                    data-testid="landing-mobile-primary"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {primaryLabel}
-                  </Link>
-                </div>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/auth?mode=signin"
-                  className="px-4 py-3 text-[15px] text-[#071330]"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Log in
-                </Link>
-                <div className="px-4 pb-3 pt-1">
-                  <Link
-                    href="/auth?mode=signup&next=%2Fonboarding"
-                    className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white transition hover:bg-[#1649BD]"
-                    data-testid="landing-mobile-signup"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Sign up
-                  </Link>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      ) : null}
+      <div className="beam-container flex h-14 items-center justify-between lg:h-16">{bar}</div>
+      {mobileMenu}
     </header>
   )
 }

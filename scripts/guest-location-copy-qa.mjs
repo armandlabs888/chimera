@@ -279,8 +279,11 @@ try {
     }
     // Timing lives in Filters sidebar (xl) or mobile Filters sheet.
     const filtersBtn = page.getByRole('button', { name: 'Filters' })
+    let openedMobileFilters = false
     if ((await filtersBtn.count()) > 0 && (await filtersBtn.isVisible())) {
       await filtersBtn.click()
+      openedMobileFilters = true
+      await page.getByTestId('browse-mobile-filters-panel').waitFor({ state: 'visible', timeout: 10000 })
     }
     const whenInFilters = page.getByRole('button', { name: /^ASAP$/ })
     if ((await whenInFilters.count()) < 1) {
@@ -291,6 +294,11 @@ try {
       if ((await page.getByRole('button', { name: new RegExp(bad) }).count()) > 0) {
         throw new Error(`Guest browse still exposes legacy category "${bad}" @ ${vp.name}`)
       }
+    }
+    // Close mobile sheet before interacting with sort (backdrop intercepts clicks).
+    if (openedMobileFilters) {
+      await page.keyboard.press('Escape')
+      await page.getByTestId('browse-mobile-filters-panel').waitFor({ state: 'detached', timeout: 5000 })
     }
 
     const sortTrigger = page.getByTestId('browse-sort-trigger')

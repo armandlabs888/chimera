@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beam — Local help, made easy (Landing v2)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: '#071330',
+            beam: '#1D5CE5',
+            'beam-deep': '#1649BD',
+            sky: '#38BDF8',
+            tint: '#F4F8FD',
+            muted: '#475569',
+            place: '#94A3B8',
+            line: '#D7E0EC',
+          },
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+          maxWidth: { content: '1200px', nav: '1120px' },
+          borderRadius: { control: '10px', card: '12px', float: '16px' },
+          boxShadow: {
+            float: '0 8px 28px rgba(7,19,48,0.10), 0 1px 2px rgba(7,19,48,0.04)',
+            search: '0 16px 40px rgba(12,42,102,0.14)',
+            preview: '0 32px 80px rgba(7,19,48,0.22), 0 8px 24px rgba(7,19,48,0.10)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #071330; }
+    .hero-atmosphere {
+      background:
+        radial-gradient(ellipse 80% 60% at 12% 22%, rgba(56,189,248,0.55) 0%, transparent 62%),
+        radial-gradient(ellipse 70% 55% at 88% 12%, rgba(29,92,229,0.42) 0%, transparent 58%),
+        radial-gradient(ellipse 55% 45% at 48% 8%, rgba(125,211,252,0.45) 0%, transparent 55%),
+        radial-gradient(ellipse 65% 50% at 72% 68%, rgba(29,92,229,0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 30% 78%, rgba(7,19,48,0.12) 0%, transparent 55%),
+        linear-gradient(180deg, #F7FBFF 0%, #E8F3FF 35%, #D4E7FF 70%, #BFD9FB 100%);
+    }
+    .hero-noise {
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+      opacity: 0.05;
+      mix-blend-mode: multiply;
+      pointer-events: none;
+    }
+    .hero-grid {
+      background-image:
+        linear-gradient(rgba(29,92,229,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(29,92,229,0.035) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse 55% 45% at 50% 35%, #000 10%, transparent 70%);
+      pointer-events: none;
+    }
+    .headline-grad {
+      background: linear-gradient(105deg, #071330 0%, #071330 42%, #1D5CE5 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .cloud {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(64px);
+      pointer-events: none;
+    }
+    .preview-stack { position: relative; }
+    .preview-stack::before,
+    .preview-stack::after {
+      content: "";
+      position: absolute;
+      left: 3%;
+      right: 3%;
+      height: 100%;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(215,224,236,0.7);
+      pointer-events: none;
+    }
+    .preview-stack::before { top: -22px; transform: scale(0.94); z-index: 0; box-shadow: 0 16px 36px rgba(7,19,48,0.08); background: rgba(255,255,255,0.4); }
+    .preview-stack::after { top: -11px; transform: scale(0.97); z-index: 0; background: rgba(255,255,255,0.7); box-shadow: 0 10px 24px rgba(7,19,48,0.06); }
+    .preview-stack > .preview-card { position: relative; z-index: 1; }
+    .float-nav {
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(20px) saturate(1.35);
+      -webkit-backdrop-filter: blur(20px) saturate(1.35);
+    }
+  </style>
+</head>
+<body class="bg-white text-navy antialiased">
+  <!-- FLOATING HEADER -->
+  <div class="pointer-events-none fixed inset-x-0 top-0 z-50 px-4 pt-4 md:px-8 md:pt-5">
+    <header class="pointer-events-auto float-nav mx-auto flex h-14 max-w-nav items-center justify-between rounded-float border border-white/70 px-3 shadow-float md:px-4">
+      <a href="#" class="pl-1 text-[20px] font-bold tracking-[-0.03em] text-beam">beam</a>
+      <nav class="hidden items-center gap-6 text-[14px] font-medium text-navy lg:flex">
+        <a href="#services" class="transition-colors hover:text-beam">Services</a>
+        <a href="#how" class="transition-colors hover:text-beam">How it works</a>
+        <a href="#find" class="transition-colors hover:text-beam">Find work</a>
+      </nav>
+      <div class="flex items-center gap-2 md:gap-3">
+        <button type="button" class="hidden items-center gap-1.5 rounded-control border border-line/80 bg-white/70 px-2.5 py-1.5 text-[12px] font-medium text-navy sm:inline-flex">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-5.2 7-11a7 7 0 10-14 0c0 5.8 7 11 7 11z" stroke="#1D5CE5" stroke-width="2"/><circle cx="12" cy="10" r="2.5" stroke="#1D5CE5" stroke-width="2"/></svg>
+          San Jose, CA
+        </button>
+        <a href="#" class="hidden text-[13px] font-medium text-navy sm:inline">Log in</a>
+        <a href="#" class="inline-flex h-9 items-center rounded-control bg-navy px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-beam">Sign up</a>
+        <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-control border border-line/80 bg-white/70 text-navy lg:hidden" aria-label="Menu">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </header>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero-atmosphere relative overflow-hidden pb-0 pt-[96px] md:pt-[112px]">
+    <div class="hero-noise absolute inset-0" aria-hidden="true"></div>
+    <div class="hero-grid absolute inset-0" aria-hidden="true"></div>
+    <div class="cloud -left-24 top-16 h-80 w-80 bg-sky/50 md:h-[28rem] md:w-[28rem]" aria-hidden="true"></div>
+    <div class="cloud -right-16 top-0 h-96 w-96 bg-beam/35 md:h-[32rem] md:w-[32rem]" aria-hidden="true"></div>
+    <div class="cloud bottom-24 left-[20%] h-64 w-64 bg-[#7DD3FC]/35" aria-hidden="true"></div>
+    <div class="cloud bottom-40 right-[18%] h-72 w-72 bg-navy/15" aria-hidden="true"></div>
+
+    <div class="relative z-10 mx-auto max-w-content px-5 text-center md:px-8">
+      <p class="text-[12px] font-semibold uppercase tracking-[0.08em] text-beam">Local services · Real everyday help</p>
+      <h1 class="headline-grad mx-auto mt-3 max-w-[15ch] text-[44px] font-extrabold leading-[1.02] tracking-[-0.045em] md:text-[72px]">Local help, made easy.</h1>
+      <p class="mx-auto mt-4 max-w-[46ch] text-[15px] leading-6 text-muted md:text-[17px] md:leading-7">Describe the job, compare offers, and choose the help that fits — for your neighborhood.</p>
+
+      <form class="mx-auto mt-7 w-full max-w-[740px] text-left" action="#" onsubmit="return false;">
+        <div class="flex flex-col gap-2 rounded-control border border-white/80 bg-white/95 p-1.5 shadow-search backdrop-blur sm:flex-row sm:items-center sm:gap-0 sm:p-2">
+          <label class="flex min-w-0 flex-1 items-center gap-2.5 rounded-[8px] px-3 py-2.5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="#1D5CE5" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="#1D5CE5" stroke-width="2" stroke-linecap="round"/></svg>
+            <span class="sr-only">What help do you need?</span>
+            <input type="text" placeholder="What help do you need?" class="min-w-0 flex-1 bg-transparent text-[15px] text-navy outline-none placeholder:text-place" />
+          </label>
+          <span class="mx-1 hidden h-7 w-px bg-line sm:block" aria-hidden="true"></span>
+          <button type="button" class="flex min-w-0 flex-1 items-center gap-2.5 rounded-[8px] px-3 py-2.5 text-left">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2" stroke="#1D5CE5" stroke-width="2"/><path d="M8 9h8M8 13h5" stroke="#1D5CE5" stroke-width="2" stroke-linecap="round"/></svg>
+            <span class="min-w-0 flex-1 truncate text-[15px] text-place">All categories</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+          <button type="submit" class="h-11 shrink-0 rounded-control bg-beam px-6 text-[15px] font-semibold text-white transition-colors hover:bg-beam-deep sm:ml-1">Find help</button>
+        </div>
+      </form>
+      <div class="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+        <a href="#" class="inline-flex h-10 items-center rounded-control bg-navy px-5 text-[14px] font-semibold text-white transition-colors hover:bg-beam">Post a task</a>
+        <a href="#services" class="inline-flex h-10 items-center rounded-control border border-line bg-white/85 px-5 text-[14px] font-semibold text-navy backdrop-blur transition-colors hover:border-beam hover:text-beam">Browse services</a>
+      </div>
+    </div>
+
+    <!-- STACKED PREVIEW overlapping hero -->
+    <div class="relative z-10 mx-auto mt-12 max-w-content px-4 pb-8 md:mt-16 md:px-8 md:pb-10">
+      <div class="preview-stack mx-auto max-w-[1080px]">
+        <div class="preview-card overflow-hidden rounded-float border border-line/90 bg-white shadow-preview">
+          <div class="flex items-center gap-3 border-b border-line bg-[#F8FAFC] px-3 py-2">
+            <div class="flex gap-1.5" aria-hidden="true">
+              <span class="h-2.5 w-2.5 rounded-full bg-[#FF5F57]"></span>
+              <span class="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]"></span>
+              <span class="h-2.5 w-2.5 rounded-full bg-[#28C840]"></span>
+            </div>
+            <div class="flex min-w-0 flex-1 justify-center">
+              <div class="w-full max-w-md truncate rounded-[7px] border border-line bg-white px-3 py-1 text-center text-[11px] text-muted">yariapp.com/browse · sample jobs (illustrative)</div>
+            </div>
+          </div>
+          <div class="bg-tint p-2.5 md:p-3.5">
+            <div class="mb-2.5 flex items-center justify-between gap-2 rounded-[10px] border border-line bg-white px-3 py-1.5">
+              <div class="text-[13px] font-bold tracking-[-0.02em] text-beam">beam</div>
+              <div class="hidden gap-4 text-[11px] font-medium text-navy sm:flex"><span>Services</span><span>How it works</span><span>Find work</span></div>
+              <div class="flex items-center gap-2 text-[11px]">
+                <span class="rounded-[7px] border border-line px-2 py-1 text-navy">San Jose, CA</span>
+                <span class="hidden text-navy sm:inline">Log in</span>
+                <span class="rounded-[7px] bg-beam px-2.5 py-1 font-semibold text-white">Sign up</span>
+              </div>
+            </div>
+            <div class="grid gap-2.5 lg:grid-cols-[184px_minmax(0,1fr)_184px]">
+              <aside class="hidden rounded-[10px] border border-line bg-white p-2.5 lg:block">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.06em] text-place">Filters</p>
+                <p class="mt-2.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-place">Category</p>
+                <ul class="mt-1 space-y-0.5 text-[11px]">
+                  <li class="flex justify-between rounded-[7px] bg-[#EEF4FF] px-2 py-1.5 font-semibold text-beam"><span>All</span><span>6</span></li>
+                  <li class="flex justify-between px-2 py-1 text-navy"><span>Home</span><span class="text-muted">2</span></li>
+                  <li class="flex justify-between px-2 py-1 text-navy"><span>Auto</span><span class="text-muted">1</span></li>
+                  <li class="flex justify-between px-2 py-1 text-navy"><span>Junk Removal</span><span class="text-muted">1</span></li>
+                  <li class="flex justify-between px-2 py-1 text-navy"><span>Pets</span><span class="text-muted">2</span></li>
+                  <li class="flex justify-between px-2 py-1 text-navy"><span>Other</span><span class="text-muted">0</span></li>
+                </ul>
+                <p class="mt-2.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-place">Timing</p>
+                <div class="mt-1 flex flex-wrap gap-1">
+                  <span class="rounded-[6px] bg-tint px-1.5 py-1 text-[10px] font-semibold text-navy">Any</span>
+                  <span class="rounded-[6px] border border-line px-1.5 py-1 text-[10px] text-navy">ASAP</span>
+                  <span class="rounded-[6px] border border-line px-1.5 py-1 text-[10px] text-navy">Today</span>
+                </div>
+                <p class="mt-3 text-[11px] font-semibold text-beam">Safety guidelines →</p>
+              </aside>
+              <div>
+                <div class="mb-2 flex flex-wrap items-end justify-between gap-2">
+                  <div>
+                    <h2 class="text-[16px] font-bold tracking-[-0.02em] text-navy md:text-[18px]">Browse Local Jobs</h2>
+                    <p class="text-[10px] text-muted">Illustrative samples for design review — not live activity</p>
+                  </div>
+                  <div class="flex rounded-[7px] border border-line bg-white p-0.5 text-[10px]">
+                    <span class="rounded-[6px] bg-beam px-2 py-1 font-semibold text-white">Open requests · 6</span>
+                    <span class="rounded-[6px] px-2 py-1 font-medium text-navy">Local helpers</span>
+                  </div>
+                </div>
+                <div class="mb-2 flex gap-1.5 rounded-[10px] border border-line bg-white p-1.5">
+                  <div class="flex flex-1 items-center gap-1.5 rounded-[7px] bg-tint px-2 py-1.5 text-[11px] text-place">Search jobs</div>
+                  <div class="hidden rounded-[7px] border border-line px-2 py-1.5 text-[11px] text-navy sm:block">Any timing</div>
+                  <div class="rounded-[7px] border border-line px-2 py-1.5 text-[11px] text-navy">Newest</div>
+                </div>
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  <article class="overflow-hidden rounded-[10px] border border-line bg-white">
+                    <img src="https://www.yariapp.com/images/landing/avail-house-cleaning.jpg" alt="" class="h-[72px] w-full object-cover" />
+                    <div class="p-2">
+                      <p class="text-[9px] font-semibold uppercase tracking-[0.04em] text-beam">House Cleaning · sample</p>
+                      <h3 class="mt-0.5 text-[12px] font-semibold leading-snug text-navy">Deep clean after move-out</h3>
+                      <p class="mt-1 text-[10px] text-muted">Today · Sample area</p>
+                    </div>
+                  </article>
+                  <article class="overflow-hidden rounded-[10px] border border-line bg-white">
+                    <img src="https://www.yariapp.com/images/landing/avail-auto-detailing.jpg" alt="" class="h-[72px] w-full object-cover" />
+                    <div class="p-2">
+                      <p class="text-[9px] font-semibold uppercase tracking-[0.04em] text-beam">Auto Detailing · sample</p>
+                      <h3 class="mt-0.5 text-[12px] font-semibold leading-snug text-navy">Interior wipe for weekend trip</h3>
+                      <p class="mt-1 text-[10px] text-muted">Tomorrow · Sample area</p>
+                    </div>
+                  </article>
+                  <article class="overflow-hidden rounded-[10px] border border-line bg-white">
+                    <img src="https://www.yariapp.com/images/landing/avail-pet-sitting.jpg" alt="" class="h-[72px] w-full object-cover" />
+                    <div class="p-2">
+                      <p class="text-[9px] font-semibold uppercase tracking-[0.04em] text-beam">Pet Sitting · sample</p>
+                      <h3 class="mt-0.5 text-[12px] font-semibold leading-snug text-navy">Afternoon walk · 2 dogs</h3>
+                      <p class="mt-1 text-[10px] text-muted">This week · Sample area</p>
+                    </div>
+                  </article>
+                  <article class="overflow-hidden rounded-[10px] border border-line bg-white">
+                    <img src="https://www.yariapp.com/images/landing/avail-junk-removal.jpg" alt="" class="h-[72px] w-full object-cover" />
+                    <div class="p-2">
+                      <p class="text-[9px] font-semibold uppercase tracking-[0.04em] text-beam">Junk Removal · sample</p>
+                      <h3 class="mt-0.5 text-[12px] font-semibold leading-snug text-navy">Haul old dresser to curb</h3>
+                      <p class="mt-1 text-[10px] text-muted">ASAP · Sample area</p>
+                    </div>
+                  </article>
+                  <article class="overflow-hidden rounded-[10px] border border-line bg-white">
+                    <img src="https://www.yariapp.com/images/landing/avail-carpet-cleaning.jpg" alt="" class="h-[72px] w-full object-cover" />
+                    <div class="p-2">
+                      <p class="text-[9px] font-semibold uppercase tracking-[0.04em] text-beam">Carpet Cleaning · sample</p>
+                      <h3 class="mt-0.5 text-[12px] font-semibold leading-snug text-navy">Living room rug refresh</h3>
+                      <p class="mt-1 text-[10px] text-muted">Today · Sample area</p>
+                    </div>
+                  </article>
+                  <article class="overflow-hidden rounded-[10px] border border-line bg-white">
+                    <img src="https://www.yariapp.com/images/landing/avail-grooming.jpg" alt="" class="h-[72px] w-full object-cover" />
+                    <div class="p-2">
+                      <p class="text-[9px] font-semibold uppercase tracking-[0.04em] text-beam">Grooming · sample</p>
+                      <h3 class="mt-0.5 text-[12px] font-semibold leading-snug text-navy">Bath for medium dog</h3>
+                      <p class="mt-1 text-[10px] text-muted">Tomorrow · Sample area</p>
+                    </div>
+                  </article>
+                </div>
+              </div>
+              <aside class="hidden rounded-[10px] border border-line bg-white p-2.5 lg:block">
+                <p class="text-[12px] font-bold text-navy">Trending helpers</p>
+                <p class="mt-1 text-[10px] leading-4 text-muted">Illustrative nearby people — not live profiles.</p>
+                <div class="mt-2.5 space-y-2.5">
+                  <div class="flex items-center gap-2 border-b border-line pb-2.5">
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#D7E0EC] text-[10px] font-bold text-navy">MR</div>
+                    <div>
+                      <p class="text-[12px] font-semibold text-navy">Maya R.</p>
+                      <p class="text-[10px] text-muted">House Cleaning · sample</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C5D4E8] text-[10px] font-bold text-navy">DK</div>
+                    <div>
+                      <p class="text-[12px] font-semibold text-navy">Devon K.</p>
+                      <p class="text-[10px] text-muted">Junk Removal · sample</p>
+                    </div>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- soft blend into white page -->
+    <div class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent via-white/40 to-white" aria-hidden="true"></div>
+  </section>
+
+  <!-- POPULAR -->
+  <section id="services" class="relative z-10 -mt-4 border-t border-transparent bg-white pt-6 md:pt-8">
+    <div class="mx-auto max-w-content px-5 md:px-8">
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p class="text-[12px] font-semibold uppercase tracking-[0.08em] text-beam">Start here</p>
+          <h2 class="mt-1.5 text-[26px] font-bold tracking-[-0.02em] text-navy md:text-[30px]">Popular services</h2>
+        </div>
+        <p class="max-w-sm text-[14px] leading-5 text-muted">A few good places to begin — or post something custom.</p>
+      </div>
+      <div class="mt-6 grid gap-3 sm:grid-cols-3">
+        <a href="#" class="group overflow-hidden rounded-card border border-line bg-white transition-shadow hover:shadow-md">
+          <img src="https://www.yariapp.com/images/landing/service-cleaning.jpg" alt="Person wiping a kitchen counter" class="h-32 w-full object-cover" width="400" height="128" />
+          <div class="p-3">
+            <h3 class="text-[15px] font-semibold text-navy">House cleaning</h3>
+            <p class="mt-0.5 text-[13px] text-muted">Make space for the weekend.</p>
+            <p class="mt-2 text-[13px] font-semibold text-beam group-hover:underline">Explore →</p>
+          </div>
+        </a>
+        <a href="#" class="group overflow-hidden rounded-card border border-line bg-white transition-shadow hover:shadow-md">
+          <img src="https://www.yariapp.com/images/landing/avail-pet-sitting.jpg" alt="Person walking dogs outdoors" class="h-32 w-full object-cover object-[center_20%]" width="400" height="128" />
+          <div class="p-3">
+            <h3 class="text-[15px] font-semibold text-navy">Pet care</h3>
+            <p class="mt-0.5 text-[13px] text-muted">Walks, sitting, and grooming.</p>
+            <p class="mt-2 text-[13px] font-semibold text-beam group-hover:underline">Explore →</p>
+          </div>
+        </a>
+        <a href="#" class="flex min-h-[180px] flex-col justify-between rounded-card bg-gradient-to-br from-navy to-[#0C2148] p-4 text-white transition-transform hover:-translate-y-0.5">
+          <div>
+            <h3 class="text-[15px] font-semibold">Something else?</h3>
+            <p class="mt-2 text-[13px] leading-5 text-[#D7E0EC]">Describe a custom task — even if it doesn’t fit a category.</p>
+          </div>
+          <p class="mt-4 text-[13px] font-semibold">Post a custom task →</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW — tinted lively band -->
+  <section id="how" class="relative mt-12 overflow-hidden py-12 md:mt-14 md:py-14">
+    <div class="absolute inset-0 bg-gradient-to-br from-[#EAF3FF] via-tint to-[#D9EBFF]" aria-hidden="true"></div>
+    <div class="cloud right-0 top-0 h-48 w-48 bg-sky/25" aria-hidden="true"></div>
+    <div class="relative mx-auto max-w-content px-5 md:px-8">
+      <p class="text-[12px] font-semibold uppercase tracking-[0.08em] text-beam">How it works</p>
+      <h2 class="mt-1.5 text-[26px] font-bold tracking-[-0.02em] text-navy md:text-[30px]">From to-do to done.</h2>
+      <div class="mt-6 grid gap-0 overflow-hidden rounded-card border border-white/80 bg-white/90 shadow-sm backdrop-blur md:grid-cols-3">
+        <div class="border-b border-line p-4 md:border-b-0 md:border-r">
+          <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#EEF4FF] text-[12px] font-bold text-beam">1</span>
+          <h3 class="mt-2.5 text-[15px] font-semibold text-navy">Post your task</h3>
+          <p class="mt-1 text-[13px] leading-5 text-muted">What needs doing, when you need it, and anything a helper should know.</p>
+        </div>
+        <div class="border-b border-line p-4 md:border-b-0 md:border-r">
+          <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#EEF4FF] text-[12px] font-bold text-beam">2</span>
+          <h3 class="mt-2.5 text-[15px] font-semibold text-navy">Compare offers</h3>
+          <p class="mt-1 text-[13px] leading-5 text-muted">Review proposed price and arrival window before you choose.</p>
+        </div>
+        <div class="p-4">
+          <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#EEF4FF] text-[12px] font-bold text-beam">3</span>
+          <h3 class="mt-2.5 text-[15px] font-semibold text-navy">Chat, finish &amp; review</h3>
+          <p class="mt-1 text-[13px] leading-5 text-muted">Message in-app, complete the job, and leave feedback for others.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AVAILABLE -->
+  <section class="bg-white py-11 md:py-14">
+    <div class="mx-auto max-w-content px-5 md:px-8">
+      <p class="text-[12px] font-semibold uppercase tracking-[0.08em] text-beam">Explore all six</p>
+      <h2 class="mt-1.5 text-[26px] font-bold tracking-[-0.02em] text-navy md:text-[30px]">Available services on Beam</h2>
+      <p class="mt-1.5 max-w-xl text-[14px] leading-5 text-muted">Choose a service to explore. Need something else? Post a custom task.</p>
+      <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <a href="#" class="overflow-hidden rounded-card border border-line bg-white transition-shadow hover:shadow-md">
+          <img src="https://www.yariapp.com/images/landing/avail-house-cleaning.jpg" alt="House cleaning professionals" class="h-28 w-full object-cover sm:h-36 lg:h-40" width="384" height="160" />
+          <div class="flex items-center justify-between px-3 py-2.5 text-[14px] font-semibold"><span>House Cleaning</span><span class="text-beam">→</span></div>
+        </a>
+        <a href="#" class="overflow-hidden rounded-card border border-line bg-white transition-shadow hover:shadow-md">
+          <img src="https://www.yariapp.com/images/landing/avail-carpet-cleaning.jpg" alt="Carpet cleaning vacuum on rug" class="h-28 w-full object-cover sm:h-36 lg:h-40" width="384" height="160" />
+          <div class="flex items-center justify-between px-3 py-2.5 text-[14px] font-semibold"><span>Carpet Cleaning</span><span class="text-beam">→</span></div>
+        </a>
+        <a href="#" class="overflow-hidden rounded-card border border-line bg-white transition-shadow hover:shadow-md">
+          <img src="https://www.yariapp.com/images/landing/avail-auto-detailing.jpg" alt="Person washing a car" class="h-28 w-full object-cover sm:h-36 lg:h-40" width="384" height="160" />
+          <div class="flex items-center justify-between px-3 py-2.5 text-[14px] font-semibold"><span>Auto Detailing</span><span class="text-beam">→</span></div>
+        </a>
+        <a href="#" class="overflow-hidden rounded-card border border-line bg-white transition-shadow hover:shadow-md">
+          <img src="https://www.yariapp.com/images/landing/avail-junk-removal.jpg" alt="People carrying furniture for junk removal" class="h-28 w-full object-cover sm:h-36 lg:h-40" width="384" height="160" />
+          <div class="flex items-center justify-between px-3 py-2.5 text-[14px] font-semibold"><span>Junk Removal</span><span class="text-beam">→</span></div>
+        </a>
+        <a href="#" class="overflow-hidden rounded-card border border-line bg-white transition-shadow hover:shadow-md">
+          <img src="https://www.yariapp.com/images/landing/avail-pet-sitting.jpg" alt="Dog walking outdoors" class="h-28 w-full object-cover sm:h-36 lg:h-40" width="384" height="160" />
+          <div class="flex items-center justify-between px-3 py-2.5 text-[14px] font-semibold"><span>Pet Sitting</span><span class="text-beam">→</span></div>
+        </a>
+        <a href="#" class="overflow-hidden rounded-card border border-line bg-white transition-shadow hover:shadow-md">
+          <img src="https://www.yariapp.com/images/landing/avail-grooming.jpg" alt="Dog being groomed" class="h-28 w-full object-cover sm:h-36 lg:h-40" width="384" height="160" />
+          <div class="flex items-center justify-between px-3 py-2.5 text-[14px] font-semibold"><span>Grooming</span><span class="text-beam">→</span></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY -->
+  <section class="relative overflow-hidden py-11 md:py-14">
+    <div class="absolute inset-0 bg-gradient-to-r from-tint via-[#EEF5FF] to-tint" aria-hidden="true"></div>
+    <div class="relative mx-auto max-w-content px-5 md:px-8">
+      <div class="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-start">
+        <div>
+          <p class="text-[12px] font-semibold uppercase tracking-[0.08em] text-beam">Why Beam</p>
+          <h2 class="mt-1.5 text-[26px] font-bold tracking-[-0.02em] text-navy md:text-[30px]">Know what you’re choosing.</h2>
+          <p class="mt-2 max-w-md text-[14px] leading-6 text-muted">Clear steps and in-app messaging — without invented counts, response-time promises, or fake social proof.</p>
+          <a href="/safety" class="mt-4 inline-block text-[14px] font-semibold text-beam hover:underline">Read safety &amp; community guidelines →</a>
+        </div>
+        <ul class="space-y-4">
+          <li class="flex gap-3">
+            <span class="mt-0.5 text-[13px] font-bold text-beam">01</span>
+            <div>
+              <h3 class="text-[15px] font-semibold text-navy">See the offer first</h3>
+              <p class="mt-0.5 text-[13px] leading-5 text-muted">Compare proposed price and arrival window before choosing.</p>
+            </div>
+          </li>
+          <li class="flex gap-3">
+            <span class="mt-0.5 text-[13px] font-bold text-beam">02</span>
+            <div>
+              <h3 class="text-[15px] font-semibold text-navy">Talk through the details</h3>
+              <p class="mt-0.5 text-[13px] leading-5 text-muted">Use in-app messages to agree on what the job involves.</p>
+            </div>
+          </li>
+          <li class="flex gap-3">
+            <span class="mt-0.5 text-[13px] font-bold text-beam">03</span>
+            <div>
+              <h3 class="text-[15px] font-semibold text-navy">Leave useful feedback</h3>
+              <p class="mt-0.5 text-[13px] leading-5 text-muted">Share a review after the task to help the next person choose.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-white py-12 md:py-14">
+    <div class="mx-auto max-w-content px-5 text-center md:px-8">
+      <h2 class="text-[26px] font-bold tracking-[-0.02em] text-navy md:text-[30px]">One less thing on your list.</h2>
+      <p class="mt-2 text-[14px] text-muted">Tell us what you need a hand with.</p>
+      <a href="#" class="mt-5 inline-flex h-11 items-center justify-center rounded-control bg-beam px-6 text-[15px] font-semibold text-white transition-colors hover:bg-beam-deep">Post a task</a>
+    </div>
+  </section>
+
+  <footer id="find" class="bg-navy text-white">
+    <div class="mx-auto flex max-w-content flex-col gap-5 px-5 py-7 md:flex-row md:items-center md:justify-between md:px-8">
+      <div class="text-[20px] font-bold tracking-[-0.02em]">beam</div>
+      <nav class="flex flex-wrap gap-x-5 gap-y-2 text-[13px] font-medium text-white/90">
+        <a href="#services">Services</a>
+        <a href="#how">How it works</a>
+        <a href="/safety">Safety</a>
+        <a href="#">Help</a>
+        <a href="#">Find work</a>
+      </nav>
+    </div>
+    <div class="border-t border-white/10">
+      <div class="mx-auto max-w-content px-5 py-3.5 text-[12px] text-white/65 md:px-8">© Beam · Privacy · Terms</div>
+    </div>
+  </footer>
+</body>
+</html>

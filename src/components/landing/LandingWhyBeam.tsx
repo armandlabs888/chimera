@@ -3,59 +3,67 @@ import Link from 'next/link'
 const PILLARS = [
   {
     step: '01',
-    title: 'See the offer.',
-    body: 'Compare priced offers and arrival windows before you accept — so you know what you’re choosing.',
+    title: 'See the offer first',
+    body: 'Compare proposed price and arrival window before choosing.',
   },
   {
     step: '02',
-    title: 'Talk through the details.',
-    body: 'Use in-app messaging to confirm timing, access, and anything a helper should know.',
+    title: 'Talk through the details',
+    body: 'Use in-app messages to agree on what the job involves.',
   },
   {
     step: '03',
-    title: 'Keep the feedback useful.',
-    body: 'After the job, leave a review that helps neighbors decide who to work with next time.',
+    title: 'Leave useful feedback',
+    body: 'Share a review after the task to help the next person choose.',
   },
 ] as const
 
 /**
- * Why Beam — factual pillars only (no invented live offers / counts / named testimonials).
+ * Why Beam — Landing v2 split list (no fabricated social proof).
  */
 export function LandingWhyBeam() {
   return (
     <section
-      className="bg-white py-16 sm:py-20"
+      className="relative overflow-hidden py-11 md:py-14"
       data-testid="why-beam-section"
       id="why-beam"
     >
-      <div className="beam-container">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1D5CE5]">
-          04 / Why Beam
-        </p>
-        <h2 className="mt-3 max-w-[16ch] font-sans text-[clamp(1.75rem,3.2vw,2.5rem)] font-bold leading-[1.12] tracking-[-0.02em] text-[#071330]">
-          Know what you’re choosing.
-        </h2>
-
-        <ul className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-6 lg:gap-10">
-          {PILLARS.map((pillar) => (
-            <li key={pillar.step} className="min-w-0">
-              <p className="text-[13px] font-bold tabular-nums text-[#1D5CE5]">{pillar.step}</p>
-              <h3 className="mt-2 text-[18px] font-bold leading-snug text-[#071330]">
-                {pillar.title}
-              </h3>
-              <p className="mt-2 text-[14.5px] leading-[1.55] text-[#475569]">{pillar.body}</p>
-            </li>
-          ))}
-        </ul>
-
-        <p className="mt-10">
-          <Link
-            href="/safety"
-            className="text-[14.5px] font-semibold text-[#1D5CE5] underline-offset-2 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
-          >
-            Read our safety & community guidelines →
-          </Link>
-        </p>
+      <div
+        className="absolute inset-0 bg-gradient-to-r from-[#F4F8FD] via-[#EEF5FF] to-[#F4F8FD]"
+        aria-hidden="true"
+      />
+      <div className="relative mx-auto max-w-[1200px] px-5 md:px-8">
+        <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-start">
+          <div>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#1D5CE5]">
+              Why Beam
+            </p>
+            <h2 className="mt-1.5 text-[26px] font-bold tracking-[-0.02em] text-[#071330] md:text-[30px]">
+              Know what you’re choosing.
+            </h2>
+            <p className="mt-2 max-w-md text-[14px] leading-6 text-[#475569]">
+              Clear steps and in-app messaging — without invented counts, response-time promises, or
+              fake social proof.
+            </p>
+            <Link
+              href="/safety"
+              className="mt-4 inline-block text-[14px] font-semibold text-[#1D5CE5] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
+            >
+              Read safety &amp; community guidelines →
+            </Link>
+          </div>
+          <ul className="space-y-4">
+            {PILLARS.map((pillar) => (
+              <li key={pillar.step} className="flex gap-3">
+                <span className="mt-0.5 text-[13px] font-bold text-[#1D5CE5]">{pillar.step}</span>
+                <div>
+                  <h3 className="text-[15px] font-semibold text-[#071330]">{pillar.title}</h3>
+                  <p className="mt-0.5 text-[13px] leading-5 text-[#475569]">{pillar.body}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   )

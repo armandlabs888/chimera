@@ -199,12 +199,14 @@ try {
     labelOnCard: labelC ? Number(contrast(labelC, cardBg).toFixed(2)) : 0,
     borderOnSection: borderC ? Number(contrast(borderC, sectionBg).toFixed(2)) : 0,
   }
+  const radiusPx = parseFloat(colors.radius) || 0
   const contrastOk =
     pairs.title >= 4.5 &&
     pairs.body >= 4.5 &&
     pairs.labelOnCard >= 4.5 &&
     pairs.borderOnSection >= 3 &&
-    colors.radius === '10px'
+    radiusPx >= 10 &&
+    radiusPx <= 12
   if (!contrastOk) failed = true
   report.push({ name: 'contrast', ok: contrastOk, colors, pairs })
   console.log('contrast', contrastOk ? 'PASS' : 'FAIL', JSON.stringify(pairs))

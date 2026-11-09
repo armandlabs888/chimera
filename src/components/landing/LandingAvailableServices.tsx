@@ -73,37 +73,35 @@ export function LandingAvailableServices() {
   return (
     <section
       id="neighborhoods"
-      className="bg-white py-16 sm:py-20"
+      className="bg-white py-11 md:py-14"
       data-testid="available-services"
     >
-      <div className="beam-container">
-        <div className="max-w-3xl">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1D5CE5]">
-            03 / Explore all six
-          </p>
-          <h2
-            id="available-services-heading"
-            className="mt-3 font-sans text-[clamp(1.75rem,3.2vw,2.5rem)] font-bold leading-[1.12] tracking-[-0.02em] text-[#071330] text-balance"
+      <div className="mx-auto max-w-[1200px] px-5 md:px-8">
+        <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#1D5CE5]">
+          Explore all six
+        </p>
+        <h2
+          id="available-services-heading"
+          className="mt-1.5 text-[26px] font-bold tracking-[-0.02em] text-[#071330] md:text-[30px]"
+        >
+          Available services on Beam
+        </h2>
+        <p className="mt-1.5 max-w-xl text-[14px] leading-5 text-[#475569]">
+          Choose a service to explore. Need something else?{' '}
+          <Link
+            href="/browse?category=other"
+            className="font-semibold text-[#1D5CE5] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
           >
-            Available services on Beam
-          </h2>
-          <p className="mt-2 max-w-[52ch] text-[15px] leading-[1.55] text-[#475569]">
-            Choose a service to explore. Have something else in mind?{' '}
-            <Link
-              href="/browse?category=other"
-              className="font-semibold text-[#1D5CE5] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
-            >
-              Post a custom task
-            </Link>
-            .
-          </p>
-        </div>
+            Post a custom task
+          </Link>
+          .
+        </p>
 
         <div
           role="list"
           aria-labelledby="available-services-heading"
           data-testid="available-services-grid"
-          className="mt-8 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 lg:gap-5"
+          className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
         >
           {SERVICES.map((service) => (
             <Link
@@ -113,26 +111,21 @@ export function LandingAvailableServices() {
               data-service-card
               data-testid={`available-service-${service.id}`}
               aria-label={`${service.label} — browse tasks`}
-              className="group relative flex w-full flex-col overflow-hidden rounded-[10px] border border-[#64748B] bg-white transition motion-safe:hover:-translate-y-0.5 motion-safe:hover:border-[#1D5CE5] motion-safe:hover:shadow-[0_16px_36px_-20px_rgba(29,92,229,0.45)] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/55 focus-visible:ring-offset-2"
+              className="group overflow-hidden rounded-[12px] border border-[#64748B] bg-white transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/55 focus-visible:ring-offset-2"
             >
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#DBEAFE]">
+              <div className="relative h-28 w-full overflow-hidden bg-[#DBEAFE] sm:h-36 lg:h-40">
                 <Image
                   src={service.image}
                   alt={service.alt}
                   fill
-                  sizes="(min-width:1024px) 33vw, (min-width:420px) 50vw, 90vw"
+                  sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 90vw"
                   loading="lazy"
-                  className={`object-cover ${service.objectPosition} transition duration-300 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none`}
+                  className={`object-cover ${service.objectPosition}`}
                 />
               </div>
-              <div className="flex items-center justify-between gap-2 px-3.5 py-3">
-                <span className="min-w-0 truncate text-[14px] font-bold leading-snug text-[#071330]">
-                  {service.label}
-                </span>
-                <span
-                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] bg-[#EEF4FF] text-[#1D5CE5] transition group-hover:bg-[#1D5CE5] group-hover:text-white"
-                  aria-hidden
-                >
+              <div className="flex items-center justify-between px-3 py-2.5 text-[14px] font-semibold text-[#071330]">
+                <span className="min-w-0 truncate">{service.label}</span>
+                <span className="text-[#1D5CE5]" aria-hidden>
                   <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
                 </span>
               </div>
