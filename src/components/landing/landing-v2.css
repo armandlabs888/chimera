@@ -1,6 +1,17 @@
 /* Landing v2 — atmospheric hero + stacked product preview (landing route only). */
 
 .landing-hero-atmosphere {
+  /* Floating nav: 16px inset + 56px bar (md inset 20px). Gap below = breathing room. */
+  --landing-float-nav-inset: 16px;
+  --landing-float-nav-height: 56px;
+  --landing-float-header-offset: calc(
+    var(--landing-float-nav-inset) + var(--landing-float-nav-height)
+  );
+  --landing-hero-header-gap: 36px; /* mobile ~32–40 */
+  --landing-hero-content-pad-top: calc(
+    var(--landing-float-header-offset) + var(--landing-hero-header-gap)
+  );
+
   background:
     radial-gradient(ellipse 80% 60% at 12% 22%, rgba(56, 189, 248, 0.55) 0%, transparent 62%),
     radial-gradient(ellipse 70% 55% at 88% 12%, rgba(29, 92, 229, 0.42) 0%, transparent 58%),
@@ -8,6 +19,23 @@
     radial-gradient(ellipse 65% 50% at 72% 68%, rgba(29, 92, 229, 0.22) 0%, transparent 55%),
     radial-gradient(ellipse 50% 40% at 30% 78%, rgba(7, 19, 48, 0.12) 0%, transparent 55%),
     linear-gradient(180deg, #f7fbff 0%, #e8f3ff 35%, #d4e7ff 70%, #bfd9fb 100%);
+}
+
+@media (min-width: 768px) {
+  .landing-hero-atmosphere {
+    --landing-float-nav-inset: 20px;
+    --landing-hero-header-gap: 56px; /* tablet ~48–64 */
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-hero-atmosphere {
+    --landing-hero-header-gap: 84px; /* desktop ~72–96 */
+  }
+}
+
+.landing-hero-content {
+  padding-top: var(--landing-hero-content-pad-top);
 }
 
 .landing-hero-noise {

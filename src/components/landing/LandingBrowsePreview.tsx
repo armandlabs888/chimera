@@ -56,7 +56,7 @@ const SAMPLE_JOBS = [
 export function LandingBrowsePreview() {
   return (
     <div
-      className="relative z-0 mx-auto mt-8 max-w-[1200px] px-4 pb-8 md:mt-12 md:px-8 md:pb-10"
+      className="relative z-0 mx-auto mt-10 max-w-[1200px] px-4 pb-8 md:mt-14 md:px-8 md:pb-10"
       data-testid="landing-browse-preview"
     >
       <div
