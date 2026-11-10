@@ -73,7 +73,7 @@ export function LandingHero() {
       <LandingNav variant="float" />
 
       <div
-        className="relative z-20 overflow-x-clip pb-0 pt-[96px] md:pt-[112px]"
+        className="landing-hero-content relative z-20 overflow-x-clip pb-0"
         data-testid="landing-hero"
       >
         <div className="landing-hero-noise absolute inset-0" aria-hidden="true" />
@@ -100,17 +100,17 @@ export function LandingHero() {
             Local services · Real everyday help
           </p>
 
-          <h1 className="landing-headline-grad mx-auto mt-3 max-w-[15ch] text-[44px] font-extrabold leading-[1.02] tracking-[-0.045em] md:text-[72px]">
+          <h1 className="landing-headline-grad mx-auto mt-5 max-w-[15ch] text-[44px] font-extrabold leading-[1.02] tracking-[-0.045em] md:text-[72px]">
             Local help, made easy.
           </h1>
 
-          <p className="mx-auto mt-4 max-w-[46ch] text-[15px] leading-6 text-[#475569] md:text-[17px] md:leading-7">
+          <p className="mx-auto mt-5 max-w-[46ch] text-[15px] leading-6 text-[#475569] md:text-[17px] md:leading-7">
             Describe the job, compare offers, and choose the help that fits — for your neighborhood.
           </p>
 
           <form
             onSubmit={onSearch}
-            className="relative z-40 mx-auto mt-7 w-full max-w-[740px] text-left"
+            className="relative z-40 mx-auto mt-9 w-full max-w-[740px] text-left"
             data-testid="hero-search-pill"
           >
             <div className="flex flex-col gap-2 rounded-[10px] border border-white/80 bg-white/95 p-1.5 shadow-[0_16px_40px_rgba(12,42,102,0.14)] backdrop-blur sm:flex-row sm:items-center sm:gap-0 sm:p-2">
@@ -299,7 +299,7 @@ export function LandingHero() {
             </div>
           </form>
 
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5 pb-2 md:pb-0">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5 pb-2 md:pb-0">
             <Link
               href="/post"
               className="inline-flex h-10 items-center rounded-[10px] bg-[#071330] px-5 text-[14px] font-semibold text-white transition-colors hover:bg-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
