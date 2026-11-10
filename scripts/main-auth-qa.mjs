@@ -56,14 +56,20 @@ async function assertMainAuthExperience(page, { viewport, expectNext = null, cle
   )
   assert.equal(gateHeader, false, 'must NOT show AuthGate Browse/Safety header')
 
-  // Desktop: split-screen left blue aside showcase must be visible.
+  // Desktop: split-screen left photo aside must be visible (no fake testimonials).
   if (viewport.width >= 1024) {
-    const aside = page.locator('aside').first()
+    const aside = page.locator('[data-testid="auth-aside-panel"]')
     await aside.waitFor({ state: 'visible', timeout: 10000 })
     const asideBox = await aside.boundingBox()
     assert.ok(asideBox && asideBox.width > 200, 'desktop aside showcase too narrow/missing')
     const asideText = await aside.innerText()
-    assert.match(asideText, /Local help|Beam/i)
+    assert.match(asideText, /Local help, made easy/i)
+    assert.match(asideText, /Post a task, compare offers from people nearby/i)
+    assert.doesNotMatch(asideText, /Elena R\.|two neighbors showed up/i)
+    const img = aside.locator('img').first()
+    await img.waitFor({ state: 'visible', timeout: 10000 })
+    const src = await img.getAttribute('src')
+    assert.match(src || '', /auth-panel-neighbors/, `expected auth-panel photo, got ${src}`)
   }
 }
 

@@ -267,6 +267,9 @@ async function checkAuthMarkupAndRedirects() {
   assert.equal(res.status, 200, 'auth page status')
   assert.match(text, /Beam|auth/, 'auth route shell present')
   assert.doesNotMatch(text, /text-red-300|Live mode uses Supabase email\/password auth/i, 'no legacy developer auth copy')
+  const authPhoto = await fetch(`${BASE_URL}/images/landing/auth-panel-neighbors.jpg`)
+  assert.equal(authPhoto.status, 200, 'auth panel photo asset served')
+  assert.match(authPhoto.headers.get('content-type') || '', /image\//, 'auth panel photo is an image')
 
   const evil = await fetch(`${BASE_URL}/auth/callback?next=${encodeURIComponent('//evil.example')}`, {
     redirect: 'manual',
@@ -430,10 +433,26 @@ async function checkAuthBrowser() {
 
     await page.goto(`${BASE_URL}/auth?mode=signin`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body')
+    await page.waitForSelector('text=Local help, made easy', { timeout: 20000 })
 
     const bodyText = await page.locator('body').innerText()
+    assert.match(bodyText, /Post a task, compare offers from people nearby/i)
+    assert.doesNotMatch(bodyText, /Elena R\.|Posted a couch move at 1pm/i)
+
+    const aside = page.locator('[data-testid="auth-aside-panel"]')
+    await aside.waitFor({ state: 'visible', timeout: 10000 })
+    const panelSrc = await aside.locator('img').first().evaluate((img) => {
+      const raw = img.currentSrc || img.getAttribute('src') || ''
+      try {
+        return new URL(raw, location.origin).searchParams.get('url') || raw
+      } catch {
+        return raw
+      }
+    })
+    assert.match(decodeURIComponent(panelSrc), /auth-panel-neighbors/, `auth panel src ${panelSrc}`)
+
     if (/demo mode|needs configuration/i.test(bodyText)) {
-      console.log('skip auth browser interactions (demo / unconfigured)')
+      console.log('ok auth panel photo + truthful copy (skip interactions: demo / unconfigured)')
       return
     }
 
@@ -466,8 +485,11 @@ async function checkAuthBrowser() {
     await page.goto(`${BASE_URL}/auth?mode=signup`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('text=Full name')
     assert.equal(await page.getByRole('tab', { name: 'Create account' }).getAttribute('aria-selected'), 'true')
+    const signupBody = await page.locator('body').innerText()
+    assert.match(signupBody, /Post a task, compare offers from people nearby/i)
+    assert.doesNotMatch(signupBody, /Elena R\.|Posted a couch move at 1pm/i)
 
-    console.log('ok auth browser Google + simplified signup + password toggle')
+    console.log('ok auth browser panel + Google + simplified signup + password toggle')
   } finally {
     await browser.close()
   }

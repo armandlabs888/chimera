@@ -63,7 +63,14 @@ export const LIFESTYLE = {
   tutoring: '/images/landing/service-tutoring.jpg',
   /** Outdoor event / setup — used for Other custom everyday help */
   events: '/images/landing/service-events.jpg',
-  /** Auth left showcase — welcoming helper ready to help */
+  /**
+   * Auth left panel — outdoor neighbors carrying moving boxes (Pexels 7464497).
+   * Source: https://www.pexels.com/photo/three-people-carrying-brown-boxes-7464497/
+   * License: Pexels License (free to use; attribution not required).
+   * Distinct from legacy indoor plant/move `auth-showcase.jpg`.
+   */
+  authPanel: '/images/landing/auth-panel-neighbors.jpg',
+  /** Legacy indoor plant/move photo — retired from auth UI */
   authShowcase: '/images/landing/auth-showcase.jpg',
   /** Legacy step photos (superseded by UI-preview how-it-works; kept for assets) */
   stepPost: '/images/landing/step-01-post.jpg',
