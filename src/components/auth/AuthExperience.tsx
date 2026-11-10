@@ -155,25 +155,16 @@ export function AuthExperience({
 
   return (
     <div className="min-h-dvh bg-white text-[#071330]">
-      <div className="lg:grid lg:min-h-dvh lg:grid-cols-[1.05fr_1fr]">
+      <div className="lg:grid lg:min-h-dvh lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
         <AsidePanel />
         <div className="flex flex-col px-6 py-6 lg:px-10">
+          {/* Mobile/tablet: form-first — photo panel is desktop-only (lg+) */}
           <div className="mb-6 lg:hidden">
             <Link href="/">
               <BeamWordmark markWidth={26} markHeight={26} wordClassName="text-[24px]" tone="ink" />
             </Link>
-            <div className="relative mt-5 h-[180px] overflow-hidden rounded-lg bg-gradient-to-br from-[#1D5CE5] to-[#7CC9FA]">
-              <Image
-                src={LIFESTYLE.authShowcase}
-                alt=""
-                fill
-                className="object-cover object-[60%_30%] opacity-90"
-                sizes="100vw"
-                priority
-              />
-            </div>
           </div>
-          <div className="mx-auto w-full max-w-[400px] flex-1 self-center py-8 lg:py-0">{form}</div>
+          <div className="mx-auto w-full max-w-[400px] flex-1 self-center py-4 sm:py-8 lg:py-0">{form}</div>
         </div>
       </div>
       <LandingFooter />
@@ -181,39 +172,50 @@ export function AuthExperience({
   )
 }
 
+/**
+ * Desktop auth left column — full-bleed (near) photo hero.
+ * Photo: Pexels 7464497 — three neighbors carrying moving boxes outdoors (daylight).
+ * https://www.pexels.com/photo/three-people-carrying-brown-boxes-7464497/
+ * License: Pexels License (https://www.pexels.com/license/) — free commercial use.
+ */
 function AsidePanel() {
   return (
-    <aside className="relative hidden min-h-dvh overflow-hidden bg-gradient-to-br from-[#1A54D2] via-[#3E8FF0] to-[#7CC9FA] lg:block">
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(ellipse 50% 40% at 80% 20%, rgba(255,255,255,0.35), transparent 70%), radial-gradient(ellipse 45% 35% at 10% 85%, rgba(255,255,255,0.28), transparent 70%)',
-        }}
-        aria-hidden
-      />
-      <Link href="/" className="absolute left-10 top-10 z-10">
-        <BeamWordmark markWidth={28} markHeight={28} tone="white" />
-      </Link>
-      <div className="absolute inset-x-10 top-[28%] z-10">
-        <div className="relative mx-auto h-[280px] w-[200px] overflow-hidden rounded-lg border-4 border-white shadow-[0_24px_50px_-12px_rgba(12,42,102,0.35)]">
-          <Image
-            src={LIFESTYLE.authShowcase}
-            alt="Local helper ready to help"
-            fill
-            className="object-cover"
-            sizes="200px"
-            priority
-          />
+    <aside
+      className="relative hidden min-h-dvh overflow-hidden bg-[#0B2F86] p-5 lg:block"
+      data-testid="auth-aside-panel"
+    >
+      <div className="relative h-full min-h-[calc(100dvh-2.5rem)] overflow-hidden rounded-[20px]">
+        <Image
+          src={LIFESTYLE.authPanel}
+          alt="Neighbors carrying moving boxes together outdoors"
+          fill
+          className="object-cover object-[50%_30%]"
+          sizes="(min-width: 1024px) 50vw, 0px"
+          priority
+        />
+        {/* Beam-blue scrim — keeps wordmark + headline crisp white (no purple) */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(180deg, rgba(11,47,134,0.55) 0%, rgba(29,92,229,0.18) 28%, rgba(29,92,229,0.08) 48%, rgba(11,47,134,0.72) 72%, rgba(7,19,48,0.88) 100%)',
+          }}
+          aria-hidden
+        />
+        <Link
+          href="/"
+          className="absolute left-7 top-7 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B2F86]"
+        >
+          <BeamWordmark markWidth={28} markHeight={28} tone="white" />
+        </Link>
+        <div className="absolute inset-x-7 bottom-8 z-10 max-w-[28rem]">
+          <p className="font-display text-[34px] font-bold leading-[1.08] tracking-[-0.02em] text-white drop-shadow-[0_2px_12px_rgba(7,19,48,0.45)] md:text-[40px]">
+            Local help, made easy.
+          </p>
+          <p className="mt-3 max-w-[34ch] text-[15px] leading-6 text-white/95 drop-shadow-[0_1px_8px_rgba(7,19,48,0.4)]">
+            Post a task, compare offers from people nearby, and pick who fits.
+          </p>
         </div>
-      </div>
-      <div className="absolute inset-x-10 bottom-12 z-10">
-        <p className="max-w-[20ch] font-display text-[32px] font-bold leading-[1.1] tracking-[-0.02em] text-white">
-          Local help, made easy.
-        </p>
-        <p className="mt-3 text-[14px] text-white/85">
-          “Posted a couch move at 1pm — two neighbors showed up the same afternoon.” — Elena R.
-        </p>
       </div>
     </aside>
   )
