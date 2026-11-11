@@ -1,6 +1,6 @@
 'use client'
 
-import { MapPin, X } from 'lucide-react'
+import { ChevronDown, MapPin, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import {
   UsCityCombobox,
@@ -52,9 +52,13 @@ export function BrowseLocationDialogHost() {
 export function BrowseLocationTrigger({
   className,
   label,
+  pinClassName = 'text-[#64748B]',
+  chevron = false,
 }: {
   className?: string
   label: string
+  pinClassName?: string
+  chevron?: boolean
 }) {
   return (
     <button
@@ -65,8 +69,11 @@ export function BrowseLocationTrigger({
       data-testid="topnav-location"
       onClick={() => requestBrowseLocationPicker()}
     >
-      <MapPin className="h-3.5 w-3.5 shrink-0 text-[#64748B]" strokeWidth={2} aria-hidden />
+      <MapPin className={`h-4 w-4 shrink-0 ${pinClassName}`} strokeWidth={2} aria-hidden />
       <span className="truncate">{label}</span>
+      {chevron ? (
+        <ChevronDown className="h-3.5 w-3.5 shrink-0 text-[#3D4A5F]" strokeWidth={2} aria-hidden />
+      ) : null}
     </button>
   )
 }
