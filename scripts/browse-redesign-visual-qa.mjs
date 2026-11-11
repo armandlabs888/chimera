@@ -113,7 +113,7 @@ async function seedHelper(page, { emptyJobs }) {
     { key: STORAGE_KEY, emptyJobs },
   )
   await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
-  await page.waitForSelector('[data-testid="browse-3col-grid"]', { timeout: 15000 })
+  await page.waitForSelector('[data-testid="browse-v3"]', { timeout: 15000 })
 }
 
 async function seedCustomer(page, { emptyJobs = false, emptyHelpers = false } = {}) {
@@ -193,7 +193,7 @@ async function seedCustomer(page, { emptyJobs = false, emptyHelpers = false } = 
     { key: STORAGE_KEY, emptyJobs, emptyHelpers },
   )
   await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
-  await page.waitForSelector('[data-testid="browse-3col-grid"]')
+  await page.waitForSelector('[data-testid="browse-v3"]')
 }
 
 async function seedCustomerPopulated(page) {
@@ -269,7 +269,7 @@ async function main() {
       summary.checks.push({ state: 'helper-empty', viewport: vp.name, ok: true })
 
       await seedHelper(page, { emptyJobs: false })
-      await page.waitForSelector('[data-testid="browse-feed-scroll"] a[href^="/requests/"]')
+      await page.waitForSelector('[data-testid="browse-job-row"]')
       assert.equal(
         await page.locator('[data-testid="browse-fresh-empty"]').count(),
         0,
@@ -320,7 +320,7 @@ async function main() {
     // Desktop customer discovery retention (populated, no map affordance)
     await seedCustomerPopulated(page)
     assert.ok(await page.locator('[data-testid="browse-mode-tabs"]').count())
-    assert.ok(await page.locator('[data-testid="browse-trending-helpers"]').count())
+    assert.equal(await page.locator('[data-testid="browse-trending-helpers"]').count(), 0)
     assert.equal(
       await page.locator('[data-testid="browse-view-toggle"]').count(),
       0,
@@ -438,11 +438,11 @@ async function main() {
       localStorage.setItem(key, JSON.stringify(state))
     }, STORAGE_KEY)
     await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
-    await page.waitForSelector('[data-testid="browse-3col-grid"]')
+    await page.waitForSelector('[data-testid="browse-v3"]')
     // storage migrate may promote legacy helper-shaped rows; force null-role
     // after hydrate by re-writing without skills/isHelper and bypassing migrate
     // path via explicit null + empty skills already set above.
-    const layout = await page.locator('[data-testid="browse-3col-grid"]').getAttribute('data-browse-layout')
+    const layout = await page.locator('[data-testid="browse-v3"]').getAttribute('data-browse-layout')
     assert.equal(layout, 'discovery', `null-role layout should be discovery (got ${layout})`)
     assert.ok(await page.locator('[data-testid="browse-mode-tabs"]').count())
     assert.equal(await page.locator('[data-testid="browse-radar"]').count(), 0)
@@ -455,7 +455,7 @@ async function main() {
       waitUntil: 'networkidle',
       timeout: 60000,
     })
-    await page.waitForSelector('[data-testid="browse-feed-scroll"] a[href^="/requests/"]')
+    await page.waitForSelector('[data-testid="browse-job-row"]')
     await page.waitForFunction(() => !new URL(location.href).searchParams.has('view'), null, {
       timeout: 10000,
     })
@@ -496,7 +496,7 @@ async function main() {
     // Force no matches by searching nonsense
     await page.getByLabel('Search browse').fill('zzzz-no-match-zzzz')
     await page.waitForSelector('[data-testid="browse-reset-filters"]', { timeout: 10000 })
-    const filteredText = await page.locator('[data-testid="browse-feed-scroll"]').innerText()
+    const filteredText = await page.locator('[data-testid="browse-v3"]').innerText()
     assert.match(filteredText, /No open requests match/i)
     assert.equal(await page.locator('[data-testid="browse-fresh-empty"]').count(), 0)
     summary.shots.push(await shot(page, 'helper-filtered-empty-1440x900.png'))
@@ -566,7 +566,7 @@ async function main() {
 
     // Populated mobile + open filters drawer
     await seedHelper(page, { emptyJobs: false })
-    await page.waitForSelector('[data-testid="browse-feed-scroll"] a[href^="/requests/"]')
+    await page.waitForSelector('[data-testid="browse-job-row"]')
     summary.shots.push(await shot(page, 'helper-populated-mobile-390x844.png'))
     const filtersTrigger = page.getByTestId('browse-mobile-filters-trigger')
     await filtersTrigger.focus()
@@ -594,7 +594,7 @@ async function main() {
     // Tablet + footer-below-workspace evidence
     await page.setViewportSize({ width: 768, height: 1024 })
     await seedHelper(page, { emptyJobs: false })
-    await page.waitForSelector('[data-testid="browse-feed-scroll"] a[href^="/requests/"]')
+    await page.waitForSelector('[data-testid="browse-job-row"]')
     summary.shots.push(await shot(page, 'helper-populated-tablet-768x1024.png'))
     const footerProbe = await page.evaluate(() => {
       const footer = document.querySelector('[data-testid="landing-footer"], [data-app-footer="true"]')

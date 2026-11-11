@@ -6,7 +6,7 @@ import { chromium } from 'playwright'
 import { mkdirSync, copyFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const BASE = process.env.BEAM_BASE_URL || 'http://127.0.0.1:43123'
+const BASE = process.env.BASE_URL || process.env.BEAM_BASE_URL || 'http://127.0.0.1:43123'
 const OUT = '/opt/cursor/artifacts'
 const LOCAL_OUT = '/workspace/artifacts'
 const STORAGE_KEY = 'beam-demo-v1'

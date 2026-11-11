@@ -470,7 +470,7 @@ async function main() {
     // --- Populated: composited solid surfaces + correct selected bg ---
     await page.setViewportSize({ width: 1440, height: 900 })
     await seedHelper(page, { emptyJobs: false })
-    await page.waitForSelector('[data-testid="browse-feed-scroll"] a[href^="/requests/"]')
+    await page.waitForSelector('[data-testid="browse-job-row"]')
     summary.shots.push(await shot(page, 'populated-desktop-1440x900.png'))
 
     const h1 = await compositedBackground(page, 'h1')
@@ -486,7 +486,7 @@ async function main() {
 
     const cardTitle = await compositedBackground(
       page,
-      '[data-testid="browse-feed-scroll"] a[href^="/requests/"] h3',
+      '[data-testid="browse-job-row"] span.block',
     )
     pushPair(summary, {
       name: 'card-title-composited',
@@ -500,7 +500,7 @@ async function main() {
 
     const cardDesc = await compositedBackground(
       page,
-      '[data-testid="browse-feed-scroll"] a[href^="/requests/"] p',
+      '[data-testid="browse-job-row"] span.mt-1',
     )
     pushPair(summary, {
       name: 'card-desc-composited',
@@ -598,7 +598,7 @@ async function main() {
 
     // UI boundary: card border vs canvas (3:1 UI)
     const borderUi = await page.evaluate(() => {
-      const card = document.querySelector('[data-testid="browse-feed-scroll"] a[href^="/requests/"]')
+      const card = document.querySelector('[data-testid="browse-job-row"]')
       if (!card) return null
       const border = getComputedStyle(card).borderColor
       const m = border.match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/)
@@ -640,7 +640,7 @@ async function main() {
     // Mobile populated
     await page.setViewportSize({ width: 390, height: 844 })
     await seedHelper(page, { emptyJobs: false })
-    await page.waitForSelector('[data-testid="browse-feed-scroll"] a[href^="/requests/"]')
+    await page.waitForSelector('[data-testid="browse-job-row"]')
     summary.shots.push(await shot(page, 'populated-mobile-390x844.png'))
 
     // --- Non-Browse lightweight regressions (shared tokens) ---
