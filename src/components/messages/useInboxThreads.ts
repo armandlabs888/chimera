@@ -31,7 +31,7 @@ export function useInboxThreads() {
         const last = state.messages
           .filter((message) => message.threadId === thread.id)
           .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))[0]
-        const unread = notifications.some(
+        const unread = (state.notifications ?? []).some(
           (notification) =>
             isUnreadMessageNotification(notification, currentUser.id, demo) &&
             notificationTargetsThread(notification, thread.id, thread.requestId),
@@ -49,7 +49,7 @@ export function useInboxThreads() {
   }, [
     state.threads,
     state.messages,
-    notifications,
+    state.notifications,
     currentUser.id,
     demo,
     getPerson,

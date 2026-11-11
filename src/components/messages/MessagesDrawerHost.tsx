@@ -36,10 +36,12 @@ export function MessagesDrawerHost() {
 
   const chatOpen = open && threadId.length > 0
 
-  closeRef.current = () => {
-    if (chatOpen) closeThread()
-    else closeAll()
-  }
+  useEffect(() => {
+    closeRef.current = () => {
+      if (chatOpen) closeThread()
+      else closeAll()
+    }
+  }, [chatOpen, closeThread, closeAll])
 
   const onEscape = useRef(() => {
     closeRef.current()
