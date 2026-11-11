@@ -16,6 +16,7 @@ import {
   BrowseLocationDialogHost,
   BrowseLocationTrigger,
 } from '@/components/browse/BrowseLocationDialog'
+import { BrowseFloatHeader } from '@/components/browse/BrowseFloatHeader'
 import { LandingFooter } from '@/components/landing/LandingFooter'
 import { LandingNav } from '@/components/landing/LandingNav'
 import { useBeam } from '@/context/BeamContext'
@@ -57,10 +58,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isLiveGuest = mode === 'live' && !authUser
   const isBrowsePath = pathname === '/browse'
   const isMessagesPath = pathname === '/messages' || pathname.startsWith('/messages/')
-  // Workspace pages keep a viewport-tall main panel with internal scroll; the shared
-  // tall footer sits below and is reached by document scroll (no shell overflow lock).
-  const workspaceMain = isBrowsePath || isMessagesPath
-  const browseWorkspaceMain = isBrowsePath
+  // Messages keeps a tall workspace panel. Browse v3 uses normal document scroll.
   const messagesWorkspaceMain = isMessagesPath
 
   const notifications = state.notifications ?? []
@@ -119,6 +117,18 @@ export function AppShell({ children }: { children: ReactNode }) {
     return <div className="app-shell relative min-h-dvh text-[#071330]">{children}</div>
   }
 
+  if (isBrowsePath) {
+    return (
+      <div className="app-shell relative flex min-h-dvh flex-col bg-white text-[#071330]">
+        <BrowseFloatHeader guest={isLiveGuest} showHelperBanner={showHelperSetupBanner && !isLiveGuest} />
+        <main className="relative flex-1">{children}</main>
+        <LandingFooter dockPadding={!isLiveGuest} />
+        <BrowseLocationDialogHost />
+        {isLiveGuest ? null : <BottomNav />}
+      </div>
+    )
+  }
+
   if (isLiveGuest && isPublicGuestPath(pathname)) {
     if (pathname === '/safety') {
       return <div className="app-shell relative min-h-dvh text-[#071330]">{children}</div>
@@ -131,16 +141,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           browseLocationLabel={pathname === '/browse' ? locationText : undefined}
         />
         <BrowseLocationDialogHost />
-        <main
-          className={
-            pathname === '/browse'
-              ? // Never flex-shrink against the tall footer — keep a real viewport of jobs first.
-                'beam-container shrink-0 py-6 sm:py-8 min-h-[calc(100dvh-3.5rem)] h-[calc(100dvh-3.5rem)] overflow-hidden'
-              : 'beam-container flex-1 py-8 sm:py-12'
-          }
-        >
-          {children}
-        </main>
+        <main className="beam-container flex-1 py-8 sm:py-12">{children}</main>
         <LandingFooter />
       </div>
     )
@@ -328,15 +329,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <main
         className={
-          browseWorkspaceMain
-            ? // Fixed viewport workspace first; footer sits below and is reached by page scroll.
-              // shrink-0 prevents the shared footer from compressing the jobs panel.
-              'beam-container relative shrink-0 overflow-hidden pb-4 pt-4 sm:pt-5 h-[calc(100dvh-3.5rem)] min-h-[calc(100dvh-3.5rem)]'
-            : messagesWorkspaceMain
-              ? 'beam-container relative shrink-0 pb-4 pt-4 sm:pt-5 min-h-[calc(100dvh-3.5rem)]'
-              : 'beam-container relative flex-1 pb-10 pt-6 sm:pt-8 md:pb-10'
+          messagesWorkspaceMain
+            ? 'beam-container relative shrink-0 pb-4 pt-4 sm:pt-5 min-h-[calc(100dvh-3.5rem)]'
+            : 'beam-container relative flex-1 pb-10 pt-6 sm:pt-8 md:pb-10'
         }
-        data-workspace-main={workspaceMain ? 'true' : undefined}
+        data-workspace-main={messagesWorkspaceMain ? 'true' : undefined}
       >
         {children}
       </main>

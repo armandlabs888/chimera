@@ -126,3 +126,46 @@
   backdrop-filter: blur(20px) saturate(1.35);
   -webkit-backdrop-filter: blur(20px) saturate(1.35);
 }
+
+/* Browse v3 reuses the landing float offset so the column clears the inset header. */
+.browse-v3 {
+  --landing-float-nav-inset: 16px;
+  --landing-float-nav-height: 56px;
+  --landing-float-header-offset: calc(
+    var(--landing-float-nav-inset) + var(--landing-float-nav-height)
+  );
+  --browse-header-gap: 40px;
+  --browse-banner-h: 0px;
+  padding-top: calc(
+    var(--landing-float-header-offset) + var(--browse-header-gap) + var(--browse-banner-h)
+  );
+}
+
+@media (min-width: 768px) {
+  .browse-v3 {
+    --landing-float-nav-inset: 20px;
+    --browse-header-gap: 60px;
+  }
+}
+
+.browse-v3.has-helper-banner {
+  --browse-banner-h: 40px;
+}
+
+.browse-filter-bar {
+  position: sticky;
+  top: calc(var(--landing-float-header-offset) + var(--browse-banner-h));
+  z-index: 30;
+  background: #fff;
+}
+
+.browse-job-list > li + li {
+  border-top: 1px solid #e3e8ef;
+}
+
+.browse-job-list > li:hover,
+.browse-job-list > li[data-selected='true'],
+.browse-job-list > li:hover + li,
+.browse-job-list > li[data-selected='true'] + li {
+  border-top-color: transparent;
+}

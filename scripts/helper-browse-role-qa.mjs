@@ -166,26 +166,28 @@ async function seedRole(page, role) {
 
 async function probeBrowse(page) {
   return page.evaluate(() => {
-    const grid = document.querySelector('[data-testid="browse-3col-grid"]')
+    const root = document.querySelector('[data-testid="browse-v3"]')
     const tabs = document.querySelector('[data-testid="browse-mode-tabs"]')
     const localHelpers = document.querySelector('[data-testid="browse-tab-local-helpers"]')
     const trending = document.querySelector('[data-testid="browse-trending-helpers"]')
     const trendingAside = document.querySelector('[data-testid="browse-trending-aside"]')
-    const filters = document.querySelector('[data-testid="browse-filters-sidebar"]')
-    const feed = document.querySelector('[data-testid="browse-feed-main"]')
-    const feedScroll = document.querySelector('[data-testid="browse-feed-scroll"]')
+    const filters = document.querySelector('[data-testid="browse-filter-bar"]')
+    const feed =
+      document.querySelector('[data-testid="browse-job-list"]') ||
+      document.querySelector('[data-testid="browse-helper-list"]') ||
+      document.querySelector('[data-testid="browse-fresh-empty"]') ||
+      document.querySelector('[data-testid="browse-filtered-empty"]')
     const body = document.body.innerText || ''
     // Banner copy may mention "Local Helpers"; only treat the browse tab as discovery chrome.
-    const peopleCards = document.querySelectorAll(
-      '[data-testid="browse-feed-scroll"] a[href^="/people/"]',
-    ).length
-    const requestCards = document.querySelectorAll(
-      '[data-testid="browse-feed-scroll"] a[href^="/requests/"]',
-    ).length
+    const peopleCards = document.querySelectorAll('[data-testid="browse-helper-row"]').length
+    const requestCards = document.querySelectorAll('[data-testid="browse-job-row"]').length
     const filtersVisible = !!(filters && getComputedStyle(filters).display !== 'none')
     const trendingVisible = !!(trending && getComputedStyle(trending).display !== 'none')
     return {
-      layout: grid?.getAttribute('data-browse-layout') || null,
+      layout: root?.getAttribute('data-browse-layout') || null,
+      nestedScroll: !!document.querySelector('[data-testid="browse-feed-scroll"]'),
+      filtersY: filters?.getBoundingClientRect().y ?? null,
+      feedY: feed?.getBoundingClientRect().y ?? null,
       hasTabs: !!tabs,
       hasLocalHelpersTab: !!localHelpers,
       hasTrendingCopy: /Trending helpers/i.test(body),
@@ -200,7 +202,7 @@ async function probeBrowse(page) {
       url: location.pathname + location.search,
       hasBecomeHelperEmpty: /Become a helper/i.test(body) && /No helpers nearby/i.test(body),
       overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
-      feedOverflowY: feedScroll ? getComputedStyle(feedScroll).overflowY : null,
+      feedOverflowY: null,
       windowScrollY: window.scrollY,
     }
   })
@@ -211,6 +213,7 @@ async function assertHelperJobsOnly(page, label, { expectPopulated = false, expe
   assert.equal(m.layout, 'helper-jobs', `${label}: helper-jobs layout`)
   assert.equal(m.hasTabs, false, `${label}: no mode tabs`)
   assert.equal(m.hasLocalHelpersTab, false, `${label}: no Local helpers`)
+  assert.equal(m.nestedScroll, false, `${label}: no nested feed scroll`)
   assert.equal(m.hasTrendingCopy, false, `${label}: no Trending helpers`)
   assert.equal(m.trendingVisible, false, `${label}: trending not visible`)
   assert.equal(m.trendingAsidePresent, false, `${label}: no trending aside`)
@@ -246,7 +249,8 @@ async function assertDiscovery(page, label) {
   assert.equal(m.layout, 'discovery', `${label}: discovery layout`)
   assert.equal(m.hasTabs, true, `${label}: mode tabs`)
   assert.equal(m.hasLocalHelpersTab, true, `${label}: Local helpers tab`)
-  assert.equal(m.hasTrendingCopy, true, `${label}: Trending helpers`)
+  assert.equal(m.hasTrendingCopy, false, `${label}: v3 has no Trending helpers column`)
+  assert.equal(m.trendingAsidePresent, false, `${label}: no trending aside`)
   return m
 }
 
@@ -260,9 +264,7 @@ async function assertNoFlashOnDeepLink(page, label) {
   for (let i = 0; i < 8; i++) {
     const snap = await page.evaluate(() => {
       const body = document.body.innerText || ''
-      const peopleCards = document.querySelectorAll(
-        '[data-testid="browse-feed-scroll"] a[href^="/people/"]',
-      ).length
+      const peopleCards = document.querySelectorAll('[data-testid="browse-helper-row"]').length
       const tabs = document.querySelector('[data-testid="browse-mode-tabs"]')
       const localHelpers = document.querySelector('[data-testid="browse-tab-local-helpers"]')
       const trending = document.querySelector('[data-testid="browse-trending-helpers"]')
@@ -291,7 +293,7 @@ async function assertNoFlashOnDeepLink(page, label) {
   await page.waitForFunction(
     () =>
       !location.search.includes('tab=people') &&
-      !!document.querySelector('[data-testid="browse-3col-grid"]'),
+      !!document.querySelector('[data-testid="browse-v3"]'),
     null,
     { timeout: 15000 },
   )
@@ -346,28 +348,39 @@ async function main() {
         if (vp.width >= 1440) {
           assert.equal(m.filtersVisible, true, `${role} ${vp.name}: filters visible`)
           assert.ok(
-            m.filtersX != null && m.feedX != null && m.filtersX < m.feedX,
-            `${role} ${vp.name}: filters left of feed`,
+            m.filtersX != null &&
+              m.feedX != null &&
+              Math.abs(m.filtersX - m.feedX) <= 48,
+            `${role} ${vp.name}: filters and jobs share one column`,
           )
-          assert.equal(m.trendingX, null, `${role} ${vp.name}: no trending column gap`)
-          // Locked viewport: filters pinned, feed scrolls
-          const locked = await page.evaluate(() => {
-            const filters = document.querySelector('[data-testid="browse-filters-sidebar"]')
-            const feed = document.querySelector('[data-testid="browse-feed-scroll"]')
-            const before = filters?.getBoundingClientRect().top ?? null
-            if (feed) feed.scrollTop = 200
-            const after = filters?.getBoundingClientRect().top ?? null
-            const scrollTop = feed?.scrollTop ?? 0
-            if (feed) feed.scrollTop = 0
-            return { before, after, scrollTop, windowScrollY: window.scrollY }
-          })
-          assert.equal(locked.windowScrollY, 0, `${role} ${vp.name}: window not scrolled`)
           assert.ok(
-            locked.before != null &&
-              locked.after != null &&
-              Math.abs(locked.before - locked.after) <= 1,
-            `${role} ${vp.name}: filters pinned`,
+            m.filtersY != null && m.feedY != null && m.filtersY < m.feedY,
+            `${role} ${vp.name}: filter bar above the list`,
           )
+          assert.equal(m.trendingX, null, `${role} ${vp.name}: no trending column`)
+          assert.equal(m.nestedScroll, false, `${role} ${vp.name}: page scroll, not a feed pane`)
+          const scrolled = await page.evaluate(() => {
+            const row = document.querySelector('[data-testid="browse-job-row"]')
+            const before = row?.getBoundingClientRect().top ?? null
+            window.scrollTo(0, 240)
+            const after = row?.getBoundingClientRect().top ?? null
+            const scrollY = window.scrollY
+            window.scrollTo(0, 0)
+            const main = document.querySelector('main')
+            return {
+              before,
+              after,
+              scrollY,
+              mainOverflow: main ? getComputedStyle(main).overflow : null,
+              mainHeight: main ? getComputedStyle(main).height : null,
+            }
+          })
+          assert.equal(scrolled.scrollY > 0, true, `${role} ${vp.name}: document scrolls`)
+          assert.ok(
+            scrolled.before != null && scrolled.after != null && scrolled.after < scrolled.before - 40,
+            `${role} ${vp.name}: job rows move with the page`,
+          )
+          assert.notEqual(scrolled.mainOverflow, 'hidden', `${role} ${vp.name}: main is not overflow-locked`)
         }
         await shot(page, `${role}-${vp.name}-jobs.png`)
         await assertNoFlashOnDeepLink(page, `${role} ${vp.name} deep link`)
@@ -398,13 +411,21 @@ async function main() {
       await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
       await page.waitForSelector('text=Browse Local Jobs')
       const m = await assertDiscovery(page, 'customer browse')
-      assert.equal(m.trendingVisible, true, 'customer trending visible')
-      assert.ok(m.filtersX < m.feedX && m.feedX < m.trendingX, 'customer 3col order')
+      assert.equal(m.trendingVisible, false, 'customer v3 has no trending column')
+      assert.ok(
+        m.filtersY != null && m.feedY != null && m.filtersY < m.feedY,
+        'customer filter bar above the list',
+      )
       await page.goto(`${BASE}/browse?tab=people`, { waitUntil: 'networkidle' })
       await page.waitForSelector('[data-testid="browse-tab-local-helpers"]')
+      assert.equal(
+        await page.locator('[data-testid="browse-tab-local-helpers"]').getAttribute('aria-selected'),
+        'true',
+        'helpers tab selected',
+      )
       assert.ok(
-        (await page.locator('[data-testid="browse-feed-scroll"] a[href^="/people/"]').count()) >= 1,
-        'customer people cards',
+        (await page.locator('[data-testid="browse-helper-row"]').count()) >= 1,
+        'customer helper rows',
       )
       await shot(page, 'customer-discovery-1440x900.png')
       report.checks.push({ role: 'customer', ok: true })
@@ -519,7 +540,7 @@ async function main() {
         localStorage.setItem(key, JSON.stringify(state))
       }, STORAGE_KEY)
       await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
-      await page.waitForSelector('[data-testid="browse-3col-grid"]')
+      await page.waitForSelector('[data-testid="browse-v3"]')
       await assertDiscovery(page, 'null-role keeps discovery')
       assert.equal(await page.locator('[data-testid="browse-radar"]').count(), 0)
       await shot(page, 'null-role-keeps-discovery-1440x900.png')

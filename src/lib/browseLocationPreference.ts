@@ -122,10 +122,12 @@ export function resolveBrowseOrigin(
   const label =
     locationLabel ||
     (city && stateCode ? `${city}, ${stateCode}` : city || '')
+  // Prefer the city segment of the visible picker label so count lines match the header.
+  const labelCity = label.split(',')[0]?.trim() || ''
 
   if (label || (person.lat != null && person.lng != null)) {
     return {
-      city: city || (label ? label.split(',')[0]?.trim() || '' : ''),
+      city: labelCity || city,
       stateCode,
       locationLabel: label || 'Nearby',
       lat: typeof person.lat === 'number' ? person.lat : null,

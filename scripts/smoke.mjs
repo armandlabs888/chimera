@@ -919,108 +919,76 @@ async function checkLandingBrowser() {
           Math.abs(g.leftGutter - g.rightGutter) <= 2,
           `desktop gutters symmetric (L=${g.leftGutter}, R=${g.rightGutter})`,
         )
-        // Redesign: unified search bar spans the main feed column (not a capped 760px strip).
         assert.ok(
-          g.commandBarWidth != null &&
-            g.feedWidth != null &&
-            Math.abs(g.commandBarWidth - g.feedWidth) <= 8,
-          `desktop command bar fills feed (bar=${g.commandBarWidth}, feed=${g.feedWidth})`,
+          g.commandBarWidth != null && g.commandBarWidth >= 700 && g.commandBarWidth <= 808,
+          `desktop browse column is ~760–808px (got ${g.commandBarWidth})`,
         )
         assert.ok(
           g.radiusTriggerWidth != null && g.radiusTriggerWidth <= 220,
           `desktop radius/middle trigger compact (<=220px, got ${g.radiusTriggerWidth})`,
         )
 
-        // 3-column marketplace discovery: filters | feed | trending helpers
+        // Browse v3: one centered column, page scroll, no 3-col rails.
         const col = await page.evaluate(() => {
-          const grid = document.querySelector('[data-testid="browse-3col-grid"]')
-          const filters = document.querySelector('[data-testid="browse-filters-sidebar"]')
-          const feed = document.querySelector('[data-testid="browse-feed-main"]')
-          const trending = document.querySelector('[data-testid="browse-trending-helpers"]')
-          const card = document.querySelector(
-            '[data-testid="browse-feed-main"] a, [data-testid="browse-trending-helpers"] a',
-          )
-          const cardRadius = card ? parseFloat(getComputedStyle(card).borderRadius) || 0 : 0
-          const maxCardRadius = Math.max(
-            0,
-            ...[...document.querySelectorAll('[data-testid="browse-filters-sidebar"] > div, [data-testid="browse-trending-helpers"], [data-testid="browse-command-bar"] > div')]
-              .map((el) => parseFloat(getComputedStyle(el).borderRadius) || 0),
-            cardRadius,
-          )
+          const root = document.querySelector('[data-testid="browse-v3"]')
+          const row = document.querySelector('[data-testid="browse-job-row"]')
+          const rowRadius = row ? parseFloat(getComputedStyle(row).borderRadius) || 0 : 0
+          const main = document.querySelector('main')
           return {
-            hasGrid: !!grid,
-            hasFilters: !!filters,
-            hasFeed: !!feed,
-            hasTrending: !!trending,
-            filtersX: filters?.getBoundingClientRect().x ?? null,
-            feedX: feed?.getBoundingClientRect().x ?? null,
-            trendingX: trending?.getBoundingClientRect().x ?? null,
-            maxCardRadius,
+            hasV3: !!root,
+            layout: root?.getAttribute('data-browse-layout') || null,
+            has3col: !!document.querySelector('[data-testid="browse-3col-grid"]'),
+            hasTrending: !!document.querySelector('[data-testid="browse-trending-helpers"]'),
+            hasFeedScroll: !!document.querySelector('[data-testid="browse-feed-scroll"]'),
+            hasBudget: [...document.querySelectorAll('button')].some((b) =>
+              /^Budget$/i.test((b.textContent || '').trim()),
+            ),
+            hasSample: /Sample listings/i.test(document.body.innerText || ''),
+            columnWidth: root?.getBoundingClientRect().width ?? null,
+            rowRadius,
+            mainOverflow: main ? getComputedStyle(main).overflowY : null,
+            whenText: document.querySelector('[data-testid="browse-when-trigger"]')?.textContent || '',
           }
         })
-        assert.equal(col.hasGrid, true, 'browse-3col-grid present @1440')
-        assert.equal(col.hasFilters, true, 'browse-filters-sidebar present @1440')
-        assert.equal(col.hasFeed, true, 'browse-feed-main present @1440')
-        assert.equal(col.hasTrending, true, 'browse-trending-helpers present @1440')
+        assert.equal(col.hasV3, true, 'browse-v3 present @1440')
+        assert.equal(col.layout, 'discovery', 'customer browse-v3 discovery layout')
+        assert.equal(col.has3col, false, '3-col grid removed')
+        assert.equal(col.hasTrending, false, 'trending column removed')
+        assert.equal(col.hasFeedScroll, false, 'nested feed scroll removed')
+        assert.equal(col.hasBudget, false, 'no Budget filter pill')
+        assert.equal(col.hasSample, false, 'no sample listings copy')
         assert.ok(
-          col.filtersX != null && col.feedX != null && col.trendingX != null,
-          '3-col geometry measurable',
+          col.columnWidth != null && col.columnWidth >= 760 && col.columnWidth <= 860,
+          `browse column width (got ${col.columnWidth})`,
         )
         assert.ok(
-          col.filtersX < col.feedX && col.feedX < col.trendingX,
-          `3-col x-order filters(${col.filtersX}) < feed(${col.feedX}) < trending(${col.trendingX})`,
+          col.rowRadius > 0 && col.rowRadius <= 12,
+          `job row radius <= 12px (got ${col.rowRadius})`,
         )
-        assert.ok(
-          col.maxCardRadius > 0 && col.maxCardRadius <= 12,
-          `browse card radius <= 12px Paper lock (got ${col.maxCardRadius})`,
-        )
+        assert.notEqual(col.mainOverflow, 'hidden', 'browse main is not overflow-locked')
+        assert.match(col.whenText, /Any timing/i, 'when control defaults to Any timing')
 
-        // Browse workspace: feed scrolls inside the panel; sidecards stay pinned in that
-        // viewport. Document may scroll further to reach the shared tall footer below.
         const locked = await page.evaluate(() => {
-          const feedScroll = document.querySelector('[data-testid="browse-feed-scroll"]')
-          const filters = document.querySelector('[data-testid="browse-filters-sidebar"]')
-          const trending = document.querySelector('[data-testid="browse-trending-helpers"]')
           const siteFooter = document.querySelector('[data-testid="landing-footer"]')
-          const feedCards = [
-            ...document.querySelectorAll(
-              '[data-testid="browse-feed-scroll"] a[href^="/requests/"], [data-testid="browse-feed-scroll"] a[href^="/people/"]',
-            ),
-          ]
-          const cardBoxes = feedCards.slice(0, 3).map((el) => {
+          const rows = [...document.querySelectorAll('[data-testid="browse-job-row"]')]
+          const cardBoxes = rows.slice(0, 3).map((el) => {
             const r = el.getBoundingClientRect()
             return { top: r.top, left: r.left, width: r.width }
           })
-          const filtersBefore = filters?.getBoundingClientRect().top ?? null
-          const trendingBefore = trending?.getBoundingClientRect().top ?? null
-          const firstCardBefore = feedCards[0]?.getBoundingClientRect().top ?? null
-          const overflowY = feedScroll ? getComputedStyle(feedScroll).overflowY : null
-          if (feedScroll) feedScroll.scrollTop = 260
-          const filtersAfter = filters?.getBoundingClientRect().top ?? null
-          const trendingAfter = trending?.getBoundingClientRect().top ?? null
-          const firstCardAfter = feedCards[0]?.getBoundingClientRect().top ?? null
-          const scrollTopAfter = feedScroll?.scrollTop ?? 0
-          if (feedScroll) feedScroll.scrollTop = 0
-
-          const sidebarText = filters?.textContent || ''
+          const firstBefore = rows[0]?.getBoundingClientRect().top ?? null
+          window.scrollTo(0, 280)
+          const firstAfter = rows[0]?.getBoundingClientRect().top ?? null
+          const scrollY = window.scrollY
+          window.scrollTo(0, 0)
           const bodyText = document.body.innerText || ''
           return {
             scrollY: window.scrollY,
+            moved: firstBefore != null && firstAfter != null && firstAfter < firstBefore - 40,
+            scrolledTo: scrollY,
             docScrollHeight: document.documentElement.scrollHeight,
             docClientHeight: document.documentElement.clientHeight,
-            overflowY,
-            filtersBefore,
-            filtersAfter,
-            trendingBefore,
-            trendingAfter,
-            firstCardBefore,
-            firstCardAfter,
-            scrollTopAfter,
             cardBoxes,
-            hasAnyTiming: /Any timing/i.test(sidebarText),
-            filtersBottom: filters?.getBoundingClientRect().bottom ?? null,
-            viewportHeight: window.innerHeight,
-            hasZeroStar: /★\s*0\.0/.test(bodyText) || /★\s*0\.0/.test(document.body.textContent || ''),
+            hasZeroStar: /★\s*0\.0/.test(bodyText),
             hasSiteFooter: Boolean(siteFooter),
             footerHeight: siteFooter ? Math.round(siteFooter.getBoundingClientRect().height) : 0,
           }
@@ -1035,44 +1003,19 @@ async function checkLandingBrowser() {
           locked.docScrollHeight > locked.docClientHeight + 200,
           `desktop /browse document scrolls to reach footer (scrollHeight=${locked.docScrollHeight}, clientHeight=${locked.docClientHeight})`,
         )
-        assert.ok(
-          locked.overflowY === 'auto' || locked.overflowY === 'scroll',
-          `browse-feed-scroll overflowY is auto/scroll (got ${locked.overflowY})`,
-        )
-        assert.ok(
-          locked.filtersBefore != null &&
-            locked.filtersAfter != null &&
-            Math.abs(locked.filtersBefore - locked.filtersAfter) <= 1,
-          `filters sidebar stays pinned while feed scrolls (before=${locked.filtersBefore}, after=${locked.filtersAfter})`,
-        )
-        assert.ok(
-          locked.trendingBefore != null &&
-            locked.trendingAfter != null &&
-            Math.abs(locked.trendingBefore - locked.trendingAfter) <= 1,
-          `trending helpers stay pinned while feed scrolls (before=${locked.trendingBefore}, after=${locked.trendingAfter})`,
-        )
-        if (locked.firstCardBefore != null && locked.scrollTopAfter > 0) {
-          assert.ok(
-            locked.firstCardAfter < locked.firstCardBefore - 20,
-            `listing cards move up inside browse-feed-scroll (before=${locked.firstCardBefore}, after=${locked.firstCardAfter}, scrollTop=${locked.scrollTopAfter})`,
-          )
-        }
+        assert.equal(locked.moved, true, 'job rows move with document scroll')
+        assert.ok(locked.scrolledTo > 40, 'window.scrollTo actually scrolled the page')
         if (locked.cardBoxes.length >= 3) {
           const [a, b, c] = locked.cardBoxes
           assert.ok(
-            Math.abs(a.top - b.top) <= 2 && Math.abs(b.top - c.top) <= 2,
-            `3 listing cards share the same row top @1440 (tops=${a.top},${b.top},${c.top})`,
+            a.top < b.top && b.top < c.top,
+            `job rows stack vertically @1440 (tops=${a.top},${b.top},${c.top})`,
           )
           assert.ok(
-            a.left < b.left && b.left < c.left,
-            `3 listing cards have increasing left x @1440 (lefts=${a.left},${b.left},${c.left})`,
+            Math.abs(a.left - b.left) <= 2 && Math.abs(b.left - c.left) <= 2,
+            `job rows share the same left edge @1440 (lefts=${a.left},${b.left},${c.left})`,
           )
         }
-        assert.equal(locked.hasAnyTiming, true, 'filters sidebar includes Any timing')
-        assert.ok(
-          locked.filtersBottom != null && locked.filtersBottom <= locked.viewportHeight + 1,
-          `filters sidebar fits in viewport (bottom=${locked.filtersBottom}, vh=${locked.viewportHeight})`,
-        )
         assert.equal(locked.hasZeroStar, false, 'no ★ 0.0 star rating text on /browse')
       }
     }
@@ -1781,9 +1724,9 @@ async function checkMarketplaceFlows() {
 
     // Browse cards also use subtle corners.
     await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
-    await page.waitForSelector('a[href^="/requests/"]', { timeout: 15000 })
+    await page.waitForSelector('[data-testid="browse-job-row"]', { timeout: 15000 })
     const browseRadii = await page.evaluate(() => {
-      const cards = [...document.querySelectorAll('a[href^="/requests/"]')].slice(0, 4)
+      const cards = [...document.querySelectorAll('[data-testid="browse-job-row"]')].slice(0, 4)
       return cards.map((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius))
     })
     assert.ok(browseRadii.length > 0, 'browse request cards present')
@@ -2050,28 +1993,32 @@ async function checkSubtleRadii() {
         let peopleEmpty = null
         let becomeHelper = null
         if (location.search.includes('tab=people') || /No helpers nearby yet/i.test(document.body.innerText)) {
-          const emptyTitle = [...document.querySelectorAll('h3')].find((el) =>
+          const v3Empty = document.querySelector('[data-testid="browse-filtered-empty"]')
+          const emptyTitle = [...document.querySelectorAll('h2, h3')].find((el) =>
             /No helpers nearby yet/i.test(el.textContent || ''),
           )
-          let emptyBox = emptyTitle?.parentElement || null
-          // Walk up to the bordered EmptyState wrapper (PR60+: rounded-[10px] + cool canvas).
-          while (emptyBox && emptyBox !== document.body) {
-            const cls = String(emptyBox.className || '')
-            if (
-              (/rounded-lg/.test(cls) || /rounded-\[10px\]/.test(cls)) &&
-              /border/.test(cls) &&
-              (/bg-white/.test(cls) || /bg-\[#FBFDFF\]/.test(cls))
-            ) {
-              break
+          let emptyBox = v3Empty || emptyTitle?.parentElement || null
+          // Walk up to the bordered EmptyState wrapper when the v3 card is not the node itself.
+          if (!v3Empty) {
+            while (emptyBox && emptyBox !== document.body) {
+              const cls = String(emptyBox.className || '')
+              if (
+                (/rounded-lg/.test(cls) || /rounded-\[10px\]/.test(cls) || /rounded-xl/.test(cls)) &&
+                /border/.test(cls)
+              ) {
+                break
+              }
+              emptyBox = emptyBox.parentElement
             }
-            emptyBox = emptyBox.parentElement
           }
           peopleEmpty = emptyBox
             ? { px: radiusPx(emptyBox), text: (emptyBox.textContent || '').trim().slice(0, 48) }
             : null
-          const cta = [...document.querySelectorAll('a,button')].find((el) =>
-            /^Become a helper$/i.test((el.textContent || '').trim()),
-          )
+          const cta =
+            document.querySelector('[data-testid="browse-empty-post-cta"]') ||
+            [...document.querySelectorAll('a,button')].find((el) =>
+              /^Become a helper$/i.test((el.textContent || '').trim()),
+            )
           becomeHelper = cta ? { px: radiusPx(cta), text: (cta.textContent || '').trim() } : null
         }
 
@@ -2096,13 +2043,18 @@ async function checkSubtleRadii() {
       if (pathName === '/browse?tab=people') {
         assert.ok(probe.peopleEmpty, 'people tab EmptyState found')
         assert.ok(
-          probe.peopleEmpty.px > 0 && probe.peopleEmpty.px <= 10,
-          `EmptyState radius <=10 (got ${probe.peopleEmpty.px})`,
+          probe.peopleEmpty.px > 0 && probe.peopleEmpty.px <= 12,
+          `EmptyState radius <=12 (got ${probe.peopleEmpty.px})`,
         )
-        assert.ok(probe.becomeHelper, 'Become a helper CTA found')
+        assert.ok(probe.becomeHelper, 'helper setup CTA found')
+        assert.match(
+          probe.becomeHelper.text,
+          /Become a helper|Set up helper profile/i,
+          'helper empty offers a path to become a helper',
+        )
         assert.ok(
-          probe.becomeHelper.px > 0 && probe.becomeHelper.px <= 10,
-          `Become a helper radius <=10 (got ${probe.becomeHelper.px})`,
+          probe.becomeHelper.px > 0 && probe.becomeHelper.px <= 12,
+          `helper setup CTA radius <=12 (got ${probe.becomeHelper.px})`,
         )
       }
       console.log(`ok subtle radii ${pathName}`)

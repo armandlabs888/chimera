@@ -6,7 +6,7 @@ import { chromium } from 'playwright'
 import { mkdirSync, copyFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const BASE = process.env.BEAM_BASE_URL || 'http://127.0.0.1:43123'
+const BASE = process.env.BASE_URL || process.env.BEAM_BASE_URL || 'http://127.0.0.1:43123'
 const OUT = '/opt/cursor/artifacts'
 const LOCAL_OUT = '/workspace/artifacts'
 const STORAGE_KEY = 'beam-demo-v1'
@@ -201,10 +201,9 @@ try {
       summary.checks.push({ name: 'guest-browse-when-open-1440x900', ok: true })
     }
 
-    await page
-      .locator('[data-testid="browse-filters-sidebar"]')
-      .getByRole('button', { name: /^Home\b/ })
-      .click()
+    await page.getByTestId('browse-category-trigger').click()
+    await page.getByTestId('browse-category-listbox').waitFor({ state: 'visible' })
+    await page.getByTestId('browse-category-listbox').getByRole('option', { name: /^Home\b/ }).click()
     await page.getByLabel('Search browse').fill('couch')
     await page.waitForTimeout(400)
     const filterText = await page.locator('body').innerText()
@@ -231,7 +230,7 @@ try {
 
     // Helpers tab desktop
     await page.goto(`${BASE}/browse?tab=people`, { waitUntil: 'networkidle', timeout: 60000 })
-    await page.waitForSelector('text=Local helpers', { timeout: 15000 })
+    await page.waitForSelector('[data-testid="browse-tab-local-helpers"][aria-selected="true"]', { timeout: 15000 })
     metrics = await measurePage(page)
     if (metrics.scrollWidth > metrics.innerWidth + 1) {
       fail(`Horizontal overflow on helpers @ ${vp.name}`)
@@ -306,7 +305,7 @@ try {
     if (metrics.neighborhoodTrigger) fail(`Neighborhood trigger @ ${vp.name}`)
 
     await page.goto(`${BASE}/browse?tab=people`, { waitUntil: 'networkidle', timeout: 60000 })
-    await page.waitForSelector('text=Local helpers', { timeout: 15000 })
+    await page.waitForSelector('[data-testid="browse-tab-local-helpers"][aria-selected="true"]', { timeout: 15000 })
     metrics = await measurePage(page)
     if (metrics.scrollWidth > metrics.innerWidth + 1) {
       fail(`Horizontal overflow helpers @ ${vp.name}`)

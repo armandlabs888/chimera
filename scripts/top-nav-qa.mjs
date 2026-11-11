@@ -262,8 +262,9 @@ try {
         const reset = !!document.querySelector('[data-testid="browse-reset-filters"]')
         const body = document.body.innerText
         const beFirst = /Be the first on Beam/i.test(body)
-        const noMatch = /No open requests match/i.test(body)
-        const hasCards = document.querySelectorAll('a[href^="/requests/"]').length > 0
+        const noMatch = /No open requests match|No jobs match these filters/i.test(body)
+        const hasCards =
+          document.querySelectorAll('a[href^="/requests/"], [data-testid="browse-job-row"]').length > 0
         return { fresh, reset, beFirst, noMatch, hasCards }
       })
       if (!emptyLogic.hasCards) {
