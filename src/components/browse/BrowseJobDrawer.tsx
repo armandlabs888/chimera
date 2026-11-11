@@ -15,8 +15,9 @@ import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import { useBeam } from '@/context/BeamContext'
 import { formatBudget, relativeTime } from '@/lib/matching'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
-import { formatCategoryLabel, getCategoryImage } from '@/lib/taxonomy'
+import { formatCategoryLabel } from '@/lib/taxonomy'
 import type { HelpRequest } from '@/types'
+import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 import { useFocusTrap } from './useFocusTrap'
 
 const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexible'] as const
@@ -63,7 +64,7 @@ export function BrowseJobDrawer({
   const [askPending, setAskPending] = useState(false)
 
   const images = normalizeListingImages(request.images, request.image)
-  const cover = listingCoverImage(images, getCategoryImage(request.category))
+  const cover = listingCoverImage(images)
   const categoryLabel = formatCategoryLabel(request.category, request.categoryCustom)
   const budgetLabel = formatBudget(request)
   const openBudget = request.budgetType === 'open' || request.budget === 0
@@ -168,9 +169,7 @@ export function BrowseJobDrawer({
       {cover ? (
         <img src={cover} alt="" className="aspect-[16/10] w-full rounded-[10px] object-cover" />
       ) : (
-        <div className="grid aspect-[16/10] w-full place-items-center rounded-[10px] bg-[#E9EEF5] text-[15px] font-semibold text-[#3D4A5F]">
-          {categoryLabel}
-        </div>
+        <BrowseCategoryThumb categoryId={request.category} size="hero" />
       )}
       <div className="mt-[18px]">
         <span className="inline-flex h-[26px] items-center rounded-[7px] border border-[#D6E2F5] bg-[#F4F8FD] px-2 text-[12.5px] font-semibold text-[#123E9E]">
@@ -297,28 +296,30 @@ export function BrowseJobDrawer({
 
   const actions = (
     <div
-      className={`flex shrink-0 items-center gap-3 border-t border-[#E3E8EF] bg-white ${
-        narrow ? 'px-4 pb-5 pt-3' : 'px-[22px] py-3.5'
+      className={`flex shrink-0 flex-nowrap items-center gap-2 border-t border-[#E3E8EF] bg-white sm:gap-3 ${
+        narrow ? 'px-3 pb-5 pt-3' : 'px-4 py-3.5 sm:px-[22px]'
       }`}
     >
-      <div className="min-w-0 leading-tight">
-        <b className="text-[19px] font-bold text-[#071330]">{budgetLabel}</b>
-        <span className="block text-[12.5px] text-[#3D4A5F]">Customer budget</span>
+      <div className="min-w-0 shrink leading-tight">
+        <b className="block truncate text-[17px] font-bold text-[#071330] sm:text-[19px]">{budgetLabel}</b>
+        <span className="block whitespace-nowrap text-[11.5px] text-[#3D4A5F] sm:text-[12.5px]">
+          Customer budget
+        </span>
       </div>
-      <div className="flex-1" />
+      <div className="min-w-2 flex-1" />
       {canOffer ? (
-        <>
+        <div className="flex shrink-0 flex-nowrap items-center gap-2">
           <button
             type="button"
             data-testid="browse-ask-question"
             disabled={askPending}
             onClick={() => void askQuestion()}
-            className={`inline-flex h-12 items-center justify-center gap-2 rounded-[10px] border border-[#CDD5E0] bg-white font-semibold text-[#071330] hover:bg-[#F4F8FD] disabled:opacity-60 ${
-              narrow ? 'w-12 shrink-0 px-0' : 'px-4 text-[15px]'
+            className={`inline-flex h-11 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[10px] border border-[#CDD5E0] bg-white font-semibold text-[#071330] hover:bg-[#F4F8FD] disabled:opacity-60 sm:h-12 ${
+              narrow ? 'w-11 px-0' : 'px-3 text-[13.5px] sm:px-4 sm:text-[14px]'
             }`}
             aria-label="Ask a question"
           >
-            <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden />
+            <MessageCircle className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
             {narrow ? null : 'Ask a question'}
           </button>
           <button
@@ -332,17 +333,17 @@ export function BrowseJobDrawer({
               if (offerOpen) void submitOffer()
               else setOfferOpen(true)
             }}
-            className={`inline-flex h-12 items-center justify-center rounded-[10px] bg-[#1D5CE5] px-5 text-[15px] font-semibold text-white hover:bg-[#1649BD] ${
-              narrow ? 'flex-1' : ''
+            className={`inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-[10px] bg-[#1D5CE5] px-3.5 text-[13.5px] font-semibold text-white hover:bg-[#1649BD] sm:h-12 sm:px-5 sm:text-[14px] ${
+              narrow ? 'min-w-0 flex-1' : ''
             }`}
           >
             {offerOpen ? 'Send offer' : 'Make an offer'}
           </button>
-        </>
+        </div>
       ) : (
         <Link
           href={fullHref}
-          className="inline-flex h-12 items-center justify-center rounded-[10px] bg-[#1D5CE5] px-5 text-[15px] font-semibold text-white hover:bg-[#1649BD]"
+          className="inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-[10px] bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white hover:bg-[#1649BD] sm:h-12 sm:px-5 sm:text-[14px]"
         >
           {isOwner ? 'View your listing' : 'Open full page'}
         </Link>

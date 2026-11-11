@@ -36,11 +36,12 @@ async function seedCustomer(page) {
         p.accountRole = 'customer'
         p.isHelper = false
         p.skills = []
-        p.city = p.city || 'San Jose'
-        p.stateCode = p.stateCode || 'CA'
-        p.locationLabel = p.locationLabel || 'San Jose, CA'
-        p.lat = p.lat ?? 37.3382
-        p.lng = p.lng ?? -121.8863
+        // Deliberately diverge city vs locationLabel — count must follow the picker label.
+        p.city = 'San Jose'
+        p.stateCode = 'CA'
+        p.locationLabel = 'East Austin, TX'
+        p.lat = p.lat ?? 30.2672
+        p.lng = p.lng ?? -97.7431
       } else if (!(p.isHelper || (p.skills || []).length)) {
         p.isHelper = true
         p.skills = ['house-cleaning', 'pet-sitting']
@@ -48,8 +49,8 @@ async function seedCustomer(page) {
     }
     for (const r of state.requests || []) {
       if (r.status === 'open') {
-        r.lat = r.lat ?? 37.34
-        r.lng = r.lng ?? -121.89
+        r.lat = r.lat ?? 30.27
+        r.lng = r.lng ?? -97.74
       }
     }
     localStorage.setItem(key, JSON.stringify(state))
@@ -90,6 +91,22 @@ async function main() {
       const metrics = await page.evaluate(() => {
         const root = document.querySelector('[data-testid="browse-v3"]')
         const html = document.documentElement
+        const locBtn = document.querySelector('[data-testid="topnav-location"]')
+        const locText = (locBtn?.textContent || '').replace(/\s+/g, ' ').trim()
+        const locCity = locText.split(',')[0]?.trim() || ''
+        const countLine = [...document.querySelectorAll('[data-testid="browse-v3"] p, [data-testid="browse-v3"] span')]
+          .map((el) => el.textContent || '')
+          .find((t) => /\bjobs?\s+near\b|\bhelpers?\s+near\b/i.test(t)) || ''
+        const nearMatch = countLine.match(/near\s+([^.\n]+)/i)
+        const countCity = (nearMatch?.[1] || '').trim()
+        const letterThumbs = [...document.querySelectorAll('[data-testid="browse-job-row"]')].filter((row) => {
+          const fallback = row.querySelector('[data-testid="browse-category-thumb"]')
+          const img = row.querySelector('img')
+          if (img) return false
+          if (fallback) return false
+          const text = (row.textContent || '').trim()
+          return /^[A-Z]$/.test(text.slice(0, 1)) && row.querySelector('span.grid')
+        }).length
         return {
           overflowX: html.scrollWidth > html.clientWidth + 1,
           layout: root?.getAttribute('data-browse-layout'),
@@ -106,6 +123,10 @@ async function main() {
           mainOverflow: document.querySelector('main')
             ? getComputedStyle(document.querySelector('main')).overflowY
             : null,
+          locCity,
+          countCity,
+          letterThumbs,
+          categoryThumbs: document.querySelectorAll('[data-testid="browse-category-thumb"]').length,
         }
       })
       assert.equal(metrics.overflowX, false, `${vp.name} x-overflow`)
@@ -117,6 +138,14 @@ async function main() {
       assert.equal(metrics.floatNav, true)
       assert.ok(metrics.rowCount > 0 || metrics.hasTabs, 'has rows or tabs')
       assert.ok(['visible', 'auto', ''].includes(metrics.mainOverflow) || metrics.mainOverflow === 'visible' || metrics.mainOverflow !== 'hidden')
+      if (metrics.locCity && metrics.countCity) {
+        assert.equal(
+          metrics.countCity,
+          metrics.locCity,
+          `${vp.name} count city "${metrics.countCity}" must match header "${metrics.locCity}"`,
+        )
+      }
+      assert.equal(metrics.letterThumbs, 0, `${vp.name} no letter monogram thumbs`)
 
       summary.shots.push(await shot(page, `list-${vp.name}.png`))
       pass(`list-${vp.name}`, metrics)
@@ -141,6 +170,46 @@ async function main() {
         if (vp.width >= 1024) assert.equal(drawerOpen.drawer, true, `${vp.name} drawer`)
         else assert.ok(drawerOpen.sheet || drawerOpen.drawer, `${vp.name} sheet/drawer`)
         assert.doesNotMatch(drawerOpen.body, /Sample listings|Elena R/i)
+        const ctaWrap = await page.evaluate(() => {
+          function textWraps(el) {
+            if (!el) return false
+            const cs = getComputedStyle(el)
+            if (cs.whiteSpace === 'nowrap') return el.scrollWidth > el.clientWidth + 1
+            // Count client rects for text nodes inside the button
+            const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+            let maxTop = null
+            let minTop = null
+            while (walker.nextNode()) {
+              const node = walker.currentNode
+              if (!node.nodeValue?.trim()) continue
+              const range = document.createRange()
+              range.selectNodeContents(node)
+              for (const rect of range.getClientRects()) {
+                if (rect.height < 2) continue
+                minTop = minTop == null ? rect.top : Math.min(minTop, rect.top)
+                maxTop = maxTop == null ? rect.top : Math.max(maxTop, rect.top)
+              }
+            }
+            if (minTop == null || maxTop == null) return false
+            return maxTop - minTop > 4
+          }
+          return {
+            askWraps: textWraps(document.querySelector('[data-testid="browse-ask-question"]')),
+            offerWraps: textWraps(document.querySelector('[data-testid="browse-make-offer"]')),
+            askNowrap:
+              getComputedStyle(document.querySelector('[data-testid="browse-ask-question"]') || document.body)
+                .whiteSpace === 'nowrap',
+            offerNowrap:
+              getComputedStyle(document.querySelector('[data-testid="browse-make-offer"]') || document.body)
+                .whiteSpace === 'nowrap',
+          }
+        })
+        assert.equal(ctaWrap.offerWraps, false, `${vp.name} Make an offer wraps`)
+        assert.equal(ctaWrap.offerNowrap, true, `${vp.name} Make an offer missing nowrap`)
+        if (vp.width >= 1024) {
+          assert.equal(ctaWrap.askWraps, false, `${vp.name} Ask a question wraps`)
+          assert.equal(ctaWrap.askNowrap, true, `${vp.name} Ask a question missing nowrap`)
+        }
         summary.shots.push(await shot(page, `detail-${vp.name}.png`))
         pass(`detail-${vp.name}`)
 

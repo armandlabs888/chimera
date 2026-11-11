@@ -1,16 +1,26 @@
 import type { LucideIcon } from 'lucide-react'
 import {
+  BookOpen,
   Car,
   LayoutGrid,
   Home,
   PawPrint,
   Scissors,
+  Sparkles,
   SprayCan,
   Trash2,
   Droplets,
-  MoreHorizontal,
+  Truck,
+  Wrench,
 } from 'lucide-react'
-import type { BrowseParentId, ServiceCategoryId } from '@/lib/taxonomy'
+import {
+  isBrowseParentId,
+  isLegacyCategoryId,
+  isServiceCategoryId,
+  type BrowseParentId,
+  type LegacyCategoryId,
+  type ServiceCategoryId,
+} from '@/lib/taxonomy'
 
 export const CATEGORY_ICONS: Record<ServiceCategoryId, LucideIcon> = {
   'house-cleaning': SprayCan,
@@ -19,7 +29,7 @@ export const CATEGORY_ICONS: Record<ServiceCategoryId, LucideIcon> = {
   'junk-removal': Trash2,
   'pet-sitting': PawPrint,
   grooming: Scissors,
-  other: MoreHorizontal,
+  other: Sparkles,
 }
 
 export const PARENT_ICONS: Record<BrowseParentId, LucideIcon> = {
@@ -27,7 +37,25 @@ export const PARENT_ICONS: Record<BrowseParentId, LucideIcon> = {
   auto: Car,
   'junk-removal': Trash2,
   pets: PawPrint,
-  other: MoreHorizontal,
+  other: Sparkles,
+}
+
+const LEGACY_ICONS: Record<LegacyCategoryId, LucideIcon> = {
+  moving: Truck,
+  cleaning: SprayCan,
+  handyman: Wrench,
+  petcare: PawPrint,
+  tutoring: BookOpen,
+  events: Sparkles,
 }
 
 export const ALL_CATEGORY_ICON: LucideIcon = LayoutGrid
+
+/** Icon for browse thumbs / drawers — covers launch + legacy + unknown ids. */
+export function getBrowseCategoryIcon(categoryId: string | null | undefined): LucideIcon {
+  if (!categoryId) return Sparkles
+  if (isServiceCategoryId(categoryId)) return CATEGORY_ICONS[categoryId]
+  if (isBrowseParentId(categoryId)) return PARENT_ICONS[categoryId]
+  if (isLegacyCategoryId(categoryId)) return LEGACY_ICONS[categoryId]
+  return Sparkles
+}

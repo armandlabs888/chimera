@@ -23,7 +23,6 @@ import {
   BROWSE_PARENTS,
   expandBrowseFilter,
   formatCategoryLabel,
-  getCategoryImage,
   matchesBrowseCategory,
 } from '@/lib/taxonomy'
 import type { AvailabilitySlot, HelpRequest, Person, WhenOption } from '@/types'
@@ -254,10 +253,15 @@ export function Browse() {
 
   const q = qParam.toLowerCase().trim()
   const radiusMiles = radius === 'all' ? null : Number(radius)
-  const cityName =
-    browseOrigin.city?.trim() ||
-    browseOrigin.locationLabel.split(',')[0]?.trim() ||
-    'you'
+  // Always derive from the same origin the float header shows (locationLabel),
+  // never a stale profile city that can disagree with the picker text.
+  const cityName = (() => {
+    const label = browseOrigin.locationLabel?.trim() || ''
+    if (label && label.toLowerCase() !== 'nearby') {
+      return label.split(',')[0]?.trim() || browseOrigin.city?.trim() || 'you'
+    }
+    return browseOrigin.city?.trim() || 'you'
+  })()
 
   const openRequests = useMemo(() => {
     let list = state.requests
@@ -654,7 +658,8 @@ export function Browse() {
             {shownRequests.map((request) => {
               const miles = formatMiles(milesTo(request, browseAnchor))
               const photos = normalizeListingImages(request.images, request.image)
-              const imageSrc = listingCoverImage(photos, getCategoryImage(request.category))
+              // Real listing photo only — missing photos use the category icon tile.
+              const imageSrc = listingCoverImage(photos)
               const budget = formatBudget(request)
               const openBudget = budget === 'Open to offers'
               return (

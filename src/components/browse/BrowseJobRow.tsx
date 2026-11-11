@@ -1,6 +1,7 @@
 'use client'
 
 import type { HelpRequest } from '@/types'
+import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 
 export function BrowseJobRow({
   request,
@@ -48,15 +49,10 @@ export function BrowseJobRow({
             className="h-16 w-16 rounded-[9px] object-cover sm:h-[76px] sm:w-[76px] sm:rounded-[10px]"
           />
         ) : (
-          <span
-            className="grid h-16 w-16 place-items-center rounded-[9px] bg-[#E9EEF5] text-[13px] font-semibold text-[#3D4A5F] sm:h-[76px] sm:w-[76px] sm:rounded-[10px]"
-            aria-hidden
-          >
-            {categoryLabel.slice(0, 1)}
-          </span>
+          <BrowseCategoryThumb categoryId={request.category} />
         )}
         <span className="min-w-0">
-          <span className="block pr-16 text-[15.5px] font-semibold leading-snug tracking-[-0.012em] text-[#071330] sm:pr-0 sm:text-[16.5px] group-hover:text-[#0B2A6B]">
+          <span className="block pr-16 text-[15.5px] font-semibold leading-snug tracking-[-0.012em] text-[#071330] sm:pr-0 sm:text-[16.5px]">
             {title}
           </span>
           <span className="mt-1 flex flex-wrap items-center gap-x-2 text-[13.5px] text-[#273449] sm:mt-[5px] sm:text-[14px]">

@@ -46,3 +46,5 @@ Opening a row sets `job` on the current query (`/browse?...&job={id}`) and leave
 14. **Guest radius** now applies when `radius` is set. Listings without coordinates still pass, same as before.
 15. **Mobile filters sheet is portaled to `document.body`.** The sticky filter bar is `z-index: 30`, which would otherwise trap the sheet under the bottom dock (`z-40`).
 16. **Filtered-empty card radius is 12px** (`rounded-xl`), including the icon tile, so it stays inside the radius cap.
+17. **Count-line city** always comes from the active browse origin’s `locationLabel` (same source as the float header picker), not a separate profile `city` that can disagree.
+18. **Missing listing photos** use a Beam-tint `#F4F8FD` category icon tile (lucide), including legacy categories (`moving`, `events`, etc.) via `getBrowseCategoryIcon` — never a letter monogram.
