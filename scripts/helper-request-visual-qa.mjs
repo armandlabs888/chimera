@@ -200,9 +200,9 @@ async function main() {
 
       // --- Browse subtle cards ---
       await page.goto(`${BASE_URL}/browse`, { waitUntil: 'networkidle' })
-      await page.waitForSelector('a[href^="/requests/"]', { timeout: 15000 })
+      await page.waitForSelector('[data-testid="browse-job-row"]', { timeout: 15000 })
       const browseMax = await page.evaluate(() => {
-        const cards = [...document.querySelectorAll('a[href^="/requests/"]')].slice(0, 6)
+        const cards = [...document.querySelectorAll('[data-testid="browse-job-row"]')].slice(0, 6)
         return Math.max(0, ...cards.map((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0))
       })
       assert.ok(browseMax > 0 && browseMax <= 14, `${vp.name} browse radius ${browseMax}`)

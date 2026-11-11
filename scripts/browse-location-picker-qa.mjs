@@ -110,7 +110,7 @@ async function seedCustomerAustin(page) {
     localStorage.setItem(key, JSON.stringify(state))
   }, STORAGE_KEY)
   await page.goto(`${BASE}/browse?radius=10`, { waitUntil: 'networkidle', timeout: 60000 })
-  await page.waitForSelector('[data-testid="browse-3col-grid"]')
+  await page.waitForSelector('[data-testid="browse-v3"]')
 }
 
 async function seedHelper(page) {
@@ -201,9 +201,7 @@ async function main() {
       await page.getByTestId('browse-location-close').click()
 
       // Change to Milpitas — Austin jobs should fall outside 10mi
-      const cardsBefore = await page
-        .locator('[data-testid="browse-feed-scroll"] a[href^="/requests/"]')
-        .count()
+      const cardsBefore = await page.locator('[data-testid="browse-job-row"]').count()
       assert.ok(cardsBefore >= 1, `expected Austin jobs before (got ${cardsBefore})`)
 
       await page.getByTestId('topnav-location').click()
@@ -214,14 +212,12 @@ async function main() {
       const topnav = await page.getByTestId('topnav-location').innerText()
       assert.match(topnav, /Milpitas/i)
 
-      const cardsAfter = await page
-        .locator('[data-testid="browse-feed-scroll"] a[href^="/requests/"]')
-        .count()
+      const cardsAfter = await page.locator('[data-testid="browse-job-row"]').count()
       assert.equal(cardsAfter, 0, 'Milpitas + 10mi should hide Austin jobs')
       // radius=10 is an active filter → filtered empty (not fresh-marketplace empty)
       assert.match(
-        await page.locator('[data-testid="browse-feed-scroll"]').innerText(),
-        /No open requests match/i,
+        await page.locator('[data-testid="browse-filtered-empty"]').innerText(),
+        /No jobs match these filters/i,
       )
       assert.ok(await page.getByTestId('browse-mode-tabs').count(), 'still customer discovery')
 
@@ -242,7 +238,7 @@ async function main() {
       assert.match(await page.getByTestId('topnav-location').innerText(), /Milpitas/i)
       assert.equal(await page.locator('[data-testid="browse-location-eyebrow"]').count(), 0)
       assert.equal(
-        await page.locator('[data-testid="browse-feed-scroll"] a[href^="/requests/"]').count(),
+        await page.locator('[data-testid="browse-job-row"]').count(),
         0,
       )
 
@@ -254,7 +250,7 @@ async function main() {
       await page.waitForTimeout(400)
       assert.match(await page.getByTestId('topnav-location').innerText(), /Austin/i)
       assert.ok(
-        (await page.locator('[data-testid="browse-feed-scroll"] a[href^="/requests/"]').count()) >= 1,
+        (await page.locator('[data-testid="browse-job-row"]').count()) >= 1,
       )
       report.shots.push(await shot(page, 'desktop-customer-reset-home.png'))
       report.checks.push({ state: 'desktop-customer-picker', ok: true })
