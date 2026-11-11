@@ -6,6 +6,7 @@ import { Avatar, EmptyState, ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { relativeTime } from '@/lib/matching'
 import { formatCategoryLabel } from '@/lib/taxonomy'
+import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import { MessagesThread } from '@/screens/MessagesThread'
 
 const panelSurface =
@@ -13,6 +14,7 @@ const panelSurface =
 
 export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
   const { state, currentUser, getPerson, getRequest } = useBeam()
+  const { openThread, closeThread } = useMessagesDrawer()
   const hasExplicitThread = embedThreadId !== undefined
 
   const threads = useMemo(() => {
@@ -117,6 +119,11 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
                   <li key={thread.id}>
                     <Link
                       href={`/messages/${thread.id}`}
+                      onClick={(event) => {
+                        if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) return
+                        event.preventDefault()
+                        openThread(thread.id)
+                      }}
                       data-testid={`messages-thread-row-${thread.id}`}
                       className={`flex gap-3 px-4 py-3.5 transition ${
                         selected ? 'bg-[#EFF6FF]/75' : 'bg-white hover:bg-[#F8FAFC]'
@@ -164,7 +171,7 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
           ].join(' ')}
           data-testid="messages-conversation-panel"
         >
-          <MessagesThread threadId={selectedId} inboxHref="/messages" />
+          <MessagesThread threadId={selectedId} onBack={closeThread} onClose={closeThread} />
         </div>
       ) : (
         <section

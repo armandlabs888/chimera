@@ -12,6 +12,7 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
+import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import { useBeam } from '@/context/BeamContext'
 import { formatBudget, relativeTime } from '@/lib/matching'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
@@ -40,6 +41,7 @@ export function BrowseJobDrawer({
   onClose: () => void
 }) {
   const router = useRouter()
+  const { openThread } = useMessagesDrawer()
   const { state, currentUser, mode, authUser, createOffer, ensureThread } = useBeam()
   const isGuest = mode === 'live' && !authUser
   const panelRef = useRef<HTMLElement>(null)
@@ -88,7 +90,7 @@ export function BrowseJobDrawer({
       setAskPending(true)
       try {
         const threadId = await ensureThread(request.id, request.requesterId)
-        router.push(`/messages/${threadId}`)
+        openThread(threadId)
       } finally {
         setAskPending(false)
       }

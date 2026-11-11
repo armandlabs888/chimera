@@ -11,8 +11,9 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { useMemo, useState, type FormEvent } from 'react'
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { Avatar, Button, ButtonLink, EmptyState, TextArea } from '@/components/ui'
+import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import { useBeam } from '@/context/BeamContext'
 import { CATEGORY_ICONS } from '@/lib/categoryIcons'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
@@ -58,7 +59,7 @@ export function RequestDetail() {
   const searchParams = useSearchParams()
   const id = paramId(params.id)
   const justPosted = searchParams.get('justPosted') === '1'
-  const router = useRouter()
+  const { openThread } = useMessagesDrawer()
 
   const {
     state,
@@ -168,7 +169,7 @@ export function RequestDetail() {
 
   async function openThreadWith(otherId: string) {
     const threadId = await ensureThread(activeRequest.id, otherId)
-    router.push(`/messages/${threadId}`)
+    openThread(threadId)
   }
 
   async function submitOffer(e: FormEvent) {

@@ -138,6 +138,8 @@ interface BeamContextValue {
   ) => Promise<{ invite: RequestInvite; threadId: string }>
   toggleSavedHelper: (helperId: string) => void | Promise<void>
   markNotificationRead: (notificationId: string) => void | Promise<void>
+  /** Mark several notifications read in one pass (one demo state update, one live refresh). */
+  markNotificationsRead: (notificationIds: string[]) => void | Promise<void>
   markAllNotificationsRead: () => void | Promise<void>
   getPerson: (id: string) => Person | undefined
   getRequest: (id: string) => HelpRequest | undefined
@@ -1234,6 +1236,34 @@ export function BeamProvider({
     [authUser, mode, refreshLive, reportError],
   )
 
+  const markNotificationsRead = useCallback(
+    (notificationIds: string[]) => {
+      const ids = [...new Set(notificationIds.filter(Boolean))]
+      if (!ids.length) return
+      if (mode === 'live') {
+        return (async () => {
+          try {
+            if (!authUser) throw new Error('Not signed in')
+            const client = createClient()
+            await Promise.all(ids.map((id) => markLiveNotificationRead(client, id)))
+            await refreshLive(authUser.id)
+          } catch (err) {
+            reportError(err, 'Mark notifications read failed')
+          }
+        })()
+      }
+      const now = new Date().toISOString()
+      const idSet = new Set(ids)
+      withState(setState, (prev) => ({
+        ...prev,
+        notifications: prev.notifications.map((n) =>
+          idSet.has(n.id) ? { ...n, readAt: n.readAt ?? now } : n,
+        ),
+      }))
+    },
+    [authUser, mode, refreshLive, reportError],
+  )
+
   const markAllNotificationsRead = useCallback(() => {
     if (mode === 'live') {
       return (async () => {
@@ -1286,6 +1316,7 @@ export function BeamProvider({
     inviteHelper,
     toggleSavedHelper,
     markNotificationRead,
+    markNotificationsRead,
     markAllNotificationsRead,
     getPerson,
     getRequest,

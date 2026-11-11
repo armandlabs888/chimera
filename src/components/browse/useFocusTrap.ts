@@ -20,6 +20,7 @@ export function useFocusTrap(
   active: boolean,
   containerRef: RefObject<HTMLElement | null>,
   onClose: () => void,
+  returnFocusRef?: RefObject<HTMLElement | null>,
 ) {
   useEffect(() => {
     if (!active) return
@@ -58,7 +59,9 @@ export function useFocusTrap(
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = previousOverflow
-      previous?.focus?.()
+      const preferred = returnFocusRef?.current
+      if (preferred && document.contains(preferred)) preferred.focus()
+      else previous?.focus?.()
     }
-  }, [active, containerRef, onClose])
+  }, [active, containerRef, onClose, returnFocusRef])
 }
