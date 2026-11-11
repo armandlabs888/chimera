@@ -13,7 +13,9 @@ import {
   ButtonLink,
   EmptyState,
 } from '@/components/ui'
+import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import { useBeam } from '@/context/BeamContext'
+import { threadIdFromMessagesHref } from '@/lib/messagesDrawer'
 import { formatLocationLabel } from '@/lib/location'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import { formatRate, relativeTime } from '@/lib/matching'
@@ -36,6 +38,7 @@ export function You() {
     toggleSavedHelper,
   } = useBeam()
   const router = useRouter()
+  const { openList, openThread } = useMessagesDrawer()
   const pathname = usePathname()
   const params = useSearchParams()
   const rawTab = params.get('tab')
@@ -278,7 +281,13 @@ export function You() {
                     }`}
                     onClick={() => {
                       void markNotificationRead(n.id)
-                      router.push(n.href)
+                      const thread = threadIdFromMessagesHref(n.href)
+                      if (thread === null) {
+                        router.push(n.href)
+                        return
+                      }
+                      if (thread) openThread(thread)
+                      else openList()
                     }}
                   >
                     <span className="text-[14px] font-semibold text-[#071330]">{n.title}</span>

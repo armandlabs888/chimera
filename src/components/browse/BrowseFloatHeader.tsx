@@ -1,10 +1,12 @@
 'use client'
 
-import { ArrowRight, ChevronDown, LogOut, Menu, MessageCircle, UserRound, X } from 'lucide-react'
+import { ArrowRight, ChevronDown, LogOut, Menu, UserRound, X } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
 import { BrowseLocationTrigger } from '@/components/browse/BrowseLocationDialog'
+import { MessagesTrigger } from '@/components/messages/MessagesTrigger'
+import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import { Avatar } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { useBrowseLocation } from '@/hooks/useBrowseLocation'
@@ -23,23 +25,13 @@ export function BrowseFloatHeader({
   guest: boolean
   showHelperBanner: boolean
 }) {
-  const { currentUser, mode, ready, authUser, state, signOut } = useBeam()
+  const { currentUser, ready, authUser, signOut } = useBeam()
+  const { toggle } = useMessagesDrawer()
   const { origin } = useBrowseLocation(currentUser)
   const locationText = ready ? origin.locationLabel : '…'
   const [accountOpen, setAccountOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const accountRef = useRef<HTMLDivElement>(null)
-
-  const unreadMessageCount = useMemo(
-    () =>
-      (state.notifications ?? []).filter(
-        (n) =>
-          n.kind === 'new_message' &&
-          !n.readAt &&
-          (n.userId === currentUser.id || mode === 'demo'),
-      ).length,
-    [state.notifications, currentUser.id, mode],
-  )
 
   useEffect(() => {
     if (!accountOpen && !mobileOpen) return
@@ -61,8 +53,6 @@ export function BrowseFloatHeader({
       document.removeEventListener('keydown', onKey)
     }
   }, [accountOpen, mobileOpen])
-
-  const messagesHref = guest ? '/auth?next=%2Fmessages' : '/messages'
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-50">
@@ -142,18 +132,8 @@ export function BrowseFloatHeader({
                 pinClassName="text-[#1D5CE5]"
                 className="inline-flex h-9 max-w-[8.5rem] items-center gap-1.5 rounded-[10px] border border-[#E3E8EF] bg-white px-2 text-[13px] font-medium text-[#071330] transition hover:bg-[#F4F8FD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:px-2.5 sm:text-[13.5px]"
               />
-              <Link
-                href={messagesHref}
-                className="hidden h-9 items-center gap-1.5 rounded-[10px] px-2 text-[13.5px] font-medium text-[#071330] hover:bg-[#F4F8FD] sm:inline-flex"
-              >
-                <MessageCircle className="h-[17px] w-[17px]" strokeWidth={1.9} aria-hidden />
-                Messages
-                {!guest && unreadMessageCount > 0 ? (
-                  <span className="inline-flex items-center justify-center rounded-md bg-[#1D5CE5] px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-white">
-                    {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
-                  </span>
-                ) : null}
-              </Link>
+              <MessagesTrigger appearance="icon" hideFrom="sm" />
+              <MessagesTrigger appearance="float" />
 
               {guest ? (
                 <>
@@ -266,13 +246,26 @@ export function BrowseFloatHeader({
                     {item.label}
                   </Link>
                 ))}
-                <Link
-                  href={messagesHref}
-                  className="px-4 py-3 text-[15px] text-[#071330]"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Messages
-                </Link>
+                {guest ? (
+                  <Link
+                    href="/auth?next=%2Fmessages"
+                    className="px-4 py-3 text-[15px] text-[#071330]"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Messages
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    className="px-4 py-3 text-left text-[15px] text-[#071330]"
+                    onClick={() => {
+                      setMobileOpen(false)
+                      toggle()
+                    }}
+                  >
+                    Messages
+                  </button>
+                )}
                 {guest ? (
                   <>
                     <Link href="/auth?mode=signin" className="px-4 py-3 text-[15px] text-[#071330]" onClick={() => setMobileOpen(false)}>

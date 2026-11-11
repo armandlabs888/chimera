@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { BottomNav } from './BottomNav'
 import { BeamWordmark } from '@/components/BeamMark'
 import {
@@ -17,16 +17,15 @@ import {
   BrowseLocationTrigger,
 } from '@/components/browse/BrowseLocationDialog'
 import { BrowseFloatHeader } from '@/components/browse/BrowseFloatHeader'
+import { MessagesDrawerHost } from '@/components/messages/MessagesDrawerHost'
+import { MessagesTrigger } from '@/components/messages/MessagesTrigger'
 import { LandingFooter } from '@/components/landing/LandingFooter'
 import { LandingNav } from '@/components/landing/LandingNav'
 import { useBeam } from '@/context/BeamContext'
 import { useBrowseLocation } from '@/hooks/useBrowseLocation'
 import { Avatar } from '@/components/ui'
 
-const primaryNav = [
-  { href: '/browse', label: 'Browse' },
-  { href: '/messages', label: 'Messages' },
-]
+const primaryNav = [{ href: '/browse', label: 'Browse' }]
 
 function shouldHideAppChrome(pathname: string) {
   return pathname === '/' || pathname === '/onboarding'
@@ -49,7 +48,7 @@ function navItemActive(pathname: string, href: string) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
-  const { currentUser, mode, ready, authUser, state, signOut } = useBeam()
+  const { currentUser, mode, ready, authUser, signOut } = useBeam()
   const hideChrome = shouldHideAppChrome(pathname)
   const [accountOpen, setAccountOpen] = useState(false)
   const accountRef = useRef<HTMLDivElement>(null)
@@ -60,18 +59,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isMessagesPath = pathname === '/messages' || pathname.startsWith('/messages/')
   // Messages keeps a tall workspace panel. Browse v3 uses normal document scroll.
   const messagesWorkspaceMain = isMessagesPath
-
-  const notifications = state.notifications ?? []
-  const unreadMessageCount = useMemo(
-    () =>
-      notifications.filter(
-        (n) =>
-          n.kind === 'new_message' &&
-          !n.readAt &&
-          (n.userId === currentUser.id || mode === 'demo'),
-      ).length,
-    [notifications, currentUser.id, mode],
-  )
 
   useEffect(() => {
     setAccountOpen(false)
@@ -124,6 +111,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="relative flex-1">{children}</main>
         <LandingFooter dockPadding={!isLiveGuest} />
         <BrowseLocationDialogHost />
+        <MessagesDrawerHost />
         {isLiveGuest ? null : <BottomNav />}
       </div>
     )
@@ -142,6 +130,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         />
         <BrowseLocationDialogHost />
         <main className="beam-container flex-1 py-8 sm:py-12">{children}</main>
+        <MessagesDrawerHost />
         <LandingFooter />
       </div>
     )
@@ -195,7 +184,6 @@ export function AppShell({ children }: { children: ReactNode }) {
               >
                 {primaryNav.map(({ href, label }) => {
                   const active = navItemActive(pathname, href)
-                  const showMsgBadge = href === '/messages' && unreadMessageCount > 0
                   return (
                     <Link
                       key={href}
@@ -208,14 +196,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                       aria-current={active ? 'page' : undefined}
                     >
                       {label}
-                      {showMsgBadge ? (
-                        <span className="inline-flex items-center justify-center rounded-md bg-[#1D5CE5] px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-white">
-                          {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
-                        </span>
-                      ) : null}
                     </Link>
                   )
                 })}
+                <MessagesTrigger appearance="nav" />
               </nav>
             </div>
 
@@ -226,6 +210,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                   {mode === 'live' ? 'Live' : 'Demo'}
                 </span>
               ) : null}
+
+              <MessagesTrigger appearance="icon" hideFrom="md" />
 
               <BrowseLocationTrigger
                 label={locationText}
@@ -341,6 +327,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <LandingFooter dockPadding />
 
       <BrowseLocationDialogHost />
+      <MessagesDrawerHost />
       <BottomNav />
     </div>
   )

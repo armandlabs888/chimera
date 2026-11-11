@@ -101,7 +101,7 @@ export function HomeDashboard() {
       rows.push({
         id: 'messages',
         label: `${unreadMessages} unread message${unreadMessages === 1 ? '' : 's'}`,
-        href: '/messages',
+        href: '/home?messages=1',
         icon: 'msg',
       })
     }
