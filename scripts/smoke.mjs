@@ -111,10 +111,17 @@ async function checkLandingMarkup() {
   assert.match(text, /Chat, finish/, 'how-it-works step 3')
   assert.match(text, /Know what you.?re choosing/, 'why-beam heading')
   assert.match(text, /One less thing on your list/, 'closing CTA')
-  assert.match(text, /Available services on Beam/, 'available services heading')
-  assert.match(text, /data-testid="available-services"/, 'available services section')
-  assert.match(text, /id="neighborhoods"/, 'neighborhoods section')
+  assert.doesNotMatch(text, /Available services on Beam/, 'available services section removed')
+  assert.doesNotMatch(text, /data-testid="available-services"/, 'available-services testid removed')
+  assert.doesNotMatch(text, /Explore all six/, 'explore-all-six overline removed')
+  assert.doesNotMatch(text, /id="neighborhoods"/, 'neighborhoods anchor removed')
+  assert.doesNotMatch(
+    text,
+    /href="\/#neighborhoods"|Available services<\/a>/,
+    'footer Available services link removed',
+  )
   assert.match(text, /id="categories"/, 'categories section')
+  assert.match(text, /data-testid="why-beam-section"/, 'why-beam section')
   assert.match(text, /data-testid="landing-nav"/, 'daylight landing nav')
   assert.match(text, /data-testid="landing-nav-signup"/, 'landing nav Sign up pill')
   // LandingNav must not ship a Post a task CTA — Sign up is the primary right-side action.
@@ -132,9 +139,9 @@ async function checkLandingMarkup() {
     /Y Combinator|backed by|guaranteed same-day|try free for 14 days|payius|Sequoia|\+2,300 more|ID-checked helpers/i,
     'no invented claims',
   )
-  // Hero is image-free; below-fold service photos still ship as local assets.
+  // Hero is image-free; Popular services still uses local lifestyle assets.
   const cleaningRes = await fetch(`${BASE_URL}/images/landing/avail-house-cleaning.jpg`)
-  assert.equal(cleaningRes.status, 200, 'available-services house cleaning asset HTTP 200')
+  assert.equal(cleaningRes.status, 200, 'popular-services cleaning asset HTTP 200')
   console.log('ok landing markup')
 }
 
@@ -580,8 +587,8 @@ async function checkLandingBrowser() {
     assert.equal(landingImages.previewPresent, false, 'browse preview must be removed')
     assert.equal(landingImages.popularGigsPresent, true, 'popular gigs section present')
     assert.ok(
-      landingImages.count >= 8,
-      `landing should render >=8 marketing <img> elements, got ${landingImages.count}`,
+      landingImages.count >= 2,
+      `landing should render Popular services marketing <img> elements, got ${landingImages.count}`,
     )
     assert.equal(landingImages.allComplete, true, 'every landing <img> must be complete')
     assert.ok(
@@ -620,8 +627,9 @@ async function checkLandingBrowser() {
     assert.ok(await page.getByTestId('hero-category-trigger').count() >= 1)
     assert.equal(await page.getByTestId('hero-neighborhood-trigger').count(), 0)
     assert.ok(await page.getByRole('link', { name: 'Log in' }).count() >= 1)
-    assert.ok(await page.getByTestId('available-services').count() >= 1)
+    assert.equal(await page.getByTestId('available-services').count(), 0)
     assert.ok(await page.getByTestId('why-beam-section').count() >= 1)
+    assert.ok(await page.getByTestId('how-it-works').count() >= 1)
     assert.ok(await page.getByTestId('landing-closing-cta').count() >= 1)
     assert.equal(await page.getByTestId('why-beam-live-offers').count(), 0)
 
@@ -682,6 +690,7 @@ async function checkLandingBrowser() {
         hasHow: !!document.querySelector('#how-it-works'),
         hasCategories: !!document.querySelector('#categories'),
         hasNeighborhoods: !!document.querySelector('#neighborhoods'),
+        hasAvailableServices: !!document.querySelector('[data-testid="available-services"]'),
         mapCount: document.querySelectorAll('[data-testid="austin-map"]').length,
         h1Font: getComputedStyle(h1).fontFamily,
         h1Px: parseFloat(getComputedStyle(h1).fontSize),
@@ -691,7 +700,8 @@ async function checkLandingBrowser() {
     assert.ok(geo.sectionCount >= 3, `section count ${geo.sectionCount}`)
     assert.equal(geo.hasHow, true)
     assert.equal(geo.hasCategories, true)
-    assert.equal(geo.hasNeighborhoods, true)
+    assert.equal(geo.hasNeighborhoods, false, 'neighborhoods / available-services anchor gone')
+    assert.equal(geo.hasAvailableServices, false, 'available-services section gone')
     assert.equal(geo.mapCount, 0, 'no cartoon map')
     assert.equal(
       /Fraunces|Georgia|ui-serif|(?:^|,\s)serif\s*(?:,|$)/i.test(geo.h1Font),
