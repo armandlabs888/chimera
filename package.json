@@ -17,7 +17,8 @@
     "test:casual-categories": "node scripts/casual-categories-qa.mjs",
     "test:other-persistence": "node scripts/other-persistence-qa.mjs",
     "test:live": "node --env-file=.env.local scripts/live-persistence.mjs",
-    "test:browse-v3": "node scripts/browse-v3-qa.mjs"
+    "test:browse-v3": "node scripts/browse-v3-qa.mjs",
+    "test:popular-gigs": "npx tsx scripts/popular-gigs-unit.mjs && node scripts/popular-gigs-qa.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

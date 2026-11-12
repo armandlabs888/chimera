@@ -88,12 +88,15 @@ async function checkLandingMarkup() {
   assert.match(text, /href="\/browse\?category=junk-removal"/, 'junk-removal category browse link')
   assert.match(text, /href="\/browse\?category=pets"/, 'pets category browse link')
   assert.match(text, /href="\/browse\?category=other"/, 'other category browse link')
-  assert.match(
+  assert.doesNotMatch(text, /data-testid="landing-browse-preview"/, 'browse preview removed')
+  assert.doesNotMatch(
     text,
-    /sample jobs \(illustrative\)|Illustrative samples for design review|· sample/i,
-    'browse preview samples labeled illustrative',
+    /Illustrative samples for design review|Design preview — Sample listings/i,
+    'no sample/design-preview labels on landing',
   )
-  assert.match(text, /data-testid="landing-browse-preview"/, 'landing browse preview present')
+  assert.match(text, /data-testid="popular-gigs"/, 'popular gigs section present')
+  assert.match(text, /Popular gigs near/, 'popular gigs heading')
+  assert.match(text, /Open near you/, 'popular gigs eyebrow')
   assert.doesNotMatch(text, /Elena R\.\s*·\s*Verified neighbor/, 'no fabricated verified testimonial')
   assert.doesNotMatch(text, /why-beam-live-offers|Trusted across local neighborhoods|hero-fan-stack/, 'no legacy hero/live-proof markup')
   assert.match(text, /href="\/auth\?mode=signin"/, 'landing Log in')
@@ -550,10 +553,10 @@ async function checkLandingBrowser() {
           return raw
         }
       }
-      // Marketing images only — exclude decorative Browse preview samples
-      // (intentionally compact / may reuse category look in the mock).
+      // Marketing images only — exclude live popular-gigs inventory photos
+      // (demo seed may reuse category assets; uniqueness applies to marketing chrome).
       const imgs = [...document.querySelectorAll('img')].filter(
-        (img) => !img.closest('[data-testid="landing-browse-preview"]'),
+        (img) => !img.closest('[data-testid="popular-gigs"]'),
       )
       const paths = imgs.map((img) => normalizeSrc(img.getAttribute('src') || img.currentSrc || ''))
       const uniquePaths = new Set(paths)
@@ -571,9 +574,11 @@ async function checkLandingBrowser() {
         })),
         unsplash: paths.filter((p) => /images\.unsplash\.com/i.test(p) || /unsplash/i.test(p)),
         previewPresent: !!document.querySelector('[data-testid="landing-browse-preview"]'),
+        popularGigsPresent: !!document.querySelector('[data-testid="popular-gigs"]'),
       }
     })
-    assert.equal(landingImages.previewPresent, true, 'browse preview present for sample imagery')
+    assert.equal(landingImages.previewPresent, false, 'browse preview must be removed')
+    assert.equal(landingImages.popularGigsPresent, true, 'popular gigs section present')
     assert.ok(
       landingImages.count >= 8,
       `landing should render >=8 marketing <img> elements, got ${landingImages.count}`,

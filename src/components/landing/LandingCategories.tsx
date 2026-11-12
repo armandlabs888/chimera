@@ -12,7 +12,7 @@ export function LandingCategories() {
   return (
     <section
       id="categories"
-      className="relative z-10 -mt-4 border-t border-transparent bg-white pt-6 md:pt-8"
+      className="relative z-10 border-t border-transparent bg-white"
       data-testid="landing-categories"
     >
       <div className="mx-auto max-w-[1200px] px-5 md:px-8">

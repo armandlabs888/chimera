@@ -5,7 +5,6 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, ChevronDown, MapPin, Search } from 'lucide-react'
 import { LandingNav } from './LandingNav'
-import { LandingBrowsePreview } from './LandingBrowsePreview'
 import { useBeam } from '@/context/BeamContext'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { ALL_CATEGORY_ICON, PARENT_ICONS } from '@/lib/categoryIcons'
@@ -14,7 +13,7 @@ import type { NeighborhoodId } from '@/types'
 import './landing-v2.css'
 
 /**
- * Landing v2 hero — atmospheric Beam-blue field, search-first, stacked Browse preview.
+ * Landing v2 hero — atmospheric Beam-blue field, search-first (no framed Browse preview).
  * Guests: category picker. Signed-in: neighborhood picker.
  */
 export function LandingHero() {
@@ -73,7 +72,7 @@ export function LandingHero() {
       <LandingNav variant="float" />
 
       <div
-        className="landing-hero-content relative z-20 overflow-x-clip pb-0"
+        className="landing-hero-content relative z-20 overflow-x-clip"
         data-testid="landing-hero"
       >
         <div className="landing-hero-noise absolute inset-0" aria-hidden="true" />
@@ -315,13 +314,6 @@ export function LandingHero() {
           </div>
         </div>
       </div>
-
-      <LandingBrowsePreview />
-
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent via-white/40 to-white"
-        aria-hidden="true"
-      />
     </section>
   )
 }
