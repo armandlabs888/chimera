@@ -8,6 +8,8 @@ import {
   selectPopularGigs,
   formatGigBudget,
   shortCityLabel,
+  popularGigsCopy,
+  hasBrowseCity,
   POPULAR_GIGS_LIMIT,
   gigNeighborhood,
 } from '../src/lib/popularGigs.ts'
@@ -17,6 +19,28 @@ assert.equal(formatGigBudget({ budget: 35, budgetType: 'hourly' }), '$35/hr')
 assert.equal(formatGigBudget({ budget: 0, budgetType: 'open' }), 'Open')
 assert.equal(shortCityLabel('San Jose, CA', 'San Jose'), 'San Jose')
 assert.equal(shortCityLabel('', ''), 'Nearby')
+
+const unsetCopy = popularGigsCopy({ source: 'none', city: '', locationLabel: 'Nearby' })
+assert.equal(unsetCopy.hasCity, false)
+assert.equal(unsetCopy.headingLead, 'Popular gigs near you')
+assert.equal(unsetCopy.locationChipLabel, 'Choose a city')
+assert.equal(unsetCopy.mobileSeeAll, 'See all jobs near you')
+assert.equal(unsetCopy.subtext, 'Everyday jobs neighbors post nearby.')
+assert.doesNotMatch(unsetCopy.headingLead + unsetCopy.locationChipLabel, /near Nearby/i)
+assert.doesNotMatch(unsetCopy.mobileSeeAll, /near Nearby/i)
+
+const cityCopy = popularGigsCopy({
+  source: 'preference',
+  city: 'San Jose',
+  locationLabel: 'San Jose, CA',
+})
+assert.equal(cityCopy.hasCity, true)
+assert.equal(cityCopy.headingLead, 'Popular gigs near')
+assert.equal(cityCopy.locationChipLabel, 'San Jose')
+assert.equal(cityCopy.mobileSeeAll, 'See all jobs near San Jose')
+assert.equal(cityCopy.subtext, 'Everyday jobs neighbors post around San Jose.')
+assert.equal(hasBrowseCity({ source: 'none', city: '', locationLabel: '' }), false)
+assert.equal(hasBrowseCity({ source: 'profile', city: 'Austin', locationLabel: 'Austin, TX' }), true)
 
 const origin = { lat: 30.2672, lng: -97.7431 }
 const near = { lat: 30.27, lng: -97.74 }

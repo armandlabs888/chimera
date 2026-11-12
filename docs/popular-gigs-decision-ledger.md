@@ -22,9 +22,14 @@ Sort by score desc, then `createdAt` desc. Cap at **10**. Never pad with samples
 
 ## Location
 
-Uses `useBrowseLocation` / `beam-browse-location-v1` (browse-only pin; does not write profile city). The tinted city chip calls `requestBrowseLocationPicker()` and mounts `BrowseLocationDialogHost` on the marketing page so guests can set a city without signing in. Chip label = origin city (or first segment of the location label), else **Nearby**.
+Uses `useBrowseLocation` / `beam-browse-location-v1` (browse-only pin; does not write profile city). The tinted city chip calls `requestBrowseLocationPicker()` and mounts `BrowseLocationDialogHost` on the marketing page so guests can set a city without signing in.
 
-Demo seed defaults to **East Austin** (Alex). Production Armand profiles resolve to **San Jose** when that is the saved/profile city. Subtext is `Everyday jobs neighbors post around {city}.` — not the mock’s fixed “South Bay” line.
+| Origin | Heading | Location control | Mobile See all | Subtext |
+|--------|---------|------------------|----------------|---------|
+| Real city | Popular gigs near **[City ▾]** | City chip in the “near [X]” slot | See all jobs near {city} | …around {city}. |
+| Unset (`Nearby`) | **Popular gigs near you** | Separate **Choose a city** chip (never “near Nearby”) | See all jobs near you | …post nearby. |
+
+Demo seed defaults to **East Austin** (Alex). Guests / live with no pin show the unset copy until they pick a city. Demo-only `?gigsLoc=unset` forces the unset copy for Playwright screenshots (ignored in live mode).
 
 ## Photos
 
@@ -40,7 +45,7 @@ Same cover rule as Browse v3: `normalizeListingImages` → `listingCoverImage`. 
 
 - Card → `/browse?job={id}` (Browse v3 drawer).
 - See all → `/browse`.
-- Mobile navy button → `See all jobs near {city}` → `/browse`.
+- Mobile navy button → `See all jobs near {city}` or `See all jobs near you` → `/browse`.
 - Footer row keeps **Need something different? Post a task →**. Omits the mock’s “Design preview — Sample listings…” label.
 
 ## Deviations from the mock
