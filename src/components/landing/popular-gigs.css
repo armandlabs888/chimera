@@ -71,6 +71,15 @@
   box-shadow: 0 0 0 3px rgba(29, 92, 229, 0.45);
 }
 
+/* Unset location: CTA chip next to “Popular gigs near you”, not “near Nearby”. */
+.gg-loc-choose {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  height: 36px;
+  padding: 0 12px 0 10px;
+}
+
 .gg-sub {
   margin-top: 8px;
   font-size: 14px;
@@ -351,6 +360,11 @@
   .gg-loc {
     font-size: 26px;
     height: 36px;
+  }
+
+  .gg-loc-choose {
+    font-size: 14px;
+    height: 34px;
   }
 
   .gg-all {

@@ -133,3 +133,52 @@ export function shortCityLabel(locationLabel: string, city: string): string {
   const first = (locationLabel ?? '').split(',')[0]?.trim() || ''
   return first || 'Nearby'
 }
+
+/** True when the browse origin has a real city (not the unset Nearby fallback). */
+export function hasBrowseCity(origin: {
+  source: 'preference' | 'profile' | 'none'
+  city: string
+  locationLabel: string
+}): boolean {
+  if (origin.source === 'none') return false
+  const label = shortCityLabel(origin.locationLabel, origin.city)
+  return Boolean(label) && label !== 'Nearby'
+}
+
+/**
+ * Heading / mobile CTA copy for the popular gigs section.
+ * Never inserts the word "Nearby" after "near".
+ */
+export function popularGigsCopy(origin: {
+  source: 'preference' | 'profile' | 'none'
+  city: string
+  locationLabel: string
+}): {
+  hasCity: boolean
+  city: string
+  headingLead: string
+  locationChipLabel: string
+  mobileSeeAll: string
+  subtext: string
+} {
+  const hasCity = hasBrowseCity(origin)
+  const city = shortCityLabel(origin.locationLabel, origin.city)
+  if (hasCity) {
+    return {
+      hasCity: true,
+      city,
+      headingLead: 'Popular gigs near',
+      locationChipLabel: city,
+      mobileSeeAll: `See all jobs near ${city}`,
+      subtext: `Everyday jobs neighbors post around ${city}.`,
+    }
+  }
+  return {
+    hasCity: false,
+    city: 'Nearby',
+    headingLead: 'Popular gigs near you',
+    locationChipLabel: 'Choose a city',
+    mobileSeeAll: 'See all jobs near you',
+    subtext: 'Everyday jobs neighbors post nearby.',
+  }
+}

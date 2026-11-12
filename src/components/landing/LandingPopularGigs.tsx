@@ -8,11 +8,11 @@ import { useBeam } from '@/context/BeamContext'
 import { useBrowseLocation } from '@/hooks/useBrowseLocation'
 import { requestBrowseLocationPicker } from '@/lib/browseLocationPreference'
 import {
+  popularGigsCopy,
   selectPopularGigs,
-  shortCityLabel,
   type PopularGigRow,
 } from '@/lib/popularGigs'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './popular-gigs.css'
 
 function GigCard({ row }: { row: PopularGigRow }) {
@@ -68,8 +68,15 @@ function GigCard({ row }: { row: PopularGigRow }) {
  * Location-aware open-job grid under the hero. Real inventory only — never pads.
  */
 export function LandingPopularGigs() {
-  const { state, currentUser, ready } = useBeam()
+  const { state, currentUser, ready, mode } = useBeam()
   const { origin } = useBrowseLocation(currentUser)
+  // Demo-only QA hook so Playwright can screenshot the guest-unset copy while
+  // the seed profile still has a city. Inert in live mode (production).
+  const [demoForceUnset, setDemoForceUnset] = useState(false)
+  useEffect(() => {
+    if (mode !== 'demo') return
+    setDemoForceUnset(new URLSearchParams(window.location.search).get('gigsLoc') === 'unset')
+  }, [mode])
 
   const rows = useMemo(
     () =>
@@ -81,12 +88,11 @@ export function LandingPopularGigs() {
     [state.requests, state.offers, origin],
   )
 
-  const city = shortCityLabel(origin.locationLabel, origin.city)
+  const copyOrigin = demoForceUnset
+    ? { source: 'none' as const, city: '', locationLabel: 'Nearby' }
+    : origin
+  const copy = popularGigsCopy(copyOrigin)
   const browseHref = '/browse'
-  const subtext =
-    city && city !== 'Nearby'
-      ? `Everyday jobs neighbors post around ${city}.`
-      : 'Everyday jobs neighbors post nearby.'
 
   return (
     <>
@@ -96,6 +102,7 @@ export function LandingPopularGigs() {
         className="gg"
         data-testid="popular-gigs"
         data-ready={ready ? 'true' : 'false'}
+        data-has-city={copy.hasCity ? 'true' : 'false'}
         aria-labelledby="popular-gigs-heading"
       >
         <div className="gg-w">
@@ -103,21 +110,28 @@ export function LandingPopularGigs() {
             <div>
               <p className="gg-eb">Open near you</p>
               <h2 id="popular-gigs-heading" className="gg-h">
-                <span>Popular gigs near</span>
+                <span>{copy.headingLead}</span>
                 <button
                   type="button"
-                  className="gg-loc"
+                  className={`gg-loc${copy.hasCity ? '' : ' gg-loc-choose'}`}
                   data-testid="popular-gigs-location"
+                  data-location-mode={copy.hasCity ? 'city' : 'choose'}
                   aria-haspopup="dialog"
-                  aria-label={`Change location, currently ${city}`}
+                  aria-label={
+                    copy.hasCity
+                      ? `Change location, currently ${copy.city}`
+                      : 'Choose a city for popular gigs'
+                  }
                   onClick={() => requestBrowseLocationPicker()}
                 >
                   <MapPin className="h-5 w-5 text-[#1D5CE5]" strokeWidth={2.2} aria-hidden />
-                  {city}
+                  {copy.locationChipLabel}
                   <ChevronDown className="ch h-4 w-4 text-[#334155]" strokeWidth={2.2} aria-hidden />
                 </button>
               </h2>
-              <p className="gg-sub">{subtext}</p>
+              <p className="gg-sub" data-testid="popular-gigs-subtext">
+                {copy.subtext}
+              </p>
             </div>
             <Link href={browseHref} className="gg-all" data-testid="popular-gigs-see-all">
               See all jobs
@@ -156,7 +170,7 @@ export function LandingPopularGigs() {
               className="gg-mall"
               data-testid="popular-gigs-see-all-mobile"
             >
-              See all jobs near {city}
+              {copy.mobileSeeAll}
               <ArrowRight className="h-4 w-4" strokeWidth={2.2} aria-hidden />
             </Link>
           ) : null}
