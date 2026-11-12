@@ -2,7 +2,8 @@
 
 import { ArrowRight, ChevronDown, LogOut, Menu, UserRound, X } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
 import { BrowseLocationTrigger } from '@/components/browse/BrowseLocationDialog'
 import { MessagesTrigger } from '@/components/messages/MessagesTrigger'
@@ -11,6 +12,16 @@ import { Avatar } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { useBrowseLocation } from '@/hooks/useBrowseLocation'
 import '@/components/landing/landing-v2.css'
+
+function subscribeNarrow(onChange: () => void) {
+  const mq = window.matchMedia('(max-width: 639px)')
+  mq.addEventListener('change', onChange)
+  return () => mq.removeEventListener('change', onChange)
+}
+
+function narrowSnapshot() {
+  return window.matchMedia('(max-width: 639px)').matches
+}
 
 const NAV = [
   { href: '/browse', label: 'Browse' },
@@ -28,10 +39,21 @@ export function BrowseFloatHeader({
   const { currentUser, ready, authUser, signOut } = useBeam()
   const { toggle } = useMessagesDrawer()
   const { origin } = useBrowseLocation(currentUser)
+  const params = useSearchParams()
+  const narrow = useSyncExternalStore(subscribeNarrow, narrowSnapshot, () => false)
+  const jobOpen = Boolean(params.get('job')) && !narrow
   const locationText = ready ? origin.locationLabel : '…'
   const [accountOpen, setAccountOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const accountRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (jobOpen) document.documentElement.dataset.browseJobOpen = '1'
+    else delete document.documentElement.dataset.browseJobOpen
+    return () => {
+      delete document.documentElement.dataset.browseJobOpen
+    }
+  }, [jobOpen])
 
   useEffect(() => {
     if (!accountOpen && !mobileOpen) return
@@ -55,7 +77,7 @@ export function BrowseFloatHeader({
   }, [accountOpen, mobileOpen])
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-0 z-50">
+    <div className="browse-float-header-shell pointer-events-none fixed inset-x-0 top-0 z-50">
       <div
         aria-hidden
         className={`pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-white from-70% to-transparent ${
