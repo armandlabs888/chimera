@@ -2,7 +2,6 @@ import { LandingHero } from './LandingHero'
 import { LandingPopularGigs } from './LandingPopularGigs'
 import { LandingCategories } from './LandingCategories'
 import { LandingHowItWorks } from './LandingHowItWorks'
-import { LandingAvailableServices } from './LandingAvailableServices'
 import { LandingWhyBeam } from './LandingWhyBeam'
 import { LandingClosingCta } from './LandingClosingCta'
 import { LandingFooter } from './LandingFooter'
@@ -16,7 +15,6 @@ export function LandingPage() {
         <LandingPopularGigs />
         <LandingCategories />
         <LandingHowItWorks />
-        <LandingAvailableServices />
         <LandingWhyBeam />
         <LandingClosingCta />
       </main>

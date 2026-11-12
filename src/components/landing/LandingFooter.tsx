@@ -65,7 +65,6 @@ export function LandingFooter({
         : []),
       { href: '/#categories', label: 'Popular services' },
       { href: '/#how-it-works', label: 'How it works' },
-      { href: '/#neighborhoods', label: 'Available services' },
     ]
 
     const start = signedIn

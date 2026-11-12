@@ -35,7 +35,7 @@ Quiet `#F4F8FD` surface, expanded brand presence (larger wordmark + two real pro
 | Surface | `#F4F8FD` + top hairline `rgba(7,19,48,0.08)` | Beam tokens | Dark footer, carded panels |
 | Brand block | Wordmark + ≤1 short sentence | Beam brand test + anti-slop copy cut | Long exclusion essay in brand column |
 | Link structure | 3 groups: Explore / Get started / Trust | Craft hierarchy; real routes only | Single wrap row; invented columns |
-| Explore links | `/browse`, `/#how-it-works`, `/#neighborhoods` | Existing nav/routes | Fake blog/help center |
+| Explore links | `/browse`, `/#categories`, `/#how-it-works` (Available services / `#neighborhoods` removed) | Existing nav/routes | Fake blog/help center |
 | Get started | `/post`, `/onboarding/helper` (or auth gate), `/auth?mode=signin` | Existing flows | Newsletter, app store badges |
 | Trust | `/safety` only (+ keep payment note in legal) | Real Safety page | Fabricated insurance/trust seals |
 | Legal row | Top hairline; © + payment arrangement note | Existing truthful copy | Fake privacy/terms URLs |
