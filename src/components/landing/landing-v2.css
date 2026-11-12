@@ -188,3 +188,24 @@
 .browse-job-list > li[data-selected='true'] + li {
   border-top-color: transparent;
 }
+
+/* Job details attached drawer: reflow Browse into leftover width (desktop). */
+.browse-v3-shell--drawer-open {
+  padding-right: 500px;
+}
+
+@media (max-width: 639px) {
+  .browse-v3-shell--drawer-open {
+    padding-right: 0;
+  }
+}
+
+html[data-browse-job-open='1'] .browse-float-header-shell {
+  right: 500px;
+}
+
+@media (max-width: 639px) {
+  html[data-browse-job-open='1'] .browse-float-header-shell {
+    right: 0;
+  }
+}

@@ -534,8 +534,13 @@ export function Browse() {
 
   const selectedMiles = selectedRequest ? formatMiles(milesTo(selectedRequest, browseAnchor)) : null
   const selectedArea = selectedRequest ? publicArea(selectedRequest) : ''
+  const drawerDocked = Boolean(selectedRequest) && !narrow
 
   return (
+    <div
+      className={`browse-v3-shell ${drawerDocked ? 'browse-v3-shell--drawer-open' : ''}`}
+      data-browse-drawer={drawerDocked ? 'open' : 'closed'}
+    >
     <div
       className={`browse-v3 mx-auto w-full max-w-[808px] px-4 pb-16 sm:px-6 ${
         showHelperBanner ? 'has-helper-banner' : ''
@@ -760,6 +765,7 @@ export function Browse() {
           onClose={closeJob}
         />
       ) : null}
+    </div>
     </div>
   )
 }
