@@ -42,7 +42,7 @@ export function BrowseJobDrawer({
 }) {
   const router = useRouter()
   const { openThread } = useMessagesDrawer()
-  const { state, currentUser, mode, authUser, createOffer, ensureThread } = useBeam()
+  const { state, currentUser, mode, authUser, createOffer, withdrawOffer, ensureThread } = useBeam()
   const isGuest = mode === 'live' && !authUser
   const panelRef = useRef<HTMLElement>(null)
   const titleId = useId()
@@ -62,7 +62,7 @@ export function BrowseJobDrawer({
   const [offerEta, setOfferEta] = useState(myOffer?.eta ?? 'Within 1 hour')
   const [offerError, setOfferError] = useState('')
   const [offerPending, setOfferPending] = useState(false)
-  const [offerSent, setOfferSent] = useState(false)
+  const [cancelPending, setCancelPending] = useState(false)
   const [askPending, setAskPending] = useState(false)
 
   const images = normalizeListingImages(request.images, request.image)
@@ -74,6 +74,9 @@ export function BrowseJobDrawer({
   const posted = relativeTime(request.createdAt)
   const place = areaLabel || cityName || 'Nearby'
   const canOffer = !isOwner && request.status === 'open'
+  /** Source of truth for the sent-offer footer: a pending offer from this helper on an open job. */
+  const pendingOffer =
+    canOffer && !isGuest && myOffer?.status === 'pending' ? myOffer : undefined
   const locationLine =
     cityName && place !== cityName ? `${place}, ${cityName}` : place
 
@@ -117,7 +120,6 @@ export function BrowseJobDrawer({
           eta: offerEta,
         })
         await ensureThread(request.id, request.requesterId)
-        setOfferSent(true)
         setOfferOpen(false)
       } catch (err) {
         setOfferError(err instanceof Error ? err.message : 'Could not send offer')
@@ -125,6 +127,20 @@ export function BrowseJobDrawer({
         setOfferPending(false)
       }
     })
+  }
+
+  async function cancelOffer() {
+    if (!pendingOffer || cancelPending) return
+    setCancelPending(true)
+    setOfferError('')
+    try {
+      await withdrawOffer(pendingOffer.id)
+      setOfferOpen(false)
+    } catch (err) {
+      setOfferError(err instanceof Error ? err.message : 'Could not cancel offer')
+    } finally {
+      setCancelPending(false)
+    }
   }
 
   async function share() {
@@ -316,9 +332,14 @@ export function BrowseJobDrawer({
             </button>
           </form>
         ) : null}
-        {offerSent ? (
+        {pendingOffer && !offerOpen ? (
           <p className="mt-4 text-[14px] font-semibold text-[#071330]" data-testid="browse-offer-sent">
             Offer sent. You can keep coordinating from Messages.
+          </p>
+        ) : null}
+        {offerError && !offerOpen ? (
+          <p className="mt-3 text-[13px] font-medium text-[#DC2626]" role="alert" data-testid="browse-offer-error">
+            {offerError}
           </p>
         ) : null}
       </div>
@@ -341,7 +362,20 @@ export function BrowseJobDrawer({
     </button>
   ) : null
 
-  const primaryButton = canOffer ? (
+  const primaryButton = pendingOffer && !offerOpen ? (
+    <button
+      type="button"
+      data-testid="browse-cancel-offer"
+      disabled={cancelPending}
+      aria-busy={cancelPending || undefined}
+      onClick={() => void cancelOffer()}
+      className={`inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg border-[1.5px] border-[#DC2626] bg-white px-[18px] text-[14px] font-semibold tracking-[-0.01em] text-[#B91C1C] hover:bg-[#FEF2F2] disabled:cursor-not-allowed disabled:opacity-60 ${
+        narrow ? 'w-full' : 'shrink-0'
+      }`}
+    >
+      {cancelPending ? 'Canceling…' : 'Cancel offer'}
+    </button>
+  ) : canOffer ? (
     <button
       type="button"
       data-testid="browse-make-offer"

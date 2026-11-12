@@ -365,6 +365,26 @@ export async function createLiveOffer(
   return mapOffer(data)
 }
 
+export async function withdrawLiveOffer(
+  client: Client,
+  userId: string,
+  offerId: string,
+): Promise<Offer> {
+  const { data, error } = await client
+    .from('offers')
+    .update({ status: 'withdrawn' as const })
+    .eq('id', offerId)
+    .eq('helper_id', userId)
+    .eq('status', 'pending')
+    .select('*')
+    .maybeSingle()
+  throwOnError(error, 'Cancel offer')
+  if (!data) {
+    throw new Error('This offer can no longer be canceled. It may have already been accepted or declined.')
+  }
+  return mapOffer(data)
+}
+
 export async function acceptLiveOffer(client: Client, offerId: string): Promise<void> {
   const { error } = await client.rpc('accept_offer', { p_offer_id: offerId })
   throwOnError(error, 'Accept offer')

@@ -20,6 +20,7 @@ import {
   acceptLiveOffer,
   completeLiveRequest,
   createLiveOffer,
+  withdrawLiveOffer,
   createLiveRequest,
   ensureLiveThread,
   ensureProfile,
@@ -117,6 +118,8 @@ interface BeamContextValue {
     note: string
     eta: string
   }) => Offer | Promise<Offer>
+  /** Helper withdraws their own pending offer. */
+  withdrawOffer: (offerId: string) => void | Promise<void>
   acceptOffer: (offerId: string) => void | Promise<void>
   markComplete: (requestId: string) => void | Promise<void>
   addReview: (input: {
@@ -729,6 +732,34 @@ export function BeamProvider({
     [authUser, mode, refreshLive, reportError],
   )
 
+  const withdrawOffer = useCallback(
+    (offerId: string) => {
+      if (mode === 'live') {
+        return (async () => {
+          try {
+            if (!authUser) throw new Error('Not signed in')
+            const client = createClient()
+            await withdrawLiveOffer(client, authUser.id, offerId)
+            await refreshLive(authUser.id)
+          } catch (err) {
+            reportError(err, 'Cancel offer failed')
+            throw err
+          }
+        })()
+      }
+
+      withState(setState, (prev) => ({
+        ...prev,
+        offers: prev.offers.map((o) =>
+          o.id === offerId && o.helperId === prev.currentUserId && o.status === 'pending'
+            ? { ...o, status: 'withdrawn' as const }
+            : o,
+        ),
+      }))
+    },
+    [authUser, mode, refreshLive, reportError],
+  )
+
   const acceptOffer = useCallback(
     (offerId: string) => {
       if (mode === 'live') {
@@ -1308,6 +1339,7 @@ export function BeamProvider({
     createRequest,
     postRequest,
     createOffer,
+    withdrawOffer,
     acceptOffer,
     markComplete,
     addReview,
