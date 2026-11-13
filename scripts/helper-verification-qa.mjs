@@ -170,25 +170,49 @@ async function run() {
   // Inject a pending row with a real photo preview so staff can review the file
   const billDataUrl = await page.evaluate(() => {
     const canvas = document.createElement('canvas')
-    canvas.width = 640
-    canvas.height = 820
+    canvas.width = 900
+    canvas.height = 1200
     const ctx = canvas.getContext('2d')
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, 640, 820)
-    ctx.fillStyle = '#F5F9FF'
-    ctx.fillRect(0, 0, 640, 96)
+    ctx.fillStyle = '#E8E4DC'
+    ctx.fillRect(0, 0, 900, 1200)
+    ctx.fillStyle = '#FFFEFA'
+    ctx.fillRect(48, 64, 804, 1072)
+    ctx.strokeStyle = '#C9C3B8'
+    ctx.lineWidth = 2
+    ctx.strokeRect(48, 64, 804, 1072)
     ctx.fillStyle = '#1D5CE5'
-    ctx.font = 'bold 28px sans-serif'
-    ctx.fillText('MUNICIPAL WATER SERVICE', 36, 58)
+    ctx.fillRect(48, 64, 804, 10)
+    ctx.fillStyle = '#071330'
+    ctx.font = 'bold 34px sans-serif'
+    ctx.fillText('Pacific Gas & Electric', 84, 140)
+    ctx.font = '20px sans-serif'
+    ctx.fillStyle = '#3D4A5F'
+    ctx.fillText('Electricity bill  ·  October 2026', 84, 178)
     ctx.fillStyle = '#071330'
     ctx.font = 'bold 22px sans-serif'
-    ctx.fillText('Account statement · October 2026', 36, 150)
-    ctx.font = '16px sans-serif'
+    ctx.fillText('Customer', 84, 250)
+    ctx.font = '20px sans-serif'
     ctx.fillStyle = '#273449'
-    ctx.fillText('Service for: Alex Rivera', 36, 200)
-    ctx.fillText('1842 Willow Street, San Jose, CA 95125', 36, 230)
-    ctx.fillText('Statement period: Oct 1 – Oct 31, 2026', 36, 270)
-    ctx.fillText('Amount due: $64.18', 36, 310)
+    ctx.fillText('Alex Rivera', 84, 286)
+    ctx.fillText('1842 Willow Street', 84, 318)
+    ctx.fillText('San Jose, CA 95125', 84, 350)
+    ctx.fillStyle = '#071330'
+    ctx.font = 'bold 22px sans-serif'
+    ctx.fillText('Account summary', 84, 430)
+    ctx.font = '20px sans-serif'
+    ctx.fillStyle = '#273449'
+    ctx.fillText('Service dates: Oct 1 to Oct 31, 2026', 84, 470)
+    ctx.fillText('kWh used: 412', 84, 508)
+    ctx.fillText('Amount due: $86.40', 84, 546)
+    ctx.fillText('Due date: Nov 18, 2026', 84, 584)
+    const g = ctx.createRadialGradient(720, 220, 10, 720, 220, 180)
+    g.addColorStop(0, 'rgba(255,255,255,0.55)')
+    g.addColorStop(1, 'rgba(255,255,255,0)')
+    ctx.fillStyle = g
+    ctx.fillRect(540, 80, 300, 300)
+    ctx.fillStyle = '#5B6575'
+    ctx.font = '16px sans-serif'
+    ctx.fillText('Photo of bill uploaded by Helper', 84, 1080)
     return canvas.toDataURL('image/jpeg', 0.92)
   })
   await page.evaluate((previewUrl) => {
@@ -201,10 +225,10 @@ async function run() {
       city: 'San Jose',
       stateCode: 'CA',
       zip: '95125',
-      documentName: 'October 2026 water bill.jpg',
+      documentName: 'October 2026 electric bill.jpg',
       documentMime: 'image/jpeg',
-      documentBytes: 180_000,
-      documentPath: 'user-you/bills/demo-october-2026-water-bill.jpg',
+      documentBytes: 210_000,
+      documentPath: 'user-you/bills/demo-october-2026-electric.jpg',
       documentPreviewUrl: previewUrl,
       reviewReason: null,
     })
@@ -215,11 +239,15 @@ async function run() {
   await page.waitForSelector('[data-testid="helper-review-doc-image"]', { timeout: 10000 })
   assert.equal(await page.locator('[data-testid="helper-review-doc-sample"]').count(), 0)
   assert.equal(await page.locator('[data-testid="helper-review-open-document"]').count(), 1)
+  assert.equal(
+    await page.locator('[data-testid="helper-review-doc-image"]').evaluate((el) => el.tagName),
+    'IMG',
+  )
   const detailText = await page.locator('[data-testid="helper-review-detail"]').innerText()
-  assert.match(detailText, /October 2026 water bill\.jpg/i)
+  assert.match(detailText, /October 2026 electric bill\.jpg/i)
   assert.doesNotMatch(detailText, /Water bill ·/i)
   assert.equal(await page.locator('[data-testid="helper-review-approve"]').isVisible(), true)
-  await page.locator('[data-testid="helper-review-doc-image"]').scrollIntoViewIfNeeded()
+  await page.locator('[data-testid="helper-review-document"]').scrollIntoViewIfNeeded()
   await page.waitForTimeout(200)
   await page.screenshot({ path: `${OUT}/desk-admin.png`, fullPage: true })
 
