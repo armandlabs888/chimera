@@ -36,8 +36,6 @@ function shouldHideAppChrome(pathname: string, onboardingEdit: boolean) {
   return (
     pathname === '/' ||
     pathname === '/onboarding' ||
-    pathname === '/verify' ||
-    pathname.startsWith('/verify/') ||
     pathname === '/admin' ||
     pathname.startsWith('/admin/')
   )
@@ -63,6 +61,8 @@ function usesBrowseHeader(pathname: string, onboardingEdit: boolean) {
     pathname === '/browse' ||
     pathname === '/you' ||
     pathname === '/home' ||
+    pathname === '/verify' ||
+    pathname.startsWith('/verify/') ||
     pathname.startsWith('/onboarding/helper') ||
     (pathname === '/onboarding' && onboardingEdit)
   )
