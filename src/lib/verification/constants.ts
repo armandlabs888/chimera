@@ -73,6 +73,14 @@ export const VERIFY_CTA_RETRY = 'Try again'
 
 export const VERIFY_PRIVACY_HEADING = `How ${PRODUCT_NAME} uses this`
 
+export const VERIFY_NEXT_HEADING = 'What happens next'
+
+export const VERIFY_NEXT_STEPS = [
+  'Enter your email and home address',
+  "Tap Confirm you're home while at that address",
+  'Once it matches, you can send offers right away',
+] as const
+
 export const GATE_UNVERIFIED = `To make an offer, ${PRODUCT_NAME} has to confirm you're at your home address. You need to be home for this check.`
 
 export const ONBOARDING_HELPER_VERIFY_TITLE =
