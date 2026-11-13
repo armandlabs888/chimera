@@ -2,11 +2,8 @@ import { distanceBetween, formatLocation } from '@/lib/location'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
 import { relativeTime } from '@/lib/matching'
+import { US_STATE_NAMES } from '@/lib/usPlaces'
 import type { HelpRequest, Offer } from '@/types'
-
-/** Default radius for “near you” when the browse origin has coordinates. */
-export const POPULAR_GIGS_RADIUS_MILES = 25
-export const POPULAR_GIGS_LIMIT = 10
 
 export type PopularGigRow = {
   request: HelpRequest
@@ -21,10 +18,7 @@ export type PopularGigRow = {
   score: number
 }
 
-function offerCountFor(
-  request: HelpRequest,
-  offers: Offer[],
-): number {
+function offerCountFor(request: HelpRequest, offers: Offer[]): number {
   if (typeof request.publicOfferCount === 'number' && Number.isFinite(request.publicOfferCount)) {
     return Math.max(0, request.publicOfferCount)
   }
@@ -33,7 +27,7 @@ function offerCountFor(
   ).length
 }
 
-/** Neighborhood / area only — never a street address. */
+/** Neighborhood / area only, never a street address. */
 export function gigNeighborhood(request: HelpRequest): string {
   const label = formatLocation(request)
   const first = label.split(',')[0]?.trim() || ''
@@ -60,36 +54,111 @@ export function gigTimingLabel(request: HelpRequest): { label: string; asap: boo
   return { label: relativeTime(request.createdAt), asap: false }
 }
 
-function popularityScore(
-  offerCount: number,
-  createdAt: string,
-  miles: number | null,
-  radiusMiles: number,
-): number {
+function popularityScore(offerCount: number, createdAt: string, miles: number | null): number {
   const ageHours = Math.max(0, (Date.now() - new Date(createdAt).getTime()) / 3_600_000)
   // Soft 14-day recency decay.
   const recency = Math.max(0, 1 - ageHours / (14 * 24))
   const engagement = Math.log1p(offerCount)
   const proximity =
-    miles == null || !Number.isFinite(miles)
-      ? 0.35
-      : Math.max(0, 1 - miles / Math.max(radiusMiles, 1))
+    miles == null || !Number.isFinite(miles) ? 0.35 : Math.max(0, 1 - miles / 25)
   return engagement * 3 + recency * 2 + proximity
 }
 
+function normCity(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+function normState(value: string): string {
+  return value.trim().toUpperCase()
+}
+
+const STATE_NAME_TO_CODE = Object.fromEntries(
+  Object.entries(US_STATE_NAMES).map(([code, name]) => [name.toLowerCase(), code]),
+) as Record<string, string>
+
 /**
- * Open jobs near the browse origin, ranked by engagement + recency (+ proximity).
- * Never pads with samples. Returns at most `limit` real rows.
+ * Resolve a request's city + state for Popular gigs filtering.
+ * Prefer structured city/stateCode when present; otherwise parse locationLabel.
+ * Jobs without a usable city AND state are excluded (no radius fallback).
+ */
+export function resolveRequestCityState(request: {
+  city?: string | null
+  stateCode?: string | null
+  locationLabel?: string | null
+}): { city: string; stateCode: string } | null {
+  const structuredCity = (request.city ?? '').trim()
+  const structuredState = normState(request.stateCode ?? '')
+  if (structuredCity && /^[A-Z]{2}$/.test(structuredState)) {
+    return { city: structuredCity, stateCode: structuredState }
+  }
+
+  const label = (request.locationLabel ?? '').trim()
+  if (!label) return null
+
+  const parts = label
+    .split(',')
+    .map((p) => p.trim())
+    .filter(Boolean)
+  if (parts.length === 0) return null
+
+  let stateCode = ''
+  let cityParts = parts
+  const last = parts[parts.length - 1] ?? ''
+  if (/^[A-Za-z]{2}$/.test(last) && US_STATE_NAMES[last.toUpperCase()]) {
+    stateCode = last.toUpperCase()
+    cityParts = parts.slice(0, -1)
+  } else {
+    const asName = STATE_NAME_TO_CODE[last.toLowerCase()]
+    if (asName) {
+      stateCode = asName
+      cityParts = parts.slice(0, -1)
+    }
+  }
+
+  if (!stateCode || cityParts.length === 0) return null
+  // "City, ST" or "Neighborhood, City, ST" → city is the last non-state segment.
+  const city = cityParts[cityParts.length - 1]?.trim() || ''
+  if (!city) return null
+  return { city, stateCode }
+}
+
+export function requestMatchesCityState(
+  request: {
+    city?: string | null
+    stateCode?: string | null
+    locationLabel?: string | null
+  },
+  city: string,
+  stateCode: string,
+): boolean {
+  const wantCity = normCity(city)
+  const wantState = normState(stateCode)
+  if (!wantCity || !/^[A-Z]{2}$/.test(wantState)) return false
+  const resolved = resolveRequestCityState(request)
+  if (!resolved) return false
+  return normCity(resolved.city) === wantCity && normState(resolved.stateCode) === wantState
+}
+
+/**
+ * Open jobs in the selected city + state, ranked by engagement + recency.
+ * Never pads with samples. No radius filter and no display cap.
  */
 export function selectPopularGigs(input: {
   requests: HelpRequest[]
   offers: Offer[]
-  origin: { lat?: number | null; lng?: number | null }
-  radiusMiles?: number
-  limit?: number
+  origin: {
+    city?: string | null
+    stateCode?: string | null
+    lat?: number | null
+    lng?: number | null
+  }
 }): PopularGigRow[] {
-  const radiusMiles = input.radiusMiles ?? POPULAR_GIGS_RADIUS_MILES
-  const limit = input.limit ?? POPULAR_GIGS_LIMIT
+  const city = (input.origin.city ?? '').trim()
+  const stateCode = normState(input.origin.stateCode ?? '')
+  if (!city || city === 'Nearby' || !/^[A-Z]{2}$/.test(stateCode)) {
+    return []
+  }
+
   const hasOrigin =
     typeof input.origin.lat === 'number' &&
     Number.isFinite(input.origin.lat) &&
@@ -99,9 +168,8 @@ export function selectPopularGigs(input: {
   const rows: PopularGigRow[] = []
   for (const request of input.requests) {
     if (request.status !== 'open') continue
+    if (!requestMatchesCityState(request, city, stateCode)) continue
     const miles = hasOrigin ? distanceBetween(input.origin, request) : null
-    if (hasOrigin && miles != null && miles > radiusMiles) continue
-    // Jobs without coords still appear when we have an origin (same as Browse radius filter).
     const count = offerCountFor(request, input.offers)
     const timing = gigTimingLabel(request)
     const photos = normalizeListingImages(request.images, request.image)
@@ -115,7 +183,7 @@ export function selectPopularGigs(input: {
       asap: timing.asap,
       offerCount: count,
       miles,
-      score: popularityScore(count, request.createdAt, miles, radiusMiles),
+      score: popularityScore(count, request.createdAt, miles),
     })
   }
 
@@ -124,7 +192,7 @@ export function selectPopularGigs(input: {
     return +new Date(b.request.createdAt) - +new Date(a.request.createdAt)
   })
 
-  return rows.slice(0, limit)
+  return rows
 }
 
 export function shortCityLabel(locationLabel: string, city: string): string {
@@ -134,15 +202,17 @@ export function shortCityLabel(locationLabel: string, city: string): string {
   return first || 'Nearby'
 }
 
-/** True when the browse origin has a real city (not the unset Nearby fallback). */
+/** True when the browse origin has a real city and state (not the unset Nearby fallback). */
 export function hasBrowseCity(origin: {
   source: 'preference' | 'profile' | 'none'
   city: string
+  stateCode?: string
   locationLabel: string
 }): boolean {
   if (origin.source === 'none') return false
   const label = shortCityLabel(origin.locationLabel, origin.city)
-  return Boolean(label) && label !== 'Nearby'
+  const state = normState(origin.stateCode ?? '')
+  return Boolean(label) && label !== 'Nearby' && /^[A-Z]{2}$/.test(state)
 }
 
 /**
@@ -152,33 +222,45 @@ export function hasBrowseCity(origin: {
 export function popularGigsCopy(origin: {
   source: 'preference' | 'profile' | 'none'
   city: string
+  stateCode?: string
   locationLabel: string
 }): {
   hasCity: boolean
   city: string
-  headingLead: string
-  locationChipLabel: string
+  stateCode: string
+  stateName: string
+  heading: string
   mobileSeeAll: string
   subtext: string
+  emptyTitle: string
+  emptyBody: string
 } {
   const hasCity = hasBrowseCity(origin)
   const city = shortCityLabel(origin.locationLabel, origin.city)
+  const stateCode = normState(origin.stateCode ?? '')
   if (hasCity) {
+    const stateName = US_STATE_NAMES[stateCode] ?? stateCode
     return {
       hasCity: true,
       city,
-      headingLead: 'Popular gigs near',
-      locationChipLabel: city,
-      mobileSeeAll: `See all jobs near ${city}`,
-      subtext: `Everyday jobs neighbors post around ${city}.`,
+      stateCode,
+      stateName,
+      heading: `Popular gigs in ${city}, ${stateCode}`,
+      mobileSeeAll: `See all jobs in ${city}`,
+      subtext: `All open jobs neighbors have posted in ${city}, ${stateName}.`,
+      emptyTitle: `No open gigs in ${city} yet`,
+      emptyBody: 'Be the first to post a task.',
     }
   }
   return {
     hasCity: false,
     city: 'Nearby',
-    headingLead: 'Popular gigs near you',
-    locationChipLabel: 'Choose a city',
+    stateCode: '',
+    stateName: '',
+    heading: 'Popular gigs near you',
     mobileSeeAll: 'See all jobs near you',
-    subtext: 'Everyday jobs neighbors post nearby.',
+    subtext: 'Open jobs will show up here once your city is set.',
+    emptyTitle: 'No open gigs here yet',
+    emptyBody: 'Be the first to post a task.',
   }
 }

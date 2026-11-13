@@ -62,7 +62,7 @@ export function LandingBrowsePreview() {
       <div
         className="landing-preview-stack mx-auto max-w-[1080px]"
         role="img"
-        aria-label="Illustrative Browse Local Jobs product preview with sample jobs — not live activity"
+        aria-label="Illustrative Browse Local Jobs product preview with sample jobs, not live activity"
       >
         <div
           className="landing-preview-card overflow-hidden rounded-[16px] border border-[#D7E0EC]/90 bg-white shadow-[0_32px_80px_rgba(7,19,48,0.22),0_8px_24px_rgba(7,19,48,0.10)]"
@@ -144,7 +144,7 @@ export function LandingBrowsePreview() {
                       Browse Local Jobs
                     </p>
                     <p className="text-[10px] text-[#64748B]">
-                      Illustrative samples for design review — not live activity
+                      Illustrative samples for design review, not live activity
                     </p>
                   </div>
                   <div className="flex rounded-[7px] border border-[#D7E0EC] bg-white p-0.5 text-[10px]">
@@ -201,7 +201,7 @@ export function LandingBrowsePreview() {
               <aside className="hidden rounded-[10px] border border-[#D7E0EC] bg-white p-2.5 lg:block">
                 <p className="text-[12px] font-bold text-[#071330]">Trending helpers</p>
                 <p className="mt-1 text-[10px] leading-4 text-[#64748B]">
-                  Illustrative nearby people — not live profiles.
+                  Illustrative nearby people, not live profiles.
                 </p>
                 <div className="mt-2.5 space-y-2.5">
                   <div className="flex items-center gap-2 border-b border-[#D7E0EC] pb-2.5">

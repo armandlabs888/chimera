@@ -181,6 +181,10 @@ export interface HelpRequest {
   acceptedOfferId?: string
   helperId?: string
   locationLabel?: string
+  /** Optional structured city when known (Popular gigs city match). */
+  city?: string | null
+  /** Optional 2-letter state when known (Popular gigs city match). */
+  stateCode?: string | null
   exactAddress?: string
   lat?: number | null
   lng?: number | null

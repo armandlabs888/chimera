@@ -7,10 +7,14 @@
   --landing-float-header-offset: calc(
     var(--landing-float-nav-inset) + var(--landing-float-nav-height)
   );
-  --landing-hero-header-gap: 36px; /* mobile ~32–40 */
+  --landing-hero-header-gap: 72px; /* mobile ~72 */
   --landing-hero-content-pad-top: calc(
     var(--landing-float-header-offset) + var(--landing-hero-header-gap)
   );
+
+  min-height: 92vh;
+  display: flex;
+  flex-direction: column;
 
   background:
     radial-gradient(ellipse 80% 60% at 12% 22%, rgba(56, 189, 248, 0.55) 0%, transparent 62%),
@@ -24,24 +28,29 @@
 @media (min-width: 768px) {
   .landing-hero-atmosphere {
     --landing-float-nav-inset: 20px;
-    --landing-hero-header-gap: 56px; /* tablet ~48–64 */
+    --landing-hero-header-gap: 96px;
   }
 }
 
 @media (min-width: 1024px) {
   .landing-hero-atmosphere {
-    --landing-hero-header-gap: 84px; /* desktop ~72–96 */
+    --landing-hero-header-gap: 132px; /* desktop lock */
   }
 }
 
 .landing-hero-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding-top: var(--landing-hero-content-pad-top);
-  padding-bottom: 64px;
+  padding-bottom: 80px;
 }
 
 @media (min-width: 768px) {
   .landing-hero-content {
-    padding-bottom: 96px;
+    padding-bottom: 120px;
   }
 }
 

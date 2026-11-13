@@ -127,7 +127,9 @@ export function resolveBrowseOrigin(
 
   if (label || (person.lat != null && person.lng != null)) {
     return {
-      city: labelCity || city,
+      // Prefer structured profile city when present so neighborhood labels
+      // like "East Austin, TX" do not become the city scope.
+      city: city || labelCity,
       stateCode,
       locationLabel: label || 'Nearby',
       lat: typeof person.lat === 'number' ? person.lat : null,

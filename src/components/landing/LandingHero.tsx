@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, ChevronDown, MapPin, Search } from 'lucide-react'
@@ -104,7 +103,7 @@ export function LandingHero() {
           </h1>
 
           <p className="mx-auto mt-5 max-w-[46ch] text-[15px] leading-6 text-[#475569] md:text-[17px] md:leading-7">
-            Describe the job, compare offers, and choose the help that fits — for your neighborhood.
+            Describe the job, compare offers, and choose the help that fits your neighborhood.
           </p>
 
           <form
@@ -297,21 +296,6 @@ export function LandingHero() {
               </button>
             </div>
           </form>
-
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5 pb-2 md:pb-0">
-            <Link
-              href="/post"
-              className="inline-flex h-10 items-center rounded-[10px] bg-[#071330] px-5 text-[14px] font-semibold text-white transition-colors hover:bg-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
-            >
-              Post a task
-            </Link>
-            <a
-              href="#categories"
-              className="inline-flex h-10 items-center rounded-[10px] border border-[#D7E0EC] bg-white/85 px-5 text-[14px] font-semibold text-[#071330] backdrop-blur transition-colors hover:border-[#1D5CE5] hover:text-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
-            >
-              Browse services
-            </a>
-          </div>
         </div>
       </div>
     </section>

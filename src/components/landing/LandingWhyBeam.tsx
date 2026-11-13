@@ -19,19 +19,15 @@ const PILLARS = [
 ] as const
 
 /**
- * Why HouseCall. Landing v2 split list (no fabricated social proof).
+ * Why HouseCall. Landing v2 split list (no fabricated social proof) on white.
  */
 export function LandingWhyBeam() {
   return (
     <section
-      className="relative overflow-hidden py-11 md:py-14"
+      className="relative overflow-hidden bg-white py-11 md:py-14"
       data-testid="why-beam-section"
       id="why-beam"
     >
-      <div
-        className="absolute inset-0 bg-gradient-to-r from-[#F4F8FD] via-[#EEF5FF] to-[#F4F8FD]"
-        aria-hidden="true"
-      />
       <div className="relative mx-auto max-w-[1200px] px-5 md:px-8">
         <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-start">
           <div>
@@ -42,8 +38,8 @@ export function LandingWhyBeam() {
               Know what you’re choosing.
             </h2>
             <p className="mt-2 max-w-md text-[14px] leading-6 text-[#475569]">
-              Clear steps and in-app messaging — without invented counts, response-time promises, or
-              fake social proof.
+              Clear steps and in-app messaging, so you can compare offers and agree on the details
+              before anyone starts.
             </p>
             <Link
               href="/safety"

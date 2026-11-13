@@ -1,12 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Calendar, ChevronDown, MapPin, Zap } from 'lucide-react'
+import { ArrowRight, Calendar, MapPin, Zap } from 'lucide-react'
 import { BrowseCategoryThumb } from '@/components/browse/BrowseCategoryThumb'
-import { BrowseLocationDialogHost } from '@/components/browse/BrowseLocationDialog'
 import { useBeam } from '@/context/BeamContext'
 import { useBrowseLocation } from '@/hooks/useBrowseLocation'
-import { requestBrowseLocationPicker } from '@/lib/browseLocationPreference'
 import {
   popularGigsCopy,
   selectPopularGigs,
@@ -24,7 +22,7 @@ function GigCard({ row }: { row: PopularGigRow }) {
         className="gg-card"
         data-testid="popular-gig-card"
         data-job-id={row.request.id}
-        aria-label={`${row.request.title} — ${row.budgetLabel}`}
+        aria-label={`${row.request.title}, ${row.budgetLabel}`}
       >
         <div className="gg-ph">
           {row.coverSrc ? (
@@ -65,7 +63,8 @@ function GigCard({ row }: { row: PopularGigRow }) {
 }
 
 /**
- * Location-aware open-job grid under the hero. Real inventory only — never pads.
+ * City-scoped open-job grid under the hero. Real inventory only, never pads.
+ * Scope comes from browse/profile origin and is not editable on this page.
  */
 export function LandingPopularGigs() {
   const { state, currentUser, ready, mode } = useBeam()
@@ -78,113 +77,92 @@ export function LandingPopularGigs() {
     setDemoForceUnset(new URLSearchParams(window.location.search).get('gigsLoc') === 'unset')
   }, [mode])
 
-  const rows = useMemo(
-    () =>
-      selectPopularGigs({
-        requests: state.requests,
-        offers: state.offers,
-        origin,
-      }),
-    [state.requests, state.offers, origin],
-  )
-
   const copyOrigin = demoForceUnset
-    ? { source: 'none' as const, city: '', locationLabel: 'Nearby' }
+    ? { source: 'none' as const, city: '', stateCode: '', locationLabel: 'Nearby' }
     : origin
   const copy = popularGigsCopy(copyOrigin)
+
+  const rows = useMemo(
+    () =>
+      demoForceUnset
+        ? []
+        : selectPopularGigs({
+            requests: state.requests,
+            offers: state.offers,
+            origin,
+          }),
+    [state.requests, state.offers, origin, demoForceUnset],
+  )
   const browseHref = '/browse'
 
   return (
-    <>
-      <BrowseLocationDialogHost />
-      <section
-        id="popular-gigs"
-        className="gg"
-        data-testid="popular-gigs"
-        data-ready={ready ? 'true' : 'false'}
-        data-has-city={copy.hasCity ? 'true' : 'false'}
-        aria-labelledby="popular-gigs-heading"
-      >
-        <div className="gg-w">
-          <div className="gg-head">
-            <div>
-              <p className="gg-eb">Open near you</p>
-              <h2 id="popular-gigs-heading" className="gg-h">
-                <span>{copy.headingLead}</span>
-                <button
-                  type="button"
-                  className={`gg-loc${copy.hasCity ? '' : ' gg-loc-choose'}`}
-                  data-testid="popular-gigs-location"
-                  data-location-mode={copy.hasCity ? 'city' : 'choose'}
-                  aria-haspopup="dialog"
-                  aria-label={
-                    copy.hasCity
-                      ? `Change location, currently ${copy.city}`
-                      : 'Choose a city for popular gigs'
-                  }
-                  onClick={() => requestBrowseLocationPicker()}
-                >
-                  <MapPin className="h-5 w-5 text-[#1D5CE5]" strokeWidth={2.2} aria-hidden />
-                  {copy.locationChipLabel}
-                  <ChevronDown className="ch h-4 w-4 text-[#334155]" strokeWidth={2.2} aria-hidden />
-                </button>
-              </h2>
-              <p className="gg-sub" data-testid="popular-gigs-subtext">
-                {copy.subtext}
-              </p>
-            </div>
-            <Link href={browseHref} className="gg-all" data-testid="popular-gigs-see-all">
-              See all jobs
-              <ArrowRight className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-            </Link>
+    <section
+      id="popular-gigs"
+      className="gg"
+      data-testid="popular-gigs"
+      data-ready={ready ? 'true' : 'false'}
+      data-has-city={copy.hasCity ? 'true' : 'false'}
+      aria-labelledby="popular-gigs-heading"
+    >
+      <div className="gg-w">
+        <div className="gg-head">
+          <div>
+            <p className="gg-eb">{copy.hasCity ? 'Open in your city' : 'Open near you'}</p>
+            <h2 id="popular-gigs-heading" className="gg-h" data-testid="popular-gigs-heading">
+              {copy.heading}
+            </h2>
+            <p className="gg-sub" data-testid="popular-gigs-subtext">
+              {copy.subtext}
+            </p>
           </div>
-
-          {rows.length === 0 ? (
-            <div className="gg-empty" data-testid="popular-gigs-empty">
-              <h3>No open gigs nearby yet</h3>
-              <p>Be the first to post a task, or browse a wider area.</p>
-              <div className="gg-empty-actions">
-                <Link href="/post" className="gg-empty-primary">
-                  Post a task
-                </Link>
-                <Link href={browseHref} className="gg-empty-secondary">
-                  Browse jobs
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <ul
-              className="gg-grid"
-              data-testid="popular-gigs-grid"
-              data-count={String(rows.length)}
-            >
-              {rows.map((row) => (
-                <GigCard key={row.request.id} row={row} />
-              ))}
-            </ul>
-          )}
-
-          {rows.length > 0 ? (
-            <Link
-              href={browseHref}
-              className="gg-mall"
-              data-testid="popular-gigs-see-all-mobile"
-            >
-              {copy.mobileSeeAll}
-              <ArrowRight className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-            </Link>
-          ) : null}
-
-          <div className="gg-foot">
-            <span className="gg-post">
-              Need something different?{' '}
-              <Link href="/post" data-testid="popular-gigs-post">
-                Post a task →
-              </Link>
-            </span>
-          </div>
+          <Link href={browseHref} className="gg-all" data-testid="popular-gigs-see-all">
+            See all jobs
+            <ArrowRight className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+          </Link>
         </div>
-      </section>
-    </>
+
+        {rows.length === 0 ? (
+          <div className="gg-empty" data-testid="popular-gigs-empty">
+            <h3>{copy.emptyTitle}</h3>
+            <p>{copy.emptyBody}</p>
+            <div className="gg-empty-actions">
+              <Link href="/post" className="gg-empty-primary">
+                Post a task
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <ul
+            className="gg-grid"
+            data-testid="popular-gigs-grid"
+            data-count={String(rows.length)}
+          >
+            {rows.map((row) => (
+              <GigCard key={row.request.id} row={row} />
+            ))}
+          </ul>
+        )}
+
+        {rows.length > 0 ? (
+          <Link
+            href={browseHref}
+            className="gg-mall"
+            data-testid="popular-gigs-see-all-mobile"
+          >
+            {copy.mobileSeeAll}
+            <ArrowRight className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+          </Link>
+        ) : null}
+
+        <div className="gg-foot">
+          <span className="gg-post">
+            Need something different?{' '}
+            <Link href="/post" data-testid="popular-gigs-post">
+              Post a task →
+            </Link>
+          </span>
+        </div>
+      </div>
+    </section>
   )
 }

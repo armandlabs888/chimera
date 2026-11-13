@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Popular gigs — Nearby vs city copy QA + screenshots.
+ * Popular gigs: unset vs city copy QA + screenshots.
  * Unset state: demo `?gigsLoc=unset` (inert in live mode).
- * City state: browse location pin = San Jose.
+ * City state: browse location pin = Austin, TX (seed jobs).
  */
 import assert from 'node:assert/strict'
 import { mkdirSync } from 'node:fs'
@@ -14,7 +14,6 @@ const OUT = process.env.ARTIFACT_DIR || '/opt/cursor/artifacts/popular-gigs-near
 mkdirSync(OUT, { recursive: true })
 mkdirSync('artifacts/popular-gigs-nearby-copy', { recursive: true })
 
-// Austin pin keeps demo seed jobs in-radius so the grid (and mobile CTA) render.
 const AUSTIN_PIN = {
   city: 'Austin',
   stateCode: 'TX',
@@ -42,44 +41,41 @@ async function waitGigs(page) {
 async function assertUnsetCopy(page) {
   const section = page.getByTestId('popular-gigs')
   assert.equal(await section.getAttribute('data-has-city'), 'false')
-  const heading = await page.locator('#popular-gigs-heading').innerText()
+  const heading = await page.getByTestId('popular-gigs-heading').innerText()
   assert.match(heading, /Popular gigs near you/i)
   assert.doesNotMatch(heading, /near\s+Nearby/i)
-  const chip = page.getByTestId('popular-gigs-location')
-  assert.equal(await chip.getAttribute('data-location-mode'), 'choose')
-  assert.match(await chip.innerText(), /Choose a city/i)
+  assert.equal(await page.getByTestId('popular-gigs-location').count(), 0)
+  assert.equal(await page.getByRole('button', { name: /Choose a city/i }).count(), 0)
   assert.equal(
     await page.getByTestId('popular-gigs-subtext').innerText(),
-    'Everyday jobs neighbors post nearby.',
+    'Open jobs will show up here once your city is set.',
   )
-  const mobile = page.getByTestId('popular-gigs-see-all-mobile')
-  assert.equal((await mobile.innerText()).replace(/\s+/g, ' ').trim(), 'See all jobs near you')
-  assert.doesNotMatch(await mobile.innerText(), /near Nearby/i)
+  assert.equal(await page.getByTestId('popular-gig-card').count(), 0, 'no jobs until city is set')
+  const empty = page.getByTestId('popular-gigs-empty')
+  assert.ok(await empty.count() >= 1)
+  assert.doesNotMatch(await empty.innerText(), /wider area/i)
 }
 
-async function assertCityCopy(page, city = 'Austin') {
+async function assertCityCopy(page, city = 'Austin', state = 'TX', stateName = 'Texas') {
   const section = page.getByTestId('popular-gigs')
   assert.equal(await section.getAttribute('data-has-city'), 'true')
-  const heading = await page.locator('#popular-gigs-heading').innerText()
-  assert.match(heading, new RegExp(`Popular gigs near\\s+${city}`, 'i'))
+  const heading = await page.getByTestId('popular-gigs-heading').innerText()
+  assert.equal(heading.replace(/\s+/g, ' ').trim(), `Popular gigs in ${city}, ${state}`)
   assert.doesNotMatch(heading, /Popular gigs near you/i)
   assert.doesNotMatch(heading, /near\s+Nearby/i)
-  const chip = page.getByTestId('popular-gigs-location')
-  assert.equal(await chip.getAttribute('data-location-mode'), 'city')
-  assert.match(await chip.innerText(), new RegExp(city, 'i'))
+  assert.equal(await page.getByTestId('popular-gigs-location').count(), 0)
   assert.equal(
     await page.getByTestId('popular-gigs-subtext').innerText(),
-    `Everyday jobs neighbors post around ${city}.`,
+    `All open jobs neighbors have posted in ${city}, ${stateName}.`,
   )
-  // Mobile CTA is in the DOM whenever the grid has cards (CSS hides on desktop).
   assert.ok(
     (await page.getByTestId('popular-gig-card').count()) > 0,
-    'city state should show real jobs in-radius',
+    'city state should show real city-matched jobs',
   )
   const mobile = page.getByTestId('popular-gigs-see-all-mobile')
   assert.equal(
     (await mobile.innerText()).replace(/\s+/g, ' ').trim(),
-    `See all jobs near ${city}`,
+    `See all jobs in ${city}`,
   )
 }
 
@@ -129,7 +125,7 @@ async function main() {
     await page.setViewportSize({ width, height })
     await page.goto(`${BASE}/`, { waitUntil: 'networkidle' })
     await waitGigs(page)
-    await assertCityCopy(page, 'Austin')
+    await assertCityCopy(page, 'Austin', 'TX', 'Texas')
     await page.locator('[data-testid="popular-gigs"]').scrollIntoViewIfNeeded()
     await shot(page, name)
     await context.close()
