@@ -23,7 +23,14 @@ export const HERO_IMAGE =
 
 function withCoords(neighborhood: keyof typeof NEIGHBORHOOD_COORDS, label: string) {
   const c = NEIGHBORHOOD_COORDS[neighborhood]
-  return { neighborhood, locationLabel: label, lat: c.lat, lng: c.lng }
+  return {
+    neighborhood,
+    locationLabel: label,
+    lat: c.lat,
+    lng: c.lng,
+    city: 'Austin' as const,
+    stateCode: 'TX' as const,
+  }
 }
 
 const people: Person[] = [
@@ -199,11 +206,11 @@ const requests: HelpRequest[] = [
     id: 'req-2',
     title: 'Dog bath and brush tonight',
     details:
-      'Medium golden mix in Hyde Park needs a gentle bath and brush-out this evening. Towels on site. Prefer someone patient with water-shy dogs — about 45–60 minutes.',
+      'Medium golden mix in Hyde Park needs a gentle bath and brush-out this evening. Towels on site. Prefer someone patient with water-shy dogs, about 45 to 60 minutes.',
     category: 'grooming',
     ...withCoords('hyde-park', 'Hyde Park, Austin'),
     when: 'today',
-    whenLabel: 'Today · 6–8pm',
+    whenLabel: 'Today · 6-8pm',
     budget: 55,
     budgetType: 'fixed',
     radiusMiles: 5,
@@ -216,11 +223,11 @@ const requests: HelpRequest[] = [
     id: 'req-3',
     title: 'Afternoon dog walk (friendly lab)',
     details:
-      'Need someone to walk our 3-year-old lab for 30–40 minutes around Zilker. Friendly with people and dogs. Leash and bags ready by the door.',
+      'Need someone to walk our 3-year-old lab for 30 to 40 minutes around Zilker. Friendly with people and dogs. Leash and bags ready by the door.',
     category: 'pet-sitting',
     ...withCoords('zilker', 'Zilker, Austin'),
     when: 'today',
-    whenLabel: 'Today · 3–5pm',
+    whenLabel: 'Today · 3-5pm',
     budget: 0,
     budgetType: 'open',
     radiusMiles: 5,
@@ -250,7 +257,7 @@ const requests: HelpRequest[] = [
     id: 'req-5',
     title: 'Post-brunch kitchen reset',
     details:
-      'Kitchen and dining after a small brunch on South Congress. Dishes, counters, floors. Supplies here — need ~90 minutes of help.',
+      'Kitchen and dining after a small brunch on South Congress. Dishes, counters, floors. Supplies here, need about 90 minutes of help.',
     category: 'house-cleaning',
     ...withCoords('south-congress', 'South Congress, Austin'),
     when: 'asap',

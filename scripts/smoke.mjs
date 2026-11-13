@@ -95,8 +95,34 @@ async function checkLandingMarkup() {
     'no sample/design-preview labels on landing',
   )
   assert.match(text, /data-testid="popular-gigs"/, 'popular gigs section present')
-  assert.match(text, /Popular gigs near/, 'popular gigs heading')
-  assert.match(text, /Open near you/, 'popular gigs eyebrow')
+  assert.match(text, /Popular gigs (near you|in )/, 'popular gigs heading')
+  assert.match(text, /Open (near you|in your city)/, 'popular gigs eyebrow')
+  assert.doesNotMatch(text, /Choose a city/, 'no popular-gigs city chip')
+  assert.doesNotMatch(
+    text,
+    /data-testid="landing-hero"[\s\S]*?(Post a task|Browse services)[\s\S]*?data-testid="popular-gigs"/,
+    'hero has no Post a task / Browse services under search',
+  )
+  assert.doesNotMatch(text, /categories-tile-custom|Something else\?/, 'navy custom tile removed')
+  assert.match(text, /data-testid="categories-tile-auto"/, 'auto detailing tile')
+  assert.match(text, /data-testid="categories-tile-junk"/, 'junk removal tile')
+  assert.match(text, /Post a custom task/, 'popular services custom link')
+  assert.match(
+    text,
+    /Clear steps and in-app messaging, so you can compare offers/,
+    'why HouseCall body copy',
+  )
+  assert.doesNotMatch(text, /without invented counts/, 'old why body removed')
+  assert.doesNotMatch(
+    text,
+    /Peer-to-peer everyday local help —/,
+    'footer blurb has no em dash',
+  )
+  assert.match(
+    text,
+    /Peer-to-peer everyday local help for home, auto, junk removal/,
+    'footer blurb updated',
+  )
   assert.doesNotMatch(text, /Elena R\.\s*·\s*Verified neighbor/, 'no fabricated verified testimonial')
   assert.doesNotMatch(text, /why-beam-live-offers|Trusted across local neighborhoods|hero-fan-stack/, 'no legacy hero/live-proof markup')
   assert.match(text, /href="\/auth\?mode=signin"/, 'landing Log in')
@@ -2081,8 +2107,13 @@ async function checkSubtleRadii() {
             tag: el.getAttribute('data-testid') || el.tagName,
             px: radiusPx(el),
             text: (el.textContent || '').trim().slice(0, 40),
+            // Popular services photo tiles are locked at ~14px radius.
+            allow14:
+              el.closest?.('[data-testid="categories-bento"]') != null ||
+              String(el.getAttribute('data-testid') || '').startsWith('categories-tile-'),
           }))
-          .filter((c) => c.px > 12)
+          .filter((c) => (c.allow14 ? c.px > 14 : c.px > 12))
+          .map(({ allow14: _a, ...rest }) => rest)
 
         const controls = [
           ...document.querySelectorAll('button, a.inline-flex, a[class*="rounded"]'),
@@ -2098,8 +2129,12 @@ async function checkSubtleRadii() {
             testid: el.getAttribute('data-testid'),
             text: (el.textContent || '').trim().slice(0, 36),
             px: radiusPx(el),
+            allow14:
+              el.closest?.('[data-testid="categories-bento"]') != null ||
+              String(el.getAttribute('data-testid') || '').startsWith('categories-tile-'),
           }))
-          .filter((c) => c.px > 12)
+          .filter((c) => (c.allow14 ? c.px > 14 : c.px > 12))
+          .map(({ allow14: _a, ...rest }) => rest)
 
         // Explicit people-tab empty state + Become a helper CTA
         let peopleEmpty = null

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Popular gigs landing QA — layout, links, location chip, responsive 10th-card hide.
+ * Popular gigs landing QA: layout, links, city-scoped heading, responsive grid.
  */
 import assert from 'node:assert/strict'
 import { mkdirSync } from 'node:fs'
@@ -29,7 +29,7 @@ async function waitGigs(page) {
   await page.waitForSelector('[data-testid="popular-gigs"][data-ready="true"]', {
     timeout: 20000,
   })
-  // Demo seed has open jobs — wait for cards or empty.
+  // Demo seed has open jobs once city is known: wait for cards or empty.
   await page.waitForFunction(() => {
     const section = document.querySelector('[data-testid="popular-gigs"]')
     if (!section) return false
@@ -55,10 +55,24 @@ async function main() {
     await page.locator('[data-testid="popular-gigs"]').innerText(),
     /Design preview|Sample listings, not live activity/i,
   )
+  assert.equal(await page.getByTestId('popular-gigs-location').count(), 0, 'no location chip')
+  assert.equal(await page.getByRole('button', { name: /Choose a city/i }).count(), 0)
+
+  const heading = await page.getByTestId('popular-gigs-heading').innerText()
+  assert.match(heading, /Popular gigs in Austin, TX/i)
+  assert.doesNotMatch(heading, /—|–/)
+  assert.match(
+    await page.getByTestId('popular-gigs-subtext').innerText(),
+    /All open jobs neighbors have posted in Austin, Texas\./i,
+  )
+  assert.match(
+    await page.locator('[data-testid="popular-gigs"] .gg-eb').innerText(),
+    /Open in your city/i,
+  )
 
   const cards = page.getByTestId('popular-gig-card')
   const cardCount = await cards.count()
-  assert.ok(cardCount > 0 && cardCount <= 10, `expected 1–10 real cards, got ${cardCount}`)
+  assert.ok(cardCount > 0, `expected real cards, got ${cardCount}`)
 
   const firstHref = await cards.first().getAttribute('href')
   assert.match(firstHref || '', /\/browse\?job=/)
@@ -81,19 +95,12 @@ async function main() {
   await page.goto(`${BASE}/`, { waitUntil: 'networkidle' })
   await waitGigs(page)
 
-  // Location chip opens dialog
-  await page.getByTestId('popular-gigs-location').click()
-  await page.waitForSelector('[role="dialog"]', { timeout: 8000 })
-  await page.keyboard.press('Escape')
-
   await shot(page, '1440-hero-top')
   await page.locator('[data-testid="popular-gigs"]').scrollIntoViewIfNeeded()
   await shot(page, '1440-gigs-section')
   await page.evaluate(() => window.scrollTo(0, 0))
   await page.waitForTimeout(200)
-  // Hero + gigs money shot: scroll so gigs fills below hero
   await shotFull(page, '1440-full')
-  // Cropped hero+gigs: set viewport tall enough or scroll mid
   await page.setViewportSize({ width: 1440, height: 1400 })
   await page.evaluate(() => window.scrollTo(0, 0))
   await shot(page, '1440-hero-gigs')
@@ -109,23 +116,15 @@ async function main() {
   await page.evaluate(() => window.scrollTo(0, 0))
   await shot(page, '1024-hero-gigs')
 
-  // --- 768: 3 columns; 10th hidden when count=10 ---
+  // --- 768: 3 columns ---
   await page.setViewportSize({ width: 768, height: 1024 })
   await page.goto(`${BASE}/`, { waitUntil: 'networkidle' })
   await waitGigs(page)
   const at768 = await page.locator('[data-testid="popular-gigs-grid"]').evaluate((el) => {
     const cols = getComputedStyle(el).gridTemplateColumns.split(' ').length
-    const items = [...el.children]
-    const tenth = items[9]
-    const tenthHidden = tenth
-      ? getComputedStyle(tenth).display === 'none'
-      : null
-    return { cols, count: items.length, tenthHidden }
+    return { cols, count: el.children.length }
   })
   assert.equal(at768.cols, 3, '768 uses 3 columns')
-  if (at768.count === 10) {
-    assert.equal(at768.tenthHidden, true, '10th card hidden at tablet when 10 jobs')
-  }
   await page.evaluate(() => window.scrollTo(0, 0))
   await shot(page, '768-hero-gigs')
 
@@ -155,6 +154,12 @@ async function main() {
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
   )
   assert.equal(overflow, false, 'no horizontal overflow at 1440')
+
+  // Hero: Find help only (no Post a task / Browse services under search)
+  const hero = page.getByTestId('landing-hero')
+  assert.equal(await hero.getByRole('link', { name: /^Post a task$/i }).count(), 0)
+  assert.equal(await hero.getByRole('link', { name: /^Browse services$/i }).count(), 0)
+  assert.ok(await hero.getByRole('button', { name: /^Find help$/i }).count() >= 1)
 
   console.log('popular-gigs-qa passed')
   await browser.close()

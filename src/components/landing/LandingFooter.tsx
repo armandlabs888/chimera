@@ -142,7 +142,7 @@ export function LandingFooter({
               />
             </Link>
             <p className="mt-2.5 text-[13.5px] leading-[1.45] text-[#CBD5E1]">
-              Peer-to-peer everyday local help — home, auto, junk removal, pets, and other casual
+              Peer-to-peer everyday local help for home, auto, junk removal, pets, and other casual
               tasks.
             </p>
           </div>

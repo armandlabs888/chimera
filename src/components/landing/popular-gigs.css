@@ -35,49 +35,6 @@
   font-weight: 700;
   letter-spacing: -0.02em;
   color: #071330;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-}
-
-.gg-loc {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 40px;
-  padding: 0 12px 0 10px;
-  border: 1px solid #c9d6ea;
-  border-radius: 10px;
-  background: #f4f8fd;
-  color: #071330;
-  font: inherit;
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  cursor: pointer;
-  transition:
-    border-color 0.15s,
-    background 0.15s;
-}
-
-.gg-loc:hover {
-  border-color: #1d5ce5;
-  background: #eaf1fd;
-}
-
-.gg-loc:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(29, 92, 229, 0.45);
-}
-
-/* Unset location: CTA chip next to “Popular gigs near you”, not “near Nearby”. */
-.gg-loc-choose {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  height: 36px;
-  padding: 0 12px 0 10px;
 }
 
 .gg-sub {
@@ -331,11 +288,6 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px 16px;
   }
-
-  /* Avoid a single orphan on the last row when 10 jobs are present. */
-  .gg-grid[data-count='10'] > li:nth-child(10) {
-    display: none;
-  }
 }
 
 @media (max-width: 767px) {
@@ -357,16 +309,6 @@
     font-size: 26px;
   }
 
-  .gg-loc {
-    font-size: 26px;
-    height: 36px;
-  }
-
-  .gg-loc-choose {
-    font-size: 14px;
-    height: 34px;
-  }
-
   .gg-all {
     display: none;
   }
@@ -375,10 +317,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 20px 12px;
     margin-top: 18px;
-  }
-
-  .gg-grid[data-count='10'] > li:nth-child(10) {
-    display: list-item;
   }
 
   .gg-t {
@@ -437,7 +375,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .gg-ph img,
-  .gg-loc,
   .gg-all {
     transition: none;
   }

@@ -19,5 +19,5 @@ export const EXAMPLE_OFFER = {
 
 export const EXAMPLE_THREAD = {
   opener: 'Offer accepted at $55. Let’s coordinate timing here.',
-  reply: 'Perfect — I’ll text when I’m 10 minutes out.',
+  reply: 'Perfect. I’ll text when I’m 10 minutes out.',
 }
