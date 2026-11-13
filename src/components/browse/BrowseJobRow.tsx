@@ -79,7 +79,7 @@ export function BrowseJobRow({
           ) : null}
         </span>
         <span className="browse-hc-row-side">
-          <span>
+          <span className="browse-hc-price-block">
             <span className={`browse-hc-price ${openBudget ? 'browse-hc-price-open' : ''}`}>
               {priceLabel}
             </span>
