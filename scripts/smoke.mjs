@@ -75,7 +75,7 @@ async function checkRoutes() {
 async function checkLandingMarkup() {
   const { res, text } = await fetchText('/')
   assert.equal(res.status, 200, 'landing status')
-  assert.match(text, /Local help, made easy\./, 'landing headline')
+  assert.match(text, /Trusted help, right next door\./, 'landing headline')
   assert.match(text, /Local services/, 'hero overline')
   assert.match(text, /Post a task|Post a request/, 'landing primary CTA')
   assert.match(text, /Browse nearby help|View all requests|Services|Popular services/, 'landing browse CTA')
@@ -654,7 +654,7 @@ async function checkLandingBrowser() {
     )
 
     const headline = await page.locator('h1').innerText()
-    assert.match(headline, /Local help, made easy/i)
+    assert.match(headline, /Trusted help, right next door/i)
     assert.ok(await page.getByText(/Local services/i).count() >= 1)
     assert.equal(await page.getByPlaceholder('What help do you need?').count(), 1)
     assert.ok(await page.getByRole('button', { name: /Find help/i }).count() >= 1)

@@ -19,7 +19,7 @@ const dmSans = DM_Sans({
   display: 'swap',
 })
 
-const title = 'HouseCall. Local help, made easy'
+const title = 'HouseCall. Trusted help, right next door'
 const description =
   'Describe the job, compare priced offers, and choose local help that fits: home, auto, junk removal, pets, and other everyday tasks.'
 

@@ -46,8 +46,8 @@ try {
     await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
 
     const h1 = (await page.locator('h1').innerText()).replace(/\s+/g, ' ').trim()
-    if (h1 !== 'Local help, made easy.') {
-      throw new Error(`Guest h1 expected "Local help, made easy." got "${h1}" @ ${vp.name}`)
+    if (h1 !== 'Trusted help, right next door.') {
+      throw new Error(`Guest h1 expected "Trusted help, right next door." got "${h1}" @ ${vp.name}`)
     }
     assertNoAustin(`guest h1 @ ${vp.name}`, h1)
 
@@ -103,7 +103,7 @@ try {
 
     const title = await page.title()
     assertNoAustin(`guest document title @ ${vp.name}`, title)
-    if (!/Local help, made easy/i.test(title)) {
+    if (!/Trusted help, right next door/i.test(title)) {
       throw new Error(`Guest title missing neutral headline: "${title}"`)
     }
 
