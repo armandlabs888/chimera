@@ -98,8 +98,8 @@ export function LandingHero() {
             Local services · Real everyday help
           </p>
 
-          <h1 className="landing-headline-grad mx-auto mt-5 max-w-[15ch] text-[44px] font-extrabold leading-[1.02] tracking-[-0.045em] md:text-[72px]">
-            Local help, made easy.
+          <h1 className="landing-headline-grad mx-auto mt-5 max-w-[17ch] text-[44px] font-extrabold leading-[1.02] tracking-[-0.045em] md:text-[72px]">
+            Trusted help, right next door.
           </h1>
 
           <p className="mx-auto mt-5 max-w-[46ch] text-[15px] leading-6 text-[#475569] md:text-[17px] md:leading-7">
