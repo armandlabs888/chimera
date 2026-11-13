@@ -69,6 +69,10 @@ async function probe(page) {
       ),
       imgCount: document.querySelectorAll('img').length,
       signOutTestIdCount: document.querySelectorAll('[data-testid="onboarding-sign-out"]').length,
+      headerText: document.querySelector('[data-testid="onboarding-header"]')?.textContent || '',
+      headerLogoLinkCount: document.querySelectorAll(
+        '[data-testid="onboarding-header"] a[aria-label="Beam home"]',
+      ).length,
     }
   })
 }
@@ -91,6 +95,9 @@ async function assertCleanChrome(page, label, { expectBenefits = false } = {}) {
   }
   assert.equal(p.imgCount, 0, `${label} must have zero <img> stock photos`)
   assert.equal(p.signOutTestIdCount, 0, `${label} must not render onboarding-sign-out`)
+  assert.match(p.headerText, /Step \d of 2/i, `${label} must keep step progress in header`)
+  assert.doesNotMatch(p.headerText, /\bBeam\b/, `${label} must not show Beam wordmark in header`)
+  assert.equal(p.headerLogoLinkCount, 0, `${label} must not have Beam logo link in header`)
   return p
 }
 

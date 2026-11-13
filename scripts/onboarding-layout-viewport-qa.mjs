@@ -126,6 +126,17 @@ async function run() {
         await page.goto(`${BASE_URL}/onboarding?preview=1`, { waitUntil: 'networkidle' })
         await page.waitForSelector('[data-testid="onboarding-step-1"]')
 
+        const header = page.getByTestId('onboarding-header')
+        await header.waitFor({ state: 'visible' })
+        const headerText = await header.innerText()
+        assert.match(headerText, /Step 1 of 2/i, `${vp.name}: step progress in header`)
+        assert.doesNotMatch(headerText, /\bBeam\b/, `${vp.name}: no Beam wordmark in header`)
+        assert.equal(
+          await header.locator('a[aria-label="Beam home"]').count(),
+          0,
+          `${vp.name}: no Beam logo link in header`,
+        )
+
         await page.getByTestId('onboarding-role-customer').click()
         const benefitsVisible = page.locator('[data-testid="onboarding-benefits"]:visible')
         await benefitsVisible.first().waitFor({ state: 'visible' })
