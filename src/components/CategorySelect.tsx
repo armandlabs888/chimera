@@ -86,10 +86,10 @@ export function CategorySelect({
               type="button"
               data-testid={`${testIdPrefix}-parent-${p.id}`}
               onClick={() => selectParent(p.id)}
-              className={`relative flex flex-col items-start gap-1.5 rounded-lg border px-3 py-3 text-left transition ${
+              className={`relative flex flex-col items-start gap-1.5 rounded-xl border px-3 py-3 text-left transition ${
                 selected
-                  ? 'border-[#1D5CE5] bg-[#EEF4FF] ring-2 ring-[#1D5CE5]/30'
-                  : 'border-[#E2E8F0] bg-[#F8FAFC] hover:bg-white'
+                  ? 'border-[#1D5CE5] bg-[#F5F9FF]'
+                  : 'border-[#E3E8EF] bg-[#F4F8FD] hover:bg-white'
               }`}
             >
               {selected ? (
@@ -97,11 +97,11 @@ export function CategorySelect({
                   <Check className="h-3 w-3" aria-hidden />
                 </span>
               ) : null}
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#1D5CE5] ring-1 ring-[#E2E8F0]">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#E3E8EF] bg-white text-[#1D5CE5]">
                 <Icon className="h-4 w-4" strokeWidth={2} aria-hidden />
               </span>
               <span className="text-[13.5px] font-semibold text-[#071330]">{p.label}</span>
-              <span className="text-[11.5px] leading-snug text-[#64748B]">{p.description}</span>
+              <span className="text-[11.5px] leading-snug text-[#48556A]">{p.description}</span>
             </button>
           )
         })}
