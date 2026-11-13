@@ -480,7 +480,7 @@ async function checkAuthBrowser() {
 
     await page.goto(`${BASE_URL}/auth?mode=signin`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body')
-    await page.waitForSelector('text=Local help, made easy', { timeout: 20000 })
+    await page.waitForSelector('text=Trusted help, right next door', { timeout: 20000 })
 
     const bodyText = await page.locator('body').innerText()
     assert.match(bodyText, /Post a task, compare offers from people nearby/i)
