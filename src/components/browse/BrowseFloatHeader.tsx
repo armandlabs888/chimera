@@ -108,20 +108,20 @@ export function BrowseFloatHeader({
       ) : null}
 
       <header
-        className="pointer-events-none relative"
+        className="pointer-events-none relative flex justify-center px-6 pt-4 md:px-5 md:pt-5"
         data-testid={guest ? 'landing-nav' : 'app-topnav'}
         data-nav-style="float"
       >
-        <div className="beam-container pt-4 md:pt-5">
+        <div className="pointer-events-none w-full md:w-auto md:max-w-[calc(100%-40px)]">
           <div
-            className="landing-float-nav pointer-events-auto mx-auto flex h-14 max-w-[1120px] items-center justify-between rounded-[16px] border border-white/70 px-3 shadow-[0_8px_28px_rgba(7,19,48,0.10),0_1px_2px_rgba(7,19,48,0.04)] md:px-4"
+            className="landing-float-nav pointer-events-auto grid w-full grid-cols-[auto_1fr] items-center md:inline-grid md:w-max md:max-w-none md:grid-cols-[1fr_auto_1fr] md:gap-x-8"
             data-testid="browse-float-header"
           >
-            <Link href="/browse" className="shrink-0 pl-1 focus-visible:outline-none">
+            <Link href="/browse" className="relative z-10 shrink-0 focus-visible:outline-none">
               <BeamWordmark
                 markWidth={18}
                 markHeight={18}
-                wordClassName="text-[20px] font-bold tracking-[-0.03em] text-[#1D5CE5]"
+                wordClassName="text-[17px] font-bold tracking-[-0.03em] text-[#071330]"
                 tone="ink"
               />
             </Link>
@@ -147,12 +147,12 @@ export function BrowseFloatHeader({
               })}
             </nav>
 
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex shrink-0 items-center justify-self-end gap-1.5">
               <BrowseLocationTrigger
                 label={locationText}
                 chevron
                 pinClassName="text-[#1D5CE5]"
-                className="inline-flex h-9 max-w-[8.5rem] items-center gap-1.5 rounded-[10px] border border-[#E3E8EF] bg-white px-2 text-[13px] font-medium text-[#071330] transition hover:bg-[#F4F8FD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:px-2.5 sm:text-[13.5px]"
+                className="inline-flex h-[38px] max-w-[8.5rem] items-center gap-1.5 rounded-full border border-[#E3E8EF] bg-white px-2.5 text-[13px] font-medium text-[#071330] transition hover:bg-[#F4F8FD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:text-[13.5px]"
               />
               <MessagesTrigger appearance="icon" hideFrom="sm" />
               <MessagesTrigger appearance="float" />
@@ -167,7 +167,7 @@ export function BrowseFloatHeader({
                   </Link>
                   <Link
                     href="/auth?mode=signup&next=%2Fbrowse"
-                    className="hidden h-9 items-center rounded-[10px] bg-[#071330] px-3.5 text-[13px] font-semibold text-white hover:bg-[#1D5CE5] sm:inline-flex"
+                    className="hidden h-[38px] items-center rounded-full bg-[#071330] px-4 text-[13px] font-semibold text-white hover:bg-[#1D5CE5] sm:inline-flex"
                   >
                     Sign up
                   </Link>
@@ -181,7 +181,7 @@ export function BrowseFloatHeader({
                     aria-expanded={accountOpen}
                     aria-haspopup="menu"
                     onClick={() => setAccountOpen((o) => !o)}
-                    className="inline-flex h-9 items-center gap-2 rounded-[10px] px-1.5 hover:bg-[#F4F8FD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
+                    className="inline-flex h-[38px] items-center gap-2 rounded-full px-1.5 hover:bg-[#F4F8FD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
                   >
                     {ready ? (
                       <Avatar src={currentUser.avatar} name={currentUser.name} size={28} />
@@ -245,7 +245,7 @@ export function BrowseFloatHeader({
 
               <button
                 type="button"
-                className="grid h-9 w-9 place-items-center rounded-[10px] border border-[#E3E8EF] bg-white text-[#071330] md:hidden"
+                className="grid h-[38px] w-[38px] place-items-center rounded-full border border-[#E3E8EF] bg-white text-[#071330] md:hidden"
                 aria-label={mobileOpen ? 'Close menu' : 'Menu'}
                 aria-expanded={mobileOpen}
                 onClick={() => setMobileOpen((v) => !v)}
@@ -256,7 +256,7 @@ export function BrowseFloatHeader({
           </div>
 
           {mobileOpen ? (
-            <div className="pointer-events-auto mx-auto mt-2 max-w-[1120px] overflow-hidden rounded-xl border border-[rgba(7,19,48,0.12)] bg-white shadow-[0_18px_40px_-12px_rgba(12,42,102,0.28)] md:hidden">
+            <div className="pointer-events-auto mt-2 w-full overflow-hidden rounded-xl border border-[rgba(7,19,48,0.12)] bg-white shadow-[0_18px_40px_-12px_rgba(12,42,102,0.28)] md:hidden">
               <div className="flex flex-col py-2">
                 {NAV.map((item) => (
                   <Link
@@ -296,7 +296,7 @@ export function BrowseFloatHeader({
                     <div className="px-4 pb-3 pt-1">
                       <Link
                         href="/auth?mode=signup&next=%2Fbrowse"
-                        className="inline-flex h-10 w-full items-center justify-center rounded-[10px] bg-[#1D5CE5] text-[14px] font-semibold text-white"
+                        className="inline-flex h-10 w-full items-center justify-center rounded-full bg-[#1D5CE5] text-[14px] font-semibold text-white"
                         onClick={() => setMobileOpen(false)}
                       >
                         Sign up

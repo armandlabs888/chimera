@@ -70,7 +70,7 @@ export function LandingNav({
       : 'hidden text-[15px] font-medium text-white transition hover:text-white/85 sm:inline'
 
   const ctaClass = isFloat
-    ? 'inline-flex h-9 min-h-11 items-center justify-center rounded-[10px] bg-[#071330] px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D5CE5] sm:min-h-9'
+    ? 'inline-flex h-[38px] items-center justify-center rounded-full bg-[#071330] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D5CE5]'
     : light
       ? 'hidden h-9 min-h-11 items-center justify-center rounded-[10px] bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD] sm:inline-flex sm:min-h-9'
       : 'hidden h-9 min-h-11 items-center justify-center rounded-[10px] bg-white px-4 text-[13.5px] font-semibold text-[#1D5CE5] transition hover:bg-blue-50 sm:inline-flex sm:min-h-9'
@@ -80,21 +80,21 @@ export function LandingNav({
 
   const bar = (
     <>
-      <Link href="/" className="relative z-10 pl-1">
+      <Link href="/" className={`relative z-10 shrink-0 ${isFloat ? '' : 'pl-1'}`}>
         <BeamWordmark
           tone={light ? 'ink' : 'white'}
           markWidth={18}
           markHeight={18}
           wordClassName={
             isFloat
-              ? 'text-[20px] font-bold tracking-[-0.03em] text-[#1D5CE5]'
+              ? 'text-[17px] font-bold tracking-[-0.03em] text-[#071330]'
               : 'text-[18px] font-bold tracking-[-0.025em]'
           }
         />
       </Link>
 
       <nav
-        className={`hidden items-center lg:flex ${isFloat ? 'gap-6' : 'gap-8'}`}
+        className={`hidden items-center ${isFloat ? 'gap-8 px-6 md:flex' : 'gap-8 lg:flex'}`}
         aria-label="Marketing"
       >
         {navLinks.map((l) =>
@@ -110,13 +110,17 @@ export function LandingNav({
         )}
       </nav>
 
-      <div className={`flex items-center ${isFloat ? 'gap-2 md:gap-3' : 'gap-3 sm:gap-5'}`}>
+      <div
+        className={`flex shrink-0 items-center ${
+          isFloat ? 'justify-self-end gap-1.5 sm:gap-3' : 'gap-3 sm:gap-5'
+        }`}
+      >
         {browseLocationLabel ? (
           <BrowseLocationTrigger
             label={browseLocationLabel}
             className={`inline-flex h-9 max-w-[9.5rem] items-center gap-1.5 rounded-[10px] px-2 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:px-2.5 ${
               isFloat
-                ? 'border border-[#D7E0EC]/80 bg-white/70 text-[#071330] hover:bg-white'
+                ? 'border border-[#E3E8EF] bg-white/70 text-[#071330] hover:bg-white'
                 : light
                   ? 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#071330]'
                   : 'text-white/90 hover:bg-white/10 hover:text-white'
@@ -153,13 +157,15 @@ export function LandingNav({
         )}
         <button
           type="button"
-          className={`inline-flex h-9 w-9 items-center justify-center rounded-[10px] border lg:hidden ${
+          className={
             isFloat
-              ? 'border-[#D7E0EC]/80 bg-white/70 text-[#071330]'
-              : light
-                ? 'border-[#E2E8F0] text-[#071330]'
-                : 'border-white/30 text-white'
-          }`}
+              ? 'inline-flex h-[38px] w-[38px] items-center justify-center rounded-full border border-[#E3E8EF] bg-white text-[#071330] md:hidden'
+              : `inline-flex h-9 w-9 items-center justify-center rounded-[10px] border lg:hidden ${
+                  light
+                    ? 'border-[#E2E8F0] text-[#071330]'
+                    : 'border-white/30 text-white'
+                }`
+          }
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={mobileOpen}
           onClick={() => setMobileOpen((v) => !v)}
@@ -172,8 +178,8 @@ export function LandingNav({
 
   const mobileMenu = mobileOpen ? (
     <div
-      className={`relative z-50 overflow-hidden rounded-[12px] border border-[rgba(7,19,48,0.12)] bg-white shadow-[0_18px_40px_-12px_rgba(12,42,102,0.28)] lg:hidden ${
-        isFloat ? 'mx-0 mt-2' : 'mx-4 mb-3'
+      className={`relative z-50 overflow-hidden rounded-[12px] border border-[rgba(7,19,48,0.12)] bg-white shadow-[0_18px_40px_-12px_rgba(12,42,102,0.28)] ${
+        isFloat ? 'mx-0 mt-2 md:hidden' : 'mx-4 mb-3 lg:hidden'
       }`}
       data-testid="landing-mobile-menu"
     >
@@ -251,15 +257,17 @@ export function LandingNav({
 
   if (isFloat) {
     return (
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-50 px-4 pt-4 md:px-8 md:pt-5">
-        <header
-          className="landing-float-nav pointer-events-auto mx-auto flex h-14 max-w-[1120px] items-center justify-between rounded-[16px] border border-white/70 px-3 shadow-[0_8px_28px_rgba(7,19,48,0.10),0_1px_2px_rgba(7,19,48,0.04)] md:px-4"
-          data-testid="landing-nav"
-          data-nav-style="float"
-        >
-          {bar}
-        </header>
-        <div className="pointer-events-auto mx-auto max-w-[1120px]">{mobileMenu}</div>
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-6 pt-4 md:px-5 md:pt-5">
+        <div className="pointer-events-none w-full md:w-auto md:max-w-[calc(100%-40px)]">
+          <header
+            className="landing-float-nav pointer-events-auto grid w-full grid-cols-[auto_1fr] items-center md:inline-grid md:w-max md:grid-cols-[1fr_auto_1fr] md:gap-x-10"
+            data-testid="landing-nav"
+            data-nav-style="float"
+          >
+            {bar}
+          </header>
+          <div className="pointer-events-auto w-full">{mobileMenu}</div>
+        </div>
       </div>
     )
   }
