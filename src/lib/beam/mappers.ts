@@ -255,24 +255,38 @@ export function mapPublicReview(row: Record<string, unknown>): Review {
 }
 
 export function mapHelperVerification(row: Record<string, unknown>): HelperVerification {
-  const status = String(row.status ?? 'pending') as HelperVerificationStatus
+  const status = String(row.status ?? 'unverified') as HelperVerificationStatus
   return {
     id: String(row.id),
-    profileId: String(row.profile_id),
+    profileId: String(row.profile_id ?? row.profileId ?? ''),
     status:
-      status === 'approved' || status === 'needs_resubmission' || status === 'pending'
+      status === 'approved' ||
+      status === 'needs_resubmission' ||
+      status === 'pending' ||
+      status === 'unverified'
         ? status
-        : 'pending',
+        : 'unverified',
     email: String(row.email ?? ''),
     street: String(row.street ?? ''),
     apt: (row.apt as string | null) ?? null,
     city: String(row.city ?? ''),
-    stateCode: String(row.state_code ?? ''),
+    stateCode: String(row.state_code ?? row.stateCode ?? ''),
     zip: String(row.zip ?? ''),
-    documentPath: String(row.document_path ?? ''),
-    documentName: String(row.document_name ?? ''),
+    documentPath: (row.document_path as string | null) ?? null,
+    documentName: (row.document_name as string | null) ?? null,
     documentMime: (row.document_mime as string | null) ?? null,
     documentBytes: (row.document_bytes as number | null) ?? null,
+    addressLat: (row.address_lat as number | null) ?? null,
+    addressLng: (row.address_lng as number | null) ?? null,
+    geocodeQuality: (row.geocode_quality as HelperVerification['geocodeQuality']) ?? null,
+    lastDeviceLat: (row.last_device_lat as number | null) ?? null,
+    lastDeviceLng: (row.last_device_lng as number | null) ?? null,
+    lastDeviceAccuracyM: (row.last_device_accuracy_m as number | null) ?? null,
+    lastDistanceM: (row.last_distance_m as number | null) ?? null,
+    lastCheckResult: (row.last_check_result as HelperVerification['lastCheckResult']) ?? null,
+    lastCheckedAt: (row.last_checked_at as string | null) ?? null,
+    verificationMethod:
+      (row.verification_method as HelperVerification['verificationMethod']) ?? null,
     reviewReason: (row.review_reason as string | null) ?? null,
     reviewedBy: (row.reviewed_by as string | null) ?? null,
     reviewedAt: (row.reviewed_at as string | null) ?? null,

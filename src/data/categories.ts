@@ -1,5 +1,5 @@
 /**
- * Category surface for Beam UI.
+ * Category surface for HouseCall UI.
  * Source of truth for active taxonomy lives in `@/lib/taxonomy`.
  * This module re-exports helpers used across post / browse / landing.
  */

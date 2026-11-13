@@ -193,7 +193,7 @@ function AsidePanel() {
           sizes="(min-width: 1024px) 50vw, 0px"
           priority
         />
-        {/* Beam-blue scrim — keeps wordmark + headline crisp white (no purple) */}
+        {/* Brand-blue scrim keeps wordmark + headline crisp white (no purple) */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -277,12 +277,12 @@ function FormColumn(props: {
           You’re in demo mode
         </h1>
         <p className="mt-3 text-[16px] text-[#64748B]">
-          Local demo skips live sign-in. Continue into Beam with sample marketplace data in this
+          Local demo skips live sign-in. Continue into HouseCall with sample marketplace data in this
           browser.
         </p>
         {alertError ? <div className="mt-5"><ErrorBanner message={alertError} /></div> : null}
         <Link href={safeNext} className="cta-primary mt-8 w-full justify-center">
-          Continue to Beam
+          Continue to HouseCall
         </Link>
       </div>
     )
@@ -292,7 +292,7 @@ function FormColumn(props: {
     return (
       <div>
         <h1 className="font-display text-[36px] font-bold leading-[1.15] text-[#071330]">
-          Beam needs configuration
+          HouseCall needs configuration
         </h1>
         <p className="mt-3 text-[16px] text-[#64748B]">
           Set Supabase env vars for live auth, or enable demo with{' '}
@@ -340,12 +340,12 @@ function FormColumn(props: {
   return (
     <div>
       <h1 className="font-display text-[36px] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
-        {tab === 'signin' ? 'Welcome back' : 'Join Beam'}
+        {tab === 'signin' ? 'Welcome back' : 'Join HouseCall'}
       </h1>
       <p className="mt-3 text-[16px] text-[#64748B]">
         {tab === 'signin'
           ? 'Sign in to post requests, send offers, and message neighbors nearby.'
-          : 'Join Beam to post practical jobs or help neighbors nearby.'}
+          : 'Join HouseCall to post practical jobs or help neighbors nearby.'}
       </p>
 
       <button
@@ -446,7 +446,7 @@ function FormColumn(props: {
       <p className="mt-6 text-center text-[14px] text-[#64748B]">
         {tab === 'signin' ? (
           <>
-            New to Beam?{' '}
+            New to HouseCall?{' '}
             <button
               type="button"
               className="font-semibold text-[#1D5CE5] underline-offset-2 hover:underline"

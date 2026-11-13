@@ -7,8 +7,10 @@ export function offerGateKind(
 ): OfferGateKind {
   if (!verification) return 'unverified'
   if (verification.status === 'approved') return 'approved'
+  // Location misses stay unverified (retry). Legacy pending bill rows still gate offers.
   if (verification.status === 'pending') return 'pending'
-  return 'needs_resubmission'
+  if (verification.status === 'needs_resubmission') return 'needs_resubmission'
+  return 'unverified'
 }
 
 export function canMakeOffer(verification: HelperVerification | null | undefined): boolean {
@@ -28,8 +30,14 @@ export function statusLabel(status: HelperVerificationStatus): string {
     case 'pending':
       return 'Pending review'
     case 'approved':
-      return 'Approved'
+      return 'Verified'
     case 'needs_resubmission':
-      return 'Needs a new submission'
+      return 'Try again'
+    case 'unverified':
+      return 'Not verified'
   }
+}
+
+export function isStaffReviewable(status: HelperVerificationStatus): boolean {
+  return status === 'unverified' || status === 'pending' || status === 'needs_resubmission'
 }

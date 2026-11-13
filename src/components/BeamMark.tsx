@@ -1,4 +1,4 @@
-/** Four-point sparkle mark for Beam daylight brand. */
+/** Four-point sparkle mark for HouseCall daylight brand. */
 export function BeamMark({
   className = '',
   width = 28,
@@ -53,7 +53,7 @@ export function BeamWordmark({
       <span
         className={`font-display text-[26px] font-bold leading-none tracking-[-0.025em] ${colors.word} ${wordClassName}`}
       >
-        Beam
+        HouseCall
       </span>
     </span>
   )

@@ -83,7 +83,7 @@ export function assertOwnedListingPhotoUrls(
     if (!isOwnedListingPhotoUrl(url, userId)) {
       return {
         ok: false,
-        error: 'Photos must be uploaded through Beam — external image links are not allowed.',
+        error: 'Photos must be uploaded through HouseCall. External image links are not allowed.',
       }
     }
   }

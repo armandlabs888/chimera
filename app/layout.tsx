@@ -19,15 +19,15 @@ const dmSans = DM_Sans({
   display: 'swap',
 })
 
-const title = 'Beam — Local help, made easy'
+const title = 'HouseCall. Local help, made easy'
 const description =
-  'Describe the job, compare priced offers, and choose local help that fits — home, auto, junk removal, pets, and other everyday tasks.'
+  'Describe the job, compare priced offers, and choose local help that fits: home, auto, junk removal, pets, and other everyday tasks.'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.yariapp.com'),
   title: {
     default: title,
-    template: '%s · Beam',
+    template: '%s · HouseCall',
   },
   description,
   icons: {
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     title,
     description,
     url: 'https://www.yariapp.com',
-    siteName: 'Beam',
+    siteName: 'HouseCall',
     locale: 'en_US',
     type: 'website',
     images: [
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
         url: '/images/beam-hero-moving-v2.jpg',
         width: 2880,
         height: 1926,
-        alt: 'Neighbor carrying a moving box — Beam same-day help nearby',
+        alt: 'Neighbor carrying a moving box. HouseCall same-day help nearby',
       },
     ],
   },

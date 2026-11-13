@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Playwright: Beam has ONE auth experience — the main split-screen /auth page.
+ * Playwright: HouseCall has ONE auth experience. The main split-screen /auth page.
  * Verifies sign-out + protected-route redirects never show the removed AuthGate
  * compact chrome (Browse/Safety top bar). Screenshots → /opt/cursor/artifacts/main-auth-qa/
  */

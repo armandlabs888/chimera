@@ -3,7 +3,7 @@ import { isCategoryId } from '@/lib/taxonomy'
 import type { CategoryId, WhenOption } from '@/types'
 
 const BLOCK_REASON =
-  "Beam is for everyday non-licensed local tasks—licensed trades, childcare, medical care, and passenger rides aren't permitted."
+  "HouseCall is for everyday non-licensed local tasks. Licensed trades, childcare, medical care, and passenger rides aren't permitted."
 
 type DraftResult = {
   blocked?: boolean
@@ -165,7 +165,7 @@ async function llmDraft(
   const key = openaiKey || xaiKey!
   const model = openaiKey ? 'gpt-4o-mini' : 'grok-3-mini'
 
-  const system = `You are Beam's Smart Task Drafter for a peer-to-peer local help marketplace.
+  const system = `You are HouseCall's Smart Task Drafter for a peer-to-peer local help marketplace.
 Allowed categories ONLY: house-cleaning, carpet-cleaning, auto-detailing, junk-removal, pet-sitting, grooming, other.
 Never suggest licensed trades, childcare, medical/elder care, or passenger rides. Same exclusions apply when category is other.
 Return JSON with keys: category, title (<=70 chars), details, when (asap|scheduled ONLY — never today, tomorrow, or this-week), whenLabel, suggestedMin, suggestedMax, suggestedBudget.

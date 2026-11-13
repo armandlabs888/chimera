@@ -2,10 +2,7 @@
 
 import { Info } from 'lucide-react'
 import Link from 'next/link'
-import {
-  GATE_PENDING,
-  GATE_UNVERIFIED,
-} from '@/lib/verification/constants'
+import { GATE_UNVERIFIED } from '@/lib/verification/constants'
 import { offerGateKind, type OfferGateKind } from '@/lib/verification/status'
 import type { HelperVerification } from '@/types'
 
@@ -21,11 +18,8 @@ export function OfferGateNotice({
 
   const reason =
     kind === 'needs_resubmission'
-      ? verification?.reviewReason?.trim() ||
-        'Beam needs a new submission before you can make an offer.'
-      : kind === 'pending'
-        ? GATE_PENDING
-        : GATE_UNVERIFIED
+      ? verification?.reviewReason?.trim() || GATE_UNVERIFIED
+      : GATE_UNVERIFIED
 
   return (
     <div
@@ -33,7 +27,7 @@ export function OfferGateNotice({
         narrow ? 'px-3.5 py-3' : 'px-4 py-3'
       }`}
       data-testid="offer-gate-notice"
-      data-gate={kind}
+      data-gate={kind === 'pending' ? 'unverified' : kind}
       role="status"
     >
       <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#1D5CE5]" strokeWidth={2.25} aria-hidden />
@@ -51,34 +45,16 @@ export function OfferGatePrimaryButton({
   narrow?: boolean
   className?: string
 }) {
-  if (kind === 'pending') {
-    return (
-      <button
-        type="button"
-        disabled
-        data-testid="browse-offer-gated"
-        data-gate="pending"
-        className={`inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg bg-[#E2E8F0] px-[18px] text-[14px] font-semibold tracking-[-0.01em] text-[#64748B] ${
-          narrow ? 'w-full' : 'shrink-0'
-        } ${className}`}
-      >
-        Pending review
-      </button>
-    )
-  }
-
-  const href = '/verify'
-  const label = kind === 'needs_resubmission' ? 'Resubmit documents' : 'Get verified'
   return (
     <Link
-      href={href}
+      href="/verify"
       data-testid="browse-offer-gated"
-      data-gate={kind}
+      data-gate={kind === 'pending' ? 'unverified' : kind}
       className={`inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg bg-[#1D5CE5] px-[18px] text-[14px] font-semibold tracking-[-0.01em] text-white hover:bg-[#1649BD] ${
         narrow ? 'w-full' : 'shrink-0'
       } ${className}`}
     >
-      {label}
+      Get verified
     </Link>
   )
 }

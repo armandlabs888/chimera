@@ -417,7 +417,7 @@ export function PostRequest() {
         return
       }
       if (data.blocked) {
-        setAiBlocked(data.reason || 'That request is not allowed on Beam.')
+        setAiBlocked(data.reason || 'That request is not allowed on HouseCall.')
         return
       }
       if (data.category && isCategoryId(data.category)) setCategory(data.category)

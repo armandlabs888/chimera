@@ -11,7 +11,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         fallback={
           <div className="flex min-h-dvh items-center justify-center bg-beam-base text-beam-cream">
             <p className="text-[22px] font-semibold tracking-tight text-[#071330]" aria-busy="true">
-              Beam
+              HouseCall
             </p>
           </div>
         }

@@ -212,7 +212,7 @@ export function RequestDetail() {
         requestId: activeRequest.id,
         toId,
         rating: reviewRating,
-        comment: reviewComment.trim() || 'Great experience on Beam.',
+        comment: reviewComment.trim() || 'Great experience on HouseCall.',
       })
     } finally {
       setReviewPending(false)
@@ -694,7 +694,7 @@ export function RequestDetail() {
                   <>
                     <h2 className="text-[18px] font-bold text-[#071330]">Verification required</h2>
                     <p className="mt-1 text-[14px] text-[#64748B]">
-                      Offering unlocks after Beam approves your address.
+                      Offering unlocks after HouseCall confirms you&apos;re at your home address.
                     </p>
                     <OfferGateNotice verification={helperVerification} />
                     <div className="mt-4 flex flex-col gap-2">
@@ -766,8 +766,8 @@ export function RequestDetail() {
               </dl>
 
               <div className="mt-5 rounded-lg border border-[rgba(217,119,6,0.2)] bg-[#FFF8D6] px-4 py-3 text-[13.5px] leading-relaxed text-[#92400E]">
-                Pay your helper peer-to-peer (Venmo, cash, Zelle, etc.). Beam doesn’t process
-                payments yet — agree on the method in chat before you start.
+                Pay your helper peer-to-peer (Venmo, cash, Zelle, etc.). HouseCall doesn’t process
+                payments yet. Agree on the method in chat before you start.
               </div>
 
               <div className="mt-5 flex flex-col gap-2">
