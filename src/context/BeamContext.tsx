@@ -29,13 +29,16 @@ import {
   loadPublicLiveMarketplace,
   markAllLiveNotificationsRead,
   markLiveNotificationRead,
+  reviewLiveHelperVerification,
   sendLiveMessage,
+  submitLiveHelperVerification,
   submitLiveReview,
   toggleLiveSavedHelper,
   updateLiveProfile,
   BeamBackendError,
   type CreateRequestInput,
 } from '@/lib/beam/liveRepository'
+import { canMakeOffer } from '@/lib/verification/status'
 import { createClient } from '@/lib/supabase/client'
 import { profileSeedFromUser } from '@/lib/auth/profileSeed'
 import { redirectThroughSignOut } from '@/lib/auth/performSignOut'
@@ -47,6 +50,7 @@ import type {
   BeamNotification,
   BudgetType,
   CategoryId,
+  HelperVerification,
   HelpRequest,
   NeighborhoodId,
   Offer,
@@ -146,6 +150,30 @@ interface BeamContextValue {
   markAllNotificationsRead: () => void | Promise<void>
   getPerson: (id: string) => Person | undefined
   getRequest: (id: string) => HelpRequest | undefined
+  helperVerification: HelperVerification | null
+  isBeamStaff: boolean
+  submitHelperVerification: (input: {
+    email: string
+    street: string
+    apt?: string
+    city: string
+    stateCode: string
+    zip: string
+    documentPath: string
+    documentName: string
+    documentMime?: string | null
+    documentBytes?: number | null
+    documentPreviewUrl?: string | null
+  }) => Promise<HelperVerification>
+  reviewHelperVerification: (input: {
+    profileId: string
+    approve: boolean
+    reason?: string
+  }) => Promise<HelperVerification>
+  /** Demo/QA only: force the current helper verification gate state. */
+  setDemoHelperVerification: (
+    next: HelperVerification | null | 'unverified' | 'pending' | 'needs_resubmission' | 'approved',
+  ) => void
 }
 
 const BeamContext = createContext<BeamContextValue | null>(null)
@@ -178,6 +206,9 @@ function emptyLiveState(userId: string): AppState {
     invites: [],
     savedHelperIds: [],
     notifications: [],
+    helperVerification: null,
+    helperVerifications: [],
+    isBeamStaff: false,
   }
 }
 
@@ -690,6 +721,20 @@ export function BeamProvider({
             throw err
           }
         })()
+      }
+
+      const verification = stateRef.current?.helperVerification
+      if (!canMakeOffer(verification)) {
+        const status = verification?.status
+        const message =
+          status === 'pending'
+            ? "Beam is reviewing your documents. You can offer once you're approved."
+            : status === 'needs_resubmission'
+              ? 'Beam needs a new submission before you can make an offer.'
+              : 'To make an offer, Beam has to verify your address first.'
+        const err = new Error(message)
+        setBackendError(message)
+        throw err
       }
 
       const offer: Offer = {
@@ -1324,7 +1369,247 @@ export function BeamProvider({
     [state?.requests],
   )
 
+  const submitHelperVerification = useCallback(
+    async (input: {
+      email: string
+      street: string
+      apt?: string
+      city: string
+      stateCode: string
+      zip: string
+      documentPath: string
+      documentName: string
+      documentMime?: string | null
+      documentBytes?: number | null
+      documentPreviewUrl?: string | null
+    }) => {
+      if (mode === 'live') {
+        try {
+          if (!authUser) throw new Error('Not signed in')
+          const client = createClient()
+          const row = await submitLiveHelperVerification(client, input)
+          await refreshLive(authUser.id)
+          return row
+        } catch (err) {
+          reportError(err, 'Submit verification failed')
+          throw err
+        }
+      }
+
+      const now = new Date().toISOString()
+      const prev = stateRef.current
+      const existing = prev?.helperVerification
+      const row: HelperVerification = {
+        id: existing?.id ?? uid('ver'),
+        profileId: prev?.currentUserId ?? 'user-you',
+        status: 'pending',
+        email: input.email.trim().toLowerCase(),
+        street: input.street.trim(),
+        apt: input.apt?.trim() || null,
+        city: input.city.trim(),
+        stateCode: input.stateCode.trim().toUpperCase(),
+        zip: input.zip.trim(),
+        documentPath: input.documentPath,
+        documentName: input.documentName,
+        documentMime: input.documentMime ?? null,
+        documentBytes: input.documentBytes ?? null,
+        reviewReason: null,
+        reviewedBy: null,
+        reviewedAt: null,
+        submittedAt: now,
+        createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
+        documentPreviewUrl: input.documentPreviewUrl ?? null,
+      }
+      const notif: BeamNotification = {
+        id: uid('notif'),
+        userId: row.profileId,
+        kind: 'verification_submitted',
+        title: 'Verification submitted',
+        body: 'Beam is reviewing your documents. You can browse jobs and ask questions while you wait.',
+        href: '/verify',
+        readAt: null,
+        createdAt: now,
+      }
+      withState(setState, (s) => {
+        const others = (s.helperVerifications ?? []).filter((v) => v.profileId !== row.profileId)
+        return {
+          ...s,
+          helperVerification: row,
+          helperVerifications: [row, ...others],
+          notifications: [notif, ...s.notifications],
+        }
+      })
+      return row
+    },
+    [authUser, mode, refreshLive, reportError],
+  )
+
+  const reviewHelperVerification = useCallback(
+    async (input: { profileId: string; approve: boolean; reason?: string }) => {
+      if (mode === 'live') {
+        try {
+          if (!authUser) throw new Error('Not signed in')
+          const client = createClient()
+          const row = await reviewLiveHelperVerification(client, input)
+          await refreshLive(authUser.id)
+          return row
+        } catch (err) {
+          reportError(err, 'Review verification failed')
+          throw err
+        }
+      }
+
+      if (!stateRef.current?.isBeamStaff) {
+        throw new Error('Staff only')
+      }
+      const reason = input.reason?.trim() || ''
+      if (!input.approve && !reason) {
+        throw new Error('Tell the Helper why a new submission is needed')
+      }
+      const now = new Date().toISOString()
+      let updated: HelperVerification | null = null
+      withState(setState, (s) => {
+        const list = s.helperVerifications ?? []
+        const nextList = list.map((v) => {
+          if (v.profileId !== input.profileId || v.status !== 'pending') return v
+          updated = {
+            ...v,
+            status: input.approve ? 'approved' : 'needs_resubmission',
+            reviewReason: input.approve ? null : reason,
+            reviewedBy: s.currentUserId,
+            reviewedAt: now,
+            updatedAt: now,
+          }
+          return updated
+        })
+        if (!updated) return s
+        const notif: BeamNotification = {
+          id: uid('notif'),
+          userId: input.profileId,
+          kind: input.approve ? 'verification_approved' : 'verification_needs_resubmission',
+          title: input.approve ? 'You are verified' : 'Beam needs a new submission',
+          body: input.approve
+            ? 'Beam approved your documents. You can make offers on local jobs now.'
+            : reason,
+          href: input.approve ? '/browse' : '/verify',
+          readAt: null,
+          createdAt: now,
+        }
+        return {
+          ...s,
+          helperVerifications: nextList,
+          helperVerification:
+            s.currentUserId === input.profileId ? updated : s.helperVerification,
+          notifications:
+            s.currentUserId === input.profileId
+              ? [notif, ...s.notifications]
+              : s.notifications,
+        }
+      })
+      if (!updated) throw new Error('No pending verification for this Helper')
+      return updated
+    },
+    [authUser, mode, refreshLive, reportError],
+  )
+
+  const setDemoHelperVerification = useCallback(
+    (
+      next:
+        | HelperVerification
+        | null
+        | 'unverified'
+        | 'pending'
+        | 'needs_resubmission'
+        | 'approved',
+    ) => {
+      if (mode !== 'demo') return
+      withState(setState, (s) => {
+        if (next === 'unverified' || next === null) {
+          return {
+            ...s,
+            helperVerification: null,
+            helperVerifications: (s.helperVerifications ?? []).filter(
+              (v) => v.profileId !== s.currentUserId,
+            ),
+          }
+        }
+        const base: HelperVerification = {
+          id: s.helperVerification?.id ?? uid('ver'),
+          profileId: s.currentUserId,
+          status: typeof next === 'string' ? next : next.status,
+          email:
+            (typeof next === 'string' ? s.helperVerification?.email : next.email) ||
+            'alex.rivera@email.com',
+          street:
+            (typeof next === 'string' ? s.helperVerification?.street : next.street) ||
+            '1200 Willow Street',
+          apt: typeof next === 'string' ? s.helperVerification?.apt ?? null : next.apt ?? null,
+          city: (typeof next === 'string' ? s.helperVerification?.city : next.city) || 'Austin',
+          stateCode:
+            (typeof next === 'string' ? s.helperVerification?.stateCode : next.stateCode) || 'TX',
+          zip: (typeof next === 'string' ? s.helperVerification?.zip : next.zip) || '78702',
+          documentPath:
+            (typeof next === 'string'
+              ? s.helperVerification?.documentPath
+              : next.documentPath) || `${s.currentUserId}/bills/demo.pdf`,
+          documentName:
+            (typeof next === 'string'
+              ? s.helperVerification?.documentName
+              : next.documentName) || 'October 2026 water bill.pdf',
+          documentMime:
+            typeof next === 'string'
+              ? s.helperVerification?.documentMime ?? 'application/pdf'
+              : next.documentMime ?? null,
+          documentBytes:
+            typeof next === 'string'
+              ? s.helperVerification?.documentBytes ?? 240000
+              : next.documentBytes ?? null,
+          reviewReason:
+            typeof next === 'string'
+              ? next === 'needs_resubmission'
+                ? "The address on the bill didn't match the home address you entered."
+                : null
+              : next.reviewReason ?? null,
+          reviewedBy: typeof next === 'string' ? null : next.reviewedBy ?? null,
+          reviewedAt: typeof next === 'string' ? null : next.reviewedAt ?? null,
+          submittedAt: new Date().toISOString(),
+          createdAt: s.helperVerification?.createdAt ?? new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          documentPreviewUrl:
+            typeof next === 'string'
+              ? s.helperVerification?.documentPreviewUrl ?? null
+              : next.documentPreviewUrl ?? null,
+        }
+        const row = typeof next === 'string' ? base : { ...base, ...next, profileId: s.currentUserId }
+        const others = (s.helperVerifications ?? []).filter((v) => v.profileId !== s.currentUserId)
+        return {
+          ...s,
+          helperVerification: row,
+          helperVerifications: [row, ...others],
+        }
+      })
+    },
+    [mode],
+  )
+
   const ready = !booting
+  const helperVerification = state?.helperVerification ?? null
+  const isBeamStaff = Boolean(state?.isBeamStaff)
+
+  useEffect(() => {
+    if (mode !== 'demo' || typeof window === 'undefined') return
+    const w = window as unknown as {
+      __BEAM_SET_DEMO_VERIFICATION__?: typeof setDemoHelperVerification
+      __BEAM_CREATE_OFFER__?: typeof createOffer
+    }
+    w.__BEAM_SET_DEMO_VERIFICATION__ = setDemoHelperVerification
+    w.__BEAM_CREATE_OFFER__ = createOffer
+    return () => {
+      delete w.__BEAM_SET_DEMO_VERIFICATION__
+      delete w.__BEAM_CREATE_OFFER__
+    }
+  }, [mode, setDemoHelperVerification, createOffer])
 
   const sharedActions = {
     signIn,
@@ -1352,6 +1637,11 @@ export function BeamProvider({
     markAllNotificationsRead,
     getPerson,
     getRequest,
+    helperVerification,
+    isBeamStaff,
+    submitHelperVerification,
+    reviewHelperVerification,
+    setDemoHelperVerification,
   }
 
   if (booting) {

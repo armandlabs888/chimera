@@ -72,6 +72,12 @@ export function hydrateAppState(raw: Partial<AppState> & { people?: Person[] }):
     invites: raw.invites ?? [],
     savedHelperIds: raw.savedHelperIds ?? [],
     notifications: raw.notifications ?? [],
+    helperVerification:
+      raw.helperVerification === undefined
+        ? seed.helperVerification
+        : raw.helperVerification,
+    helperVerifications: raw.helperVerifications ?? seed.helperVerifications ?? [],
+    isBeamStaff: raw.isBeamStaff ?? seed.isBeamStaff ?? false,
   }
 }
 

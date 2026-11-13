@@ -13,10 +13,15 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
+import {
+  OfferGateNotice,
+  OfferGatePrimaryButton,
+} from '@/components/verification/OfferGateFooter'
 import { useBeam } from '@/context/BeamContext'
 import { formatBudget, relativeTime } from '@/lib/matching'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
 import { formatCategoryLabel } from '@/lib/taxonomy'
+import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 import type { HelpRequest } from '@/types'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 import { useFocusTrap } from './useFocusTrap'
@@ -42,7 +47,16 @@ export function BrowseJobDrawer({
 }) {
   const router = useRouter()
   const { openThread } = useMessagesDrawer()
-  const { state, currentUser, mode, authUser, createOffer, withdrawOffer, ensureThread } = useBeam()
+  const {
+    state,
+    currentUser,
+    mode,
+    authUser,
+    createOffer,
+    withdrawOffer,
+    ensureThread,
+    helperVerification,
+  } = useBeam()
   const isGuest = mode === 'live' && !authUser
   const panelRef = useRef<HTMLElement>(null)
   const titleId = useId()
@@ -54,6 +68,8 @@ export function BrowseJobDrawer({
   const myOffer = state.offers.find(
     (o) => o.requestId === request.id && o.helperId === currentUser.id && o.status !== 'withdrawn',
   )
+  const verified = canMakeOffer(helperVerification)
+  const gateKind = offerGateKind(helperVerification)
   const [offerOpen, setOfferOpen] = useState(false)
   const [offerPrice, setOfferPrice] = useState(() =>
     myOffer ? String(myOffer.price) : request.budget > 0 ? String(Math.round(request.budget)) : '',
@@ -268,7 +284,11 @@ export function BrowseJobDrawer({
           </div>
         </section>
 
-        {offerOpen && canOffer ? (
+        {canOffer && !isGuest && !verified ? (
+          <OfferGateNotice verification={helperVerification} narrow={narrow} />
+        ) : null}
+
+        {offerOpen && canOffer && verified ? (
           <form
             className="mt-6 space-y-3 rounded-[10px] border border-[#E3E8EF] p-4"
             data-testid="browse-drawer-offer"
@@ -362,7 +382,7 @@ export function BrowseJobDrawer({
     </button>
   ) : null
 
-  const primaryButton = pendingOffer && !offerOpen ? (
+  const primaryButton = pendingOffer && !offerOpen && verified ? (
     <button
       type="button"
       data-testid="browse-cancel-offer"
@@ -375,6 +395,8 @@ export function BrowseJobDrawer({
     >
       {cancelPending ? 'Canceling…' : 'Cancel offer'}
     </button>
+  ) : canOffer && !isGuest && !verified && gateKind !== 'approved' ? (
+    <OfferGatePrimaryButton kind={gateKind} narrow={narrow} />
   ) : canOffer ? (
     <button
       type="button"
@@ -382,6 +404,10 @@ export function BrowseJobDrawer({
       onClick={() => {
         if (isGuest) {
           router.push(authHref)
+          return
+        }
+        if (!verified) {
+          router.push('/verify')
           return
         }
         if (offerOpen) void submitOffer()

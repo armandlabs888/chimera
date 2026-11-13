@@ -1,6 +1,7 @@
 import type {
   AppState,
   BeamNotification,
+  HelperVerification,
   HelpRequest,
   Message,
   MessageThread,
@@ -504,6 +505,74 @@ const notifications: BeamNotification[] = [
   },
 ]
 
+/** Demo current user starts approved so existing offer flows keep working. */
+const demoCurrentVerification: HelperVerification = {
+  id: 'ver-you',
+  profileId: CURRENT_USER_ID,
+  status: 'approved',
+  email: 'alex.rivera@email.com',
+  street: '1200 Willow Street',
+  apt: null,
+  city: 'Austin',
+  stateCode: 'TX',
+  zip: '78702',
+  documentPath: `${CURRENT_USER_ID}/bills/demo-water-bill.pdf`,
+  documentName: 'October 2026 water bill.pdf',
+  documentMime: 'application/pdf',
+  documentBytes: 240_000,
+  reviewReason: null,
+  reviewedBy: 'staff-demo',
+  reviewedAt: hoursAgo(48),
+  submittedAt: hoursAgo(72),
+  createdAt: hoursAgo(72),
+  updatedAt: hoursAgo(48),
+}
+
+/** Pending queue row for staff review UI in demo. */
+const demoPendingVerification: HelperVerification = {
+  id: 'ver-jordan',
+  profileId: 'p-jordan',
+  status: 'pending',
+  email: 'jordan.lee@email.com',
+  street: '1842 Willow Street',
+  apt: null,
+  city: 'San Jose',
+  stateCode: 'CA',
+  zip: '95125',
+  documentPath: 'p-jordan/bills/october-2026-water-bill.pdf',
+  documentName: 'October 2026 water bill.pdf',
+  documentMime: 'application/pdf',
+  documentBytes: 240_000,
+  reviewReason: null,
+  reviewedBy: null,
+  reviewedAt: null,
+  submittedAt: hoursAgo(18),
+  createdAt: hoursAgo(18),
+  updatedAt: hoursAgo(18),
+}
+
+const demoSamVerification: HelperVerification = {
+  id: 'ver-sam',
+  profileId: 'p-sam',
+  status: 'pending',
+  email: 'sam.ortiz@email.com',
+  street: '88 Market Street',
+  apt: '4B',
+  city: 'Oakland',
+  stateCode: 'CA',
+  zip: '94607',
+  documentPath: 'p-sam/bills/october-2026-electric.pdf',
+  documentName: 'October 2026 electric bill.pdf',
+  documentMime: 'application/pdf',
+  documentBytes: 180_000,
+  reviewReason: null,
+  reviewedBy: null,
+  reviewedAt: null,
+  submittedAt: hoursAgo(20),
+  createdAt: hoursAgo(20),
+  updatedAt: hoursAgo(20),
+}
+
 export function createSeedState(): AppState {
   return {
     version: 1,
@@ -517,5 +586,13 @@ export function createSeedState(): AppState {
     invites: structuredClone(invites),
     savedHelperIds: ['p-maya'],
     notifications: structuredClone(notifications),
+    helperVerification: structuredClone(demoCurrentVerification),
+    helperVerifications: structuredClone([
+      demoCurrentVerification,
+      demoPendingVerification,
+      demoSamVerification,
+    ]),
+    // Demo treats the current user as staff so /admin/helper-reviews is reviewable locally.
+    isBeamStaff: true,
   }
 }

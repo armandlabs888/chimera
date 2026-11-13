@@ -278,8 +278,9 @@ async function runViewport(browser, vp) {
       .waitFor({ state: 'visible' })
     assert.match(
       await benefitsVisible.first().innerText(),
-      /Address verification is required to perform a job/i,
+      /Address verification is required before you can make an offer/i,
     )
+    assert.match(await benefitsVisible.first().innerText(), /electricity or water bill/i)
     if (vp.width >= 1024) {
       await assertDesktopSideBySide(page, `${prefix} helper benefits`)
     }

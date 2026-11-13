@@ -1250,8 +1250,11 @@ async function checkOnboardingFlow() {
     const helperBenefits = await benefitsVisible.first().innerText()
     assert.match(helperBenefits, /As a Helper/i)
     assert.match(helperBenefits, /Offer on jobs and earn on your schedule/i)
-    assert.match(helperBenefits, /Address verification is required to perform a job/i)
+    assert.match(helperBenefits, /Address verification is required before you can make an offer/i)
+    assert.match(helperBenefits, /electricity or water bill/i)
+    assert.doesNotMatch(helperBenefits, /lease, or official mail/i)
     assert.match(helperBenefits, /We will never sell your address/i)
+    assert.match(helperBenefits, /to complete this review/i)
     assert.ok(await page.locator('[data-testid="onboarding-helper-verify"]:visible').count() >= 1)
     // Mobile source order: benefits (mobile slot) before City so Helper verification is visible before Continue.
     const step1Order = await page.evaluate(() => {

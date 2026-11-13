@@ -4,6 +4,8 @@ import type {
   BeamNotification,
   BudgetType,
   CategoryId,
+  HelperVerification,
+  HelperVerificationStatus,
   HelpRequest,
   Message,
   MessageThread,
@@ -249,5 +251,33 @@ export function mapPublicReview(row: Record<string, unknown>): Review {
     rating: Number(row.rating ?? 0),
     comment: String(row.comment ?? ''),
     createdAt: String(row.created_at ?? new Date().toISOString()),
+  }
+}
+
+export function mapHelperVerification(row: Record<string, unknown>): HelperVerification {
+  const status = String(row.status ?? 'pending') as HelperVerificationStatus
+  return {
+    id: String(row.id),
+    profileId: String(row.profile_id),
+    status:
+      status === 'approved' || status === 'needs_resubmission' || status === 'pending'
+        ? status
+        : 'pending',
+    email: String(row.email ?? ''),
+    street: String(row.street ?? ''),
+    apt: (row.apt as string | null) ?? null,
+    city: String(row.city ?? ''),
+    stateCode: String(row.state_code ?? ''),
+    zip: String(row.zip ?? ''),
+    documentPath: String(row.document_path ?? ''),
+    documentName: String(row.document_name ?? ''),
+    documentMime: (row.document_mime as string | null) ?? null,
+    documentBytes: (row.document_bytes as number | null) ?? null,
+    reviewReason: (row.review_reason as string | null) ?? null,
+    reviewedBy: (row.reviewed_by as string | null) ?? null,
+    reviewedAt: (row.reviewed_at as string | null) ?? null,
+    submittedAt: String(row.submitted_at ?? row.created_at ?? new Date().toISOString()),
+    createdAt: String(row.created_at ?? new Date().toISOString()),
+    updatedAt: String(row.updated_at ?? new Date().toISOString()),
   }
 }

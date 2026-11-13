@@ -28,7 +28,14 @@ import { Avatar } from '@/components/ui'
 const primaryNav = [{ href: '/browse', label: 'Browse' }]
 
 function shouldHideAppChrome(pathname: string) {
-  return pathname === '/' || pathname === '/onboarding'
+  return (
+    pathname === '/' ||
+    pathname === '/onboarding' ||
+    pathname === '/verify' ||
+    pathname.startsWith('/verify/') ||
+    pathname === '/admin' ||
+    pathname.startsWith('/admin/')
+  )
 }
 
 function isPublicGuestPath(pathname: string) {
