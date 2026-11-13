@@ -45,8 +45,7 @@ export function HelperVerification() {
   const showNotHome =
     helperVerification?.lastCheckResult === 'not_at_home' ||
     helperVerification?.lastCheckResult === 'weak_signal' ||
-    helperVerification?.lastCheckResult === 'geocode_imprecise' ||
-    helperVerification?.lastCheckResult === 'permission_denied'
+    helperVerification?.lastCheckResult === 'geocode_imprecise'
 
   const accountEmail =
     authUser?.email?.trim() ||
@@ -69,6 +68,7 @@ export function HelperVerification() {
     helperVerification?.lastCheckResult === 'permission_denied',
   )
   const [notHomeBanner, setNotHomeBanner] = useState(showNotHome)
+  const [notHomeMessage, setNotHomeMessage] = useState('')
 
   const backHref = useMemo(() => {
     if (typeof window === 'undefined') return '/browse'
@@ -80,6 +80,7 @@ export function HelperVerification() {
     e.preventDefault()
     if (pending) return
     setError('')
+    setNotHomeMessage('')
     setPermissionDenied(false)
     setPending(true)
     try {
@@ -97,17 +98,42 @@ export function HelperVerification() {
       })
       if (result.ok) {
         setNotHomeBanner(false)
+        setPermissionDenied(false)
+        setNotHomeMessage('')
+        setError('')
         return
       }
-      setNotHomeBanner(true)
-      if (result.result === 'permission_denied') setPermissionDenied(true)
-      if (result.message) setError('')
+
+      const isPermission = result.result === 'permission_denied'
+      const isLocationMiss =
+        result.result === 'not_at_home' ||
+        result.result === 'weak_signal' ||
+        result.result === 'geocode_imprecise'
+      const serverMessage =
+        result.message?.trim() ||
+        (isPermission
+          ? 'Location access was denied. Turn it on in your browser settings, then try again.'
+          : 'We could not confirm you are home. Try again when you are at this address.')
+
+      setPermissionDenied(isPermission)
+      // Permission issues are not "not at home"; location misses get the calm banner.
+      setNotHomeBanner(isLocationMiss)
+      if (isLocationMiss) {
+        setNotHomeMessage(serverMessage)
+        setError('')
+      } else {
+        setNotHomeMessage('')
+        setError(serverMessage)
+      }
     } catch (err) {
       if (err instanceof DeviceLocationError && err.code === 'permission_denied') {
         setPermissionDenied(true)
-        setNotHomeBanner(true)
-        setError('')
+        setNotHomeBanner(false)
+        setNotHomeMessage('')
+        setError(err.message)
       } else {
+        setNotHomeBanner(false)
+        setNotHomeMessage('')
         setError(err instanceof Error ? err.message : 'Could not confirm your location')
       }
     } finally {
@@ -204,7 +230,9 @@ export function HelperVerification() {
             role="status"
           >
             <p className="text-[15px] font-bold text-[#071330]">{VERIFY_NOT_HOME_TITLE}</p>
-            <p className="mt-1 text-[14px] leading-[1.5] text-[#273449]">{VERIFY_NOT_HOME_BODY}</p>
+            <p className="mt-1 text-[14px] leading-[1.5] text-[#273449]">
+              {notHomeMessage || VERIFY_NOT_HOME_BODY}
+            </p>
           </div>
         ) : null}
 
