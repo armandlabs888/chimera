@@ -109,11 +109,15 @@ async function assertLandedOnAuth(page, { priorPath, viewport }) {
   )
   assert.equal(gateHeader, false, 'must NOT show AuthGate Browse/Safety header after sign-out')
 
-  if (viewport?.width >= 1024) {
-    const aside = page.locator('aside').first()
+  const modal = page.locator('[data-testid="auth-modal"]')
+  await modal.waitFor({ state: 'visible', timeout: 10000 })
+  assert.equal(await page.locator('[data-testid="auth-modal-close"]').count(), 1)
+
+  if (viewport?.width >= 768) {
+    const aside = page.locator('[data-testid="auth-aside-panel"]')
     await aside.waitFor({ state: 'visible', timeout: 10000 })
     const box = await aside.boundingBox()
-    assert.ok(box && box.width > 200, 'desktop main auth aside showcase missing')
+    assert.ok(box && box.width > 200, 'desktop auth marketing panel missing')
   }
 
   // Give any bounce a moment — stay on /auth.

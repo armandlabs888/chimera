@@ -314,9 +314,9 @@ async function checkAuthMarkupAndRedirects() {
   assert.equal(res.status, 200, 'auth page status')
   assert.match(text, /HouseCall|auth/, 'auth route shell present')
   assert.doesNotMatch(text, /text-red-300|Live mode uses Supabase email\/password auth/i, 'no legacy developer auth copy')
-  const authPhoto = await fetch(`${BASE_URL}/images/landing/auth-panel-neighbors.jpg`)
-  assert.equal(authPhoto.status, 200, 'auth panel photo asset served')
-  assert.match(authPhoto.headers.get('content-type') || '', /image\//, 'auth panel photo is an image')
+  const authPhoto = await fetch(`${BASE_URL}/images/auth/carpet-cleaner.jpg`)
+  assert.equal(authPhoto.status, 200, 'auth modal photo asset served')
+  assert.match(authPhoto.headers.get('content-type') || '', /image\//, 'auth modal photo is an image')
 
   const evil = await fetch(`${BASE_URL}/auth/callback?next=${encodeURIComponent('//evil.example')}`, {
     redirect: 'manual',
@@ -480,12 +480,18 @@ async function checkAuthBrowser() {
 
     await page.goto(`${BASE_URL}/auth?mode=signin`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body')
-    await page.waitForSelector('text=Trusted help, right next door', { timeout: 20000 })
+    await page.waitForSelector('[data-testid="auth-modal"]', { timeout: 20000 })
+    await page.waitForSelector('text=Welcome back', { timeout: 20000 })
 
     const bodyText = await page.locator('body').innerText()
-    assert.match(bodyText, /Post a task, compare offers from people nearby/i)
+    assert.match(bodyText, /Post a task in a minute/i)
+    assert.match(bodyText, /Compare offers from people nearby/i)
+    assert.match(bodyText, /Pick who fits and message them/i)
     assert.doesNotMatch(bodyText, /Elena R\.|Posted a couch move at 1pm/i)
 
+    const modal = page.locator('[data-testid="auth-modal"]')
+    await modal.waitFor({ state: 'visible', timeout: 10000 })
+    assert.equal(await page.locator('[data-testid="auth-modal-close"]').count(), 1)
     const aside = page.locator('[data-testid="auth-aside-panel"]')
     await aside.waitFor({ state: 'visible', timeout: 10000 })
     const panelSrc = await aside.locator('img').first().evaluate((img) => {
@@ -496,10 +502,10 @@ async function checkAuthBrowser() {
         return raw
       }
     })
-    assert.match(decodeURIComponent(panelSrc), /auth-panel-neighbors/, `auth panel src ${panelSrc}`)
+    assert.match(decodeURIComponent(panelSrc), /carpet-cleaner/, `auth modal photo src ${panelSrc}`)
 
-    if (/demo mode|needs configuration/i.test(bodyText)) {
-      console.log('ok auth panel photo + truthful copy (skip interactions: demo / unconfigured)')
+    if (/demo mode|needs configuration|You are in demo mode/i.test(bodyText)) {
+      console.log('ok auth modal photo + truthful copy (skip interactions: demo / unconfigured)')
       return
     }
 
@@ -533,10 +539,20 @@ async function checkAuthBrowser() {
     await page.waitForSelector('text=Full name')
     assert.equal(await page.getByRole('tab', { name: 'Create account' }).getAttribute('aria-selected'), 'true')
     const signupBody = await page.locator('body').innerText()
-    assert.match(signupBody, /Post a task, compare offers from people nearby/i)
+    assert.match(signupBody, /Join HouseCall/i)
+    assert.match(signupBody, /Post a task in a minute/i)
+    assert.match(signupBody, /Helpers verify they live nearby/i)
     assert.doesNotMatch(signupBody, /Elena R\.|Posted a couch move at 1pm/i)
 
-    console.log('ok auth browser panel + Google + simplified signup + password toggle')
+    // Close returns to landing
+    await page.locator('[data-testid="auth-modal-close"]').click()
+    await page.waitForURL((url) => {
+      const u = typeof url === 'string' ? new URL(url) : url
+      return (u.pathname.replace(/\/$/, '') || '/') === '/'
+    }, { timeout: 15000 })
+    assert.equal(await page.locator('[data-testid="auth-modal"]').count(), 0)
+
+    console.log('ok auth modal + Google + simplified signup + password toggle + close')
   } finally {
     await browser.close()
   }

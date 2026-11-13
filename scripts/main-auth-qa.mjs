@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Playwright: HouseCall has ONE auth experience. The main split-screen /auth page.
+ * Playwright: HouseCall has ONE auth experience. The centered /auth modal over landing.
  * Verifies sign-out + protected-route redirects never show the removed AuthGate
  * compact chrome (Browse/Safety top bar). Screenshots → /opt/cursor/artifacts/main-auth-qa/
  */
@@ -56,21 +56,38 @@ async function assertMainAuthExperience(page, { viewport, expectNext = null, cle
   )
   assert.equal(gateHeader, false, 'must NOT show AuthGate Browse/Safety header')
 
-  // Desktop: split-screen left photo aside must be visible (no fake testimonials).
-  if (viewport.width >= 1024) {
+  // Modal over landing — dialog + close control always present.
+  const modal = page.locator('[data-testid="auth-modal"]')
+  await modal.waitFor({ state: 'visible', timeout: 10000 })
+  assert.equal(await page.locator('[data-testid="auth-modal-close"]').count(), 1)
+  assert.equal(await modal.getAttribute('aria-modal'), 'true')
+
+  // Desktop: marketing panel with carpet photo + bullets (no fake testimonials).
+  if (viewport.width >= 768) {
     const aside = page.locator('[data-testid="auth-aside-panel"]')
     await aside.waitFor({ state: 'visible', timeout: 10000 })
     const asideBox = await aside.boundingBox()
-    assert.ok(asideBox && asideBox.width > 200, 'desktop aside showcase too narrow/missing')
+    assert.ok(asideBox && asideBox.width > 200, 'desktop auth marketing panel too narrow/missing')
     const asideText = await aside.innerText()
     assert.match(asideText, /Trusted help,\s*right next door/i)
-    assert.match(asideText, /Post a task, compare offers from people nearby/i)
+    assert.match(asideText, /Post a task in a minute/i)
+    assert.match(asideText, /Compare offers from people nearby/i)
+    assert.match(asideText, /Pick who fits and message them/i)
     assert.doesNotMatch(asideText, /Elena R\.|two neighbors showed up/i)
     const img = aside.locator('img').first()
     await img.waitFor({ state: 'visible', timeout: 10000 })
     const src = await img.getAttribute('src')
-    assert.match(src || '', /auth-panel-neighbors/, `expected auth-panel photo, got ${src}`)
+    assert.match(src || '', /carpet-cleaner/, `expected carpet-cleaner photo, got ${src}`)
+  } else {
+    await asideHidden(page)
   }
+}
+
+async function asideHidden(page) {
+  const aside = page.locator('[data-testid="auth-aside-panel"]')
+  assert.equal(await aside.isVisible(), false, 'mobile must hide auth marketing panel')
+  const body = await page.locator('[data-testid="auth-modal"]').innerText()
+  assert.match(body, /Helpers verify they live nearby/i)
 }
 
 async function signIn(page) {
