@@ -284,10 +284,6 @@ export function BrowseJobDrawer({
           </div>
         </section>
 
-        {canOffer && !isGuest && !verified ? (
-          <OfferGateNotice verification={helperVerification} narrow={narrow} />
-        ) : null}
-
         {offerOpen && canOffer && verified ? (
           <form
             className="mt-6 space-y-3 rounded-[10px] border border-[#E3E8EF] p-4"
@@ -430,8 +426,14 @@ export function BrowseJobDrawer({
     </Link>
   )
 
+  const gateNotice =
+    canOffer && !isGuest && !verified ? (
+      <OfferGateNotice verification={helperVerification} narrow={narrow} />
+    ) : null
+
   const actions = narrow ? (
     <div className="flex shrink-0 flex-col gap-2 border-t border-[#E3E8EF] bg-white px-4 pb-4 pt-2.5">
+      {gateNotice}
       <div className="flex items-baseline gap-2">
         <b className="text-[18px] font-bold tracking-[-0.03em] text-[#071330]">{budgetLabel}</b>
         <span className="text-[13px] font-medium text-[#3D4A5F]">Customer budget</span>
@@ -446,18 +448,21 @@ export function BrowseJobDrawer({
       )}
     </div>
   ) : (
-    <div className="flex shrink-0 items-center gap-2.5 border-t border-[#E3E8EF] bg-white px-5 py-3.5 pl-6">
-      <div className="min-w-0 shrink leading-tight">
-        <b className="block truncate text-[18px] font-bold tracking-[-0.03em] text-[#071330]">
-          {budgetLabel}
-        </b>
-        <span className="block whitespace-nowrap text-[12px] font-medium text-[#3D4A5F]">
-          Customer budget
-        </span>
+    <div className="flex shrink-0 flex-col gap-0 border-t border-[#E3E8EF] bg-white">
+      {gateNotice ? <div className="px-5 pt-3 pl-6">{gateNotice}</div> : null}
+      <div className="flex items-center gap-2.5 px-5 py-3.5 pl-6">
+        <div className="min-w-0 shrink leading-tight">
+          <b className="block truncate text-[18px] font-bold tracking-[-0.03em] text-[#071330]">
+            {budgetLabel}
+          </b>
+          <span className="block whitespace-nowrap text-[12px] font-medium text-[#3D4A5F]">
+            Customer budget
+          </span>
+        </div>
+        <div className="min-w-2 flex-1" />
+        {askButton}
+        {primaryButton}
       </div>
-      <div className="min-w-2 flex-1" />
-      {askButton}
-      {primaryButton}
     </div>
   )
 
