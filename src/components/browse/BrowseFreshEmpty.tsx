@@ -69,7 +69,7 @@ export function BrowseFreshEmpty({
           <p className="mt-1.5 max-w-[36ch] text-[13px] leading-[1.45] text-white sm:mt-2.5 sm:max-w-[40ch] sm:text-[15px] sm:leading-[1.55]">
             {hidePeerDiscovery
               ? `Requests near ${area} will show up here. Turn on alerts, widen search, or post a task.`
-              : `No open requests near ${area} yet — post a task, or set up your helper profile.`}
+              : `No open requests near ${area} yet. Post a task, or set up your helper profile.`}
           </p>
 
           <div className="mt-3 flex flex-wrap items-center gap-2 sm:mt-4 sm:gap-2.5">
@@ -124,7 +124,7 @@ export function BrowseFreshEmpty({
               data-testid="browse-empty-alerts-caveat"
             >
               {alertsEnabled
-                ? 'In-app alerts preference is on — nearby jobs stand out when you return. No push or SMS.'
+                ? 'In-app alerts preference is on. Nearby jobs stand out when you return. No push or SMS.'
                 : 'Alerts save an in-app preference only. No push or SMS delivery.'}
             </p>
           ) : null}

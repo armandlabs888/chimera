@@ -132,7 +132,7 @@ export function BrowseJobDrawer({
         await createOffer({
           requestId: request.id,
           price: priceNum,
-          note: offerNote.trim() || 'Happy to help — message me to coordinate.',
+          note: offerNote.trim() || 'Happy to help. Message me to coordinate.',
           eta: offerEta,
         })
         await ensureThread(request.id, request.requesterId)

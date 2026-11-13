@@ -113,7 +113,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   if (isBrowsePath) {
     return (
-      <div className="app-shell relative flex min-h-dvh flex-col bg-white text-[#071330]">
+      <div className="app-shell relative flex min-h-dvh flex-col bg-[#F5F9FF] text-[#071330]">
         <BrowseFloatHeader guest={isLiveGuest} showHelperBanner={showHelperSetupBanner && !isLiveGuest} />
         <main className="relative flex-1">{children}</main>
         <LandingFooter dockPadding={!isLiveGuest} />

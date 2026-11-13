@@ -1,7 +1,8 @@
 'use client'
 
 import { ChevronDown, MapPin, X } from 'lucide-react'
-import { useEffect, useId, useRef, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import {
   UsCityCombobox,
   type UsCityComboboxHandle,
@@ -19,12 +20,39 @@ import { useBeam } from '@/context/BeamContext'
  * App-shell host: listens for open requests from the topnav / Browse eyebrow.
  * Persists a browse-only pin — does not mutate profile city.
  */
+const RADIUS_OPTIONS = [
+  { id: 'all', label: 'Any distance' },
+  { id: '3', label: 'Within 3 mi' },
+  { id: '5', label: 'Within 5 mi' },
+  { id: '10', label: 'Within 10 mi' },
+  { id: '25', label: 'Within 25 mi' },
+] as const
+
 export function BrowseLocationDialogHost() {
   const { currentUser } = useBeam()
   const { origin, setCity, clearPin, isOverridden } = useBrowseLocation(currentUser)
+  const router = useRouter()
+  const pathname = usePathname()
+  const params = useSearchParams()
   const [open, setOpen] = useState(false)
+  const [radiusDraft, setRadiusDraft] = useState('all')
 
-  useEffect(() => subscribeBrowseLocationPickerOpen(() => setOpen(true)), [])
+  useEffect(() => {
+    return subscribeBrowseLocationPickerOpen(() => {
+      const r = params.get('radius')
+      setRadiusDraft(r === '3' || r === '5' || r === '10' || r === '25' ? r : 'all')
+      setOpen(true)
+    })
+  }, [params])
+
+  function applyRadius(next: string) {
+    const nextParams = new URLSearchParams(params.toString())
+    if (next === 'all') nextParams.delete('radius')
+    else nextParams.set('radius', next)
+    nextParams.delete('neighborhood')
+    const qs = nextParams.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }
 
   return (
     <BrowseLocationDialog
@@ -37,12 +65,16 @@ export function BrowseLocationDialogHost() {
           (currentUser.city && currentUser.city.trim()),
       )}
       isOverridden={isOverridden}
+      radius={radiusDraft}
+      onRadiusChange={setRadiusDraft}
       onApply={(city) => {
         setCity(city)
+        applyRadius(radiusDraft)
         setOpen(false)
       }}
       onUseHome={() => {
         clearPin()
+        applyRadius(radiusDraft)
         setOpen(false)
       }}
     />
@@ -54,11 +86,14 @@ export function BrowseLocationTrigger({
   label,
   pinClassName = 'text-[#64748B]',
   chevron = false,
+  children,
 }: {
   className?: string
   label: string
   pinClassName?: string
   chevron?: boolean
+  /** When set, replaces the default pin + label + chevron contents. */
+  children?: ReactNode
 }) {
   return (
     <button
@@ -66,14 +101,21 @@ export function BrowseLocationTrigger({
       className={className}
       title="Change browse location"
       aria-haspopup="dialog"
+      aria-label={typeof label === 'string' ? `Browse location: ${label}` : 'Change browse location'}
       data-testid="topnav-location"
       onClick={() => requestBrowseLocationPicker()}
     >
-      <MapPin className={`h-4 w-4 shrink-0 ${pinClassName}`} strokeWidth={2} aria-hidden />
-      <span className="truncate">{label}</span>
-      {chevron ? (
-        <ChevronDown className="h-3.5 w-3.5 shrink-0 text-[#3D4A5F]" strokeWidth={2} aria-hidden />
-      ) : null}
+      {children ? (
+        children
+      ) : (
+        <>
+          <MapPin className={`h-4 w-4 shrink-0 ${pinClassName}`} strokeWidth={2} aria-hidden />
+          <span className="truncate">{label}</span>
+          {chevron ? (
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-[#3D4A5F]" strokeWidth={2} aria-hidden />
+          ) : null}
+        </>
+      )}
     </button>
   )
 }
@@ -85,6 +127,8 @@ function BrowseLocationDialog({
   homeLabel,
   hasHomeLocation,
   isOverridden,
+  radius,
+  onRadiusChange,
   onApply,
   onUseHome,
 }: {
@@ -94,6 +138,8 @@ function BrowseLocationDialog({
   homeLabel: string
   hasHomeLocation: boolean
   isOverridden: boolean
+  radius: string
+  onRadiusChange: (id: string) => void
   onApply: (city: UsCity) => void
   onUseHome: () => void
 }) {
@@ -228,6 +274,29 @@ function BrowseLocationDialog({
               {error}
             </p>
           ) : null}
+
+          <div className="mt-5">
+            <p className="text-[13px] font-semibold text-[#071330]">Distance</p>
+            <div className="mt-2 flex flex-wrap gap-2" role="listbox" aria-label="Distance">
+              {RADIUS_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  role="option"
+                  aria-selected={radius === opt.id}
+                  data-testid={`browse-location-radius-${opt.id}`}
+                  onClick={() => onRadiusChange(opt.id)}
+                  className={`inline-flex h-9 items-center rounded-full border px-3.5 text-[13px] font-semibold transition ${
+                    radius === opt.id
+                      ? 'border-[#1D5CE5] bg-[#F5F9FF] text-[#1D5CE5]'
+                      : 'border-[#E3E8EF] bg-white text-[#071330] hover:bg-[#F4F8FD]'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {hasHomeLocation && isOverridden ? (
             <button
