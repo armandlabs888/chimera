@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, Check } from 'lucide-react'
+import { ArrowLeft, Check, Home } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -30,20 +30,39 @@ const ROLES: {
 }[] = [
   {
     id: 'customer',
-    title: 'Customer',
-    body: 'Post tasks and hire local help.',
+    title: 'Neighbor',
+    body: 'Post a job request and hire local help.',
   },
   {
     id: 'helper',
     title: 'Helper',
-    body: 'Browse requests and earn on your schedule.',
+    body: 'Offer on nearby jobs and earn on your schedule.',
   },
 ]
+
+const NEIGHBOR_POINTS = [
+  'Create a job request and set your budget.',
+  'Review offers from people who live nearby.',
+  "Coordinate in Messages and hire when you're ready.",
+  'No address verification is needed to post a job.',
+] as const
+
+const HELPER_POINTS = [
+  'Browse job requests in your area.',
+  'Make an offer when a job is a good fit.',
+  "Coordinate in Messages once you're hired.",
+] as const
+
+const HELPER_PRIVACY = [
+  'Your exact address is never displayed to other users.',
+  'We will never sell your address.',
+  "It's only used to match you with jobs nearby.",
+] as const
 
 function StepProgress({ step }: { step: 1 | 2 }) {
   return (
     <div className="flex flex-col items-end gap-2" aria-label={`Step ${step} of 2`}>
-      <p className="text-[13px] font-semibold tabular-nums text-[#64748B]">Step {step} of 2</p>
+      <p className="text-[13px] font-semibold tabular-nums text-[#5B6575]">Step {step} of 2</p>
       <div className="flex gap-1.5" aria-hidden>
         <span
           className={`h-1 w-10 rounded-full sm:w-12 ${
@@ -57,6 +76,122 @@ function StepProgress({ step }: { step: 1 | 2 }) {
         />
       </div>
     </div>
+  )
+}
+
+function PointCheck({ size = 18 }: { size?: number }) {
+  return (
+    <span
+      className="mt-0.5 inline-flex shrink-0 items-center justify-center rounded-full bg-[#1D5CE5] text-white"
+      style={{ width: size, height: size }}
+      aria-hidden
+    >
+      <Check className={size <= 16 ? 'h-2.5 w-2.5' : 'h-3 w-3'} strokeWidth={3} />
+    </span>
+  )
+}
+
+function BenefitsPanel({
+  role,
+  className = '',
+}: {
+  role: AccountRole
+  className?: string
+}) {
+  if (role === 'customer') {
+    return (
+      <aside
+        className={`flex h-full flex-col rounded-[14px] border border-[#E3E8EF] bg-[#F4F8FD] px-5 py-5 sm:px-8 sm:py-8 ${className}`}
+        data-testid="onboarding-benefits"
+        data-role="neighbor"
+      >
+        <p className="text-[12px] font-bold uppercase tracking-[0.06em] text-[#1D5CE5]">
+          As a Neighbor
+        </p>
+        <h2 className="mt-2 font-display text-[20px] font-bold leading-[1.22] tracking-[-0.028em] text-[#071330] sm:text-[24px] text-balance">
+          Post a job and hire someone nearby
+        </h2>
+        <p className="mt-2.5 text-[15px] leading-[1.5] text-[#273449]">
+          Neighbors create job requests. Helpers in your area can then offer to do the work.
+        </p>
+        <ul className="mt-5 flex flex-col gap-3.5 sm:mt-[22px]">
+          {NEIGHBOR_POINTS.map((point) => (
+            <li
+              key={point}
+              className="flex items-start gap-3 text-[15px] font-medium leading-[1.45] text-[#273449]"
+            >
+              <PointCheck />
+              <span>{point}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-auto pt-[18px] text-[13px] leading-[1.45] text-[#5B6575]">
+          You can also help neighbors later if you want. This just sets your starting point.
+        </p>
+      </aside>
+    )
+  }
+
+  return (
+    <aside
+      className={`flex h-full flex-col rounded-[14px] border border-[#E3E8EF] bg-[#F4F8FD] px-5 py-5 sm:px-8 sm:py-8 ${className}`}
+      data-testid="onboarding-benefits"
+      data-role="helper"
+    >
+      <p className="text-[12px] font-bold uppercase tracking-[0.06em] text-[#1D5CE5]">
+        As a Helper
+      </p>
+      <h2 className="mt-2 font-display text-[20px] font-bold leading-[1.22] tracking-[-0.028em] text-[#071330] sm:text-[24px] text-balance">
+        Offer on jobs and earn on your schedule
+      </h2>
+      <p className="mt-2.5 text-[15px] leading-[1.5] text-[#273449]">
+        Helpers browse nearby requests and offer to do the work. To perform a job, we need to
+        confirm you actually live close by.
+      </p>
+      <ul className="mt-5 flex flex-col gap-3.5 sm:mt-[22px]">
+        {HELPER_POINTS.map((point) => (
+          <li
+            key={point}
+            className="flex items-start gap-3 text-[15px] font-medium leading-[1.45] text-[#273449]"
+          >
+            <PointCheck />
+            <span>{point}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-auto pt-[22px]" data-testid="onboarding-helper-verify">
+        <div className="rounded-xl border-[1.5px] border-[#D5DEEA] bg-white px-[18px] pb-4 pt-[18px]">
+          <h3 className="flex items-center gap-2 text-[14.5px] font-bold tracking-[-0.015em] text-[#071330]">
+            <Home className="h-4 w-4 shrink-0 text-[#1D5CE5]" strokeWidth={1.75} aria-hidden />
+            Address verification is required to perform a job
+          </h3>
+          <p className="mt-2 text-[13.5px] leading-[1.5] text-[#273449]">
+            You'll need your home address and a document that proves you live there, such as a
+            recent utility bill, lease, or official mail. You'll be asked for this before you start
+            a job, not on this step.
+          </p>
+          <p className="mt-2.5 text-[13.5px] font-semibold leading-[1.45] tracking-[-0.01em] text-[#071330]">
+            This helps ensure trust and safety for everyone involved.
+          </p>
+          <ul className="mt-3.5 flex flex-col gap-2 border-t border-[#E3E8EF] pt-3.5">
+            {HELPER_PRIVACY.map((promise) => (
+              <li
+                key={promise}
+                className="flex items-start gap-2 text-[13px] font-medium leading-[1.45] text-[#273449]"
+              >
+                <Check
+                  className="mt-0.5 h-4 w-4 shrink-0 text-[#1D5CE5]"
+                  strokeWidth={2.25}
+                  aria-hidden
+                />
+                <span>{promise}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </aside>
   )
 }
 
@@ -150,7 +285,7 @@ export function Onboarding() {
 
   function onStep1Continue() {
     if (!role) {
-      setStep1Error('Choose Customer or Helper to continue.')
+      setStep1Error('Choose Neighbor or Helper to continue.')
       return
     }
 
@@ -217,7 +352,13 @@ export function Onboarding() {
   return (
     <div className="min-h-dvh bg-white text-[#071330]" data-testid="onboarding-root" data-step={step}>
       <header className="sticky top-0 z-30 border-b border-[rgba(7,19,48,0.08)] bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-[480px] items-center justify-between gap-4 px-5 sm:h-16 sm:px-6">
+        <div
+          className={`mx-auto flex h-14 items-center justify-between gap-4 px-5 sm:h-16 ${
+            step === 1
+              ? 'max-w-[1080px] sm:px-10'
+              : 'max-w-[480px] sm:px-6'
+          }`}
+        >
           <Link href={isPreviewOrDemo ? '/browse' : '/'} aria-label="Beam home">
             <BeamWordmark markWidth={24} markHeight={24} wordClassName="text-[20px]" tone="ink" />
           </Link>
@@ -225,27 +366,30 @@ export function Onboarding() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[480px] flex-1 flex-col px-5 pb-10 pt-8 sm:px-6 sm:pt-12 lg:pt-16">
-        {step === 1 ? (
-          <div data-testid="onboarding-step-1" className="animate-fade-up">
-            <h1 className="font-display text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-[#071330] sm:text-[32px]">
+      {step === 1 ? (
+        <main className="mx-auto w-full max-w-[1080px] flex-1 px-5 pb-10 pt-7 sm:px-10 sm:pb-16 sm:pt-14">
+          <div
+            data-testid="onboarding-step-1"
+            className="animate-fade-up grid grid-cols-1 lg:grid-cols-2 lg:items-stretch lg:gap-14"
+          >
+            <h1 className="font-display text-[26px] font-bold leading-[1.15] tracking-[-0.028em] text-[#071330] text-balance sm:text-[32px] lg:col-start-1">
               Welcome to Beam
             </h1>
-            <p className="mt-3 text-[15px] leading-[1.5] text-[#526077]">
+            <p className="mt-2.5 max-w-[42ch] text-[15px] leading-[1.5] text-[#3D4A5F] sm:mt-3 sm:text-[15.5px] lg:col-start-1">
               Choose how you want to use Beam and set your city.
             </p>
 
-            <div className="mt-8">
+            <div className="mt-6 sm:mt-8 lg:col-start-1">
               <p
                 id={`${roleGroupId}-label`}
-                className="mb-3 text-[13px] font-semibold text-[#475569]"
+                className="mb-2.5 text-[13px] font-semibold text-[#273449]"
               >
-                Role
+                How you'll use Beam
               </p>
               <div
                 role="radiogroup"
                 aria-labelledby={`${roleGroupId}-label`}
-                className="grid gap-3"
+                className="grid gap-2.5"
                 data-testid="onboarding-role-group"
               >
                 {ROLES.map((item) => {
@@ -266,14 +410,14 @@ export function Onboarding() {
                         }
                       }}
                       data-testid={`onboarding-role-${item.id}`}
-                      className={`flex items-center gap-3.5 rounded-lg border px-4 py-4 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
+                      className={`flex items-start gap-3.5 rounded-[10px] border-[1.5px] px-4 py-4 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
                         selected
-                          ? 'border-[#1D5CE5] bg-[#F5F9FF] ring-1 ring-[#1D5CE5]/20'
-                          : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
+                          ? 'border-[#1D5CE5] bg-[#F5F9FF] shadow-[0_0_0_1px_rgba(29,92,229,0.18)]'
+                          : 'border-[#E3E8EF] bg-white hover:border-[#C5CDD8] hover:bg-[#F8FAFC]'
                       }`}
                     >
                       <span
-                        className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${
+                        className={`mt-px inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${
                           selected
                             ? 'border-[#1D5CE5] bg-[#1D5CE5] text-white'
                             : 'border-[#CBD5E1] bg-white'
@@ -283,8 +427,10 @@ export function Onboarding() {
                         {selected ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[16px] font-bold text-[#071330]">{item.title}</span>
-                        <span className="mt-0.5 block text-[14px] leading-[1.45] text-[#526077]">
+                        <span className="block text-[16px] font-bold tracking-[-0.015em] text-[#071330]">
+                          {item.title}
+                        </span>
+                        <span className="mt-[3px] block text-[13.5px] leading-[1.45] text-[#3D4A5F]">
                           {item.body}
                         </span>
                       </span>
@@ -294,20 +440,26 @@ export function Onboarding() {
               </div>
             </div>
 
-            <div className="mt-8">
+            {/* Source order: roles → benefits → city (mobile). Desktop places this in col 2. */}
+            {role ? (
+              <BenefitsPanel
+                role={role}
+                className="mt-[18px] mb-1.5 lg:col-start-2 lg:row-start-1 lg:row-end-[-1] lg:mt-0 lg:mb-0"
+              />
+            ) : null}
+
+            <div className="mt-[22px] sm:mt-7 lg:col-start-1">
               <UsCityCombobox
                 ref={cityRef}
                 value={city}
                 onChange={handleCityChange}
-                error={
-                  step1Error && role && !city ? step1Error : undefined
-                }
+                error={step1Error && role && !city ? step1Error : undefined}
               />
             </div>
 
             {step1Error && !role ? (
               <p
-                className="mt-3 text-[13px] font-medium text-red-600"
+                className="mt-3 text-[13px] font-medium text-red-600 lg:col-start-1"
                 role="alert"
                 data-testid="onboarding-step1-error"
               >
@@ -315,14 +467,14 @@ export function Onboarding() {
               </p>
             ) : null}
 
-            <div className="mt-9">
+            <div className="mt-7 lg:col-start-1">
               <Button
                 type="button"
                 size="lg"
                 aria-disabled={!canNext}
                 onClick={onStep1Continue}
                 data-testid="onboarding-next"
-                className={`h-[52px] w-full rounded-lg px-7 text-[15px] shadow-none !transition-[background-color] disabled:opacity-100 ${
+                className={`h-[52px] w-full rounded-[10px] px-7 text-[15px] font-semibold tracking-[-0.01em] shadow-none !transition-[background-color] disabled:opacity-100 ${
                   canNext
                     ? 'bg-[#1D5CE5] text-white hover:bg-[#1649BD]'
                     : 'bg-[#E2E8F0] text-[#64748B] hover:bg-[#CBD5E1]'
@@ -330,23 +482,25 @@ export function Onboarding() {
               >
                 Continue
               </Button>
-            </div>
 
-            {showAccountEscape ? (
-              <p className="mt-6 text-center text-[13px] text-[#64748B]">
-                Not your account?{' '}
-                <button
-                  type="button"
-                  className="font-medium text-[#64748B] underline-offset-2 transition hover:text-[#071330] hover:underline"
-                  data-testid="onboarding-sign-out"
-                  onClick={() => void signOut()}
-                >
-                  Sign out
-                </button>
-              </p>
-            ) : null}
+              {showAccountEscape ? (
+                <p className="mt-[22px] text-center text-[13px] text-[#5B6575]">
+                  Not your account?{' '}
+                  <button
+                    type="button"
+                    className="font-medium text-[#5B6575] transition hover:text-[#071330]"
+                    data-testid="onboarding-sign-out"
+                    onClick={() => void signOut()}
+                  >
+                    Sign out
+                  </button>
+                </p>
+              ) : null}
+            </div>
           </div>
-        ) : (
+        </main>
+      ) : (
+        <main className="mx-auto flex w-full max-w-[480px] flex-1 flex-col px-5 pb-10 pt-8 sm:px-6 sm:pt-12 lg:pt-16">
           <div data-testid="onboarding-step-2" className="animate-fade-up">
             <h1 className="font-display text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-[#071330] sm:text-[32px]">
               Our community rules
@@ -418,8 +572,8 @@ export function Onboarding() {
               </Button>
             </div>
           </div>
-        )}
-      </main>
+        </main>
+      )}
       <LandingFooter />
     </div>
   )
