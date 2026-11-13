@@ -279,6 +279,7 @@ export function BeamProvider({
     const client = createClient()
     const next = await loadLiveState(client, userId)
     setState(next)
+    return next
   }, [])
 
   const refreshPublic = useCallback(async () => {
@@ -1391,7 +1392,47 @@ export function BeamProvider({
           if (!authUser) throw new Error('Not signed in')
           const client = createClient()
           const result = await confirmLiveHelperHomeLocation(client, input)
-          await refreshLive(authUser.id)
+
+          // Apply RPC verification immediately so "You're verified" can show
+          // even if a later helper_verifications SELECT fails (e.g. RLS).
+          if (result.verification) {
+            withState(setState, (s) => {
+              const row = result.verification!
+              const others = (s.helperVerifications ?? []).filter(
+                (v) => v.profileId !== row.profileId,
+              )
+              return {
+                ...s,
+                helperVerification: row,
+                helperVerifications: [row, ...others],
+              }
+            })
+          }
+
+          try {
+            const next = await refreshLive(authUser.id)
+            // Do not let a failed/empty refresh wipe a just-approved match.
+            if (
+              result.ok &&
+              result.verification?.status === 'approved' &&
+              next.helperVerification?.status !== 'approved'
+            ) {
+              withState(setState, (s) => {
+                const row = result.verification!
+                const others = (s.helperVerifications ?? []).filter(
+                  (v) => v.profileId !== row.profileId,
+                )
+                return {
+                  ...s,
+                  helperVerification: row,
+                  helperVerifications: [row, ...others],
+                }
+              })
+            }
+          } catch {
+            // Keep the RPC-applied verification; confirm itself succeeded.
+          }
+
           return result
         } catch (err) {
           reportError(err, 'Confirm home location failed')
