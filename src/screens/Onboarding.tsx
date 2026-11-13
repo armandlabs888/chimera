@@ -25,6 +25,7 @@ import {
 } from '@/lib/verification/constants'
 import { loadUsPlacesIndex, searchUsCities, type UsCity } from '@/lib/usPlaces'
 import type { AccountRole } from '@/types'
+import '@/components/account/account-hc.css'
 
 const SAFETY_VERSION = 'v1'
 
@@ -60,19 +61,11 @@ const HELPER_POINTS = [
 
 function StepProgress({ step }: { step: 1 | 2 }) {
   return (
-    <div className="flex flex-col items-end gap-2" aria-label={`Step ${step} of 2`}>
-      <p className="text-[13px] font-semibold tabular-nums text-[#5B6575]">Step {step} of 2</p>
-      <div className="flex gap-1.5" aria-hidden>
-        <span
-          className={`h-1 w-10 rounded-full sm:w-12 ${
-            step >= 1 ? 'bg-[#1D5CE5]' : 'bg-[#E2E8F0]'
-          }`}
-        />
-        <span
-          className={`h-1 w-10 rounded-full sm:w-12 ${
-            step >= 2 ? 'bg-[#1D5CE5]' : 'bg-[#E2E8F0]'
-          }`}
-        />
+    <div className="account-hc-step-meta" aria-label={`Step ${step} of 2`}>
+      <p className="n">Step {step} of 2</p>
+      <div className="account-hc-step-bars" aria-hidden>
+        <i className={step >= 1 ? 'on' : undefined} />
+        <i className={step >= 2 ? 'on' : undefined} />
       </div>
     </div>
   )
@@ -100,31 +93,24 @@ function BenefitsPanel({
   if (role === 'customer') {
     return (
       <aside
-        className={`flex h-full flex-col rounded-[14px] border border-[#E3E8EF] bg-[#F4F8FD] px-5 py-5 sm:px-8 sm:py-8 ${className}`}
+        className={`account-hc-card account-hc-benefits flex h-full flex-col ${className}`}
         data-testid="onboarding-benefits"
         data-role="neighbor"
       >
-        <p className="text-[12px] font-bold uppercase tracking-[0.06em] text-[#1D5CE5]">
-          As a Neighbor
-        </p>
-        <h2 className="mt-2 font-display text-[20px] font-bold leading-[1.22] tracking-[-0.028em] text-[#071330] sm:text-[24px] text-balance">
-          Post a job and hire someone nearby
-        </h2>
-        <p className="mt-2.5 text-[15px] leading-[1.5] text-[#273449]">
+        <p className="account-hc-eyebrow">As a Neighbor</p>
+        <h2>Post a job and hire someone nearby</h2>
+        <p className="intro">
           Neighbors create job requests. Helpers in your area can then offer to do the work.
         </p>
-        <ul className="mt-5 flex flex-col gap-3.5 sm:mt-[22px]">
+        <ul className="account-hc-points">
           {NEIGHBOR_POINTS.map((point) => (
-            <li
-              key={point}
-              className="flex items-start gap-3 text-[15px] font-medium leading-[1.45] text-[#273449]"
-            >
+            <li key={point}>
               <PointCheck />
               <span>{point}</span>
             </li>
           ))}
         </ul>
-        <p className="mt-auto pt-[18px] text-[13px] leading-[1.45] text-[#5B6575]">
+        <p className="mt-auto pt-[18px] text-[13px] leading-[1.45] text-[#48556A]">
           You can also help neighbors later if you want. This just sets your starting point.
         </p>
       </aside>
@@ -133,60 +119,40 @@ function BenefitsPanel({
 
   return (
     <aside
-      className={`flex h-full flex-col rounded-[14px] border border-[#E3E8EF] bg-[#F4F8FD] px-5 py-5 sm:px-8 sm:py-8 ${className}`}
+      className={`account-hc-card account-hc-benefits flex h-full flex-col ${className}`}
       data-testid="onboarding-benefits"
       data-role="helper"
     >
-      <p className="text-[12px] font-bold uppercase tracking-[0.06em] text-[#1D5CE5]">
-        As a Helper
-      </p>
-      <h2 className="mt-2 font-display text-[20px] font-bold leading-[1.22] tracking-[-0.028em] text-[#071330] sm:text-[24px] text-balance">
-        Offer on jobs and earn on your schedule
-      </h2>
-      <p className="mt-2.5 text-[15px] leading-[1.5] text-[#273449]">
+      <p className="account-hc-eyebrow">As a Helper</p>
+      <h2>Offer on jobs and earn on your schedule</h2>
+      <p className="intro">
         Helpers browse nearby requests and offer to do the work. Before you can make an offer, we
         need to confirm you actually live close by.
       </p>
-      <ul className="mt-5 flex flex-col gap-3.5 sm:mt-[22px]">
+      <ul className="account-hc-points">
         {HELPER_POINTS.map((point) => (
-          <li
-            key={point}
-            className="flex items-start gap-3 text-[15px] font-medium leading-[1.45] text-[#273449]"
-          >
+          <li key={point}>
             <PointCheck />
             <span>{point}</span>
           </li>
         ))}
       </ul>
 
-      <div className="mt-auto pt-[22px]" data-testid="onboarding-helper-verify">
-        <div className="rounded-xl border-[1.5px] border-[#D5DEEA] bg-white px-[18px] pb-4 pt-[18px]">
-          <h3 className="flex items-center gap-2 text-[14.5px] font-bold tracking-[-0.015em] text-[#071330]">
-            <Home className="h-4 w-4 shrink-0 text-[#1D5CE5]" strokeWidth={1.75} aria-hidden />
-            {ONBOARDING_HELPER_VERIFY_TITLE}
-          </h3>
-          <p className="mt-2 text-[13.5px] leading-[1.5] text-[#273449]">
-            {ONBOARDING_HELPER_VERIFY_BODY}
-          </p>
-          <p className="mt-2.5 text-[13.5px] font-semibold leading-[1.45] tracking-[-0.01em] text-[#071330]">
-            {VERIFY_TRUST_LINE}
-          </p>
-          <ul className="mt-3.5 flex flex-col gap-2 border-t border-[#E3E8EF] pt-3.5">
-            {ONBOARDING_HELPER_PRIVACY.map((promise) => (
-              <li
-                key={promise}
-                className="flex items-start gap-2 text-[13px] font-medium leading-[1.45] text-[#273449]"
-              >
-                <Check
-                  className="mt-0.5 h-4 w-4 shrink-0 text-[#1D5CE5]"
-                  strokeWidth={2.25}
-                  aria-hidden
-                />
-                <span>{promise}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <div className="account-hc-verify-box mt-auto" data-testid="onboarding-helper-verify">
+        <h3>
+          <Home className="h-4 w-4 shrink-0 text-[#1D5CE5]" strokeWidth={1.75} aria-hidden />
+          {ONBOARDING_HELPER_VERIFY_TITLE}
+        </h3>
+        <p>{ONBOARDING_HELPER_VERIFY_BODY}</p>
+        <p className="trust">{VERIFY_TRUST_LINE}</p>
+        <ul>
+          {ONBOARDING_HELPER_PRIVACY.map((promise) => (
+            <li key={promise}>
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#1D5CE5]" strokeWidth={2.25} aria-hidden />
+              <span>{promise}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </aside>
   )
@@ -339,117 +305,119 @@ export function Onboarding() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-white">
+      <div className="flex min-h-dvh items-center justify-center bg-[#F5F9FF]">
         <p className="text-[22px] font-semibold tracking-tight text-[#071330]">HouseCall</p>
       </div>
     )
   }
 
-  return (
-    <div className="min-h-dvh bg-white text-[#071330]" data-testid="onboarding-root" data-step={step}>
-      <header
-        className="sticky top-0 z-30 border-b border-[rgba(7,19,48,0.08)] bg-white/95 backdrop-blur-md"
-        data-testid="onboarding-header"
-      >
-        <div
-          className={`mx-auto flex h-12 items-center justify-end gap-4 px-5 sm:h-14 ${
-            step === 1
-              ? 'max-w-[1080px] sm:px-10'
-              : 'max-w-[480px] sm:px-6'
-          }`}
-        >
-          <StepProgress step={step} />
-        </div>
-      </header>
+  const pageTitle = edit ? 'Change city' : 'Welcome to HouseCall'
+  const shellClass = edit
+    ? 'account-hc'
+    : 'account-hc min-h-dvh'
 
-      {step === 1 ? (
-        <main className="mx-auto w-full max-w-[1080px] flex-1 px-5 pb-10 pt-7 sm:px-10 sm:pb-16 sm:pt-14">
-          {/*
-            Two column wrappers (matches approved mockup):
-            - Desktop: left form column + right benefits column (items-stretch).
-            - Mobile: benefits render inside the form between roles and City.
-            Avoid per-field grid + row-end:-1 (that only spanned the first row).
-          */}
+  return (
+    <div className={shellClass} data-testid="onboarding-root" data-step={step} data-edit={edit ? '1' : undefined}>
+      {!edit ? (
+        <header
+          className="sticky top-0 z-30 border-b border-[#E3E8EF] bg-white"
+          data-testid="onboarding-header"
+        >
+          <div
+            className={`account-hc-wrap flex h-14 items-center justify-end gap-4 ${
+              step === 1 ? '' : 'max-w-[520px]'
+            }`}
+          >
+            <StepProgress step={step} />
+          </div>
+        </header>
+      ) : null}
+
+      <div className={edit ? 'account-hc-wrap account-hc-page' : 'account-hc-wrap pb-10 pt-7 sm:pb-16 sm:pt-10'}>
+        {edit ? (
+          <div className="account-hc-title-row">
+            <h1 className="account-hc-hero-title">{pageTitle}</h1>
+            <StepProgress step={step} />
+          </div>
+        ) : null}
+
+        {step === 1 ? (
           <div
             data-testid="onboarding-step-1"
-            className="animate-fade-up lg:grid lg:grid-cols-2 lg:items-stretch lg:gap-14"
+            className={`account-hc-wizard animate-fade-up ${role ? '' : 'single'}`}
           >
-            <div className="min-w-0" data-testid="onboarding-form-column">
-              <h1 className="font-display text-[26px] font-bold leading-[1.15] tracking-[-0.028em] text-[#071330] text-balance sm:text-[32px]">
-                Welcome to HouseCall
-              </h1>
-              <p className="mt-2.5 max-w-[42ch] text-[15px] leading-[1.5] text-[#3D4A5F] sm:mt-3 sm:text-[15.5px]">
-                Choose how you want to use HouseCall and set your city.
-              </p>
+            <div
+              className="account-hc-card account-hc-wizard-form min-w-0"
+              data-testid="onboarding-form-column"
+            >
+              {!edit ? (
+                <>
+                  <h1 className="account-hc-hero-title" style={{ fontSize: 28 }}>
+                    Welcome to HouseCall
+                  </h1>
+                  <p className="account-hc-lede">
+                    Choose how you want to use HouseCall and set your city.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="account-hc-hero-title" style={{ fontSize: 22 }}>
+                    Welcome to HouseCall
+                  </h2>
+                  <p className="account-hc-lede">
+                    Choose how you want to use HouseCall and set your city.
+                  </p>
+                </>
+              )}
 
-              <div className="mt-6 sm:mt-8">
-                <p
-                  id={`${roleGroupId}-label`}
-                  className="mb-2.5 text-[13px] font-semibold text-[#273449]"
-                >
-                  How you&apos;ll use HouseCall
-                </p>
-                <div
-                  role="radiogroup"
-                  aria-labelledby={`${roleGroupId}-label`}
-                  className="grid gap-2.5"
-                  data-testid="onboarding-role-group"
-                >
-                  {ROLES.map((item) => {
-                    const selected = role === item.id
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={selected}
-                        tabIndex={role === null ? 0 : selected ? 0 : -1}
-                        onClick={() => handleRoleSelect(item.id)}
-                        onKeyDown={(e) => {
-                          if (role) onRoleKeyDown(e, role)
-                          else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-                            e.preventDefault()
-                            handleRoleSelect(item.id === 'customer' ? 'helper' : 'customer')
-                          }
-                        }}
-                        data-testid={`onboarding-role-${item.id}`}
-                        className={`flex items-start gap-3.5 rounded-[10px] border-[1.5px] px-4 py-4 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
-                          selected
-                            ? 'border-[#1D5CE5] bg-[#F5F9FF] shadow-[0_0_0_1px_rgba(29,92,229,0.18)]'
-                            : 'border-[#E3E8EF] bg-white hover:border-[#C5CDD8] hover:bg-[#F8FAFC]'
-                        }`}
-                      >
-                        <span
-                          className={`mt-px inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${
-                            selected
-                              ? 'border-[#1D5CE5] bg-[#1D5CE5] text-white'
-                              : 'border-[#CBD5E1] bg-white'
-                          }`}
-                          aria-hidden
-                        >
-                          {selected ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-[16px] font-bold tracking-[-0.015em] text-[#071330]">
-                            {item.title}
-                          </span>
-                          <span className="mt-[3px] block text-[13.5px] leading-[1.45] text-[#3D4A5F]">
-                            {item.body}
-                          </span>
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
+              <p id={`${roleGroupId}-label`} className="account-hc-role-label">
+                How you&apos;ll use HouseCall
+              </p>
+              <div
+                role="radiogroup"
+                aria-labelledby={`${roleGroupId}-label`}
+                className="account-hc-roles"
+                data-testid="onboarding-role-group"
+              >
+                {ROLES.map((item) => {
+                  const selected = role === item.id
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      tabIndex={role === null ? 0 : selected ? 0 : -1}
+                      onClick={() => handleRoleSelect(item.id)}
+                      onKeyDown={(e) => {
+                        if (role) onRoleKeyDown(e, role)
+                        else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                          e.preventDefault()
+                          handleRoleSelect(item.id === 'customer' ? 'helper' : 'customer')
+                        }
+                      }}
+                      data-testid={`onboarding-role-${item.id}`}
+                      className={`account-hc-role ${selected ? 'is-on' : ''}`}
+                    >
+                      <span className="radio" aria-hidden>
+                        {selected ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="t">{item.title}</span>
+                        <span className="b">{item.body}</span>
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
 
               {role ? (
-                <div className="mt-[18px] mb-1.5 lg:hidden" data-testid="onboarding-benefits-mobile">
+                <div className="account-hc-benefits-mobile" data-testid="onboarding-benefits-mobile">
                   <BenefitsPanel role={role} />
                 </div>
               ) : null}
 
-              <div className="mt-[22px] sm:mt-7">
+              <div className="account-hc-city-field">
                 <UsCityCombobox
                   ref={cityRef}
                   value={city}
@@ -460,7 +428,7 @@ export function Onboarding() {
 
               {step1Error && !role ? (
                 <p
-                  className="mt-3 text-[13px] font-medium text-red-600"
+                  className="mt-3 text-[13px] font-medium text-[#DC2626]"
                   role="alert"
                   data-testid="onboarding-step1-error"
                 >
@@ -468,28 +436,28 @@ export function Onboarding() {
                 </p>
               ) : null}
 
-              <div className="mt-7">
+              <div className="account-hc-continue-wrap">
                 <Button
                   type="button"
                   size="lg"
                   aria-disabled={!canNext}
                   onClick={onStep1Continue}
                   data-testid="onboarding-next"
-                  className={`h-[52px] w-full rounded-[10px] px-7 text-[15px] font-semibold tracking-[-0.01em] shadow-none !transition-[background-color] disabled:opacity-100 ${
+                  className={`account-hc-btn account-hc-btn-lg w-full shadow-none !transition-[background-color] disabled:opacity-100 ${
                     canNext
                       ? 'bg-[#1D5CE5] text-white hover:bg-[#1649BD]'
-                      : 'bg-[#E2E8F0] text-[#64748B] hover:bg-[#CBD5E1]'
+                      : 'bg-[#E3E8EF] text-[#6B7384] hover:bg-[#D7E0EC]'
                   }`}
                 >
                   Continue
                 </Button>
 
                 {showAccountEscape ? (
-                  <p className="mt-[22px] text-center text-[13px] text-[#5B6575]">
+                  <p className="mt-[22px] text-center text-[13px] text-[#48556A]">
                     Not your account?{' '}
                     <button
                       type="button"
-                      className="font-medium text-[#5B6575] transition hover:text-[#071330]"
+                      className="font-medium text-[#48556A] transition hover:text-[#071330]"
                       data-testid="onboarding-sign-out"
                       onClick={() => void signOut()}
                     >
@@ -501,88 +469,87 @@ export function Onboarding() {
             </div>
 
             {role ? (
-              <div className="hidden min-h-0 lg:flex lg:flex-col" data-testid="onboarding-benefits-desktop">
+              <div className="account-hc-benefits-desktop min-h-0" data-testid="onboarding-benefits-desktop">
                 <BenefitsPanel role={role} className="flex-1" />
               </div>
             ) : null}
           </div>
-        </main>
-      ) : (
-        <main className="mx-auto flex w-full max-w-[480px] flex-1 flex-col px-5 pb-10 pt-8 sm:px-6 sm:pt-12 lg:pt-16">
-          <div data-testid="onboarding-step-2" className="animate-fade-up">
-            <h1 className="font-display text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-[#071330] sm:text-[32px]">
-              Our community rules
-            </h1>
-            <p className="mt-3 text-[15px] leading-[1.5] text-[#526077]">
-              Before continuing, please agree to keep HouseCall safe for everyone.
-            </p>
-
-            <div
-              className="mt-8 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-5 py-5"
-              data-testid="onboarding-safety-callout"
-            >
-              <p className="text-[16px] font-bold leading-[1.4] text-[#071330]">
-                Posting illegal content or listing sexual services is strictly prohibited.
+        ) : (
+          <div
+            data-testid="onboarding-step-2"
+            className="account-hc-wizard single animate-fade-up"
+          >
+            <div className="account-hc-card account-hc-rules">
+              <h1 className="account-hc-hero-title" style={{ fontSize: 28 }}>
+                Our community rules
+              </h1>
+              <p className="account-hc-lede">
+                Before continuing, please agree to keep HouseCall safe for everyone.
               </p>
-              <p className="mt-2.5 text-[15px] leading-[1.5] text-[#526077]">
-                Violating listings are removed immediately and accounts are suspended.
-              </p>
-            </div>
 
-            <p className="mt-5 text-[14px] leading-[1.55] text-[#64748B]">
-              HouseCall is for everyday local help: Home, Auto, Junk Removal, Pets, and Other casual
-              tasks. The same safety exclusions apply to custom Other requests.{' '}
-              <Link
-                href="/safety"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-[#1D5CE5] underline-offset-2 hover:underline"
-              >
-                Community guidelines
-              </Link>
-            </p>
-
-            {error ? (
-              <div
-                role="alert"
-                className="mt-6 rounded-lg border border-red-500/25 bg-red-50 px-4 py-3 text-[14px] text-red-700"
-                data-testid="onboarding-error"
-              >
-                {error}
+              <div className="account-hc-rules-callout" data-testid="onboarding-safety-callout">
+                <p className="t">
+                  Posting illegal content or listing sexual services is strictly prohibited.
+                </p>
+                <p className="b">
+                  Violating listings are removed immediately and accounts are suspended.
+                </p>
               </div>
-            ) : null}
 
-            <div className="mt-9 grid gap-3 sm:grid-cols-[1fr_1.4fr]">
-              <Button
-                type="button"
-                variant="secondary"
-                size="lg"
-                className="h-[52px] rounded-lg px-5 shadow-none"
-                onClick={() => {
-                  setError('')
-                  setStep(1)
-                }}
-                disabled={pending}
-                data-testid="onboarding-back"
-              >
-                <ArrowLeft className="h-4 w-4" aria-hidden />
-                Back
-              </Button>
-              <Button
-                type="button"
-                size="lg"
-                className="h-[52px] rounded-lg bg-[#1D5CE5] px-7 text-white shadow-none hover:bg-[#1649BD]"
-                loading={pending}
-                onClick={() => void onComplete()}
-                data-testid="onboarding-complete"
-              >
-                Agree and continue
-              </Button>
+              <p className="account-hc-rules-legal">
+                HouseCall is for everyday local help: Home, Auto, Junk Removal, Pets, and Other casual
+                tasks. The same safety exclusions apply to custom Other requests.{' '}
+                <Link
+                  href="/safety"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Community guidelines
+                </Link>
+              </p>
+
+              {error ? (
+                <div
+                  role="alert"
+                  className="mt-6 rounded-[10px] border border-[#DC2626]/25 bg-[#FEF2F2] px-4 py-3 text-[14px] text-[#DC2626]"
+                  data-testid="onboarding-error"
+                >
+                  {error}
+                </div>
+              ) : null}
+
+              <div className="account-hc-rules-actions">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="lg"
+                  className="account-hc-btn account-hc-btn-secondary account-hc-btn-lg shadow-none"
+                  onClick={() => {
+                    setError('')
+                    setStep(1)
+                  }}
+                  disabled={pending}
+                  data-testid="onboarding-back"
+                >
+                  <ArrowLeft className="h-4 w-4" aria-hidden />
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  size="lg"
+                  className="account-hc-btn account-hc-btn-lg bg-[#1D5CE5] text-white shadow-none hover:bg-[#1649BD]"
+                  loading={pending}
+                  onClick={() => void onComplete()}
+                  data-testid="onboarding-complete"
+                >
+                  Agree and continue
+                </Button>
+              </div>
             </div>
           </div>
-        </main>
-      )}
-      <LandingFooter />
+        )}
+      </div>
+      {!edit ? <LandingFooter /> : null}
     </div>
   )
 }

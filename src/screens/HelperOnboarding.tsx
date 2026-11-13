@@ -21,6 +21,7 @@ import {
   type UsCity,
 } from '@/lib/usPlaces'
 import type { AvailabilitySlot, RateType } from '@/types'
+import '@/components/account/account-hc.css'
 
 const SLOTS: { id: AvailabilitySlot; label: string }[] = [
   { id: 'mornings', label: 'Mornings' },
@@ -31,10 +32,9 @@ const SLOTS: { id: AvailabilitySlot; label: string }[] = [
 
 const RADIUS_OPTIONS = [3, 5, 10, 15, 25] as const
 
-const inputClass =
-  'h-12 w-full rounded-lg border border-[#E2E8F0] bg-white px-3.5 text-[15px] text-[#071330] outline-none transition placeholder:text-[#94A3B8] hover:border-[#CBD5E1] focus:border-[#1D5CE5] focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/15'
+const inputClass = 'account-hc-input'
 
-const labelClass = 'mb-2 block text-[13.5px] font-semibold text-[#071330]'
+const labelClass = 'account-hc-label'
 
 export function HelperOnboarding() {
   const { currentUser, updateProfile, mode, authUser, ready } = useBeam()
@@ -306,37 +306,44 @@ export function HelperOnboarding() {
   const photoLabel = avatar ? 'Change photo' : 'Upload photo'
 
   return (
-    <div className="py-2 sm:py-4" data-testid="helper-onboarding-root">
-      <div className="mx-auto w-full max-w-[560px]">
-        <Link
-          href="/browse"
-          className="inline-flex items-center text-[13.5px] font-medium text-[#64748B] transition hover:text-[#071330]"
-          data-testid="helper-onboarding-back"
+    <div className="account-hc" data-testid="helper-onboarding-root">
+      <div className="account-hc-wrap account-hc-page">
+        <div className="account-hc-title-row account-hc-form-narrow">
+          <div>
+            <Link
+              href="/browse"
+              className="account-hc-back-link"
+              data-testid="helper-onboarding-back"
+            >
+              ← Back to browse
+            </Link>
+            <h1 className="account-hc-hero-title">
+              {editing ? 'Edit helper profile' : 'Set up your helper profile'}
+            </h1>
+            <p className="account-hc-hero-sub">
+              Choose the tasks you take, your service area, and your rate.
+            </p>
+          </div>
+        </div>
+
+        <form
+          onSubmit={onSubmit}
+          className="account-hc-card account-hc-form-card"
+          data-testid="helper-onboarding-form"
+          noValidate
         >
-          ← Back to browse
-        </Link>
-
-        <h1 className="mt-5 font-display text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-[#071330] sm:text-[32px]">
-          {editing ? 'Edit helper profile' : 'Set up your helper profile'}
-        </h1>
-        <p className="mt-2 text-[15px] leading-[1.5] text-[#526077]">
-          Choose the tasks you take, your service area, and your rate.
-        </p>
-
-        <form onSubmit={onSubmit} className="mt-8" data-testid="helper-onboarding-form" noValidate>
           {error ? (
-            <div className="mb-6">
+            <div className="mb-2">
               <InlineBanner tone="error">{error}</InlineBanner>
             </div>
           ) : null}
 
-          {/* 1. Profile */}
-          <section className="space-y-5 pb-8" aria-labelledby="helper-section-profile">
+          <section aria-labelledby="helper-section-profile">
             <h2 id="helper-section-profile" className="sr-only">
               Profile
             </h2>
 
-            <div className="flex items-center gap-4">
+            <div className="account-hc-photo-row">
               <div className="shrink-0 overflow-hidden rounded-full">
                 <Avatar src={avatar || undefined} name={name || currentUser.name || 'You'} size={64} />
               </div>
@@ -345,16 +352,14 @@ export function HelperOnboarding() {
                   type="button"
                   variant="secondary"
                   size="sm"
-                  className="rounded-lg shadow-none"
+                  className="rounded-[10px] border border-[#E3E8EF] bg-white shadow-none"
                   loading={uploading}
                   onClick={() => fileRef.current?.click()}
                   data-testid="helper-upload-photo"
                 >
                   {photoLabel}
                 </Button>
-                <p className="mt-1.5 text-[13px] leading-[1.45] text-[#64748B]">
-                  Clear face photo helps neighbors recognize you.
-                </p>
+                <p className="hint-line">Clear face photo helps neighbors recognize you.</p>
               </div>
               <input
                 ref={fileRef}
@@ -365,7 +370,7 @@ export function HelperOnboarding() {
               />
             </div>
 
-            <div>
+            <div className="account-hc-field">
               <label htmlFor="helper-display-name" className={labelClass}>
                 Display name
               </label>
@@ -383,10 +388,9 @@ export function HelperOnboarding() {
               />
             </div>
 
-            <div>
+            <div className="account-hc-field">
               <label htmlFor="helper-bio" className={labelClass}>
-                Short bio{' '}
-                <span className="font-normal text-[#64748B]">(optional)</span>
+                Short bio <span className="account-hc-hint">(optional)</span>
               </label>
               <textarea
                 id="helper-bio"
@@ -395,25 +399,19 @@ export function HelperOnboarding() {
                 onChange={(e) => setBio(e.target.value)}
                 rows={3}
                 maxLength={400}
-                placeholder="Experienced with apartment moves, furniture assembly, and deliveries…"
-                className={`${inputClass} h-auto min-h-[96px] py-3`}
+                placeholder="Experienced with apartment moves, furniture assembly, and deliveries..."
+                className="account-hc-textarea"
                 data-testid="helper-bio"
               />
             </div>
           </section>
 
-          <div className="border-t border-[#E2E8F0]" />
+          <hr className="account-hc-divider" />
 
-          {/* 2. Skills */}
-          <section className="space-y-4 py-8" aria-labelledby="helper-section-skills">
-            <div>
-              <h2
-                id="helper-section-skills"
-                className="text-[13.5px] font-semibold text-[#071330]"
-              >
-                What tasks do you take?
-              </h2>
-            </div>
+          <section aria-labelledby="helper-section-skills">
+            <h2 id="helper-section-skills" className="account-hc-section-label">
+              What tasks do you take?
+            </h2>
             <div data-testid="helper-skills-grid">
               <CategorySelect
                 mode="multi"
@@ -432,10 +430,9 @@ export function HelperOnboarding() {
             </div>
           </section>
 
-          <div className="border-t border-[#E2E8F0]" />
+          <hr className="account-hc-divider" />
 
-          {/* 3. Service area */}
-          <section className="space-y-5 py-8" aria-labelledby="helper-section-area">
+          <section aria-labelledby="helper-section-area">
             <h2 id="helper-section-area" className="sr-only">
               Service area
             </h2>
@@ -453,10 +450,11 @@ export function HelperOnboarding() {
               />
               {!city && customLocationLabel ? (
                 <p
-                  className="mt-2 text-[13px] text-[#64748B]"
+                  className="mt-2 text-[13px] text-[#48556A]"
                   data-testid="helper-custom-location"
                 >
-                  Using detected location: <span className="font-medium text-[#071330]">{customLocationLabel}</span>
+                  Using detected location:{' '}
+                  <span className="font-medium text-[#071330]">{customLocationLabel}</span>
                   {' · '}
                   <button
                     type="button"
@@ -484,10 +482,10 @@ export function HelperOnboarding() {
               ) : null}
             </div>
 
-            <div>
+            <div className="account-hc-field">
               <p className={labelClass}>Travel radius</p>
               <div
-                className="flex flex-wrap gap-2"
+                className="account-hc-choice-row"
                 role="radiogroup"
                 aria-label="Travel radius"
                 data-testid="helper-radius-group"
@@ -501,11 +499,7 @@ export function HelperOnboarding() {
                       role="radio"
                       aria-checked={on}
                       onClick={() => setServiceRadiusMiles(miles)}
-                      className={`rounded-md px-3.5 py-2 text-[13px] font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
-                        on
-                          ? 'border border-[#1D5CE5] bg-[#EEF4FF] text-[#1D5CE5]'
-                          : 'border border-[#E2E8F0] bg-white text-[#475569] hover:border-[#CBD5E1]'
-                      }`}
+                      className={`account-hc-choice ${on ? 'is-on' : ''}`}
                     >
                       {miles} mi
                     </button>
@@ -515,10 +509,9 @@ export function HelperOnboarding() {
             </div>
           </section>
 
-          <div className="border-t border-[#E2E8F0]" />
+          <hr className="account-hc-divider" />
 
-          {/* 4. Rate & availability */}
-          <section className="space-y-5 py-8" aria-labelledby="helper-section-rate">
+          <section aria-labelledby="helper-section-rate">
             <h2 id="helper-section-rate" className="sr-only">
               Rate and availability
             </h2>
@@ -527,7 +520,7 @@ export function HelperOnboarding() {
               <p className={labelClass}>Rate</p>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div
-                  className="inline-flex rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-1"
+                  className="account-hc-seg"
                   role="radiogroup"
                   aria-label="Rate type"
                   data-testid="helper-rate-type"
@@ -546,11 +539,7 @@ export function HelperOnboarding() {
                         role="radio"
                         aria-checked={on}
                         onClick={() => setRateType(id)}
-                        className={`rounded-lg px-3.5 py-2 text-[13px] font-semibold transition ${
-                          on
-                            ? 'bg-white text-[#071330] shadow-sm ring-1 ring-[#E2E8F0]'
-                            : 'text-[#64748B] hover:text-[#071330]'
-                        }`}
+                        className={on ? 'is-on' : undefined}
                       >
                         {label}
                       </button>
@@ -559,11 +548,8 @@ export function HelperOnboarding() {
                 </div>
 
                 {rateType === 'hourly' ? (
-                  <div
-                    className="relative inline-flex h-12 w-36 items-center rounded-lg border border-[#E2E8F0] bg-white focus-within:border-[#1D5CE5] focus-within:ring-4 focus-within:ring-[#1D5CE5]/15"
-                    data-testid="helper-hourly-rate"
-                  >
-                    <span className="pl-3.5 text-[15px] font-semibold text-[#64748B]" aria-hidden>
+                  <div className="account-hc-rate-input" data-testid="helper-hourly-rate">
+                    <span className="pre" aria-hidden>
                       $
                     </span>
                     <input
@@ -575,28 +561,23 @@ export function HelperOnboarding() {
                         setHourlyRate(e.target.value.replace(/[^\d]/g, '').slice(0, 4))
                       }
                       aria-label="Hourly rate in USD"
-                      className="h-full w-full min-w-0 bg-transparent px-1.5 text-[15px] font-semibold tabular-nums text-[#071330] outline-none"
                     />
-                    <span className="pr-3.5 text-[13px] font-medium text-[#94A3B8]" aria-hidden>
+                    <span className="post" aria-hidden>
                       / hr
                     </span>
                   </div>
                 ) : (
-                  <p className="text-[13.5px] leading-[1.45] text-[#64748B] sm:max-w-[240px] sm:text-right">
+                  <p className="text-[13.5px] leading-[1.45] text-[#48556A] sm:max-w-[240px] sm:text-right">
                     Neighbors will describe the task and ask for your price.
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-4 py-1">
+            <div className="account-hc-toggle-row">
               <div className="min-w-0">
-                <p className="text-[13.5px] font-semibold text-[#071330]">
-                  Available for same-day tasks
-                </p>
-                <p className="mt-0.5 text-[13px] leading-[1.45] text-[#64748B]">
-                  Show an Available badge on your profile today
-                </p>
+                <p className="lbl">Available for same-day tasks</p>
+                <p className="hint-line">Show an Available badge on your profile today</p>
               </div>
               <button
                 type="button"
@@ -604,24 +585,17 @@ export function HelperOnboarding() {
                 aria-checked={availableNow}
                 onClick={() => setAvailableNow((v) => !v)}
                 data-testid="helper-available-now"
-                className={`relative h-7 w-12 shrink-0 rounded-full transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
-                  availableNow ? 'bg-[#1D5CE5]' : 'bg-[#CBD5E1]'
-                }`}
+                className="account-hc-switch"
               >
-                <span
-                  className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition ${
-                    availableNow ? 'left-[22px]' : 'left-0.5'
-                  }`}
-                />
+                <span className="knob" />
               </button>
             </div>
 
-            <div>
+            <div className="account-hc-field">
               <p className={labelClass}>
-                Typical schedule{' '}
-                <span className="font-normal text-[#64748B]">(optional)</span>
+                Typical schedule <span className="account-hc-hint">(optional)</span>
               </p>
-              <div className="flex flex-wrap gap-2" data-testid="helper-availability-slots">
+              <div className="account-hc-choice-row" data-testid="helper-availability-slots">
                 {SLOTS.map((slot) => {
                   const on = availability.includes(slot.id)
                   return (
@@ -630,11 +604,7 @@ export function HelperOnboarding() {
                       type="button"
                       aria-pressed={on}
                       onClick={() => toggleSlot(slot.id)}
-                      className={`rounded-md px-3.5 py-2 text-[13px] font-semibold transition ${
-                        on
-                          ? 'border border-[#1D5CE5] bg-[#EEF4FF] text-[#1D5CE5]'
-                          : 'border border-[#E2E8F0] bg-white text-[#475569] hover:border-[#CBD5E1]'
-                      }`}
+                      className={`account-hc-choice ${on ? 'is-on' : ''}`}
                     >
                       {slot.label}
                     </button>
@@ -644,12 +614,12 @@ export function HelperOnboarding() {
             </div>
           </section>
 
-          <div className="border-t border-[#E2E8F0]" />
+          <hr className="account-hc-divider" />
 
-          <div className="flex flex-col-reverse gap-3 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="account-hc-form-actions">
             <Link
               href="/browse"
-              className="inline-flex h-12 items-center justify-center rounded-lg px-5 text-[14px] font-semibold text-[#64748B] transition hover:bg-[#F8FAFC] hover:text-[#071330]"
+              className="account-hc-btn account-hc-btn-ghost account-hc-btn-lg"
               data-testid="helper-onboarding-cancel"
             >
               {editing ? 'Cancel' : 'Skip for now'}
@@ -658,7 +628,7 @@ export function HelperOnboarding() {
               type="submit"
               size="lg"
               loading={pending}
-              className="h-[52px] rounded-lg bg-[#1D5CE5] px-7 text-white shadow-none hover:bg-[#1649BD] sm:min-w-[220px]"
+              className="account-hc-btn account-hc-btn-lg h-[52px] rounded-[10px] bg-[#1D5CE5] px-7 text-white shadow-none hover:bg-[#1649BD] sm:min-w-[220px]"
               data-testid="helper-onboarding-submit"
             >
               {editing ? 'Save helper profile' : 'Publish helper profile'}

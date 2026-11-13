@@ -3,13 +3,16 @@
 import {
   ArrowRight,
   ChevronDown,
-  LogOut,
   Plus,
   UserRound,
 } from 'lucide-react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  AccountMenuPanel,
+  AccountMenuTrigger,
+} from '@/components/account/AccountMenuLinks'
 import { BottomNav } from './BottomNav'
 import { BeamWordmark } from '@/components/BeamMark'
 import {
@@ -24,10 +27,12 @@ import { LandingNav } from '@/components/landing/LandingNav'
 import { useBeam } from '@/context/BeamContext'
 import { useBrowseLocation } from '@/hooks/useBrowseLocation'
 import { Avatar } from '@/components/ui'
+import '@/components/account/account-hc.css'
 
 const primaryNav = [{ href: '/browse', label: 'Browse' }]
 
-function shouldHideAppChrome(pathname: string) {
+function shouldHideAppChrome(pathname: string, onboardingEdit: boolean) {
+  if (pathname === '/onboarding' && onboardingEdit) return false
   return (
     pathname === '/' ||
     pathname === '/onboarding' ||
@@ -53,10 +58,22 @@ function navItemActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
+function usesBrowseHeader(pathname: string, onboardingEdit: boolean) {
+  return (
+    pathname === '/browse' ||
+    pathname === '/you' ||
+    pathname === '/home' ||
+    pathname.startsWith('/onboarding/helper') ||
+    (pathname === '/onboarding' && onboardingEdit)
+  )
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const onboardingEdit = pathname === '/onboarding' && searchParams.get('edit') === '1'
   const { currentUser, mode, ready, authUser, signOut } = useBeam()
-  const hideChrome = shouldHideAppChrome(pathname)
+  const hideChrome = shouldHideAppChrome(pathname, onboardingEdit)
   const [accountOpen, setAccountOpen] = useState(false)
   const accountRef = useRef<HTMLDivElement>(null)
   // Live guests get marketing chrome on public discovery routes.
@@ -66,6 +83,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isMessagesPath = pathname === '/messages' || pathname.startsWith('/messages/')
   // Messages keeps a tall workspace panel. Browse v3 uses normal document scroll.
   const messagesWorkspaceMain = isMessagesPath
+  const browseHeader = usesBrowseHeader(pathname, onboardingEdit)
 
   useEffect(() => {
     setAccountOpen(false)
@@ -98,20 +116,20 @@ export function AppShell({ children }: { children: ReactNode }) {
     pathname !== '/post' &&
     !pathname.startsWith('/post/') &&
     !isHelperOnboarding
-  const canSignOut = Boolean(authUser)
+  const canSignOut = Boolean(authUser) || mode === 'demo'
   const showHelperSetupBanner =
     ready &&
     !isLiveGuest &&
     currentUser.accountRole === 'helper' &&
     !currentUser.isHelper &&
     !isHelperOnboarding
-  const shellBg = isHelperOnboarding ? 'bg-white' : 'bg-[#F4F8FD]'
+  const shellBg = isHelperOnboarding ? 'bg-[#F5F9FF]' : 'bg-[#F4F8FD]'
 
   if (hideChrome) {
     return <div className="app-shell relative min-h-dvh text-[#071330]">{children}</div>
   }
 
-  if (isBrowsePath) {
+  if (browseHeader) {
     return (
       <div className="app-shell relative flex min-h-dvh flex-col bg-[#F5F9FF] text-[#071330]">
         <BrowseFloatHeader guest={isLiveGuest} showHelperBanner={showHelperSetupBanner && !isLiveGuest} />
@@ -119,7 +137,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <LandingFooter dockPadding={!isLiveGuest} />
         <BrowseLocationDialogHost />
         <MessagesDrawerHost />
-        {isLiveGuest ? null : <BottomNav />}
+        {isLiveGuest && isBrowsePath ? null : <BottomNav />}
       </div>
     )
   }
@@ -170,7 +188,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         ) : null}
 
         <header
-          className="border-b border-[#E2E8F0] bg-white"
+          className="border-b border-[#E3E8EF] bg-white"
           data-testid="app-topnav"
         >
           <div className="beam-container flex h-14 items-center gap-3">
@@ -184,7 +202,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   tone="ink"
                 />
               </Link>
-              <span className="hidden h-4 w-px bg-[#E2E8F0] md:block" aria-hidden />
+              <span className="hidden h-4 w-px bg-[#E3E8EF] md:block" aria-hidden />
               <nav
                 className="hidden h-14 items-center gap-1 md:flex"
                 aria-label="Primary"
@@ -198,7 +216,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       className={`relative inline-flex h-14 items-center gap-1.5 px-3 text-[13.5px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 ${
                         active
                           ? 'text-[#071330] after:absolute after:inset-x-2 after:bottom-0 after:h-[2px] after:bg-[#1D5CE5]'
-                          : 'text-[#475569] hover:text-[#071330]'
+                          : 'text-[#48556A] hover:text-[#071330]'
                       }`}
                       aria-current={active ? 'page' : undefined}
                     >
@@ -213,7 +231,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {/* Right: location + CTA + account (Messages nav carries unread; no bell) */}
             <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
               {process.env.NODE_ENV !== 'production' ? (
-                <span className="hidden rounded-md border border-[#C7D7F0] px-2 py-1 text-[11px] font-semibold text-[#334155] lg:inline-flex">
+                <span className="hidden rounded-md border border-[#D7E0EC] px-2 py-1 text-[11px] font-semibold text-[#48556A] lg:inline-flex">
                   {mode === 'live' ? 'Live' : 'Demo'}
                 </span>
               ) : null}
@@ -222,10 +240,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
               <BrowseLocationTrigger
                 label={locationText}
-                className="inline-flex h-9 max-w-[9.5rem] items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium text-[#475569] transition hover:bg-[#F8FAFC] hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:px-2.5"
+                className="inline-flex h-9 max-w-[9.5rem] items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium text-[#48556A] transition hover:bg-[#F4F8FD] hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:px-2.5"
               />
 
-              <span className="hidden h-4 w-px bg-[#E2E8F0] sm:block" aria-hidden />
+              <span className="hidden h-4 w-px bg-[#E3E8EF] sm:block" aria-hidden />
 
               {showPostCta ? (
                 <Link
@@ -239,80 +257,34 @@ export function AppShell({ children }: { children: ReactNode }) {
               ) : null}
 
               <div className="relative" ref={accountRef}>
-                <button
-                  type="button"
-                  data-testid="account-menu-trigger"
-                  aria-label="Account menu"
-                  aria-expanded={accountOpen}
-                  aria-haspopup="menu"
-                  onClick={() => {
-                    setAccountOpen((o) => !o)
-                  }}
-                  className="inline-flex h-9 max-w-[11rem] items-center gap-2 rounded-lg px-2 transition hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 sm:max-w-[14rem]"
+                <AccountMenuTrigger
+                  open={accountOpen}
+                  onToggle={() => setAccountOpen((o) => !o)}
                 >
                   {ready ? (
                     <Avatar src={currentUser.avatar} name={currentUser.name} size={26} />
                   ) : (
-                    <span className="inline-flex h-[26px] w-[26px] items-center justify-center rounded-lg bg-[#EEF4FF] text-[#1D5CE5]">
+                    <span className="inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-[#F5F9FF] text-[#1D5CE5]">
                       <UserRound className="h-3.5 w-3.5" />
                     </span>
                   )}
                   <span className="hidden truncate text-[13px] font-medium text-[#071330] sm:inline">
                     {ready ? currentUser.name.split(' ')[0] || currentUser.name : '…'}
                   </span>
-                  <ChevronDown className="hidden h-3.5 w-3.5 shrink-0 text-[#475569] sm:block" aria-hidden />
-                </button>
+                  <ChevronDown className="chev hidden h-3.5 w-3.5 shrink-0 sm:block" aria-hidden />
+                </AccountMenuTrigger>
                 {accountOpen ? (
-                  <div
-                    className="absolute right-0 top-11 z-50 w-[min(280px,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)]"
-                    role="menu"
-                    aria-label="Account"
-                    data-testid="account-menu"
-                  >
-                    <div className="border-b border-[#F1F5F9] px-4 py-3.5">
-                      <p className="truncate text-[14px] font-bold text-[#071330]">
-                        {ready ? currentUser.name : '…'}
-                      </p>
-                      <p className="mt-0.5 truncate text-[12.5px] font-medium text-[#334155]">{locationText}</p>
-                    </div>
-                    <ul className="py-1.5">
-                      <AccountMenuLink href="/you" onNavigate={() => setAccountOpen(false)}>
-                        Profile &amp; account
-                      </AccountMenuLink>
-                      <AccountMenuLink href="/home" onNavigate={() => setAccountOpen(false)}>
-                        My activity
-                      </AccountMenuLink>
-                      <AccountMenuLink
-                        href="/onboarding/helper"
-                        onNavigate={() => setAccountOpen(false)}
-                      >
-                        Helper profile
-                      </AccountMenuLink>
-                      <AccountMenuLink
-                        href="/onboarding?edit=1"
-                        onNavigate={() => setAccountOpen(false)}
-                      >
-                        Change city
-                      </AccountMenuLink>
-                    </ul>
-                    {canSignOut ? (
-                      <div className="border-t border-[#F1F5F9] py-1.5">
-                        <button
-                          type="button"
-                          role="menuitem"
-                          data-testid="account-sign-out"
-                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[13.5px] font-semibold text-[#DC2626] transition hover:bg-[#FEF2F2] focus-visible:bg-[#FEF2F2] focus-visible:outline-none"
-                          onClick={() => {
-                            setAccountOpen(false)
-                            void signOut()
-                          }}
-                        >
-                          <LogOut className="h-4 w-4" strokeWidth={1.85} />
-                          Sign out
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
+                  <AccountMenuPanel
+                    name={ready ? currentUser.name : '…'}
+                    locationText={locationText}
+                    open={accountOpen}
+                    onNavigate={() => setAccountOpen(false)}
+                    canSignOut={canSignOut}
+                    onSignOut={() => {
+                      setAccountOpen(false)
+                      void signOut()
+                    }}
+                  />
                 ) : null}
               </div>
             </div>
@@ -337,28 +309,5 @@ export function AppShell({ children }: { children: ReactNode }) {
       <MessagesDrawerHost />
       <BottomNav />
     </div>
-  )
-}
-
-function AccountMenuLink({
-  href,
-  onNavigate,
-  children,
-}: {
-  href: string
-  onNavigate: () => void
-  children: ReactNode
-}) {
-  return (
-    <li>
-      <Link
-        href={href}
-        role="menuitem"
-        onClick={onNavigate}
-        className="block px-4 py-2.5 text-[13.5px] font-semibold text-[#071330] transition hover:bg-[#F8FAFC] focus-visible:bg-[#F8FAFC] focus-visible:outline-none"
-      >
-        {children}
-      </Link>
-    </li>
   )
 }

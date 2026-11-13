@@ -2,14 +2,14 @@
 
 import { useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Bell, CheckCircle2, MessageCircle, Star } from 'lucide-react'
+import { Bell, CheckCircle2, ChevronRight, MessageCircle, Star } from 'lucide-react'
 import { RequestCard } from '@/components/RequestCard'
-import { ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { BROWSE_PARENTS } from '@/lib/taxonomy'
 import { distanceBetween } from '@/lib/location'
 import { rankHelpersForRequest } from '@/lib/matching'
 import type { HelpRequest } from '@/types'
+import '@/components/account/account-hc.css'
 
 function greeting() {
   const h = new Date().getHours()
@@ -159,130 +159,128 @@ export function HomeDashboard() {
   }, [isHelper, state.requests, currentUser])
 
   return (
-    <div className="py-2 sm:py-4">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-[clamp(2rem,4vw,2.5rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
-            {greeting()}, {first}
-          </h1>
-          <p className="mt-2 text-[16px] text-[#64748B]">
-            {isHelper
-              ? 'Same-day jobs matched to your skills and area.'
-              : 'Post a request or browse helpers nearby.'}
-          </p>
-        </div>
-
-        {isHelper ? (
-          <div className="flex items-center gap-3 rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-2.5 shadow-[0_8px_20px_-12px_rgba(12,42,102,0.12)]">
-            <div>
-              <p className="text-[13px] font-semibold text-[#071330]">Available now</p>
-              <p className="text-[11px] text-[#64748B]">Boost same-day matches</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={Boolean(currentUser.availableNow)}
-              onClick={() => updateProfile({ availableNow: !currentUser.availableNow })}
-              className={`relative h-7 w-12 rounded-full transition ${
-                currentUser.availableNow ? 'bg-emerald-500' : 'bg-[#CBD5E1]'
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition ${
-                  currentUser.availableNow ? 'left-[22px]' : 'left-0.5'
-                }`}
-              />
-            </button>
+    <div className="account-hc" data-testid="home-dashboard">
+      <div className="account-hc-wrap account-hc-page">
+        <div className="account-hc-title-row">
+          <div>
+            <h1 className="account-hc-hero-title">
+              {greeting()}, {first}
+            </h1>
+            <p className="account-hc-hero-sub">
+              {isHelper
+                ? 'Same-day jobs matched to your skills and area.'
+                : 'Post a request or browse helpers nearby.'}
+            </p>
           </div>
-        ) : (
-          <ButtonLink href={becomeHelperHref} variant="secondary">
-            Become a helper
-          </ButtonLink>
-        )}
-      </div>
 
-      {actionItems.length ? (
-        <section className="mt-10">
-          <h2 className="font-display text-[22px] font-bold text-[#071330]">Action items</h2>
-          <ul className="mt-4 divide-y divide-[rgba(7,19,48,0.08)] overflow-hidden rounded-lg border border-[rgba(7,19,48,0.08)] bg-white">
-            {actionItems.map((row) => (
-              <li key={row.id}>
-                <Link
-                  href={row.href}
-                  className="flex items-center gap-3 px-4 py-4 text-[15px] text-[#071330] transition hover:bg-[#F4F8FD]"
-                >
-                  <ActionIcon kind={row.icon} />
-                  <span className="min-w-0 flex-1 truncate font-medium">{row.label}</span>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-[#94A3B8]" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {isHelper ? (
-        <section className="mt-12">
-          <div className="mb-5 flex items-end justify-between gap-3">
-            <h2 className="font-display text-[22px] font-bold text-[#071330]">Good matches</h2>
-            <Link href="/browse" className="text-[14px] font-semibold text-[#1D5CE5]">
-              See all →
-            </Link>
-          </div>
-          {goodMatches.length ? (
-            <div className="grid gap-5 sm:grid-cols-2">
-              {goodMatches.map(({ request, reasons }) => (
-                <div key={request.id} className="space-y-2">
-                  <RequestCard request={request} />
-                  <p className="px-1 text-[12.5px] font-medium text-[#64748B]">
-                    {reasons.slice(0, 3).join(' · ')}
-                  </p>
-                </div>
-              ))}
+          {isHelper ? (
+            <div className="account-hc-card account-hc-avail-card">
+              <div>
+                <p className="lbl">Available now</p>
+                <p className="hint">Boost same-day matches</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={Boolean(currentUser.availableNow)}
+                aria-label="Available now"
+                onClick={() => updateProfile({ availableNow: !currentUser.availableNow })}
+                className="account-hc-switch"
+              >
+                <span className="knob" />
+              </button>
             </div>
           ) : (
-            <div className="rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-6 py-10 text-center">
-              <p className="font-display text-[20px] font-bold text-[#071330]">
-                No strong matches yet
-              </p>
-              <p className="mt-2 text-[14px] text-[#64748B]">
-                Browse open requests or update your skills and radius.
-              </p>
-              <div className="mt-5 flex flex-wrap justify-center gap-2">
-                <ButtonLink href="/browse">Browse requests</ButtonLink>
-                <ButtonLink href="/onboarding/helper" variant="secondary">
-                  Edit helper profile
-                </ButtonLink>
-              </div>
-            </div>
-          )}
-        </section>
-      ) : (
-        <section className="mt-12">
-          <h2 className="font-display text-[22px] font-bold text-[#071330]">Quick post</h2>
-          <p className="mt-1 text-[14px] text-[#64748B]">
-            Pick a category and get help today.
-          </p>
-          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {BROWSE_PARENTS.map((p) => (
-              <Link
-                key={p.id}
-                href={`/post?category=${p.id}`}
-                className="rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4 text-left transition hover:border-[rgba(29,92,229,0.28)] hover:shadow-[0_12px_28px_-16px_rgba(12,42,102,0.14)]"
-              >
-                <p className="text-[15px] font-bold text-[#071330]">{p.shortLabel}</p>
-                <p className="mt-1 text-[12.5px] text-[#64748B]">{p.description}</p>
-              </Link>
-            ))}
-          </div>
-          <div className="mt-6 flex flex-wrap gap-2">
-            <ButtonLink href="/post">Post a request</ButtonLink>
-            <ButtonLink href={becomeHelperHref} variant="secondary">
+            <Link href={becomeHelperHref} className="account-hc-btn account-hc-btn-secondary">
               Become a helper
-            </ButtonLink>
-          </div>
-        </section>
-      )}
+            </Link>
+          )}
+        </div>
+
+        {actionItems.length ? (
+          <section className="account-hc-section">
+            <h2 className="account-hc-section-head" style={{ display: 'block', marginBottom: 16 }}>
+              Action items
+            </h2>
+            <ul className="account-hc-card account-hc-list">
+              {actionItems.map((row) => (
+                <li key={row.id}>
+                  <Link href={row.href} className="account-hc-list-row account-hc-action-row">
+                    <span className="ico" aria-hidden>
+                      <ActionIcon kind={row.icon} />
+                    </span>
+                    <span className="label">{row.label}</span>
+                    <ChevronRight className="chev h-4 w-4" strokeWidth={2} aria-hidden />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        {isHelper ? (
+          <section className="account-hc-section">
+            <div className="account-hc-section-head">
+              <h2>Good matches</h2>
+              <Link href="/browse" className="account-hc-text-link">
+                See all →
+              </Link>
+            </div>
+            {goodMatches.length ? (
+              <div className="account-hc-job-grid">
+                {goodMatches.map(({ request, reasons }) => (
+                  <div key={request.id}>
+                    <RequestCard request={request} />
+                    <p className="account-hc-match-why">{reasons.slice(0, 3).join(' · ')}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="account-hc-card account-hc-empty">
+                <h3>No strong matches yet</h3>
+                <p>Browse open requests or update your skills and radius.</p>
+                <div className="actions">
+                  <Link href="/browse" className="account-hc-btn">
+                    Browse requests
+                  </Link>
+                  <Link href="/onboarding/helper" className="account-hc-btn account-hc-btn-secondary">
+                    Edit helper profile
+                  </Link>
+                </div>
+              </div>
+            )}
+          </section>
+        ) : (
+          <section className="account-hc-section">
+            <h2 className="account-hc-section-head" style={{ display: 'block', marginBottom: 8 }}>
+              Quick post
+            </h2>
+            <p className="account-hc-hero-sub" style={{ marginTop: 0, marginBottom: 16 }}>
+              Pick a category and get help today.
+            </p>
+            <div className="account-hc-quick-grid">
+              {BROWSE_PARENTS.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/post?category=${p.id}`}
+                  className="account-hc-card account-hc-quick-tile"
+                >
+                  <p className="t">{p.shortLabel}</p>
+                  <p className="d">{p.description}</p>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-6 flex flex-wrap gap-2">
+              <Link href="/post" className="account-hc-btn">
+                Post a request
+              </Link>
+              <Link href={becomeHelperHref} className="account-hc-btn account-hc-btn-secondary">
+                Become a helper
+              </Link>
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   )
 }
@@ -292,7 +290,7 @@ function ActionIcon({
 }: {
   kind: 'offer' | 'job' | 'msg' | 'review' | 'bell'
 }) {
-  const className = 'h-4 w-4 text-[#1D5CE5]'
+  const className = 'h-4 w-4'
   switch (kind) {
     case 'offer':
       return <CheckCircle2 className={className} />
