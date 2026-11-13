@@ -13,7 +13,7 @@ import type { NeighborhoodId } from '@/types'
 import './landing-v2.css'
 
 /**
- * Landing v2 hero — atmospheric Beam-blue field, search-first (no framed Browse preview).
+ * Landing v2 hero. Atmospheric brand-blue field, search-first (no framed Browse preview).
  * Guests: category picker. Signed-in: neighborhood picker.
  */
 export function LandingHero() {

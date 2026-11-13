@@ -3,7 +3,7 @@
 import { createElement } from 'react'
 import { getBrowseCategoryIcon } from '@/lib/categoryIcons'
 
-/** Beam-tint category tile used when a job has no listing photo. */
+/** Brand-tint category tile used when a job has no listing photo. */
 export function BrowseCategoryThumb({
   categoryId,
   size = 'row',

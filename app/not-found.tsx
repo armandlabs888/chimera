@@ -3,10 +3,10 @@ import Link from 'next/link'
 export default function NotFound() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-beam-base px-4 text-center">
-      <p className="text-[22px] font-semibold tracking-tight text-[#071330]">Beam</p>
+      <p className="text-[22px] font-semibold tracking-tight text-[#071330]">HouseCall</p>
       <h1 className="mt-4 type-h2 text-beam-cream">Page not found</h1>
       <p className="mt-2 max-w-md type-sec text-beam-muted">
-        That route is not part of Beam. Try Browse, Post, or the app home.
+        That route is not part of HouseCall. Try Browse, Post, or the app home.
       </p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
         <Link

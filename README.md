@@ -1,14 +1,14 @@
 # chimera
 
-This repository hosts the **Beam** MVP (hyper-local same-day help marketplace).
+This repository hosts the **HouseCall** MVP (hyper-local same-day help marketplace).
 
 ---
 
-# Beam
+# HouseCall
 
 **Help nearby. Done today.**
 
-Beam is a hyper-local, same-day help marketplace. People post practical jobs nearby; neighbors respond with a time and a price.
+HouseCall is a hyper-local, same-day help marketplace. People post practical jobs nearby; neighbors respond with a time and a price.
 
 ## Modes
 

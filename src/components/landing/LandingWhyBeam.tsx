@@ -19,7 +19,7 @@ const PILLARS = [
 ] as const
 
 /**
- * Why Beam — Landing v2 split list (no fabricated social proof).
+ * Why HouseCall. Landing v2 split list (no fabricated social proof).
  */
 export function LandingWhyBeam() {
   return (
@@ -36,7 +36,7 @@ export function LandingWhyBeam() {
         <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-start">
           <div>
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#1D5CE5]">
-              Why Beam
+              Why HouseCall
             </p>
             <h2 className="mt-1.5 text-[26px] font-bold tracking-[-0.02em] text-[#071330] md:text-[30px]">
               Know what you’re choosing.

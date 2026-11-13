@@ -71,7 +71,7 @@ async function probe(page) {
       signOutTestIdCount: document.querySelectorAll('[data-testid="onboarding-sign-out"]').length,
       headerText: document.querySelector('[data-testid="onboarding-header"]')?.textContent || '',
       headerLogoLinkCount: document.querySelectorAll(
-        '[data-testid="onboarding-header"] a[aria-label="Beam home"]',
+        '[data-testid="onboarding-header"] a[aria-label="HouseCall home"]',
       ).length,
     }
   })
@@ -220,7 +220,7 @@ async function runViewport(browser, vp) {
     await page.waitForSelector('[data-testid="onboarding-step-1"]')
 
     let p = await assertCleanChrome(page, `${prefix} step1-empty`)
-    assert.match(p.textSample, /Welcome to Beam/i)
+    assert.match(p.textSample, /Welcome to HouseCall/i)
     assert.match(await page.getByTestId('onboarding-step-1').innerText(), /\bNeighbor\b/)
     assert.doesNotMatch(await page.getByTestId('onboarding-step-1').innerText(), /\bCustomer\b/)
     assert.doesNotMatch(await page.getByTestId('onboarding-step-1').innerText(), /Popular/i)
@@ -280,7 +280,8 @@ async function runViewport(browser, vp) {
       await benefitsVisible.first().innerText(),
       /Address verification is required before you can make an offer/i,
     )
-    assert.match(await benefitsVisible.first().innerText(), /electricity or water bill/i)
+    assert.match(await benefitsVisible.first().innerText(), /one-time location check/i)
+    assert.doesNotMatch(await benefitsVisible.first().innerText(), /electricity or water bill/i)
     if (vp.width >= 1024) {
       await assertDesktopSideBySide(page, `${prefix} helper benefits`)
     }

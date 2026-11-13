@@ -1,5 +1,5 @@
 /**
- * Guest location-copy + Why Beam refactor visual QA.
+ * Guest location-copy + Why HouseCall refactor visual QA.
  */
 import { chromium } from 'playwright'
 import { mkdirSync, copyFileSync, writeFileSync } from 'node:fs'
@@ -121,29 +121,29 @@ try {
     })
     console.log(`PASS guest-home @ ${vp.name} → ${heroArtifact}`)
 
-    // ——— Why Beam section (factual pillars; no live offers / nested Available services) ———
+    // Why HouseCall section (factual pillars; no live offers / nested Available services)
     const why = page.getByTestId('why-beam-section')
     await why.scrollIntoViewIfNeeded()
     await page.waitForTimeout(200)
 
     const formCount = await why.locator('form').count()
     if (formCount !== 0) {
-      throw new Error(`Why Beam still has ${formCount} form(s) @ ${vp.name}`)
+      throw new Error(`Why HouseCall still has ${formCount} form(s) @ ${vp.name}`)
     }
     if ((await why.getByPlaceholder('What service do you need?').count()) > 0) {
-      throw new Error(`Why Beam still shows duplicate service input @ ${vp.name}`)
+      throw new Error(`Why HouseCall still shows duplicate service input @ ${vp.name}`)
     }
     if ((await why.locator('select').count()) > 0) {
-      throw new Error(`Why Beam still has native select @ ${vp.name}`)
+      throw new Error(`Why HouseCall still has native select @ ${vp.name}`)
     }
     if ((await why.getByTestId('available-services').count()) > 0) {
-      throw new Error(`Available services still nested inside Why Beam @ ${vp.name}`)
+      throw new Error(`Available services still nested inside Why HouseCall @ ${vp.name}`)
     }
     if ((await page.getByTestId('why-beam-live-offers').count()) > 0) {
       throw new Error(`Hardcoded live offers restored @ ${vp.name}`)
     }
     if ((await page.getByTestId('why-beam-showcase').count()) > 0) {
-      throw new Error(`Why Beam showcase collage still present @ ${vp.name}`)
+      throw new Error(`Why HouseCall showcase collage still present @ ${vp.name}`)
     }
 
     const whyHeading = (
@@ -152,12 +152,12 @@ try {
       .replace(/\s+/g, ' ')
       .trim()
     if (!/Know what you.?re choosing/i.test(whyHeading)) {
-      throw new Error(`Why Beam h2 mismatch: "${whyHeading}"`)
+      throw new Error(`Why HouseCall h2 mismatch: "${whyHeading}"`)
     }
     assertNoAustin(`why-beam body @ ${vp.name}`, await why.innerText())
     for (const claim of [/same-day/i, /vetted/i, /verified badge/i, /\+\d{2,}/]) {
       if (claim.test(await why.innerText())) {
-        throw new Error(`Why Beam still invents claim matching ${claim} @ ${vp.name}`)
+        throw new Error(`Why HouseCall still invents claim matching ${claim} @ ${vp.name}`)
       }
     }
 

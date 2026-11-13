@@ -29,14 +29,15 @@ import {
   loadPublicLiveMarketplace,
   markAllLiveNotificationsRead,
   markLiveNotificationRead,
+  confirmLiveHelperHomeLocation,
   reviewLiveHelperVerification,
   sendLiveMessage,
-  submitLiveHelperVerification,
   submitLiveReview,
   toggleLiveSavedHelper,
   updateLiveProfile,
   BeamBackendError,
   type CreateRequestInput,
+  type ConfirmHomeLocationResult,
 } from '@/lib/beam/liveRepository'
 import { canMakeOffer } from '@/lib/verification/status'
 import { createClient } from '@/lib/supabase/client'
@@ -152,19 +153,17 @@ interface BeamContextValue {
   getRequest: (id: string) => HelpRequest | undefined
   helperVerification: HelperVerification | null
   isBeamStaff: boolean
-  submitHelperVerification: (input: {
+  confirmHelperHomeLocation: (input: {
     email: string
     street: string
     apt?: string
     city: string
     stateCode: string
     zip: string
-    documentPath: string
-    documentName: string
-    documentMime?: string | null
-    documentBytes?: number | null
-    documentPreviewUrl?: string | null
-  }) => Promise<HelperVerification>
+    deviceLat: number
+    deviceLng: number
+    deviceAccuracyM: number
+  }) => Promise<ConfirmHomeLocationResult>
   reviewHelperVerification: (input: {
     profileId: string
     approve: boolean
@@ -172,7 +171,13 @@ interface BeamContextValue {
   }) => Promise<HelperVerification>
   /** Demo/QA only: force the current helper verification gate state. */
   setDemoHelperVerification: (
-    next: HelperVerification | null | 'unverified' | 'pending' | 'needs_resubmission' | 'approved',
+    next:
+      | HelperVerification
+      | null
+      | 'unverified'
+      | 'pending'
+      | 'needs_resubmission'
+      | 'approved',
   ) => void
 }
 
@@ -320,7 +325,7 @@ export function BeamProvider({
         if (!cancelled) setState(next)
       } catch (err) {
         if (!cancelled) {
-          setBackendError(err instanceof Error ? err.message : 'Failed to start Beam backend')
+          setBackendError(err instanceof Error ? err.message : 'Failed to start HouseCall backend')
           setState(null)
         }
       } finally {
@@ -728,10 +733,10 @@ export function BeamProvider({
         const status = verification?.status
         const message =
           status === 'pending'
-            ? "Beam is reviewing your documents. You can offer once you're approved."
+            ? "HouseCall still needs to confirm you're at your home address. You can offer once you're verified."
             : status === 'needs_resubmission'
-              ? 'Beam needs a new submission before you can make an offer.'
-              : 'To make an offer, Beam has to verify your address first.'
+              ? 'HouseCall needs you to confirm your home address again before you can make an offer.'
+              : "To make an offer, HouseCall has to confirm you're at your home address. You need to be home for this check."
         const err = new Error(message)
         setBackendError(message)
         throw err
@@ -1369,7 +1374,7 @@ export function BeamProvider({
     [state?.requests],
   )
 
-  const submitHelperVerification = useCallback(
+  const confirmHelperHomeLocation = useCallback(
     async (input: {
       email: string
       street: string
@@ -1377,21 +1382,19 @@ export function BeamProvider({
       city: string
       stateCode: string
       zip: string
-      documentPath: string
-      documentName: string
-      documentMime?: string | null
-      documentBytes?: number | null
-      documentPreviewUrl?: string | null
-    }) => {
+      deviceLat: number
+      deviceLng: number
+      deviceAccuracyM: number
+    }): Promise<ConfirmHomeLocationResult> => {
       if (mode === 'live') {
         try {
           if (!authUser) throw new Error('Not signed in')
           const client = createClient()
-          const row = await submitLiveHelperVerification(client, input)
+          const result = await confirmLiveHelperHomeLocation(client, input)
           await refreshLive(authUser.id)
-          return row
+          return result
         } catch (err) {
-          reportError(err, 'Submit verification failed')
+          reportError(err, 'Confirm home location failed')
           throw err
         }
       }
@@ -1399,48 +1402,94 @@ export function BeamProvider({
       const now = new Date().toISOString()
       const prev = stateRef.current
       const existing = prev?.helperVerification
+      const w =
+        typeof window !== 'undefined'
+          ? (window as unknown as { __BEAM_DEMO_LOCATION_RESULT__?: string })
+          : null
+      const forced = w?.__BEAM_DEMO_LOCATION_RESULT__
+      const result =
+        forced === 'not_at_home' ||
+        forced === 'weak_signal' ||
+        forced === 'geocode_imprecise' ||
+        forced === 'matched' ||
+        forced === 'permission_denied' ||
+        forced === 'rate_limited'
+          ? forced
+          : input.deviceAccuracyM > 250
+            ? 'weak_signal'
+            : 'matched'
+
       const row: HelperVerification = {
         id: existing?.id ?? uid('ver'),
         profileId: prev?.currentUserId ?? 'user-you',
-        status: 'pending',
+        status: result === 'matched' ? 'approved' : 'unverified',
         email: input.email.trim().toLowerCase(),
         street: input.street.trim(),
         apt: input.apt?.trim() || null,
         city: input.city.trim(),
         stateCode: input.stateCode.trim().toUpperCase(),
         zip: input.zip.trim(),
-        documentPath: input.documentPath,
-        documentName: input.documentName,
-        documentMime: input.documentMime ?? null,
-        documentBytes: input.documentBytes ?? null,
+        documentPath: null,
+        documentName: null,
+        lastCheckResult: result as HelperVerification['lastCheckResult'],
+        lastCheckedAt: now,
+        lastDeviceLat: input.deviceLat,
+        lastDeviceLng: input.deviceLng,
+        lastDeviceAccuracyM: input.deviceAccuracyM,
+        lastDistanceM: result === 'matched' ? 12 : result === 'not_at_home' ? 1200 : null,
+        geocodeQuality: 'range_interpolated',
+        verificationMethod: result === 'matched' ? 'location' : null,
         reviewReason: null,
         reviewedBy: null,
-        reviewedAt: null,
+        reviewedAt: result === 'matched' ? now : null,
         submittedAt: now,
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
-        documentPreviewUrl: input.documentPreviewUrl ?? null,
       }
-      const notif: BeamNotification = {
-        id: uid('notif'),
-        userId: row.profileId,
-        kind: 'verification_submitted',
-        title: 'Verification submitted',
-        body: 'Beam is reviewing your documents. You can browse jobs and ask questions while you wait.',
-        href: '/verify',
-        readAt: null,
-        createdAt: now,
-      }
+
       withState(setState, (s) => {
         const others = (s.helperVerifications ?? []).filter((v) => v.profileId !== row.profileId)
+        const notifications =
+          result === 'matched'
+            ? [
+                {
+                  id: uid('notif'),
+                  userId: row.profileId,
+                  kind: 'verification_approved' as const,
+                  title: 'You are verified',
+                  body: "You're at this address, so you can make offers on local jobs right away.",
+                  href: '/browse',
+                  readAt: null,
+                  createdAt: now,
+                } satisfies BeamNotification,
+                ...s.notifications,
+              ]
+            : s.notifications
         return {
           ...s,
           helperVerification: row,
           helperVerifications: [row, ...others],
-          notifications: [notif, ...s.notifications],
+          notifications,
         }
       })
-      return row
+
+      return {
+        ok: result === 'matched',
+        result,
+        status: row.status,
+        message:
+          result === 'matched'
+            ? null
+            : result === 'not_at_home'
+              ? "It looks like you're not at this address right now. Try again when you're home."
+              : result === 'weak_signal'
+                ? 'Location accuracy was too weak. Try again on your phone with location turned on.'
+                : 'We could not confirm you are home. Try again when you are at this address.',
+        distanceM: row.lastDistanceM ?? null,
+        geocodeQuality: row.geocodeQuality ?? null,
+        attemptId: uid('attempt'),
+        verification: row,
+      }
     },
     [authUser, mode, refreshLive, reportError],
   )
@@ -1465,20 +1514,26 @@ export function BeamProvider({
       }
       const reason = input.reason?.trim() || ''
       if (!input.approve && !reason) {
-        throw new Error('Tell the Helper why a new submission is needed')
+        throw new Error('Tell the Helper why they should try again')
       }
       const now = new Date().toISOString()
       let updated: HelperVerification | null = null
       withState(setState, (s) => {
         const list = s.helperVerifications ?? []
         const nextList = list.map((v) => {
-          if (v.profileId !== input.profileId || v.status !== 'pending') return v
+          if (
+            v.profileId !== input.profileId ||
+            !['unverified', 'pending', 'needs_resubmission'].includes(v.status)
+          ) {
+            return v
+          }
           updated = {
             ...v,
-            status: input.approve ? 'approved' : 'needs_resubmission',
+            status: input.approve ? 'approved' : 'unverified',
             reviewReason: input.approve ? null : reason,
             reviewedBy: s.currentUserId,
             reviewedAt: now,
+            verificationMethod: input.approve ? 'staff' : v.verificationMethod,
             updatedAt: now,
           }
           return updated
@@ -1488,9 +1543,9 @@ export function BeamProvider({
           id: uid('notif'),
           userId: input.profileId,
           kind: input.approve ? 'verification_approved' : 'verification_needs_resubmission',
-          title: input.approve ? 'You are verified' : 'Beam needs a new submission',
+          title: input.approve ? 'You are verified' : 'Try home confirmation again',
           body: input.approve
-            ? 'Beam approved your documents. You can make offers on local jobs now.'
+            ? 'HouseCall verified your home address. You can make offers on local jobs now.'
             : reason,
           href: input.approve ? '/browse' : '/verify',
           readAt: null,
@@ -1507,7 +1562,7 @@ export function BeamProvider({
               : s.notifications,
         }
       })
-      if (!updated) throw new Error('No pending verification for this Helper')
+      if (!updated) throw new Error('No reviewable verification for this Helper')
       return updated
     },
     [authUser, mode, refreshLive, reportError],
@@ -1543,43 +1598,39 @@ export function BeamProvider({
             'alex.rivera@email.com',
           street:
             (typeof next === 'string' ? s.helperVerification?.street : next.street) ||
-            '1200 Willow Street',
+            '1842 Willow Street',
           apt: typeof next === 'string' ? s.helperVerification?.apt ?? null : next.apt ?? null,
-          city: (typeof next === 'string' ? s.helperVerification?.city : next.city) || 'Austin',
+          city: (typeof next === 'string' ? s.helperVerification?.city : next.city) || 'San Jose',
           stateCode:
-            (typeof next === 'string' ? s.helperVerification?.stateCode : next.stateCode) || 'TX',
-          zip: (typeof next === 'string' ? s.helperVerification?.zip : next.zip) || '78702',
-          documentPath:
-            (typeof next === 'string'
-              ? s.helperVerification?.documentPath
-              : next.documentPath) || `${s.currentUserId}/bills/demo.pdf`,
-          documentName:
-            (typeof next === 'string'
-              ? s.helperVerification?.documentName
-              : next.documentName) || 'October 2026 water bill.pdf',
-          documentMime:
+            (typeof next === 'string' ? s.helperVerification?.stateCode : next.stateCode) || 'CA',
+          zip: (typeof next === 'string' ? s.helperVerification?.zip : next.zip) || '95125',
+          documentPath: null,
+          documentName: null,
+          lastCheckResult:
             typeof next === 'string'
-              ? s.helperVerification?.documentMime ?? 'application/pdf'
-              : next.documentMime ?? null,
-          documentBytes:
-            typeof next === 'string'
-              ? s.helperVerification?.documentBytes ?? 240000
-              : next.documentBytes ?? null,
+              ? next === 'approved'
+                ? 'matched'
+                : next === 'pending' || next === 'needs_resubmission'
+                  ? null
+                  : 'not_at_home'
+              : next.lastCheckResult ?? null,
           reviewReason:
             typeof next === 'string'
               ? next === 'needs_resubmission'
-                ? "The address on the bill didn't match the home address you entered."
+                ? 'Try again when you are home so we can confirm your address.'
                 : null
               : next.reviewReason ?? null,
           reviewedBy: typeof next === 'string' ? null : next.reviewedBy ?? null,
           reviewedAt: typeof next === 'string' ? null : next.reviewedAt ?? null,
+          verificationMethod:
+            typeof next === 'string'
+              ? next === 'approved'
+                ? 'location'
+                : null
+              : next.verificationMethod ?? null,
           submittedAt: new Date().toISOString(),
           createdAt: s.helperVerification?.createdAt ?? new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          documentPreviewUrl:
-            typeof next === 'string'
-              ? s.helperVerification?.documentPreviewUrl ?? null
-              : next.documentPreviewUrl ?? null,
         }
         const row = typeof next === 'string' ? base : { ...base, ...next, profileId: s.currentUserId }
         const others = (s.helperVerifications ?? []).filter((v) => v.profileId !== s.currentUserId)
@@ -1639,7 +1690,7 @@ export function BeamProvider({
     getRequest,
     helperVerification,
     isBeamStaff,
-    submitHelperVerification,
+    confirmHelperHomeLocation,
     reviewHelperVerification,
     setDemoHelperVerification,
   }
@@ -1661,7 +1712,7 @@ export function BeamProvider({
     return (
       <div className="flex min-h-dvh items-center justify-center bg-[#F4F8FD] text-[#071330]">
         <p className="text-[22px] font-semibold tracking-tight text-[#071330]" aria-busy="true">
-          Beam
+          HouseCall
         </p>
       </div>
     )
@@ -1670,7 +1721,7 @@ export function BeamProvider({
   if (mode === 'unconfigured') {
     return (
       <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-4 text-[#071330]">
-        <h1 className="type-h2 text-[#071330]">Beam needs configuration</h1>
+        <h1 className="type-h2 text-[#071330]">HouseCall needs configuration</h1>
         <p className="text-sm text-[#64748B]">
           {backendError ||
             'Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, or enable local demo with NEXT_PUBLIC_BEAM_DEMO_MODE=1.'}
@@ -1701,9 +1752,9 @@ export function BeamProvider({
   if (!state || !currentUser) {
     return (
       <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-4 text-[#071330]">
-        <h1 className="type-h2 text-[#071330]">Beam backend error</h1>
+        <h1 className="type-h2 text-[#071330]">HouseCall backend error</h1>
         <p className="text-sm text-[#64748B]">
-          {backendError || 'Could not load your Beam session from Supabase.'}
+          {backendError || 'Could not load your HouseCall session from Supabase.'}
         </p>
         <p className="text-xs text-[#64748B]">
           Live mode does not fall back to localStorage. Fix the backend error or use explicit demo

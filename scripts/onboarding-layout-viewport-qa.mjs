@@ -132,7 +132,7 @@ async function run() {
         assert.match(headerText, /Step 1 of 2/i, `${vp.name}: step progress in header`)
         assert.doesNotMatch(headerText, /\bBeam\b/, `${vp.name}: no Beam wordmark in header`)
         assert.equal(
-          await header.locator('a[aria-label="Beam home"]').count(),
+          await header.locator('a[aria-label="HouseCall home"]').count(),
           0,
           `${vp.name}: no Beam logo link in header`,
         )

@@ -38,7 +38,43 @@ export type NotificationKind =
   | 'verification_needs_resubmission'
 
 /** Helper offer gate: no row = not started (unverified). */
-export type HelperVerificationStatus = 'pending' | 'approved' | 'needs_resubmission'
+export type HelperVerificationStatus =
+  | 'unverified'
+  | 'pending'
+  | 'approved'
+  | 'needs_resubmission'
+
+export type HelperLocationCheckResult =
+  | 'matched'
+  | 'not_at_home'
+  | 'weak_signal'
+  | 'geocode_imprecise'
+  | 'geocode_failed'
+  | 'rate_limited'
+  | 'permission_denied'
+
+export type HelperGeocodeQuality = 'rooftop' | 'range_interpolated'
+
+export interface HelperVerificationAttempt {
+  id: string
+  profileId: string
+  verificationId?: string | null
+  result: HelperLocationCheckResult
+  email?: string | null
+  street?: string | null
+  apt?: string | null
+  city?: string | null
+  stateCode?: string | null
+  zip?: string | null
+  addressLat?: number | null
+  addressLng?: number | null
+  geocodeQuality?: HelperGeocodeQuality | null
+  deviceLat?: number | null
+  deviceLng?: number | null
+  deviceAccuracyM?: number | null
+  distanceM?: number | null
+  createdAt: string
+}
 
 export interface HelperVerification {
   id: string
@@ -50,18 +86,31 @@ export interface HelperVerification {
   city: string
   stateCode: string
   zip: string
-  documentPath: string
-  documentName: string
+  /** Legacy bill fields; unused for location verification. */
+  documentPath?: string | null
+  documentName?: string | null
   documentMime?: string | null
   documentBytes?: number | null
+  addressLat?: number | null
+  addressLng?: number | null
+  geocodeQuality?: HelperGeocodeQuality | null
+  lastDeviceLat?: number | null
+  lastDeviceLng?: number | null
+  lastDeviceAccuracyM?: number | null
+  lastDistanceM?: number | null
+  lastCheckResult?: HelperLocationCheckResult | null
+  lastCheckedAt?: string | null
+  verificationMethod?: 'location' | 'staff' | 'document_legacy' | null
   reviewReason?: string | null
   reviewedBy?: string | null
   reviewedAt?: string | null
   submittedAt: string
   createdAt: string
   updatedAt: string
-  /** Demo-only data URL for local bill preview; never used in live mode. */
+  /** Demo-only; never used in live mode. */
   documentPreviewUrl?: string | null
+  /** Staff queue: latest location attempt when loaded. */
+  latestAttempt?: HelperVerificationAttempt | null
 }
 
 export type { ServiceCategory as Category } from '@/lib/taxonomy'

@@ -261,7 +261,7 @@ try {
         const fresh = !!document.querySelector('[data-testid="browse-fresh-empty"]')
         const reset = !!document.querySelector('[data-testid="browse-reset-filters"]')
         const body = document.body.innerText
-        const beFirst = /Be the first on Beam/i.test(body)
+        const beFirst = /Be the first on HouseCall/i.test(body)
         const noMatch = /No open requests match|No jobs match these filters/i.test(body)
         const hasCards =
           document.querySelectorAll('a[href^="/requests/"], [data-testid="browse-job-row"]').length > 0

@@ -63,7 +63,7 @@ export function BrowseFreshEmpty({
           </span>
 
           <h2 className="mt-2 max-w-[16ch] text-balance font-display text-[1.4rem] font-bold leading-[1.08] tracking-[-0.03em] text-white sm:mt-2.5 sm:max-w-[18ch] sm:text-[clamp(1.85rem,3.2vw,2.45rem)] sm:leading-[1.06]">
-            {hidePeerDiscovery ? 'No open jobs nearby yet.' : 'Be the first on Beam.'}
+            {hidePeerDiscovery ? 'No open jobs nearby yet.' : 'Be the first on HouseCall.'}
           </h2>
 
           <p className="mt-1.5 max-w-[36ch] text-[13px] leading-[1.45] text-white sm:mt-2.5 sm:max-w-[40ch] sm:text-[15px] sm:leading-[1.55]">

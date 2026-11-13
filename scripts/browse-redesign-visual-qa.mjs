@@ -300,7 +300,7 @@ async function main() {
         'gradient-hero',
       )
       assert.ok(await page.locator('[data-testid="browse-mode-tabs"]').count())
-      assert.match(await page.locator('[data-testid="browse-fresh-empty"]').innerText(), /Be the first on Beam/)
+      assert.match(await page.locator('[data-testid="browse-fresh-empty"]').innerText(), /Be the first on HouseCall/)
       assert.equal(await page.locator('[data-testid="browse-view-toggle"]').count(), 0)
       assert.equal(await page.locator('[data-testid="browse-map-view"]').count(), 0)
       summary.shots.push(await shot(page, `customer-empty-jobs-${vp.name}.png`))
@@ -393,7 +393,7 @@ async function main() {
       await page.locator('[data-testid="browse-fresh-empty"]').getAttribute('data-empty-layout'),
       'gradient-hero',
     )
-    assert.match(await page.locator('[data-testid="browse-fresh-empty"]').innerText(), /Be the first on Beam/)
+    assert.match(await page.locator('[data-testid="browse-fresh-empty"]').innerText(), /Be the first on HouseCall/)
     assert.doesNotMatch(
       await page.locator('[data-testid="browse-fresh-empty"]').innerText(),
       /No open jobs nearby|Near Milpitas/,

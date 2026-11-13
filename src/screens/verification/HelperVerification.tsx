@@ -1,65 +1,61 @@
 'use client'
 
-import { Check, Clock3, FileText, Upload } from 'lucide-react'
+import { Check, MapPin } from 'lucide-react'
 import Link from 'next/link'
-import { useMemo, useRef, useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
 import { useBeam } from '@/context/BeamContext'
-import { createClient } from '@/lib/supabase/client'
-import { uploadVerificationDocument } from '@/lib/beam/verificationUpload'
 import {
   VERIFY_ADDRESS_HINT,
-  VERIFY_BILL_HINT,
+  VERIFY_CONFIRM_HINT,
+  VERIFY_CTA_CONFIRM,
+  VERIFY_CTA_RETRY,
   VERIFY_EMAIL_HINT,
   VERIFY_FORM_INTRO,
+  VERIFY_FORM_RETRY_INTRO,
   VERIFY_FORM_TITLE,
+  VERIFY_LOC_BOX_BODY,
+  VERIFY_LOC_BOX_TITLE,
+  VERIFY_NOT_HOME_BODY,
+  VERIFY_NOT_HOME_TITLE,
+  VERIFY_PERMISSION_HELPER,
   VERIFY_PRIVACY,
+  VERIFY_PRIVACY_HEADING,
   VERIFY_SUBMIT_HELPER,
+  VERIFY_SUCCESS_BODY,
+  VERIFY_SUCCESS_TITLE,
   VERIFY_TRUST_LINE,
 } from '@/lib/verification/constants'
+import {
+  DeviceLocationError,
+  readDeviceLocationOnce,
+} from '@/lib/verification/deviceLocation'
 import { formatVerificationAddress, offerGateKind } from '@/lib/verification/status'
-
-type UploadedDoc = {
-  path: string
-  name: string
-  mime: string | null
-  bytes: number
-  previewUrl?: string
-}
-
-function formatBytes(n: number): string {
-  if (n < 1024) return `${n} B`
-  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`
-  return `${(n / (1024 * 1024)).toFixed(1)} MB`
-}
-
-function mimeLabel(mime: string | null | undefined, name: string): string {
-  if (mime?.includes('pdf') || name.toLowerCase().endsWith('.pdf')) return 'PDF'
-  if (mime?.includes('png')) return 'PNG'
-  if (mime?.includes('webp')) return 'WebP'
-  return 'Photo'
-}
 
 export function HelperVerification() {
   const {
-    mode,
     authUser,
     currentUser,
     helperVerification,
-    submitHelperVerification,
+    confirmHelperHomeLocation,
     ready,
   } = useBeam()
 
   const gate = offerGateKind(helperVerification)
-  const isResubmit = gate === 'needs_resubmission'
-  const showPending = gate === 'pending'
+  const showNotHome =
+    helperVerification?.lastCheckResult === 'not_at_home' ||
+    helperVerification?.lastCheckResult === 'weak_signal' ||
+    helperVerification?.lastCheckResult === 'geocode_imprecise' ||
+    helperVerification?.lastCheckResult === 'permission_denied'
 
   const accountEmail =
     authUser?.email?.trim() ||
     helperVerification?.email ||
-    (mode === 'demo' ? 'alex.rivera@email.com' : '')
+    ''
 
-  const [email, setEmail] = useState(accountEmail)
+  const [email, setEmail] = useState(
+    helperVerification?.email || accountEmail || (currentUser ? '' : ''),
+  )
   const [street, setStreet] = useState(helperVerification?.street ?? '')
   const [apt, setApt] = useState(helperVerification?.apt ?? '')
   const [city, setCity] = useState(helperVerification?.city ?? currentUser.city ?? '')
@@ -67,23 +63,12 @@ export function HelperVerification() {
     helperVerification?.stateCode ?? currentUser.stateCode ?? '',
   )
   const [zip, setZip] = useState(helperVerification?.zip ?? '')
-  const [doc, setDoc] = useState<UploadedDoc | null>(() => {
-    if (!helperVerification?.documentPath || isResubmit) return null
-    if (helperVerification.status === 'pending') {
-      return {
-        path: helperVerification.documentPath,
-        name: helperVerification.documentName,
-        mime: helperVerification.documentMime ?? null,
-        bytes: helperVerification.documentBytes ?? 0,
-        previewUrl: helperVerification.documentPreviewUrl ?? undefined,
-      }
-    }
-    return null
-  })
-  const [uploading, setUploading] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
-  const fileRef = useRef<HTMLInputElement>(null)
+  const [permissionDenied, setPermissionDenied] = useState(
+    helperVerification?.lastCheckResult === 'permission_denied',
+  )
+  const [notHomeBanner, setNotHomeBanner] = useState(showNotHome)
 
   const backHref = useMemo(() => {
     if (typeof window === 'undefined') return '/browse'
@@ -91,53 +76,40 @@ export function HelperVerification() {
     return from?.startsWith('/') ? from : '/browse'
   }, [])
 
-  async function onPickFile(file: File | null) {
-    if (!file) return
-    setError('')
-    setUploading(true)
-    try {
-      const supabase = mode === 'live' ? createClient() : null
-      const uploaded = await uploadVerificationDocument({
-        mode,
-        supabase,
-        userId: currentUser.id,
-        file,
-      })
-      setDoc(uploaded)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not upload that file')
-      setDoc(null)
-    } finally {
-      setUploading(false)
-      if (fileRef.current) fileRef.current.value = ''
-    }
-  }
-
-  async function onSubmit(e: FormEvent) {
+  async function onConfirm(e: FormEvent) {
     e.preventDefault()
-    if (pending || uploading) return
+    if (pending) return
     setError('')
-    if (!doc) {
-      setError('Upload an electricity or water bill.')
-      return
-    }
+    setPermissionDenied(false)
     setPending(true)
     try {
-      await submitHelperVerification({
+      const reading = await readDeviceLocationOnce()
+      const result = await confirmHelperHomeLocation({
         email,
         street,
         apt: apt || undefined,
         city,
         stateCode,
         zip,
-        documentPath: doc.path,
-        documentName: doc.name,
-        documentMime: doc.mime,
-        documentBytes: doc.bytes,
-        documentPreviewUrl: doc.previewUrl,
+        deviceLat: reading.lat,
+        deviceLng: reading.lng,
+        deviceAccuracyM: reading.accuracyM,
       })
+      if (result.ok) {
+        setNotHomeBanner(false)
+        return
+      }
+      setNotHomeBanner(true)
+      if (result.result === 'permission_denied') setPermissionDenied(true)
+      if (result.message) setError('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not submit for review')
+      if (err instanceof DeviceLocationError && err.code === 'permission_denied') {
+        setPermissionDenied(true)
+        setNotHomeBanner(true)
+        setError('')
+      } else {
+        setError(err instanceof Error ? err.message : 'Could not confirm your location')
+      }
     } finally {
       setPending(false)
     }
@@ -147,99 +119,69 @@ export function HelperVerification() {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-white">
         <p className="text-[22px] font-semibold text-[#071330]" aria-busy="true">
-          Beam
+          HouseCall
         </p>
       </div>
     )
   }
 
-  if (showPending && helperVerification) {
+  if (gate === 'approved' && helperVerification) {
     return (
-      <div className="min-h-dvh bg-white text-[#071330]" data-testid="verify-pending">
+      <div className="min-h-dvh bg-white text-[#071330]" data-testid="verify-approved">
         <header className="mx-auto flex w-full max-w-[640px] items-center justify-between px-5 pb-2 pt-6 sm:px-8">
           <BeamWordmark markWidth={22} markHeight={22} wordClassName="!text-[22px]" />
-          <span className="text-[13px] font-medium text-[#5B6575]">Verification</span>
+          <span className="sm:hidden" />
         </header>
         <main className="mx-auto w-full max-w-[560px] px-5 pb-16 pt-10 sm:px-8">
-          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#F5F9FF] text-[#1D5CE5]">
-            <Clock3 className="h-7 w-7" strokeWidth={2} aria-hidden />
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full border-[1.8px] border-[#1D5CE5] text-[#1D5CE5]">
+            <Check className="h-7 w-7" strokeWidth={2.25} aria-hidden />
           </div>
           <h1 className="mt-5 text-center font-display text-[28px] font-bold leading-[1.15] tracking-[-0.03em] text-[#071330] sm:text-[32px]">
-            Beam is reviewing your documents
+            {VERIFY_SUCCESS_TITLE}
           </h1>
           <p className="mx-auto mt-3 max-w-[46ch] text-center text-[15px] leading-[1.55] text-[#3D4A5F]">
-            A person at Beam will check your email, home address, and bill. You can make offers once
-            they approve you. We&apos;ll email you at {helperVerification.email} when that&apos;s
-            done.
+            {VERIFY_SUCCESS_BODY}
           </p>
 
           <div
             className="mt-8 rounded-[10px] border border-[#E3E8EF] bg-white"
-            data-testid="verify-pending-summary"
+            data-testid="verify-approved-summary"
           >
             <div className="flex items-center justify-between gap-3 border-b border-[#E3E8EF] px-4 py-3.5 sm:px-5">
               <div>
                 <p className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[#5B6575]">
                   Status
                 </p>
-                <p className="mt-0.5 text-[15px] font-bold text-[#071330]">Pending review</p>
+                <p className="mt-0.5 text-[15px] font-bold text-[#071330]">Verified</p>
               </div>
               <span className="inline-flex h-7 items-center rounded-full bg-[#F5F9FF] px-2.5 text-[12px] font-semibold text-[#1D5CE5]">
-                In review
+                Just now
               </span>
             </div>
             <SummaryRow label="Email" value={helperVerification.email} />
             <SummaryRow
               label="Home address"
               value={formatVerificationAddress(helperVerification)}
+              last
             />
-            <SummaryRow label="Document" value={helperVerification.documentName} last />
           </div>
 
           <Link
-            href="/browse"
-            data-testid="verify-back-browse"
+            href={backHref}
+            data-testid="verify-back-job"
             className="mt-6 inline-flex h-[52px] w-full items-center justify-center rounded-[10px] bg-[#1D5CE5] text-[15px] font-semibold text-white hover:bg-[#1649BD]"
           >
-            Back to Browse
-          </Link>
-        </main>
-      </div>
-    )
-  }
-
-  if (gate === 'approved') {
-    return (
-      <div className="min-h-dvh bg-white text-[#071330]" data-testid="verify-approved">
-        <header className="mx-auto flex w-full max-w-[640px] items-center justify-between px-5 pb-2 pt-6 sm:px-8">
-          <BeamWordmark markWidth={22} markHeight={22} wordClassName="!text-[22px]" />
-          <Link href={backHref} className="text-[14px] font-semibold text-[#1D5CE5]">
             Back to job
           </Link>
-        </header>
-        <main className="mx-auto w-full max-w-[560px] px-5 pb-16 pt-12 sm:px-8">
-          <h1 className="font-display text-[28px] font-bold tracking-[-0.03em] text-[#071330]">
-            You&apos;re verified
-          </h1>
-          <p className="mt-3 text-[15px] leading-[1.55] text-[#3D4A5F]">
-            Beam already approved your documents. You can make offers on local jobs.
-          </p>
-          <Link
-            href="/browse"
-            className="mt-8 inline-flex h-[52px] w-full items-center justify-center rounded-[10px] bg-[#1D5CE5] text-[15px] font-semibold text-white hover:bg-[#1649BD]"
-          >
-            Back to Browse
-          </Link>
         </main>
       </div>
     )
   }
 
+  const ctaLabel = notHomeBanner || permissionDenied ? VERIFY_CTA_RETRY : VERIFY_CTA_CONFIRM
+
   return (
-    <div
-      className="min-h-dvh bg-white text-[#071330]"
-      data-testid={isResubmit ? 'verify-resubmit' : 'verify-form'}
-    >
+    <div className="min-h-dvh bg-white text-[#071330]" data-testid="verify-form">
       <header className="mx-auto flex w-full max-w-[640px] items-center justify-between px-5 pb-2 pt-6 sm:px-8">
         <BeamWordmark markWidth={22} markHeight={22} wordClassName="!text-[22px]" />
         <Link
@@ -247,45 +189,37 @@ export function HelperVerification() {
           className="text-[14px] font-semibold text-[#1D5CE5]"
           data-testid="verify-back"
         >
-          {isResubmit ? 'Back to Browse' : 'Back to job'}
+          <span className="sm:hidden">Back</span>
+          <span className="hidden sm:inline">
+            {notHomeBanner ? 'Back to Browse' : 'Back to job'}
+          </span>
         </Link>
       </header>
 
       <main className="mx-auto w-full max-w-[560px] px-5 pb-20 pt-6 sm:px-8 sm:pt-8">
-        {isResubmit ? (
+        {notHomeBanner ? (
           <div
-            className="mb-6 rounded-[10px] border border-[#FECACA] bg-[#FEF2F2] px-4 py-3.5"
-            data-testid="verify-decline-banner"
+            className="mb-6 rounded-[10px] border border-[#D6E2F5] bg-[#F5F9FF] px-4 py-3.5"
+            data-testid="verify-not-home"
             role="status"
           >
-            <p className="text-[15px] font-bold text-[#991B1B]">Beam needs a new submission</p>
-            <p className="mt-1 text-[14px] leading-[1.5] text-[#7F1D1D]">
-              {helperVerification?.reviewReason?.trim() ||
-                'Please upload a recent electricity or water bill that shows the same name and address.'}
-            </p>
+            <p className="text-[15px] font-bold text-[#071330]">{VERIFY_NOT_HOME_TITLE}</p>
+            <p className="mt-1 text-[14px] leading-[1.5] text-[#273449]">{VERIFY_NOT_HOME_BODY}</p>
           </div>
         ) : null}
 
         <h1 className="font-display text-[28px] font-bold leading-[1.15] tracking-[-0.03em] text-[#071330] sm:text-[32px]">
-          {isResubmit ? 'Resubmit your documents' : VERIFY_FORM_TITLE}
+          {VERIFY_FORM_TITLE}
         </h1>
         <p className="mt-3 text-[15px] leading-[1.55] text-[#3D4A5F]">
-          {isResubmit
-            ? 'Update anything that needs to change, then send it back for review. Offering stays locked until Beam approves you.'
-            : VERIFY_FORM_INTRO}
+          {notHomeBanner ? VERIFY_FORM_RETRY_INTRO : VERIFY_FORM_INTRO}
         </p>
-        {!isResubmit ? (
-          <p className="mt-3 text-[15px] font-semibold leading-[1.45] tracking-[-0.01em] text-[#071330]">
-            {VERIFY_TRUST_LINE}
-          </p>
-        ) : null}
+        <p className="mt-3 text-[15px] font-semibold leading-[1.45] tracking-[-0.01em] text-[#071330]">
+          {VERIFY_TRUST_LINE}
+        </p>
 
-        <form className="mt-8 space-y-7" onSubmit={(e) => void onSubmit(e)} noValidate>
-          <Field
-            label="Email address"
-            hint={isResubmit ? undefined : VERIFY_EMAIL_HINT}
-            htmlFor="verify-email"
-          >
+        <form className="mt-8 space-y-7" onSubmit={(e) => void onConfirm(e)} noValidate>
+          <Field label="Email address" hint={VERIFY_EMAIL_HINT} htmlFor="verify-email">
             <input
               id="verify-email"
               type="email"
@@ -299,15 +233,7 @@ export function HelperVerification() {
           </Field>
 
           <div>
-            <Field
-              label="Home address"
-              hint={
-                isResubmit
-                  ? undefined
-                  : VERIFY_ADDRESS_HINT
-              }
-              htmlFor="verify-street"
-            >
+            <Field label="Home address" hint={VERIFY_ADDRESS_HINT} htmlFor="verify-street">
               <input
                 id="verify-street"
                 required
@@ -319,17 +245,15 @@ export function HelperVerification() {
                 className={inputClass}
               />
             </Field>
-            {!isResubmit ? (
-              <input
-                id="verify-apt"
-                autoComplete="address-line2"
-                value={apt}
-                onChange={(e) => setApt(e.target.value)}
-                placeholder="Apt or suite, optional"
-                data-testid="verify-apt"
-                className={`${inputClass} mt-2.5`}
-              />
-            ) : null}
+            <input
+              id="verify-apt"
+              autoComplete="address-line2"
+              value={apt}
+              onChange={(e) => setApt(e.target.value)}
+              placeholder="Apt or suite, optional"
+              data-testid="verify-apt"
+              className={`${inputClass} mt-2.5`}
+            />
             <div className="mt-2.5 grid grid-cols-[minmax(0,1.4fr)_72px_96px] gap-2.5">
               <input
                 id="verify-city"
@@ -369,77 +293,33 @@ export function HelperVerification() {
 
           <div>
             <p className="text-[14px] font-bold tracking-[-0.01em] text-[#071330]">
-              Electricity or water bill
+              Confirm you&apos;re home
             </p>
             <p className="mt-1.5 text-[13.5px] leading-[1.45] text-[#3D4A5F]">
-              {isResubmit
-                ? 'Upload a new bill that shows your name and this home address.'
-                : VERIFY_BILL_HINT}
+              {VERIFY_CONFIRM_HINT}
             </p>
-
-            <input
-              ref={fileRef}
-              type="file"
-              accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,.pdf,.jpg,.jpeg,.png,.webp,.heic"
-              className="sr-only"
-              data-testid="verify-file-input"
-              onChange={(e) => void onPickFile(e.target.files?.[0] ?? null)}
-            />
-
-            {doc ? (
-              <div
-                className="mt-3 flex items-center gap-3 rounded-[10px] border border-[#D6E2F5] bg-[#F5F9FF] px-3.5 py-3"
-                data-testid="verify-file-card"
-              >
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-white text-[#1D5CE5]">
-                  <FileText className="h-5 w-5" strokeWidth={2} aria-hidden />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[14px] font-semibold text-[#071330]">
-                    {doc.name}
-                  </span>
-                  <span className="block text-[12.5px] text-[#3D4A5F]">
-                    {mimeLabel(doc.mime, doc.name)}
-                    {doc.bytes > 0 ? ` · ${formatBytes(doc.bytes)}` : ''}
-                  </span>
-                </span>
-                <button
-                  type="button"
-                  className="shrink-0 text-[14px] font-semibold text-[#1D5CE5]"
-                  onClick={() => fileRef.current?.click()}
-                  data-testid="verify-file-replace"
-                >
-                  Replace
-                </button>
+            <div
+              className="mt-3 flex items-start gap-3 rounded-[10px] border border-[#E3E8EF] bg-white px-3.5 py-3.5"
+              data-testid="verify-loc-box"
+            >
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#F5F9FF] text-[#1D5CE5]">
+                <MapPin className="h-5 w-5" strokeWidth={2} aria-hidden />
+              </span>
+              <div>
+                <p className="text-[14px] font-bold text-[#071330]">{VERIFY_LOC_BOX_TITLE}</p>
+                <p className="mt-1 text-[13.5px] leading-[1.45] text-[#3D4A5F]">
+                  {VERIFY_LOC_BOX_BODY}
+                </p>
               </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                disabled={uploading}
-                data-testid="verify-file-dropzone"
-                className="mt-3 flex w-full flex-col items-center justify-center rounded-[10px] border border-dashed border-[#1D5CE5]/55 bg-[#F5F9FF] px-4 py-8 text-center hover:bg-[#EAF1FC] disabled:opacity-60"
-              >
-                <Upload className="h-6 w-6 text-[#1D5CE5]" strokeWidth={2} aria-hidden />
-                <span className="mt-2 text-[14px] font-bold text-[#071330]">
-                  Electricity or water bill
-                </span>
-                <span className="mt-1 text-[13px] text-[#3D4A5F]">
-                  PDF or a clear photo, up to 10 MB.
-                </span>
-                <span className="mt-3 inline-flex h-10 items-center justify-center rounded-lg border border-[#1D5CE5] bg-white px-4 text-[14px] font-semibold text-[#1D5CE5]">
-                  {uploading ? 'Uploading…' : 'Choose a file'}
-                </span>
-              </button>
-            )}
+            </div>
           </div>
 
-          {!isResubmit ? (
+          {!notHomeBanner ? (
             <div
               className="rounded-[10px] border border-[#D6E2F5] bg-[#F5F9FF] px-4 py-4"
               data-testid="verify-privacy"
             >
-              <p className="text-[14px] font-bold text-[#071330]">How Beam uses this</p>
+              <p className="text-[14px] font-bold text-[#071330]">{VERIFY_PRIVACY_HEADING}</p>
               <ul className="mt-3 flex flex-col gap-2.5">
                 {VERIFY_PRIVACY.map((line) => (
                   <li
@@ -466,15 +346,17 @@ export function HelperVerification() {
 
           <button
             type="submit"
-            disabled={pending || uploading}
+            disabled={pending}
             data-testid="verify-submit"
             className="inline-flex h-[52px] w-full items-center justify-center rounded-[10px] bg-[#1D5CE5] text-[15px] font-semibold text-white hover:bg-[#1649BD] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {pending ? 'Submitting…' : 'Submit for review'}
+            {pending ? 'Checking…' : ctaLabel}
           </button>
-          {!isResubmit ? (
-            <p className="text-center text-[13.5px] text-[#5B6575]">{VERIFY_SUBMIT_HELPER}</p>
-          ) : null}
+          <p className="text-center text-[13.5px] text-[#5B6575]">
+            {permissionDenied || notHomeBanner
+              ? VERIFY_PERMISSION_HELPER
+              : VERIFY_SUBMIT_HELPER}
+          </p>
         </form>
       </main>
     </div>

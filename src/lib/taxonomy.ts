@@ -1,5 +1,5 @@
 /**
- * Casual launch taxonomy (Beam).
+ * Casual launch taxonomy (HouseCall).
  * Active selections are parent → service leaves (+ Other custom text).
  * Legacy six-category IDs remain readable for historical records only.
  */

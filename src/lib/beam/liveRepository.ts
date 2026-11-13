@@ -297,7 +297,7 @@ export async function createLiveRequest(
     // Stock/category covers are app-served paths (e.g. /images/...), not beam-media — allow those.
     // Reject only if someone tries to persist a third-party https cover without upload.
     if (/^https?:\/\//i.test(cover) && !cover.includes('/storage/v1/object/public/beam-media/')) {
-      throw new Error('Photos must be uploaded through Beam — external image links are not allowed.')
+      throw new Error('Photos must be uploaded through HouseCall. External image links are not allowed.')
     }
   }
   const { data, error } = await client
@@ -360,23 +360,13 @@ async function assertHelperCanOffer(client: Client, userId: string): Promise<voi
   if (error) {
     // Table missing on older deploys: fail closed so offers cannot bypass the gate.
     throw new BeamBackendError(
-      'To make an offer, Beam has to verify your address first.',
+      "To make an offer, HouseCall has to confirm you're at your home address. You need to be home for this check.",
       error,
     )
   }
   if (!data || data.status !== 'approved') {
-    if (data?.status === 'pending') {
-      throw new BeamBackendError(
-        "Beam is reviewing your documents. You can offer once you're approved.",
-      )
-    }
-    if (data?.status === 'needs_resubmission') {
-      throw new BeamBackendError(
-        'Beam needs a new submission before you can make an offer.',
-      )
-    }
     throw new BeamBackendError(
-      'To make an offer, Beam has to verify your address first.',
+      "To make an offer, HouseCall has to confirm you're at your home address. You need to be home for this check.",
     )
   }
 }
@@ -555,7 +545,18 @@ export async function markAllLiveNotificationsRead(client: Client): Promise<numb
   return Number(data ?? 0)
 }
 
-export async function submitLiveHelperVerification(
+export type ConfirmHomeLocationResult = {
+  ok: boolean
+  result: string | null
+  status: string | null
+  message: string | null
+  distanceM: number | null
+  geocodeQuality: string | null
+  attemptId: string | null
+  verification: HelperVerification | null
+}
+
+export async function confirmLiveHelperHomeLocation(
   client: Client,
   input: {
     email: string
@@ -564,26 +565,45 @@ export async function submitLiveHelperVerification(
     city: string
     stateCode: string
     zip: string
-    documentPath: string
-    documentName: string
-    documentMime?: string | null
-    documentBytes?: number | null
+    deviceLat: number
+    deviceLng: number
+    deviceAccuracyM: number
   },
-): Promise<HelperVerification> {
-  const { data, error } = await client.rpc('submit_helper_verification', {
+): Promise<ConfirmHomeLocationResult> {
+  const { data, error } = await client.rpc('confirm_helper_home_location', {
     p_email: input.email,
     p_street: input.street,
     p_apt: input.apt ?? null,
     p_city: input.city,
     p_state_code: input.stateCode,
     p_zip: input.zip,
-    p_document_path: input.documentPath,
-    p_document_name: input.documentName,
-    p_document_mime: input.documentMime ?? null,
-    p_document_bytes: input.documentBytes ?? null,
+    p_device_lat: input.deviceLat,
+    p_device_lng: input.deviceLng,
+    p_device_accuracy_m: input.deviceAccuracyM,
   })
-  throwOnError(error, 'Submit verification')
-  return mapHelperVerification(data as Record<string, unknown>)
+  throwOnError(error, 'Confirm home location')
+  const payload = (data ?? {}) as {
+    ok?: boolean
+    result?: string
+    status?: string
+    message?: string
+    distance_m?: number | null
+    geocode_quality?: string | null
+    attempt_id?: string
+    verification?: Record<string, unknown>
+  }
+  return {
+    ok: Boolean(payload.ok),
+    result: payload.result ?? null,
+    status: payload.status ?? null,
+    message: payload.message ?? null,
+    distanceM: payload.distance_m ?? null,
+    geocodeQuality: payload.geocode_quality ?? null,
+    attemptId: payload.attempt_id ?? null,
+    verification: payload.verification
+      ? mapHelperVerification(payload.verification)
+      : null,
+  }
 }
 
 export async function reviewLiveHelperVerification(

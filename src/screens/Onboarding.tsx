@@ -17,6 +17,12 @@ import {
 } from '@/components/onboarding/UsCityCombobox'
 import { Button } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
+import {
+  ONBOARDING_HELPER_PRIVACY,
+  ONBOARDING_HELPER_VERIFY_BODY,
+  ONBOARDING_HELPER_VERIFY_TITLE,
+  VERIFY_TRUST_LINE,
+} from '@/lib/verification/constants'
 import { loadUsPlacesIndex, searchUsCities, type UsCity } from '@/lib/usPlaces'
 import type { AccountRole } from '@/types'
 
@@ -50,12 +56,6 @@ const HELPER_POINTS = [
   'Browse job requests in your area.',
   'Make an offer when a job is a good fit.',
   "Coordinate in Messages once you're hired.",
-] as const
-
-const HELPER_PRIVACY = [
-  'Your exact address is never displayed to other users.',
-  'We will never sell your address.',
-  "It's only used to match you with jobs nearby, and to complete this review.",
 ] as const
 
 function StepProgress({ step }: { step: 1 | 2 }) {
@@ -163,18 +163,16 @@ function BenefitsPanel({
         <div className="rounded-xl border-[1.5px] border-[#D5DEEA] bg-white px-[18px] pb-4 pt-[18px]">
           <h3 className="flex items-center gap-2 text-[14.5px] font-bold tracking-[-0.015em] text-[#071330]">
             <Home className="h-4 w-4 shrink-0 text-[#1D5CE5]" strokeWidth={1.75} aria-hidden />
-            Address verification is required before you can make an offer
+            {ONBOARDING_HELPER_VERIFY_TITLE}
           </h3>
           <p className="mt-2 text-[13.5px] leading-[1.5] text-[#273449]">
-            You&apos;ll need your home address and a recent electricity or water bill that shows
-            your name and that address. You&apos;ll be asked for this before you can make an offer,
-            not on this step.
+            {ONBOARDING_HELPER_VERIFY_BODY}
           </p>
           <p className="mt-2.5 text-[13.5px] font-semibold leading-[1.45] tracking-[-0.01em] text-[#071330]">
-            This helps ensure trust and safety for everyone involved.
+            {VERIFY_TRUST_LINE}
           </p>
           <ul className="mt-3.5 flex flex-col gap-2 border-t border-[#E3E8EF] pt-3.5">
-            {HELPER_PRIVACY.map((promise) => (
+            {ONBOARDING_HELPER_PRIVACY.map((promise) => (
               <li
                 key={promise}
                 className="flex items-start gap-2 text-[13px] font-medium leading-[1.45] text-[#273449]"
@@ -342,7 +340,7 @@ export function Onboarding() {
   if (!ready) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-white">
-        <p className="text-[22px] font-semibold tracking-tight text-[#071330]">Beam</p>
+        <p className="text-[22px] font-semibold tracking-tight text-[#071330]">HouseCall</p>
       </div>
     )
   }
@@ -378,10 +376,10 @@ export function Onboarding() {
           >
             <div className="min-w-0" data-testid="onboarding-form-column">
               <h1 className="font-display text-[26px] font-bold leading-[1.15] tracking-[-0.028em] text-[#071330] text-balance sm:text-[32px]">
-                Welcome to Beam
+                Welcome to HouseCall
               </h1>
               <p className="mt-2.5 max-w-[42ch] text-[15px] leading-[1.5] text-[#3D4A5F] sm:mt-3 sm:text-[15.5px]">
-                Choose how you want to use Beam and set your city.
+                Choose how you want to use HouseCall and set your city.
               </p>
 
               <div className="mt-6 sm:mt-8">
@@ -389,7 +387,7 @@ export function Onboarding() {
                   id={`${roleGroupId}-label`}
                   className="mb-2.5 text-[13px] font-semibold text-[#273449]"
                 >
-                  How you'll use Beam
+                  How you&apos;ll use HouseCall
                 </p>
                 <div
                   role="radiogroup"
@@ -516,7 +514,7 @@ export function Onboarding() {
               Our community rules
             </h1>
             <p className="mt-3 text-[15px] leading-[1.5] text-[#526077]">
-              Before continuing, please agree to keep Beam safe for everyone.
+              Before continuing, please agree to keep HouseCall safe for everyone.
             </p>
 
             <div
@@ -532,7 +530,7 @@ export function Onboarding() {
             </div>
 
             <p className="mt-5 text-[14px] leading-[1.55] text-[#64748B]">
-              Beam is for everyday local help — Home, Auto, Junk Removal, Pets, and Other casual
+              HouseCall is for everyday local help: Home, Auto, Junk Removal, Pets, and Other casual
               tasks. The same safety exclusions apply to custom Other requests.{' '}
               <Link
                 href="/safety"

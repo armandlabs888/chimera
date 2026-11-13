@@ -15,7 +15,7 @@ await page.goto(`${BASE}/`, { waitUntil: 'networkidle' })
 assert.equal(await page.getByTestId('available-services').count(), 0, 'section removed')
 assert.equal(await page.locator('#neighborhoods').count(), 0, 'anchor removed')
 assert.equal(await page.getByText(/Explore all six/i).count(), 0)
-assert.equal(await page.getByText(/Available services on Beam/i).count(), 0)
+assert.equal(await page.getByText(/Available services on HouseCall/i).count(), 0)
 assert.equal(
   await page.getByTestId('landing-footer').getByRole('link', { name: /^Available services$/i }).count(),
   0,

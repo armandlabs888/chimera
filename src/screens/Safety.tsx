@@ -7,7 +7,7 @@ import { useBeam } from '@/context/BeamContext'
 
 const COMMITMENTS = [
   {
-    title: 'Beam never holds your money',
+    title: 'HouseCall never holds your money',
     body: 'You pay helpers directly, in cash or Venmo. The agreed price is written in the offer so expectations stay clear.',
   },
   {
@@ -25,11 +25,11 @@ const COMMITMENTS = [
 ]
 
 const PERMITTED = [
-  'Home — House Cleaning, Carpet Cleaning',
-  'Auto — Auto Detailing',
+  'Home: House Cleaning, Carpet Cleaning',
+  'Auto: Auto Detailing',
   'Junk Removal',
-  'Pets — Pet Sitting, Grooming',
-  'Other — described everyday tasks (same safety exclusions apply)',
+  'Pets: Pet Sitting, Grooming',
+  'Other: described everyday tasks (same safety exclusions apply)',
 ]
 
 const EXCLUDED = [
@@ -42,11 +42,11 @@ const EXCLUDED = [
 const FAQ = [
   {
     q: 'How does payment work?',
-    a: 'Beam never holds your money. After you accept an offer, you and the helper arrange payment peer-to-peer. The agreed price lives in the offer.',
+    a: 'HouseCall never holds your money. After you accept an offer, you and the helper arrange payment peer-to-peer. The agreed price lives in the offer.',
   },
   {
     q: 'How does local matching work?',
-    a: 'Beam connects neighbors within dense local areas so same-day help stays close by, practical, and fast.',
+    a: 'HouseCall connects neighbors within dense local areas so same-day help stays close by, practical, and fast.',
   },
   {
     q: 'What if something goes wrong?',
@@ -65,10 +65,10 @@ export function Safety() {
   const body = (
     <div className={publicChrome ? 'beam-container py-16' : 'py-2 sm:py-4'}>
       <h1 className="font-display text-[clamp(2.5rem,5vw,3.5rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
-        Safety on Beam
+        Safety on HouseCall
       </h1>
       <p className="mt-4 max-w-[48ch] text-[18px] leading-[1.55] text-[#64748B]">
-        Beam is a coordination layer — not escrow and not a staffing agency. Clear rules keep
+        HouseCall is a coordination layer, not escrow and not a staffing agency. Clear rules keep
         same-day help practical.
       </p>
 
@@ -97,7 +97,7 @@ export function Safety() {
         </div>
         <div className="rounded-lg border border-[#FDE68A] bg-[#FFF8D6] p-6">
           <h2 className="text-[15px] font-bold uppercase tracking-[0.08em] text-[#92400E]">
-            Not on Beam
+            Not on HouseCall
           </h2>
           <ul className="mt-4 space-y-2 text-[15px] text-[#071330]">
             {EXCLUDED.map((item) => (
