@@ -54,6 +54,345 @@
   color: var(--hc-sub);
 }
 
+.account-hc-activity.account-hc-page {
+  padding-top: 28px;
+}
+
+.account-hc-activity-sub {
+  margin-top: 8px;
+  max-width: 46rem;
+  line-height: 1.5;
+  color: var(--hc-muted);
+}
+
+.account-hc-activity .account-hc-section {
+  margin-top: 24px;
+}
+
+.account-hc-activity .account-hc-section-head {
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.account-hc-section-head-stack {
+  display: block;
+}
+
+.account-hc-section-sub {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--hc-muted);
+  max-width: 44rem;
+}
+
+.account-hc-activity .account-hc-avail-card {
+  gap: 16px;
+  padding: 12px 16px;
+}
+
+.account-hc-activity .account-hc-avail-card .hint {
+  font-size: 12px;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.account-hc-action-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.account-hc-action-list > li + li {
+  border-top: 1px solid var(--hc-line);
+}
+
+.account-hc-action-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  width: 100%;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+}
+
+.account-hc-action-link:hover {
+  background: var(--hc-tint-2);
+}
+
+.account-hc-action-link .ico {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--hc-tint);
+  color: var(--hc-blue);
+  display: grid;
+  place-items: center;
+  flex: none;
+  margin-top: 1px;
+}
+
+.account-hc-action-link .copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-hc-action-link .label {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--hc-navy);
+}
+
+.account-hc-action-link .body {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--hc-muted);
+}
+
+.account-hc-action-link .action-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  align-self: center;
+  color: var(--hc-blue);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.account-hc-action-link .action-go .chev {
+  color: var(--hc-sub);
+}
+
+.account-hc-job-list {
+  overflow: hidden;
+}
+
+.account-hc-job-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--hc-white);
+}
+
+.account-hc-job-row + .account-hc-job-row {
+  border-top: 1px solid var(--hc-line);
+}
+
+.account-hc-job-row:hover {
+  background: var(--hc-tint-2);
+}
+
+.account-hc-job-thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--hc-tint-2);
+  flex: none;
+  display: block;
+}
+
+.account-hc-job-thumb-fallback {
+  overflow: hidden;
+  border: 1px solid var(--hc-line-2);
+}
+
+.account-hc-job-main {
+  min-width: 0;
+}
+
+.account-hc-job-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.account-hc-job-chip {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--hc-tint);
+  color: var(--hc-navy);
+  border: 1px solid var(--hc-line-2);
+}
+
+.account-hc-job-title {
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--hc-navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+}
+
+.account-hc-job-title:hover {
+  color: var(--hc-blue);
+}
+
+.account-hc-job-desc {
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--hc-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.account-hc-job-meta {
+  margin-top: 5px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--hc-muted);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+}
+
+.account-hc-job-meta .dot {
+  margin: 0 6px;
+  color: #b0b8c6;
+}
+
+.account-hc-job-meta .when.asap {
+  color: var(--hc-blue);
+  font-weight: 600;
+}
+
+.account-hc-job-meta .poster-name {
+  font-weight: 600;
+  color: var(--hc-navy);
+}
+
+.account-hc-job-meta .new-tag {
+  background: var(--hc-tint);
+  color: var(--hc-blue);
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.account-hc-job-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  min-width: 128px;
+}
+
+.account-hc-job-side .price-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.account-hc-job-side .price {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--hc-navy);
+}
+
+.account-hc-job-side .open-offers {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--hc-blue);
+  line-height: 1.2;
+  text-align: right;
+}
+
+.account-hc-job-side .offers {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: var(--hc-tint);
+  color: var(--hc-blue);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.account-hc-send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--hc-white);
+  color: var(--hc-blue);
+  border: 1px solid var(--hc-line);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.account-hc-send-btn:hover {
+  background: var(--hc-tint-2);
+  border-color: var(--hc-line-2);
+}
+
+.account-hc-send-btn.is-sent {
+  color: var(--hc-navy);
+}
+
+.account-hc-more-hint {
+  margin-top: 12px;
+  font-size: 13.5px;
+  color: var(--hc-muted);
+}
+
+.account-hc-more-hint a {
+  font-weight: 600;
+  color: var(--hc-blue);
+  text-decoration: none;
+}
+
+.account-hc-more-hint a:hover {
+  color: var(--hc-blue-hover);
+}
+
+.account-hc-empty-calm {
+  text-align: left;
+}
+
+.account-hc-empty-calm h3 {
+  font-size: 17px;
+}
+
+.account-hc-empty-calm p {
+  max-width: 36rem;
+}
+
 .account-hc-card {
   background: var(--hc-white);
   border: 1px solid var(--hc-line);
@@ -1192,6 +1531,84 @@
 
   .account-hc-hero-title {
     font-size: 26px;
+  }
+
+  .account-hc-activity-sub {
+    font-size: 14px;
+    max-width: none;
+  }
+
+  .account-hc-activity .account-hc-avail-card {
+    max-width: none;
+    width: 100%;
+  }
+
+  .account-hc-activity .account-hc-avail-card .hint {
+    white-space: normal;
+  }
+
+  .account-hc-activity .account-hc-section-head {
+    margin-bottom: 10px;
+  }
+
+  .account-hc-activity .account-hc-section-head h2 {
+    font-size: 20px;
+  }
+
+  .account-hc-action-link {
+    padding: 14px;
+  }
+
+  .account-hc-action-link .action-go {
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+
+  .account-hc-job-row {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 10px 12px;
+    padding: 12px 14px;
+    align-items: start;
+  }
+
+  .account-hc-job-thumb {
+    width: 56px;
+    height: 56px;
+  }
+
+  .account-hc-job-top {
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .account-hc-job-title {
+    font-size: 15px;
+    white-space: normal;
+  }
+
+  .account-hc-job-side {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+    width: 100%;
+    padding: 0;
+    gap: 10px;
+  }
+
+  .account-hc-job-side .price-block {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .account-hc-job-side .price {
+    font-size: 16px;
+  }
+
+  .account-hc-job-side .open-offers {
+    text-align: left;
   }
 
   .account-hc-tabs-wrap {

@@ -1,13 +1,16 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { Bell, CheckCircle2, ChevronRight, MessageCircle, Star } from 'lucide-react'
-import { RequestCard } from '@/components/RequestCard'
+import { BrowseCategoryThumb } from '@/components/browse/BrowseCategoryThumb'
 import { useBeam } from '@/context/BeamContext'
-import { BROWSE_PARENTS } from '@/lib/taxonomy'
-import { distanceBetween } from '@/lib/location'
-import { rankHelpersForRequest } from '@/lib/matching'
+import { formatDistance } from '@/data/neighborhoods'
+import { distanceBetween, formatLocation } from '@/lib/location'
+import { formatBudget, relativeTime, rankHelpersForRequest } from '@/lib/matching'
+import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
+import { BROWSE_PARENTS, formatCategoryLabel } from '@/lib/taxonomy'
+import { formatPublicRating } from '@/lib/ratingDisplay'
 import type { HelpRequest } from '@/types'
 import '@/components/account/account-hc.css'
 
@@ -16,6 +19,17 @@ function greeting() {
   if (h < 12) return 'Good morning'
   if (h < 18) return 'Good afternoon'
   return 'Good evening'
+}
+
+type ActionIconKind = 'offer' | 'job' | 'msg' | 'review' | 'bell'
+
+type ActionItem = {
+  id: string
+  title: string
+  body: string
+  action: string
+  href: string
+  icon: ActionIconKind
 }
 
 export function HomeDashboard() {
@@ -75,16 +89,18 @@ export function HomeDashboard() {
   )
 
   const actionItems = useMemo(() => {
-    const rows: { id: string; label: string; href: string; icon: 'offer' | 'job' | 'msg' | 'review' | 'bell' }[] =
-      []
+    const rows: ActionItem[] = []
     if (waitingOffers.length) {
       const firstOffer = waitingOffers[0]
       const req = state.requests.find((r) => r.id === firstOffer.requestId)
+      const n = waitingOffers.length
       rows.push({
         id: 'offers',
-        label: `${waitingOffers.length} offer${waitingOffers.length === 1 ? '' : 's'} waiting${
-          req ? ` on ${req.title}` : ''
-        }`,
+        title: `${n} offer${n === 1 ? '' : 's'} waiting`,
+        body: req
+          ? `New offers on “${req.title}”. Open the job to review and respond.`
+          : 'Helpers are waiting on a reply. Open your requests to review offers.',
+        action: 'Review',
         href: req ? `/requests/${req.id}` : '/you?tab=requests',
         icon: 'offer',
       })
@@ -92,7 +108,9 @@ export function HomeDashboard() {
     for (const job of acceptedJobs.slice(0, 2)) {
       rows.push({
         id: `job-${job.id}`,
-        label: `Accepted · ${job.title}`,
+        title: 'Accepted job',
+        body: `You are booked for “${job.title}”. Open it to coordinate next steps.`,
+        action: 'Open',
         href: `/requests/${job.id}`,
         icon: 'job',
       })
@@ -100,7 +118,9 @@ export function HomeDashboard() {
     if (unreadMessages > 0) {
       rows.push({
         id: 'messages',
-        label: `${unreadMessages} unread message${unreadMessages === 1 ? '' : 's'}`,
+        title: `${unreadMessages} unread message${unreadMessages === 1 ? '' : 's'}`,
+        body: 'Neighbors are waiting for your reply. Open Messages to respond.',
+        action: 'Reply',
         href: '/home?messages=1',
         icon: 'msg',
       })
@@ -108,15 +128,20 @@ export function HomeDashboard() {
     for (const job of pendingReviews.slice(0, 2)) {
       rows.push({
         id: `review-${job.id}`,
-        label: `Leave a review · ${job.title}`,
+        title: 'Leave a review',
+        body: `You finished “${job.title}”. Rate the neighbor to close it out.`,
+        action: 'Review',
         href: `/requests/${job.id}`,
         icon: 'review',
       })
     }
     if (unreadNotifications > 0 && rows.length < 2) {
+      const n = unreadNotifications
       rows.push({
         id: 'notifs',
-        label: `${unreadNotifications} unread notification${unreadNotifications === 1 ? '' : 's'}`,
+        title: `${n} unread notification${n === 1 ? '' : 's'}`,
+        body: 'Catch up on updates about your jobs and offers.',
+        action: 'View',
         href: '/you?tab=notifications',
         icon: 'bell',
       })
@@ -160,15 +185,15 @@ export function HomeDashboard() {
 
   return (
     <div className="account-hc" data-testid="home-dashboard">
-      <div className="account-hc-wrap account-hc-page">
+      <div className="account-hc-wrap account-hc-page account-hc-activity">
         <div className="account-hc-title-row">
           <div>
             <h1 className="account-hc-hero-title">
               {greeting()}, {first}
             </h1>
-            <p className="account-hc-hero-sub">
+            <p className="account-hc-hero-sub account-hc-activity-sub">
               {isHelper
-                ? 'Same-day jobs matched to your skills and area.'
+                ? 'Your helper dashboard. Jobs near you that match your skills, plus anything that needs your reply.'
                 : 'Post a request or browse helpers nearby.'}
             </p>
           </div>
@@ -177,7 +202,7 @@ export function HomeDashboard() {
             <div className="account-hc-card account-hc-avail-card">
               <div>
                 <p className="lbl">Available now</p>
-                <p className="hint">Boost same-day matches</p>
+                <p className="hint">Turn on to get same-day jobs first</p>
               </div>
               <button
                 type="button"
@@ -198,19 +223,28 @@ export function HomeDashboard() {
         </div>
 
         {actionItems.length ? (
-          <section className="account-hc-section">
-            <h2 className="account-hc-section-head" style={{ display: 'block', marginBottom: 16 }}>
-              Action items
-            </h2>
-            <ul className="account-hc-card account-hc-list">
+          <section className="account-hc-section" aria-labelledby="actions-heading">
+            <div className="account-hc-section-head account-hc-section-head-stack">
+              <div>
+                <h2 id="actions-heading">Action items</h2>
+                <p className="account-hc-section-sub">Things waiting on you</p>
+              </div>
+            </div>
+            <ul className="account-hc-card account-hc-action-list">
               {actionItems.map((row) => (
                 <li key={row.id}>
-                  <Link href={row.href} className="account-hc-list-row account-hc-action-row">
+                  <Link href={row.href} className="account-hc-action-link">
                     <span className="ico" aria-hidden>
                       <ActionIcon kind={row.icon} />
                     </span>
-                    <span className="label">{row.label}</span>
-                    <ChevronRight className="chev h-4 w-4" strokeWidth={2} aria-hidden />
+                    <span className="copy">
+                      <span className="label">{row.title}</span>
+                      <span className="body">{row.body}</span>
+                    </span>
+                    <span className="action-go">
+                      {row.action}{' '}
+                      <ChevronRight className="chev h-4 w-4" strokeWidth={2} aria-hidden />
+                    </span>
                   </Link>
                 </li>
               ))}
@@ -219,24 +253,32 @@ export function HomeDashboard() {
         ) : null}
 
         {isHelper ? (
-          <section className="account-hc-section">
+          <section className="account-hc-section" aria-labelledby="jobs-heading">
             <div className="account-hc-section-head">
-              <h2>Good matches</h2>
+              <div>
+                <h2 id="jobs-heading">Recommended jobs near you</h2>
+                <p className="account-hc-section-sub">
+                  Open jobs in your area that match your skills. Send an offer on any you can take.
+                </p>
+              </div>
               <Link href="/browse" className="account-hc-text-link">
-                See all →
+                See all
               </Link>
             </div>
             {goodMatches.length ? (
-              <div className="account-hc-job-grid">
-                {goodMatches.map(({ request, reasons }) => (
-                  <div key={request.id}>
-                    <RequestCard request={request} />
-                    <p className="account-hc-match-why">{reasons.slice(0, 3).join(' · ')}</p>
-                  </div>
-                ))}
-              </div>
+              <>
+                <div className="account-hc-card account-hc-job-list">
+                  {goodMatches.map(({ request }) => (
+                    <RecommendedJobRow key={request.id} request={request} />
+                  ))}
+                </div>
+                <p className="account-hc-more-hint">
+                  Looking for something else?{' '}
+                  <Link href="/browse">Browse all open jobs in your area</Link>.
+                </p>
+              </>
             ) : (
-              <div className="account-hc-card account-hc-empty">
+              <div className="account-hc-card account-hc-empty account-hc-empty-calm">
                 <h3>No strong matches yet</h3>
                 <p>Browse open requests or update your skills and radius.</p>
                 <div className="actions">
@@ -285,11 +327,143 @@ export function HomeDashboard() {
   )
 }
 
-function ActionIcon({
-  kind,
-}: {
-  kind: 'offer' | 'job' | 'msg' | 'review' | 'bell'
-}) {
+function RecommendedJobRow({ request }: { request: HelpRequest }) {
+  const { state, currentUser } = useBeam()
+  const [imgFailed, setImgFailed] = useState(false)
+
+  const categoryLabel = formatCategoryLabel(request.category, request.categoryCustom)
+  const cover = listingCoverImage(
+    normalizeListingImages(request.images, request.image),
+    request.image,
+  )
+  const showImage = Boolean(cover) && !imgFailed
+
+  const requester = useMemo(
+    () => state.people.find((p) => p.id === request.requesterId),
+    [state.people, request.requesterId],
+  )
+
+  const offerCount = useMemo(() => {
+    if (typeof request.publicOfferCount === 'number') return request.publicOfferCount
+    return state.offers.filter((o) => o.requestId === request.id && o.status !== 'withdrawn')
+      .length
+  }, [state.offers, request.id, request.publicOfferCount])
+
+  const myOffer = useMemo(
+    () =>
+      state.offers.find(
+        (o) =>
+          o.requestId === request.id &&
+          o.helperId === currentUser.id &&
+          o.status !== 'withdrawn',
+      ),
+    [state.offers, request.id, currentUser.id],
+  )
+
+  const location = formatLocation(request)
+  const neighborhood = location.split(',')[0]?.trim() || location
+  const miles = distanceBetween(currentUser, request)
+  const distanceLabel = miles == null ? null : formatDistance(miles)
+  const isAsap = request.when === 'asap'
+  const timingLabel = isAsap
+    ? 'As soon as possible'
+    : request.whenLabel?.trim() || request.when
+  const isOpenBudget = request.budgetType === 'open' || !request.budget || request.budget <= 0
+  const budgetLabel = formatBudget(request)
+  const posterFirst = requester?.name?.split(/\s+/)[0] ?? 'Neighbor'
+  const isNewPoster = requester ? !formatPublicRating(requester) : true
+  const detailHref = `/requests/${request.id}`
+  const ctaLabel = myOffer ? 'Offer sent' : 'Send offer'
+
+  const metaParts: { key: string; node: ReactNode; asap?: boolean }[] = [
+    { key: 'loc', node: neighborhood },
+    { key: 'posted', node: relativeTime(request.createdAt) },
+  ]
+  if (distanceLabel) metaParts.push({ key: 'dist', node: `${distanceLabel} away` })
+  if (timingLabel) {
+    metaParts.push({
+      key: 'when',
+      node: timingLabel,
+      asap: isAsap,
+    })
+  }
+  metaParts.push({ key: 'poster', node: <span className="poster-name">{posterFirst}</span> })
+  if (isNewPoster) {
+    metaParts.push({ key: 'new', node: <span className="new-tag">New</span> })
+  }
+
+  return (
+    <article className="account-hc-job-row" data-testid="recommended-job-row">
+      {showImage ? (
+        // Listing photos may be arbitrary HTTPS hosts.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          className="account-hc-job-thumb"
+          src={cover}
+          alt=""
+          width={64}
+          height={64}
+          onError={() => setImgFailed(true)}
+        />
+      ) : (
+        <span className="account-hc-job-thumb account-hc-job-thumb-fallback">
+          <BrowseCategoryThumb
+            categoryId={request.category}
+            className="!h-full !w-full !rounded-[10px] !border-0"
+          />
+        </span>
+      )}
+
+      <div className="account-hc-job-main">
+        <div className="account-hc-job-top">
+          <span className="account-hc-job-chip">{categoryLabel}</span>
+          <Link href={detailHref} className="account-hc-job-title">
+            {request.title}
+          </Link>
+        </div>
+        {request.details ? (
+          <p className="account-hc-job-desc">{request.details}</p>
+        ) : null}
+        <p className="account-hc-job-meta">
+          {metaParts.map((part, i) => (
+            <span key={part.key} className="account-hc-job-meta-item">
+              {i > 0 ? (
+                <span className="dot" aria-hidden>
+                  ·
+                </span>
+              ) : null}
+              <span className={part.asap ? 'when asap' : undefined}>{part.node}</span>
+            </span>
+          ))}
+        </p>
+      </div>
+
+      <div className="account-hc-job-side">
+        <div className="price-block">
+          {isOpenBudget ? (
+            <span className="open-offers">{budgetLabel}</span>
+          ) : (
+            <span className="price">{budgetLabel}</span>
+          )}
+          {offerCount > 0 ? (
+            <span className="offers">
+              {offerCount} offer{offerCount === 1 ? '' : 's'}
+            </span>
+          ) : null}
+        </div>
+        <Link
+          href={detailHref}
+          className={`account-hc-send-btn${myOffer ? ' is-sent' : ''}`}
+          data-testid="recommended-send-offer"
+        >
+          {ctaLabel}
+        </Link>
+      </div>
+    </article>
+  )
+}
+
+function ActionIcon({ kind }: { kind: ActionIconKind }) {
   const className = 'h-4 w-4'
   switch (kind) {
     case 'offer':
