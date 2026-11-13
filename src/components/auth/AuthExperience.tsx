@@ -246,47 +246,50 @@ function VerifyBadge({ className = '' }: { className?: string }) {
 function AsidePanel() {
   return (
     <aside
-      className="relative hidden min-w-0 flex-col justify-start border-l border-[#E3E8EF] bg-[#F5F9FF] px-10 pb-11 pt-16 md:flex"
+      className="relative hidden min-w-0 flex-col items-center justify-center border-l border-[#E3E8EF] bg-[#F5F9FF] px-6 md:flex"
       data-testid="auth-aside-panel"
     >
-      <p className="font-display text-[36px] font-extrabold leading-[1.15] tracking-[-0.045em] text-[#071330]">
-        Trusted help,
-        <br />
-        <span className="whitespace-nowrap">
-          right <span className="text-[#1D5CE5]">next door.</span>
-        </span>
-      </p>
+      {/* Content group width matches the photo (360px); centered in the panel. */}
+      <div className="flex w-[360px] max-w-full flex-col text-left">
+        <p className="font-display text-[36px] font-extrabold leading-[1.15] tracking-[-0.045em] text-[#071330]">
+          Trusted help,
+          <br />
+          <span className="whitespace-nowrap">
+            right <span className="text-[#1D5CE5]">next door.</span>
+          </span>
+        </p>
 
-      <VerifyBadge className="mt-5" />
+        <VerifyBadge className="mt-5" />
 
-      <div className="relative mt-[22px] h-[328px] w-[360px] max-w-full shrink-0 overflow-hidden rounded-xl border border-[#E3E8EF] bg-[#E8EEF6] shadow-[0_8px_20px_rgba(7,19,48,0.08)]">
-        <Image
-          src={LIFESTYLE.authCarpet}
-          alt="A HouseCall helper cleaning a carpet"
-          fill
-          className="object-cover object-[50%_30%]"
-          sizes="360px"
-          priority
-        />
+        <div className="relative mt-[22px] h-[328px] w-full shrink-0 overflow-hidden rounded-xl border border-[#E3E8EF] bg-[#E8EEF6] shadow-[0_8px_20px_rgba(7,19,48,0.08)]">
+          <Image
+            src={LIFESTYLE.authCarpet}
+            alt="A HouseCall helper cleaning a carpet"
+            fill
+            className="object-cover object-[50%_30%]"
+            sizes="360px"
+            priority
+          />
+        </div>
+
+        <ul className="mt-7 flex flex-col gap-3.5">
+          {BULLETS.map((text) => (
+            <li key={text} className="flex items-start gap-2.5 text-[15px] font-medium leading-[22px] text-[#071330]">
+              <svg className="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="none" aria-hidden>
+                <circle cx="10" cy="10" r="9" fill="#EEF4FF" stroke="#1D5CE5" strokeWidth="1.2" />
+                <path
+                  d="M6.2 10.2l2.3 2.3 5.3-5.4"
+                  stroke="#1D5CE5"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              {text}
+            </li>
+          ))}
+        </ul>
       </div>
-
-      <ul className="mt-7 flex flex-col gap-3.5">
-        {BULLETS.map((text) => (
-          <li key={text} className="flex items-start gap-2.5 text-[15px] font-medium leading-[22px] text-[#071330]">
-            <svg className="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="none" aria-hidden>
-              <circle cx="10" cy="10" r="9" fill="#EEF4FF" stroke="#1D5CE5" strokeWidth="1.2" />
-              <path
-                d="M6.2 10.2l2.3 2.3 5.3-5.4"
-                stroke="#1D5CE5"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            {text}
-          </li>
-        ))}
-      </ul>
     </aside>
   )
 }
