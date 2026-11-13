@@ -1,10 +1,16 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { guestAuthRedirectPath } from '@/lib/auth/appRoutes'
+import { redirectToCanonicalHost } from '@/lib/auth/canonicalHost'
 import { redirectStrandedAuth } from '@/lib/auth/strandedAuth'
+import { cookieDomainForHost } from '@/lib/auth/siteOrigin'
 import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/config'
 
 export async function updateSession(request: NextRequest) {
+  // Apex → www so Google OAuth redirectTo matches Site URL + PKCE cookies.
+  const canonical = redirectToCanonicalHost(request)
+  if (canonical) return canonical
+
   // Site-URL fallback: /?code=... (or OTP / OAuth error params) → real auth routes.
   // Runs even in demo / unconfigured mode so production never drops the code on `/`.
   const stranded = redirectStrandedAuth(request)
@@ -17,8 +23,10 @@ export async function updateSession(request: NextRequest) {
   }
 
   let supabaseResponse = NextResponse.next({ request })
+  const domain = cookieDomainForHost(request.headers.get('host'))
 
   const supabase = createServerClient(url, key, {
+    ...(domain ? { cookieOptions: { domain } } : {}),
     cookies: {
       getAll() {
         return request.cookies.getAll()

@@ -334,6 +334,30 @@ async function checkAuthMarkupAndRedirects() {
   assert.ok(okLoc.includes('/auth'), `missing-code callback → auth, got ${okLoc}`)
   assert.match(okLoc, /next=%2Fyou|next=\/you/, `preserves safe next: ${okLoc}`)
 
+  // Used/invalid PKCE code while signed out → calm message (not raw flow_state_not_found)
+  const usedCode = await fetch(
+    `${BASE_URL}/auth/callback?code=already-used-or-invalid&next=${encodeURIComponent('/onboarding')}`,
+    { redirect: 'manual' },
+  )
+  assert.ok([302, 303, 307, 308].includes(usedCode.status), `used-code status ${usedCode.status}`)
+  const usedLoc = usedCode.headers.get('location') || ''
+  assert.match(usedLoc, /\/auth/, `used-code → /auth, got ${usedLoc}`)
+  const usedErr = new URL(usedLoc, BASE_URL).searchParams.get('error') || ''
+  assert.ok(usedErr, `used-code error query present: ${usedLoc}`)
+  assert.doesNotMatch(usedErr, /flow_state_not_found|invalid flow state/i)
+  assert.match(
+    usedErr,
+    /sign-in link expired|try again|Could not complete|Missing|configured|Supabase/i,
+    `used-code friendly-ish error: ${usedErr}`,
+  )
+
+  // Prefetch must not consume a one-time auth code
+  const prefetchCb = await fetch(
+    `${BASE_URL}/auth/callback?code=prefetch-must-not-exchange&next=${encodeURIComponent('/onboarding')}`,
+    { redirect: 'manual', headers: { 'next-router-prefetch': '1' } },
+  )
+  assert.equal(prefetchCb.status, 204, `prefetch callback should 204, got ${prefetchCb.status}`)
+
   // Site-URL fallback: stranded PKCE code on `/` must forward to /auth/callback
   const strandedCode = await fetch(`${BASE_URL}/?code=stranded-pkce-code&next=${encodeURIComponent('/post')}`, {
     redirect: 'manual',

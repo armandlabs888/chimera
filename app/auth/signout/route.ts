@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { cookieDomainForHost } from '@/lib/auth/siteOrigin'
 import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/config'
 
 /**
@@ -24,7 +25,9 @@ async function handleSignOut(request: NextRequest) {
   let response = NextResponse.redirect(dest, 303)
   response.headers.set('Cache-Control', 'no-store')
 
+  const domain = cookieDomainForHost(request.headers.get('host'))
   const supabase = createServerClient(url, key, {
+    ...(domain ? { cookieOptions: { domain } } : {}),
     cookies: {
       getAll() {
         return request.cookies.getAll()
