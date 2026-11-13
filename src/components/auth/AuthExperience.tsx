@@ -210,7 +210,9 @@ function AsidePanel() {
         </Link>
         <div className="absolute inset-x-7 bottom-8 z-10 max-w-[28rem]">
           <p className="font-display text-[34px] font-bold leading-[1.08] tracking-[-0.02em] text-white drop-shadow-[0_2px_12px_rgba(7,19,48,0.45)] md:text-[40px]">
-            Trusted help, right next door.
+            Trusted help,
+            <br />
+            <span className="whitespace-nowrap">right next door.</span>
           </p>
           <p className="mt-3 max-w-[34ch] text-[15px] leading-6 text-white/95 drop-shadow-[0_1px_8px_rgba(7,19,48,0.4)]">
             Post a task, compare offers from people nearby, and pick who fits.

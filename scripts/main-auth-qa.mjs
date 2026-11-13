@@ -63,7 +63,7 @@ async function assertMainAuthExperience(page, { viewport, expectNext = null, cle
     const asideBox = await aside.boundingBox()
     assert.ok(asideBox && asideBox.width > 200, 'desktop aside showcase too narrow/missing')
     const asideText = await aside.innerText()
-    assert.match(asideText, /Trusted help, right next door/i)
+    assert.match(asideText, /Trusted help,\s*right next door/i)
     assert.match(asideText, /Post a task, compare offers from people nearby/i)
     assert.doesNotMatch(asideText, /Elena R\.|two neighbors showed up/i)
     const img = aside.locator('img').first()
