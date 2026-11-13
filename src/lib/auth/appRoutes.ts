@@ -19,6 +19,8 @@ export function isProtectedAppPath(pathname: string): boolean {
   if (pathname === '/home' || pathname === '/post' || pathname === '/you') return true
   if (pathname === '/messages' || pathname.startsWith('/messages/')) return true
   if (pathname === '/onboarding/helper' || pathname.startsWith('/onboarding/helper/')) return true
+  if (pathname === '/verify' || pathname.startsWith('/verify/')) return true
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) return true
   return false
 }
 

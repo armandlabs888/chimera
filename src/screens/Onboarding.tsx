@@ -55,7 +55,7 @@ const HELPER_POINTS = [
 const HELPER_PRIVACY = [
   'Your exact address is never displayed to other users.',
   'We will never sell your address.',
-  "It's only used to match you with jobs nearby.",
+  "It's only used to match you with jobs nearby, and to complete this review.",
 ] as const
 
 function StepProgress({ step }: { step: 1 | 2 }) {
@@ -144,8 +144,8 @@ function BenefitsPanel({
         Offer on jobs and earn on your schedule
       </h2>
       <p className="mt-2.5 text-[15px] leading-[1.5] text-[#273449]">
-        Helpers browse nearby requests and offer to do the work. To perform a job, we need to
-        confirm you actually live close by.
+        Helpers browse nearby requests and offer to do the work. Before you can make an offer, we
+        need to confirm you actually live close by.
       </p>
       <ul className="mt-5 flex flex-col gap-3.5 sm:mt-[22px]">
         {HELPER_POINTS.map((point) => (
@@ -163,12 +163,12 @@ function BenefitsPanel({
         <div className="rounded-xl border-[1.5px] border-[#D5DEEA] bg-white px-[18px] pb-4 pt-[18px]">
           <h3 className="flex items-center gap-2 text-[14.5px] font-bold tracking-[-0.015em] text-[#071330]">
             <Home className="h-4 w-4 shrink-0 text-[#1D5CE5]" strokeWidth={1.75} aria-hidden />
-            Address verification is required to perform a job
+            Address verification is required before you can make an offer
           </h3>
           <p className="mt-2 text-[13.5px] leading-[1.5] text-[#273449]">
-            You'll need your home address and a document that proves you live there, such as a
-            recent utility bill, lease, or official mail. You'll be asked for this before you start
-            a job, not on this step.
+            You&apos;ll need your home address and a recent electricity or water bill that shows
+            your name and that address. You&apos;ll be asked for this before you can make an offer,
+            not on this step.
           </p>
           <p className="mt-2.5 text-[13.5px] font-semibold leading-[1.45] tracking-[-0.01em] text-[#071330]">
             This helps ensure trust and safety for everyone involved.

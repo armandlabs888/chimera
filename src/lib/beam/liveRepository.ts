@@ -14,6 +14,7 @@ import type {
   WhenOption,
 } from '@/types'
 import {
+  mapHelperVerification,
   mapInvite,
   mapMessage,
   mapNotification,
@@ -26,6 +27,7 @@ import {
   mapReview,
   mapThread,
 } from '@/lib/beam/mappers'
+import type { HelperVerification } from '@/types'
 import { assertOwnedListingPhotoUrls } from '@/lib/listingPhotos'
 
 // Untyped client keeps app compiling while schema evolves; runtime RLS still enforces authz.
@@ -79,6 +81,8 @@ export async function loadLiveState(client: Client, userId: string): Promise<App
     saved,
     notifications,
     privateDetails,
+    myVerification,
+    staffFlag,
   ] = await Promise.all([
     client.from('profiles').select('*'),
     client.from('help_requests').select('*').order('created_at', { ascending: false }),
@@ -92,6 +96,8 @@ export async function loadLiveState(client: Client, userId: string): Promise<App
       ascending: false,
     }),
     client.from('request_private_details').select('*'),
+    client.from('helper_verifications').select('*').eq('profile_id', userId).maybeSingle(),
+    client.rpc('is_beam_staff'),
   ])
 
   throwOnError(profiles.error, 'Load profiles')
@@ -111,6 +117,27 @@ export async function loadLiveState(client: Client, userId: string): Promise<App
     }
   }
 
+  const isBeamStaff = !staffFlag.error && Boolean(staffFlag.data)
+  let helperVerifications: HelperVerification[] = []
+  const helperVerification =
+    !myVerification.error && myVerification.data
+      ? mapHelperVerification(myVerification.data as Record<string, unknown>)
+      : null
+
+  if (isBeamStaff) {
+    const queue = await client
+      .from('helper_verifications')
+      .select('*')
+      .order('submitted_at', { ascending: false })
+    if (!queue.error) {
+      helperVerifications = (queue.data ?? []).map((row) =>
+        mapHelperVerification(row as Record<string, unknown>),
+      )
+    }
+  } else if (helperVerification) {
+    helperVerifications = [helperVerification]
+  }
+
   return {
     version: 1,
     currentUserId: userId,
@@ -125,6 +152,9 @@ export async function loadLiveState(client: Client, userId: string): Promise<App
     invites: inviteRows.map(mapInvite),
     savedHelperIds: savedIds,
     notifications: notifRows.map(mapNotification),
+    helperVerification,
+    helperVerifications,
+    isBeamStaff,
   }
 }
 
@@ -321,11 +351,43 @@ export async function createLiveRequest(
   return mapRequest({ ...data, exact_address: exact || undefined })
 }
 
+async function assertHelperCanOffer(client: Client, userId: string): Promise<void> {
+  const { data, error } = await client
+    .from('helper_verifications')
+    .select('status')
+    .eq('profile_id', userId)
+    .maybeSingle()
+  if (error) {
+    // Table missing on older deploys: fail closed so offers cannot bypass the gate.
+    throw new BeamBackendError(
+      'To make an offer, Beam has to verify your address first.',
+      error,
+    )
+  }
+  if (!data || data.status !== 'approved') {
+    if (data?.status === 'pending') {
+      throw new BeamBackendError(
+        "Beam is reviewing your documents. You can offer once you're approved.",
+      )
+    }
+    if (data?.status === 'needs_resubmission') {
+      throw new BeamBackendError(
+        'Beam needs a new submission before you can make an offer.',
+      )
+    }
+    throw new BeamBackendError(
+      'To make an offer, Beam has to verify your address first.',
+    )
+  }
+}
+
 export async function createLiveOffer(
   client: Client,
   userId: string,
   input: { requestId: string; price: number; note: string; eta: string },
 ): Promise<Offer> {
+  await assertHelperCanOffer(client, userId)
+
   const existing = await client
     .from('offers')
     .select('id')
@@ -491,6 +553,50 @@ export async function markAllLiveNotificationsRead(client: Client): Promise<numb
   const { data, error } = await client.rpc('mark_all_notifications_read')
   throwOnError(error, 'Mark all notifications read')
   return Number(data ?? 0)
+}
+
+export async function submitLiveHelperVerification(
+  client: Client,
+  input: {
+    email: string
+    street: string
+    apt?: string
+    city: string
+    stateCode: string
+    zip: string
+    documentPath: string
+    documentName: string
+    documentMime?: string | null
+    documentBytes?: number | null
+  },
+): Promise<HelperVerification> {
+  const { data, error } = await client.rpc('submit_helper_verification', {
+    p_email: input.email,
+    p_street: input.street,
+    p_apt: input.apt ?? null,
+    p_city: input.city,
+    p_state_code: input.stateCode,
+    p_zip: input.zip,
+    p_document_path: input.documentPath,
+    p_document_name: input.documentName,
+    p_document_mime: input.documentMime ?? null,
+    p_document_bytes: input.documentBytes ?? null,
+  })
+  throwOnError(error, 'Submit verification')
+  return mapHelperVerification(data as Record<string, unknown>)
+}
+
+export async function reviewLiveHelperVerification(
+  client: Client,
+  input: { profileId: string; approve: boolean; reason?: string },
+): Promise<HelperVerification> {
+  const { data, error } = await client.rpc('review_helper_verification', {
+    p_profile_id: input.profileId,
+    p_approve: input.approve,
+    p_reason: input.reason ?? null,
+  })
+  throwOnError(error, 'Review verification')
+  return mapHelperVerification(data as Record<string, unknown>)
 }
 
 export type { RateType, BeamNotification }

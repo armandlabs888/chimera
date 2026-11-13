@@ -14,6 +14,10 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { Avatar, Button, ButtonLink, EmptyState, TextArea } from '@/components/ui'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
+import {
+  OfferGateNotice,
+  OfferGatePrimaryButton,
+} from '@/components/verification/OfferGateFooter'
 import { useBeam } from '@/context/BeamContext'
 import { CATEGORY_ICONS } from '@/lib/categoryIcons'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
@@ -29,6 +33,7 @@ import {
   rankHelpersForRequest,
   relativeTime,
 } from '@/lib/matching'
+import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 
 const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexible'] as const
 
@@ -74,6 +79,7 @@ export function RequestDetail() {
     ensureThread,
     inviteHelper,
     toggleSavedHelper,
+    helperVerification,
   } = useBeam()
 
   const request = getRequest(id)
@@ -566,7 +572,7 @@ export function RequestDetail() {
             </section>
           ) : null}
 
-          {/* Helper open — send offer */}
+          {/* Helper open — send offer (gated until address verification is approved) */}
           {!isOwner && request.status === 'open' ? (
             <section className="space-y-3" data-testid="request-offer-panel">
               {myInvite ? (
@@ -576,111 +582,139 @@ export function RequestDetail() {
               ) : null}
 
               <div className={`${cardClass} p-5`}>
-                <h2 className="text-[18px] font-bold text-[#071330]">
-                  {myOffer ? 'Update your offer' : 'Send an offer'}
-                </h2>
-                <p className="mt-1 text-[14px] text-[#64748B]">
-                  Name a price and ETA before you show up.
-                </p>
-
-                <form className="mt-5 space-y-4" onSubmit={(e) => void submitOffer(e)}>
-                  <div>
-                    <label
-                      htmlFor="offer-price"
-                      className="mb-2 block text-[13.5px] font-semibold text-[#071330]"
-                    >
-                      Your offer
-                    </label>
-                    <div className="relative flex h-12 items-center rounded-lg border border-[#E2E8F0] bg-white focus-within:border-[#1D5CE5] focus-within:ring-4 focus-within:ring-[#1D5CE5]/15">
-                      <span className="pl-3.5 text-[15px] font-semibold text-[#64748B]" aria-hidden>
-                        $
-                      </span>
-                      <input
-                        id="offer-price"
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={offerPrice}
-                        onChange={(e) =>
-                          setOfferPrice(e.target.value.replace(/[^\d]/g, '').slice(0, 5))
-                        }
-                        placeholder="60"
-                        required
-                        data-testid="offer-price-input"
-                        className="h-full w-full min-w-0 bg-transparent px-2 pr-3.5 text-[15px] font-semibold tabular-nums text-[#071330] outline-none placeholder:font-normal placeholder:text-[#94A3B8]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="mb-2 text-[13.5px] font-semibold text-[#071330]">
-                      Arrival / start window
+                {canMakeOffer(helperVerification) ? (
+                  <>
+                    <h2 className="text-[18px] font-bold text-[#071330]">
+                      {myOffer ? 'Update your offer' : 'Send an offer'}
+                    </h2>
+                    <p className="mt-1 text-[14px] text-[#64748B]">
+                      Name a price and ETA before you show up.
                     </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {ETA_CHIPS.map((chip) => {
-                        const selected = offerEta === chip
-                        return (
-                          <button
-                            key={chip}
-                            type="button"
-                            onClick={() => setOfferEta(chip)}
-                            className={`rounded-lg px-3 py-2.5 text-[13px] font-semibold transition ${
-                              selected
-                                ? 'border border-[#1D5CE5] bg-[#EEF4FF] text-[#1D5CE5]'
-                                : 'border border-[#E2E8F0] bg-white text-[#071330] hover:bg-[#F8FAFC]'
-                            }`}
-                          >
-                            {chip}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
 
-                  <div>
-                    <label
-                      htmlFor="offer-note"
-                      className="mb-2 block text-[13.5px] font-semibold text-[#071330]"
-                    >
-                      Message to requester{' '}
-                      <span className="font-normal text-[#64748B]">(optional)</span>
-                    </label>
-                    <TextArea
-                      id="offer-note"
-                      value={offerNote}
-                      onChange={(e) => setOfferNote(e.target.value)}
-                      rows={3}
-                      placeholder="Experience, what you’ll bring, questions…"
-                      className="rounded-lg"
-                    />
-                  </div>
+                    <form className="mt-5 space-y-4" onSubmit={(e) => void submitOffer(e)}>
+                      <div>
+                        <label
+                          htmlFor="offer-price"
+                          className="mb-2 block text-[13.5px] font-semibold text-[#071330]"
+                        >
+                          Your offer
+                        </label>
+                        <div className="relative flex h-12 items-center rounded-lg border border-[#E2E8F0] bg-white focus-within:border-[#1D5CE5] focus-within:ring-4 focus-within:ring-[#1D5CE5]/15">
+                          <span className="pl-3.5 text-[15px] font-semibold text-[#64748B]" aria-hidden>
+                            $
+                          </span>
+                          <input
+                            id="offer-price"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            value={offerPrice}
+                            onChange={(e) =>
+                              setOfferPrice(e.target.value.replace(/[^\d]/g, '').slice(0, 5))
+                            }
+                            placeholder="60"
+                            required
+                            data-testid="offer-price-input"
+                            className="h-full w-full min-w-0 bg-transparent px-2 pr-3.5 text-[15px] font-semibold tabular-nums text-[#071330] outline-none placeholder:font-normal placeholder:text-[#94A3B8]"
+                          />
+                        </div>
+                      </div>
 
-                  {offerError ? (
-                    <p className="text-[14px] text-[#DC2626]" role="alert">
-                      {offerError}
+                      <div>
+                        <p className="mb-2 text-[13.5px] font-semibold text-[#071330]">
+                          Arrival / start window
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {ETA_CHIPS.map((chip) => {
+                            const selected = offerEta === chip
+                            return (
+                              <button
+                                key={chip}
+                                type="button"
+                                onClick={() => setOfferEta(chip)}
+                                className={`rounded-lg px-3 py-2.5 text-[13px] font-semibold transition ${
+                                  selected
+                                    ? 'border border-[#1D5CE5] bg-[#EEF4FF] text-[#1D5CE5]'
+                                    : 'border border-[#E2E8F0] bg-white text-[#071330] hover:bg-[#F8FAFC]'
+                                }`}
+                              >
+                                {chip}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="offer-note"
+                          className="mb-2 block text-[13.5px] font-semibold text-[#071330]"
+                        >
+                          Message to requester{' '}
+                          <span className="font-normal text-[#64748B]">(optional)</span>
+                        </label>
+                        <TextArea
+                          id="offer-note"
+                          value={offerNote}
+                          onChange={(e) => setOfferNote(e.target.value)}
+                          rows={3}
+                          placeholder="Experience, what you’ll bring, questions…"
+                          className="rounded-lg"
+                        />
+                      </div>
+
+                      {offerError ? (
+                        <p className="text-[14px] text-[#DC2626]" role="alert">
+                          {offerError}
+                        </p>
+                      ) : null}
+
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          type="submit"
+                          loading={offerPending}
+                          className="h-12 w-full rounded-lg bg-[#1D5CE5] text-white shadow-none hover:bg-[#1649BD]"
+                        >
+                          <Send className="h-4 w-4" />
+                          {myOffer ? 'Update offer' : 'Submit offer'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          className="h-11 w-full rounded-lg"
+                          onClick={() => void openThreadWith(request.requesterId)}
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          Ask a question first
+                        </Button>
+                      </div>
+                    </form>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-[18px] font-bold text-[#071330]">Verification required</h2>
+                    <p className="mt-1 text-[14px] text-[#64748B]">
+                      Offering unlocks after Beam approves your address.
                     </p>
-                  ) : null}
-
-                  <div className="flex flex-col gap-2">
-                    <Button
-                      type="submit"
-                      loading={offerPending}
-                      className="h-12 w-full rounded-lg bg-[#1D5CE5] text-white shadow-none hover:bg-[#1649BD]"
-                    >
-                      <Send className="h-4 w-4" />
-                      {myOffer ? 'Update offer' : 'Submit offer'}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="h-11 w-full rounded-lg"
-                      onClick={() => void openThreadWith(request.requesterId)}
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      Ask a question first
-                    </Button>
-                  </div>
-                </form>
+                    <OfferGateNotice verification={helperVerification} />
+                    <div className="mt-4 flex flex-col gap-2">
+                      {(() => {
+                        const kind = offerGateKind(helperVerification)
+                        if (kind === 'approved') return null
+                        return <OfferGatePrimaryButton kind={kind} narrow />
+                      })()}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="h-11 w-full rounded-lg"
+                        onClick={() => void openThreadWith(request.requesterId)}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        Ask a question
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </section>
           ) : null}

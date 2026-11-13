@@ -33,6 +33,36 @@ export type NotificationKind =
   | 'new_message'
   | 'job_completed'
   | 'new_review'
+  | 'verification_submitted'
+  | 'verification_approved'
+  | 'verification_needs_resubmission'
+
+/** Helper offer gate: no row = not started (unverified). */
+export type HelperVerificationStatus = 'pending' | 'approved' | 'needs_resubmission'
+
+export interface HelperVerification {
+  id: string
+  profileId: string
+  status: HelperVerificationStatus
+  email: string
+  street: string
+  apt?: string | null
+  city: string
+  stateCode: string
+  zip: string
+  documentPath: string
+  documentName: string
+  documentMime?: string | null
+  documentBytes?: number | null
+  reviewReason?: string | null
+  reviewedBy?: string | null
+  reviewedAt?: string | null
+  submittedAt: string
+  createdAt: string
+  updatedAt: string
+  /** Demo-only data URL for local bill preview; never used in live mode. */
+  documentPreviewUrl?: string | null
+}
 
 export type { ServiceCategory as Category } from '@/lib/taxonomy'
 
@@ -187,6 +217,12 @@ export interface AppState {
   invites: RequestInvite[]
   savedHelperIds: string[]
   notifications: BeamNotification[]
+  /** Current user's verification record (null = not started). */
+  helperVerification?: HelperVerification | null
+  /** All verification rows visible to staff (demo + live staff load). */
+  helperVerifications?: HelperVerification[]
+  /** Whether the signed-in user is on the Beam staff allowlist. */
+  isBeamStaff?: boolean
 }
 
 export interface MatchScore {
