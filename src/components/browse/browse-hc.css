@@ -29,11 +29,18 @@
   padding: 42px 0 64px;
 }
 
-/* ---- Flat sticky header ---- */
-.browse-hc-header {
+/* ---- Flat sticky header ----
+   Stick the shell (not the inner header alone) so the containing block
+   spans the page scroll. A short wrapper made sticky fail and left the
+   detail card floating under an empty 81px gap. */
+[data-testid='browse-hc-header-shell'] {
   position: sticky;
   top: 0;
   z-index: 40;
+}
+
+.browse-hc-header {
+  position: relative;
   height: 65px;
   background: var(--hc-white);
   border-bottom: 1px solid var(--hc-line);
@@ -540,14 +547,27 @@
   white-space: normal;
 }
 
-/* ---- Detail panel ---- */
+/* ---- Detail panel ----
+   Must stay a direct grid child so sticky can travel the full row height.
+   width/justify-self keep even left/right edges inside the column. */
 .browse-hc-detail {
   position: sticky;
+  /* 65px stuck header + 16px breathing room (matches approved mock). */
   top: 81px;
+  width: 100%;
+  max-width: 100%;
+  margin-inline: 0;
+  justify-self: stretch;
+  align-self: start;
   background: var(--hc-white);
   border: 1px solid var(--hc-line);
   border-radius: 16px;
   overflow: hidden;
+}
+
+/* When the helper setup banner is stuck with the header, clear it too. */
+[data-testid='browse-hc-header-shell']:has(.browse-hc-helper-banner) ~ main .browse-hc-detail {
+  top: 117px;
 }
 
 .browse-hc-detail-photo {
