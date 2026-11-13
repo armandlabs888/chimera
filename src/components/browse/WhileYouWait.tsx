@@ -104,7 +104,7 @@ export function WhileYouWait({
                 ? `Still needed: ${profileProgress.missing.slice(0, 2).join(', ')}${
                     profileProgress.missing.length > 2 ? '…' : ''
                   }`
-                : 'Profile checklist looks complete — keep skills and rate up to date.'}
+                : 'Profile checklist looks complete. Keep skills and rate up to date.'}
             </p>
             <div className="mt-3 h-1.5 overflow-hidden rounded-lg bg-[#D7E3F4]">
               <div

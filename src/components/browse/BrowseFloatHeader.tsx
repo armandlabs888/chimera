@@ -2,32 +2,18 @@
 
 import { ArrowRight, ChevronDown, LogOut, Menu, UserRound, X } from 'lucide-react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
-import { BrowseLocationTrigger } from '@/components/browse/BrowseLocationDialog'
-import { MessagesTrigger } from '@/components/messages/MessagesTrigger'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import { Avatar } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { useBrowseLocation } from '@/hooks/useBrowseLocation'
-import '@/components/landing/landing-v2.css'
+import './browse-hc.css'
 
-function subscribeNarrow(onChange: () => void) {
-  const mq = window.matchMedia('(max-width: 639px)')
-  mq.addEventListener('change', onChange)
-  return () => mq.removeEventListener('change', onChange)
-}
-
-function narrowSnapshot() {
-  return window.matchMedia('(max-width: 639px)').matches
-}
-
-const NAV = [
-  { href: '/browse', label: 'Browse' },
-  { href: '/#how-it-works', label: 'How it works' },
-  { href: '/post', label: 'Post a task' },
-]
+type NavItem =
+  | { kind: 'link'; href: string; label: string; active?: boolean }
+  | { kind: 'messages'; label: string }
 
 export function BrowseFloatHeader({
   guest,
@@ -37,27 +23,41 @@ export function BrowseFloatHeader({
   showHelperBanner: boolean
 }) {
   const { currentUser, ready, authUser, signOut } = useBeam()
-  const { toggle } = useMessagesDrawer()
+  const { toggle, open: messagesOpen, isGuest } = useMessagesDrawer()
   const { origin } = useBrowseLocation(currentUser)
-  const params = useSearchParams()
-  const narrow = useSyncExternalStore(subscribeNarrow, narrowSnapshot, () => false)
-  const jobOpen = Boolean(params.get('job')) && !narrow
+  const pathname = usePathname()
   const locationText = ready ? origin.locationLabel : '…'
   const [accountOpen, setAccountOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const accountRef = useRef<HTMLDivElement>(null)
 
+  const savedHref = guest ? '/auth?next=%2Fyou%3Ftab%3Dsaved' : '/you?tab=saved'
+  const offersHref = guest ? '/auth?next=%2Fyou%3Ftab%3Doffers' : '/you?tab=offers'
+  const postHref = guest ? '/auth?next=%2Fpost' : '/post'
+
+  const navItems: NavItem[] = [
+    { kind: 'link', href: '/browse', label: 'Browse jobs', active: true },
+    { kind: 'link', href: savedHref, label: 'Saved' },
+    { kind: 'link', href: offersHref, label: 'My offers' },
+    { kind: 'messages', label: 'Messages' },
+    { kind: 'link', href: '/#how-it-works', label: 'How it works' },
+  ]
+
   useEffect(() => {
-    if (jobOpen) document.documentElement.dataset.browseJobOpen = '1'
-    else delete document.documentElement.dataset.browseJobOpen
+    delete document.documentElement.dataset.browseJobOpen
     return () => {
       delete document.documentElement.dataset.browseJobOpen
     }
-  }, [jobOpen])
+  }, [])
+
+  useEffect(() => {
+    setMobileOpen(false)
+    setAccountOpen(false)
+  }, [pathname])
 
   useEffect(() => {
     if (!accountOpen && !mobileOpen) return
-    function onDoc(e: MouseEvent) {
+    function onDoc(e: MouseEvent | globalThis.MouseEvent) {
       if (accountOpen && accountRef.current && !accountRef.current.contains(e.target as Node)) {
         setAccountOpen(false)
       }
@@ -76,22 +76,24 @@ export function BrowseFloatHeader({
     }
   }, [accountOpen, mobileOpen])
 
+  function onMessagesClick(event: MouseEvent<HTMLAnchorElement | HTMLButtonElement>) {
+    if (isGuest) return
+    if ('metaKey' in event && (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey)) return
+    event.preventDefault()
+    toggle()
+    setMobileOpen(false)
+  }
+
   return (
-    <div className="browse-float-header-shell pointer-events-none fixed inset-x-0 top-0 z-50">
-      <div
-        aria-hidden
-        className={`pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-white from-70% to-transparent ${
-          showHelperBanner ? 'h-36' : 'h-[92px]'
-        }`}
-      />
+    <div className="browse-hc" data-testid="browse-hc-header-shell">
       {showHelperBanner ? (
         <div
-          className="pointer-events-auto relative min-h-9 bg-[#071330] py-1.5 text-white"
+          className="browse-hc-helper-banner"
           data-testid="helper-setup-callout"
           role="region"
           aria-label="Finish your helper profile"
         >
-          <div className="beam-container flex flex-col items-center justify-center gap-1.5 text-center sm:flex-row sm:flex-wrap sm:gap-3">
+          <div className="browse-hc-wrap flex flex-col items-center justify-center gap-1.5 text-center sm:flex-row sm:flex-wrap sm:gap-3">
             <p className="min-w-0 max-w-[42rem] text-[12.5px] font-medium leading-[1.35] sm:max-w-none">
               Finish your helper profile to appear in Local Helpers.
             </p>
@@ -107,207 +109,215 @@ export function BrowseFloatHeader({
         </div>
       ) : null}
 
-      <header
-        className="pointer-events-none relative flex justify-center px-6 pt-4 md:px-5 md:pt-5"
-        data-testid={guest ? 'landing-nav' : 'app-topnav'}
-        data-nav-style="float"
-      >
-        <div className="pointer-events-none w-full md:w-auto md:max-w-[calc(100%-40px)]">
-          <div
-            className="landing-float-nav pointer-events-auto grid w-full grid-cols-[auto_1fr] items-center md:inline-grid md:w-max md:max-w-none md:grid-cols-[1fr_auto_1fr] md:gap-x-8"
-            data-testid="browse-float-header"
-          >
-            <Link href="/browse" className="relative z-10 shrink-0 focus-visible:outline-none">
-              <BeamWordmark
-                markWidth={18}
-                markHeight={18}
-                wordClassName="text-[17px] font-bold tracking-[-0.03em] text-[#071330]"
-                tone="ink"
-              />
+      <header className="browse-hc-header" data-testid={guest ? 'landing-nav' : 'app-topnav'} data-nav-style="flat">
+        <div className="browse-hc-wrap browse-hc-header-inner">
+          <Link href="/browse" className="browse-hc-brand focus-visible:outline-none" aria-label="HouseCall home">
+            <BeamWordmark
+              markWidth={18}
+              markHeight={18}
+              wordClassName="text-[17px] font-bold tracking-[-0.03em] text-[#071330]"
+              tone="ink"
+            />
+          </Link>
+
+          <nav className="browse-hc-nav" aria-label="Primary">
+            {navItems.map((item) => {
+              if (item.kind === 'messages') {
+                return (
+                  <Link
+                    key="messages"
+                    href={isGuest ? '/auth?next=%2Fmessages' : '/messages'}
+                    data-testid="messages-nav-trigger"
+                    aria-expanded={isGuest ? undefined : messagesOpen}
+                    className={messagesOpen ? 'is-active' : undefined}
+                    onClick={onMessagesClick}
+                  >
+                    {item.label}
+                  </Link>
+                )
+              }
+              return (
+                <Link
+                  key={item.href + item.label}
+                  href={item.href}
+                  className={item.active ? 'is-active' : undefined}
+                  aria-current={item.active ? 'page' : undefined}
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
+          </nav>
+
+          <div className="browse-hc-header-right">
+            <Link href={postHref} className="browse-hc-post" data-testid="topnav-post-cta">
+              Post a task
             </Link>
 
-            <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
-              {NAV.map((item) => {
-                const active = item.href === '/browse'
-                const className = `rounded-lg px-3 py-2 text-[14px] font-medium ${
-                  active ? 'bg-[#F4F8FD] text-[#1D5CE5]' : 'text-[#071330] hover:bg-[#F4F8FD]'
-                }`
-                if (item.href === '/post') {
-                  return (
-                    <Link key={item.href} href={item.href} className={className} data-testid="topnav-post-cta">
+            {guest ? null : (
+              <div className="relative hidden sm:block" ref={accountRef}>
+                <button
+                  type="button"
+                  data-testid="account-menu-trigger"
+                  aria-label="Account menu"
+                  aria-expanded={accountOpen}
+                  aria-haspopup="menu"
+                  onClick={() => setAccountOpen((o) => !o)}
+                  className="inline-flex h-10 items-center gap-2 rounded-full px-1.5 hover:bg-[#F4F8FD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
+                >
+                  {ready ? (
+                    <Avatar src={currentUser.avatar} name={currentUser.name} size={28} />
+                  ) : (
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#071330] text-white">
+                      <UserRound className="h-3.5 w-3.5" />
+                    </span>
+                  )}
+                  <ChevronDown className="h-3.5 w-3.5 text-[#3D4A5F]" aria-hidden />
+                </button>
+                {accountOpen ? (
+                  <div
+                    className="absolute right-0 top-12 z-50 w-[min(280px,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)]"
+                    role="menu"
+                    aria-label="Account"
+                    data-testid="account-menu"
+                  >
+                    <div className="border-b border-[#F1F5F9] px-4 py-3.5">
+                      <p className="truncate text-[14px] font-bold text-[#071330]">
+                        {ready ? currentUser.name : '…'}
+                      </p>
+                      <p className="mt-0.5 truncate text-[12.5px] font-medium text-[#334155]">
+                        {locationText}
+                      </p>
+                    </div>
+                    <ul className="py-1.5">
+                      <MenuLink href="/you" onNavigate={() => setAccountOpen(false)}>
+                        Profile &amp; account
+                      </MenuLink>
+                      <MenuLink href="/home" onNavigate={() => setAccountOpen(false)}>
+                        My activity
+                      </MenuLink>
+                      <MenuLink href="/onboarding/helper" onNavigate={() => setAccountOpen(false)}>
+                        Helper profile
+                      </MenuLink>
+                      <MenuLink href="/onboarding?edit=1" onNavigate={() => setAccountOpen(false)}>
+                        Change city
+                      </MenuLink>
+                    </ul>
+                    {authUser ? (
+                      <div className="border-t border-[#F1F5F9] py-1.5">
+                        <button
+                          type="button"
+                          role="menuitem"
+                          data-testid="account-sign-out"
+                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[13.5px] font-semibold text-[#DC2626] hover:bg-[#FEF2F2]"
+                          onClick={() => {
+                            setAccountOpen(false)
+                            void signOut()
+                          }}
+                        >
+                          <LogOut className="h-4 w-4" strokeWidth={1.85} />
+                          Sign out
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            )}
+
+            <button
+              type="button"
+              className="browse-hc-menu-btn"
+              aria-label={mobileOpen ? 'Close menu' : 'Menu'}
+              aria-expanded={mobileOpen}
+              onClick={() => setMobileOpen((v) => !v)}
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
+        </div>
+
+        {mobileOpen ? (
+          <div className="border-t border-[#E3E8EF] bg-white md:hidden">
+            <div className="browse-hc-wrap flex flex-col py-2">
+              {navItems.map((item) => {
+                if (item.kind === 'messages') {
+                  return isGuest ? (
+                    <Link
+                      key="messages-m"
+                      href="/auth?next=%2Fmessages"
+                      className="px-1 py-3 text-[15px] text-[#071330]"
+                      onClick={() => setMobileOpen(false)}
+                    >
                       {item.label}
                     </Link>
+                  ) : (
+                    <button
+                      key="messages-m"
+                      type="button"
+                      className="px-1 py-3 text-left text-[15px] text-[#071330]"
+                      onClick={onMessagesClick}
+                    >
+                      {item.label}
+                    </button>
                   )
                 }
                 return (
-                  <Link key={item.href} href={item.href} className={className} aria-current={active ? 'page' : undefined}>
+                  <Link
+                    key={item.href + item.label + '-m'}
+                    href={item.href}
+                    className="px-1 py-3 text-[15px] text-[#071330]"
+                    onClick={() => setMobileOpen(false)}
+                  >
                     {item.label}
                   </Link>
                 )
               })}
-            </nav>
-
-            <div className="flex shrink-0 items-center justify-self-end gap-1.5">
-              <BrowseLocationTrigger
-                label={locationText}
-                chevron
-                pinClassName="text-[#1D5CE5]"
-                className="inline-flex h-[38px] max-w-[8.5rem] items-center gap-1.5 rounded-full border border-[#E3E8EF] bg-white px-2.5 text-[13px] font-medium text-[#071330] transition hover:bg-[#F4F8FD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:text-[13.5px]"
-              />
-              <MessagesTrigger appearance="icon" hideFrom="sm" />
-              <MessagesTrigger appearance="float" />
-
               {guest ? (
                 <>
                   <Link
                     href="/auth?mode=signin"
-                    className="hidden px-2 text-[13px] font-medium text-[#071330] hover:text-[#1D5CE5] sm:inline"
+                    className="px-1 py-3 text-[15px] text-[#071330]"
+                    onClick={() => setMobileOpen(false)}
                   >
                     Log in
                   </Link>
-                  <Link
-                    href="/auth?mode=signup&next=%2Fbrowse"
-                    className="hidden h-[38px] items-center rounded-full bg-[#071330] px-4 text-[13px] font-semibold text-white hover:bg-[#1D5CE5] sm:inline-flex"
-                  >
-                    Sign up
-                  </Link>
+                  <div className="px-1 pb-3 pt-1">
+                    <Link
+                      href="/auth?mode=signup&next=%2Fbrowse"
+                      className="inline-flex h-10 w-full items-center justify-center rounded-full bg-[#1D5CE5] text-[14px] font-semibold text-white"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Sign up
+                    </Link>
+                  </div>
                 </>
               ) : (
-                <div className="relative" ref={accountRef}>
-                  <button
-                    type="button"
-                    data-testid="account-menu-trigger"
-                    aria-label="Account menu"
-                    aria-expanded={accountOpen}
-                    aria-haspopup="menu"
-                    onClick={() => setAccountOpen((o) => !o)}
-                    className="inline-flex h-[38px] items-center gap-2 rounded-full px-1.5 hover:bg-[#F4F8FD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
+                <>
+                  <Link
+                    href="/you"
+                    className="px-1 py-3 text-[15px] text-[#071330]"
+                    onClick={() => setMobileOpen(false)}
                   >
-                    {ready ? (
-                      <Avatar src={currentUser.avatar} name={currentUser.name} size={28} />
-                    ) : (
-                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#071330] text-white">
-                        <UserRound className="h-3.5 w-3.5" />
-                      </span>
-                    )}
-                    <ChevronDown className="hidden h-3.5 w-3.5 text-[#3D4A5F] sm:block" aria-hidden />
-                  </button>
-                  {accountOpen ? (
-                    <div
-                      className="pointer-events-auto absolute right-0 top-11 z-50 w-[min(280px,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-[0_12px_32px_-8px_rgba(7,19,48,0.12)]"
-                      role="menu"
-                      aria-label="Account"
-                      data-testid="account-menu"
+                    Profile &amp; account
+                  </Link>
+                  {authUser ? (
+                    <button
+                      type="button"
+                      className="px-1 py-3 text-left text-[15px] font-semibold text-[#DC2626]"
+                      onClick={() => {
+                        setMobileOpen(false)
+                        void signOut()
+                      }}
                     >
-                      <div className="border-b border-[#F1F5F9] px-4 py-3.5">
-                        <p className="truncate text-[14px] font-bold text-[#071330]">
-                          {ready ? currentUser.name : '…'}
-                        </p>
-                        <p className="mt-0.5 truncate text-[12.5px] font-medium text-[#334155]">
-                          {locationText}
-                        </p>
-                      </div>
-                      <ul className="py-1.5">
-                        <MenuLink href="/you" onNavigate={() => setAccountOpen(false)}>
-                          Profile &amp; account
-                        </MenuLink>
-                        <MenuLink href="/home" onNavigate={() => setAccountOpen(false)}>
-                          My activity
-                        </MenuLink>
-                        <MenuLink href="/onboarding/helper" onNavigate={() => setAccountOpen(false)}>
-                          Helper profile
-                        </MenuLink>
-                        <MenuLink href="/onboarding?edit=1" onNavigate={() => setAccountOpen(false)}>
-                          Change city
-                        </MenuLink>
-                      </ul>
-                      {authUser ? (
-                        <div className="border-t border-[#F1F5F9] py-1.5">
-                          <button
-                            type="button"
-                            role="menuitem"
-                            data-testid="account-sign-out"
-                            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[13.5px] font-semibold text-[#DC2626] hover:bg-[#FEF2F2]"
-                            onClick={() => {
-                              setAccountOpen(false)
-                              void signOut()
-                            }}
-                          >
-                            <LogOut className="h-4 w-4" strokeWidth={1.85} />
-                            Sign out
-                          </button>
-                        </div>
-                      ) : null}
-                    </div>
+                      Sign out
+                    </button>
                   ) : null}
-                </div>
+                </>
               )}
-
-              <button
-                type="button"
-                className="grid h-[38px] w-[38px] place-items-center rounded-full border border-[#E3E8EF] bg-white text-[#071330] md:hidden"
-                aria-label={mobileOpen ? 'Close menu' : 'Menu'}
-                aria-expanded={mobileOpen}
-                onClick={() => setMobileOpen((v) => !v)}
-              >
-                {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
             </div>
           </div>
-
-          {mobileOpen ? (
-            <div className="pointer-events-auto mt-2 w-full overflow-hidden rounded-xl border border-[rgba(7,19,48,0.12)] bg-white shadow-[0_18px_40px_-12px_rgba(12,42,102,0.28)] md:hidden">
-              <div className="flex flex-col py-2">
-                {NAV.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="px-4 py-3 text-[15px] text-[#071330]"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-                {guest ? (
-                  <Link
-                    href="/auth?next=%2Fmessages"
-                    className="px-4 py-3 text-[15px] text-[#071330]"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Messages
-                  </Link>
-                ) : (
-                  <button
-                    type="button"
-                    className="px-4 py-3 text-left text-[15px] text-[#071330]"
-                    onClick={() => {
-                      setMobileOpen(false)
-                      toggle()
-                    }}
-                  >
-                    Messages
-                  </button>
-                )}
-                {guest ? (
-                  <>
-                    <Link href="/auth?mode=signin" className="px-4 py-3 text-[15px] text-[#071330]" onClick={() => setMobileOpen(false)}>
-                      Log in
-                    </Link>
-                    <div className="px-4 pb-3 pt-1">
-                      <Link
-                        href="/auth?mode=signup&next=%2Fbrowse"
-                        className="inline-flex h-10 w-full items-center justify-center rounded-full bg-[#1D5CE5] text-[14px] font-semibold text-white"
-                        onClick={() => setMobileOpen(false)}
-                      >
-                        Sign up
-                      </Link>
-                    </div>
-                  </>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-        </div>
+        ) : null}
       </header>
     </div>
   )

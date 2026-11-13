@@ -1,13 +1,17 @@
 'use client'
 
+import { ChevronDown, MapPin } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, useTransition } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { BrowseFilterBar, type FilterOption } from '@/components/browse/BrowseFilterBar'
 import { BrowseFilteredEmpty } from '@/components/browse/BrowseFilteredEmpty'
 import { BrowseFreshEmpty } from '@/components/browse/BrowseFreshEmpty'
 import { BrowseHelperRow } from '@/components/browse/BrowseHelperRow'
+import { BrowseJobDetailPanel } from '@/components/browse/BrowseJobDetailPanel'
 import { BrowseJobDrawer } from '@/components/browse/BrowseJobDrawer'
 import { BrowseJobRow } from '@/components/browse/BrowseJobRow'
+import { BrowseLocationTrigger } from '@/components/browse/BrowseLocationDialog'
+import { BrowseToolsBar } from '@/components/browse/BrowseToolsBar'
+import type { FilterOption } from '@/components/browse/BrowseFilterBar'
 import { WhileYouWait } from '@/components/browse/WhileYouWait'
 import { useBeam } from '@/context/BeamContext'
 import { WHEN_OPTIONS } from '@/data/categories'
@@ -26,10 +30,11 @@ import {
   matchesBrowseCategory,
 } from '@/lib/taxonomy'
 import type { AvailabilitySlot, HelpRequest, Person, WhenOption } from '@/types'
-import '@/components/landing/landing-v2.css'
+import '@/components/browse/browse-hc.css'
 
 type SortMode = 'nearest' | 'newest' | 'budget'
 type RadiusMiles = 'all' | '3' | '5' | '10' | '25'
+type PayFilter = 'all' | 'fixed' | 'open'
 
 const PAGE_SIZE = 20
 
@@ -46,8 +51,14 @@ const PEOPLE_SORT_OPTIONS: FilterOption[] = [
 ]
 
 const WHEN_FILTER_OPTIONS: FilterOption[] = [
-  { id: 'all', label: 'Any timing' },
+  { id: 'all', label: 'Anytime' },
   ...WHEN_OPTIONS.map((w) => ({ id: w.id, label: w.label })),
+]
+
+const PAY_FILTER_OPTIONS: FilterOption[] = [
+  { id: 'all', label: 'All types' },
+  { id: 'fixed', label: 'Fixed budget' },
+  { id: 'open', label: 'Accepting offers' },
 ]
 
 const AVAIL_FILTER_OPTIONS: FilterOption[] = [
@@ -97,6 +108,11 @@ function parseRadius(value: string | null): RadiusMiles {
   return 'all'
 }
 
+function parsePay(value: string | null): PayFilter {
+  if (value === 'fixed' || value === 'open') return value
+  return 'all'
+}
+
 function isBlankZeroCard(person: Person): boolean {
   if (person.rateType === 'quote') return false
   return !(person.hourlyRate > 0)
@@ -132,14 +148,18 @@ function publicArea(request: HelpRequest): string {
   return first
 }
 
+function isOpenBudget(request: HelpRequest): boolean {
+  return request.budgetType === 'open' || request.budget === 0
+}
+
 function subscribeNarrow(onChange: () => void) {
-  const mq = window.matchMedia('(max-width: 639px)')
+  const mq = window.matchMedia('(max-width: 860px)')
   mq.addEventListener('change', onChange)
   return () => mq.removeEventListener('change', onChange)
 }
 
 function narrowSnapshot() {
-  return window.matchMedia('(max-width: 639px)').matches
+  return window.matchMedia('(max-width: 860px)').matches
 }
 
 export function Browse() {
@@ -168,6 +188,7 @@ export function Browse() {
   const category = params.get('category') ?? 'all'
   const radius = parseRadius(params.get('radius'))
   const when = parseWhen(params.get('when'))
+  const pay = parsePay(params.get('pay'))
   const avail = hidePeerDiscovery ? 'all' : parseAvail(params.get('avail'))
   const qParam = params.get('q') ?? ''
   const freeOnly = hidePeerDiscovery ? false : params.get('free') === '1'
@@ -253,14 +274,20 @@ export function Browse() {
 
   const q = qParam.toLowerCase().trim()
   const radiusMiles = radius === 'all' ? null : Number(radius)
-  // Always derive from the same origin the float header shows (locationLabel),
-  // never a stale profile city that can disagree with the picker text.
   const cityName = (() => {
     const label = browseOrigin.locationLabel?.trim() || ''
     if (label && label.toLowerCase() !== 'nearby') {
       return label.split(',')[0]?.trim() || browseOrigin.city?.trim() || 'you'
     }
     return browseOrigin.city?.trim() || 'you'
+  })()
+  const areaLine = (() => {
+    const label = browseOrigin.locationLabel?.trim() || ''
+    if (label && label.toLowerCase() !== 'nearby') return label
+    const city = browseOrigin.city?.trim()
+    const state = browseOrigin.stateCode?.trim()
+    if (city && state) return `${city}, ${state}`
+    return city || 'your area'
   })()
 
   const openRequests = useMemo(() => {
@@ -274,6 +301,11 @@ export function Browse() {
         return d <= radiusMiles
       })
       .filter((r) => (when === 'all' ? true : r.when === when))
+      .filter((r) => {
+        if (pay === 'all') return true
+        const open = isOpenBudget(r)
+        return pay === 'open' ? open : !open
+      })
       .filter((r) => {
         if (!q) return true
         return (
@@ -298,7 +330,7 @@ export function Browse() {
       )
     })
     return list
-  }, [state.requests, category, radiusMiles, when, q, sort, browseAnchor, isGuest])
+  }, [state.requests, category, radiusMiles, when, pay, q, sort, browseAnchor, isGuest])
 
   const people = useMemo(() => {
     let list = state.people
@@ -353,28 +385,6 @@ export function Browse() {
     isGuest,
   ])
 
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: 0 }
-    for (const p of BROWSE_PARENTS) counts[p.id] = 0
-    if (tab === 'requests') {
-      const open = state.requests.filter((r) => r.status === 'open')
-      counts.all = open.length
-      for (const parent of BROWSE_PARENTS) {
-        counts[parent.id] = open.filter((r) => matchesBrowseCategory(r.category, parent.id)).length
-      }
-    } else {
-      const helpers = state.people.filter(
-        (p) => isBrowseHelper(p) && !(p.isCurrentUser || p.id === currentUser.id),
-      )
-      counts.all = helpers.length
-      for (const parent of BROWSE_PARENTS) {
-        const expanded = expandBrowseFilter(parent.id) ?? []
-        counts[parent.id] = helpers.filter((h) => h.skills.some((s) => expanded.includes(s))).length
-      }
-    }
-    return counts
-  }, [state.requests, state.people, tab, currentUser.id])
-
   const profileProgress = useMemo(() => helperProfileProgress(currentUser), [currentUser])
   const showProfileWaitCard =
     hidePeerDiscovery &&
@@ -383,7 +393,7 @@ export function Browse() {
   const showHelperBanner =
     ready && !isGuest && currentUser.accountRole === 'helper' && !currentUser.isHelper
 
-  const filterKey = `${tab}|${category}|${radius}|${when}|${avail}|${qParam}|${sort}|${freeOnly}|${cityName}`
+  const filterKey = `${tab}|${category}|${radius}|${when}|${pay}|${avail}|${qParam}|${sort}|${freeOnly}|${cityName}`
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
   }, [filterKey])
@@ -397,6 +407,7 @@ export function Browse() {
     if (next === 'people') nextParams.delete('when')
     else nextParams.delete('avail')
     nextParams.delete('job')
+    nextParams.delete('pay')
     replaceQuery(nextParams)
   }
 
@@ -419,6 +430,13 @@ export function Browse() {
     const nextParams = new URLSearchParams(params.toString())
     if (id === 'all') nextParams.delete('when')
     else nextParams.set('when', id)
+    replaceQuery(nextParams)
+  }
+
+  function setPay(id: string) {
+    const nextParams = new URLSearchParams(params.toString())
+    if (id === 'all') nextParams.delete('pay')
+    else nextParams.set('pay', id)
     replaceQuery(nextParams)
   }
 
@@ -475,17 +493,37 @@ export function Browse() {
     replaceQuery(nextParams)
   }, [params, replaceQuery])
 
+  // Desktop: keep a selected job for the sticky detail panel.
+  useEffect(() => {
+    if (!ready || tab !== 'requests' || narrow) return
+    if (openRequests.length === 0) {
+      if (jobId) closeJob()
+      return
+    }
+    if (jobId && openRequests.some((r) => r.id === jobId)) return
+    openJob(openRequests[0].id)
+  }, [ready, tab, narrow, openRequests, jobId, openJob, closeJob])
+
   const sortOptions = (tab === 'people' ? PEOPLE_SORT_OPTIONS : REQUEST_SORT_OPTIONS).filter(
     (o) => !(isGuest && o.id === 'nearest'),
   )
   const sortLabel = sortOptions.find((o) => o.id === sort)?.label ?? (isGuest ? 'Newest first' : 'Nearest')
-  const radiusLabel = RADIUS_FILTER_OPTIONS.find((o) => o.id === radius)?.label ?? 'Any distance'
-  const whenLabel = WHEN_FILTER_OPTIONS.find((o) => o.id === when)?.label ?? 'Any timing'
+  const whenLabel = WHEN_FILTER_OPTIONS.find((o) => o.id === when)?.label ?? 'Anytime'
+  const payLabel = PAY_FILTER_OPTIONS.find((o) => o.id === pay)?.label ?? 'All types'
   const availLabel = AVAIL_FILTER_OPTIONS.find((o) => o.id === avail)?.label ?? 'Any availability'
   const categoryLabel = category === 'all' ? null : formatCategoryLabel(category)
+  const radiusChipLabel =
+    RADIUS_FILTER_OPTIONS.find((o) => o.id === radius)?.label ?? 'Any distance'
+  const locRadiusLabel = radius === 'all' ? 'Any distance' : radiusChipLabel
 
   const hasActiveFilters =
-    category !== 'all' || !!qParam || freeOnly || when !== 'all' || avail !== 'all' || radius !== 'all'
+    category !== 'all' ||
+    !!qParam ||
+    freeOnly ||
+    when !== 'all' ||
+    pay !== 'all' ||
+    avail !== 'all' ||
+    radius !== 'all'
 
   const showFreshMarketplace = tab === 'requests' && !hasActiveFilters && openRequests.length === 0
   const showFilteredRequestsEmpty = tab === 'requests' && hasActiveFilters && openRequests.length === 0
@@ -493,40 +531,19 @@ export function Browse() {
   const showWhileYouWait = showFreshMarketplace && (hidePeerDiscovery || isGuest === false)
 
   const liveCount = tab === 'requests' ? openRequests.length : people.length
-  const noun =
-    tab === 'requests' ? (liveCount === 1 ? 'job' : 'jobs') : liveCount === 1 ? 'helper' : 'helpers'
+  const taskNoun = liveCount === 1 ? 'task' : 'tasks'
+  const helperNoun = liveCount === 1 ? 'helper' : 'helpers'
   const shownRequests = openRequests.slice(0, visibleCount)
   const shownPeople = people.slice(0, visibleCount)
   const selectedRequest = jobId ? state.requests.find((r) => r.id === jobId) ?? null : null
   const returnTo = params.toString() ? `${pathname}?${params.toString()}` : pathname
   const authHref = `/auth?next=${encodeURIComponent(returnTo)}`
 
-  const chips: { id: string; label: string; onRemove: () => void }[] = []
-  if (qParam) chips.push({ id: 'q', label: `Search: ${qParam}`, onRemove: clearSearch })
-  if (categoryLabel) chips.push({ id: 'category', label: categoryLabel, onRemove: () => setCategory('all') })
-  if (radius !== 'all') chips.push({ id: 'radius', label: radiusLabel, onRemove: () => setRadius('all') })
-  if (tab === 'requests' && when !== 'all') {
-    chips.push({ id: 'when', label: whenLabel, onRemove: () => setWhen('all') })
-  }
-  if (tab === 'people' && avail !== 'all') {
-    chips.push({ id: 'avail', label: availLabel, onRemove: () => setAvail('all') })
-  }
-  if (freeOnly) {
-    chips.push({
-      id: 'free',
-      label: 'Afternoons & evenings',
-      onRemove: () => {
-        const nextParams = new URLSearchParams(params.toString())
-        nextParams.delete('free')
-        replaceQuery(nextParams)
-      },
-    })
-  }
-
   const suggestions = [
     category !== 'all' ? { label: 'All categories', onClick: () => setCategory('all') } : null,
     radius !== 'all' ? { label: 'Any distance', onClick: () => setRadius('all') } : null,
-    tab === 'requests' && when !== 'all' ? { label: 'Any timing', onClick: () => setWhen('all') } : null,
+    tab === 'requests' && when !== 'all' ? { label: 'Anytime', onClick: () => setWhen('all') } : null,
+    tab === 'requests' && pay !== 'all' ? { label: 'All pay types', onClick: () => setPay('all') } : null,
     tab === 'people' && avail !== 'all'
       ? { label: 'Any availability', onClick: () => setAvail('all') }
       : null,
@@ -534,230 +551,283 @@ export function Browse() {
 
   const selectedMiles = selectedRequest ? formatMiles(milesTo(selectedRequest, browseAnchor)) : null
   const selectedArea = selectedRequest ? publicArea(selectedRequest) : ''
-  const drawerDocked = Boolean(selectedRequest) && !narrow
+  const showDesktopDetail = Boolean(selectedRequest) && !narrow && tab === 'requests'
+
+  const subline =
+    tab === 'requests'
+      ? radius === 'all'
+        ? `${liveCount} ${taskNoun} near ${areaLine}`
+        : `${liveCount} ${taskNoun} within ${radius} mi of ${areaLine}`
+      : `${liveCount} ${helperNoun} near ${areaLine}`
 
   return (
     <div
-      className={`browse-v3-shell ${drawerDocked ? 'browse-v3-shell--drawer-open' : ''}`}
-      data-browse-drawer={drawerDocked ? 'open' : 'closed'}
-    >
-    <div
-      className={`browse-v3 mx-auto w-full max-w-[808px] px-4 pb-16 sm:px-6 ${
-        showHelperBanner ? 'has-helper-banner' : ''
-      }`}
+      className={`browse-hc ${showHelperBanner ? 'has-helper-banner' : ''}`}
       data-testid="browse-v3"
       data-browse-layout={hidePeerDiscovery ? 'helper-jobs' : 'discovery'}
     >
-      <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-end sm:gap-6">
-        <div className="min-w-0">
-          <h1 className="text-[27px] font-bold leading-[1.12] tracking-[-0.028em] text-[#071330] sm:text-[34px]">
-            Browse Local Jobs
-          </h1>
-          <p className="mt-1.5 flex flex-wrap items-center gap-2.5 text-[14px] text-[#273449] sm:mt-2.5 sm:text-[15px]">
-            <span>
-              <b className="font-semibold text-[#071330]">
-                {liveCount} {noun}
-              </b>{' '}
-              near {cityName}
-            </span>
-          </p>
-        </div>
-        {hidePeerDiscovery ? null : (
-          <div
-            className="inline-flex w-full shrink-0 rounded-[10px] bg-[#EEF2F7] p-[3px] sm:w-auto"
-            role="tablist"
-            aria-label="Browse type"
-            data-testid="browse-mode-tabs"
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'requests'}
-              onClick={() => setTab('requests')}
-              className={`h-8 flex-1 rounded-lg px-3.5 text-[13.5px] font-semibold sm:flex-none ${
-                tab === 'requests'
-                  ? 'bg-white text-[#071330] shadow-[0_1px_2px_rgba(7,19,48,0.12),0_0_0_1px_rgba(7,19,48,0.04)]'
-                  : 'text-[#3D4A5F]'
-              }`}
-            >
-              Jobs
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'people'}
-              data-testid="browse-tab-local-helpers"
-              onClick={() => setTab('people')}
-              className={`h-8 flex-1 rounded-lg px-3.5 text-[13.5px] font-semibold sm:flex-none ${
-                tab === 'people'
-                  ? 'bg-white text-[#071330] shadow-[0_1px_2px_rgba(7,19,48,0.12),0_0_0_1px_rgba(7,19,48,0.04)]'
-                  : 'text-[#3D4A5F]'
-              }`}
-            >
-              Helpers
-            </button>
+      <div className="browse-hc-wrap browse-hc-page">
+        <section className="browse-hc-title-row">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-end gap-3">
+              <h1 className="browse-hc-hero-title">Browse Local Jobs</h1>
+              {hidePeerDiscovery ? null : (
+                <div
+                  className="browse-hc-mode-tabs"
+                  role="tablist"
+                  aria-label="Browse type"
+                  data-testid="browse-mode-tabs"
+                >
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === 'requests'}
+                    className={tab === 'requests' ? 'is-active' : undefined}
+                    onClick={() => setTab('requests')}
+                  >
+                    Jobs
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === 'people'}
+                    data-testid="browse-tab-local-helpers"
+                    className={tab === 'people' ? 'is-active' : undefined}
+                    onClick={() => setTab('people')}
+                  >
+                    Helpers
+                  </button>
+                </div>
+              )}
+            </div>
+            <p className="browse-hc-hero-sub">{subline}</p>
           </div>
+
+          <BrowseLocationTrigger label={areaLine} className="browse-hc-loc-pill">
+            <MapPin className="pin h-4 w-4" strokeWidth={2} aria-hidden />
+            <span className="max-w-[12rem] truncate sm:max-w-[16rem]">{areaLine}</span>
+            <span className="divider" aria-hidden>
+              ·
+            </span>
+            <span className="radius">
+              {locRadiusLabel}
+              <ChevronDown className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+            </span>
+          </BrowseLocationTrigger>
+        </section>
+
+        <div className="browse-hc-tabs-wrap">
+          <div className="browse-hc-tabs" role="tablist" aria-label="Categories">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={category === 'all'}
+              className={`browse-hc-tab ${category === 'all' ? 'is-active' : ''}`}
+              onClick={() => setCategory('all')}
+              data-testid="browse-category-all"
+            >
+              All
+            </button>
+            {BROWSE_PARENTS.map((parent) => (
+              <button
+                key={parent.id}
+                type="button"
+                role="tab"
+                aria-selected={category === parent.id}
+                className={`browse-hc-tab ${category === parent.id ? 'is-active' : ''}`}
+                onClick={() => setCategory(parent.id)}
+                data-testid={`browse-category-${parent.id}`}
+              >
+                {parent.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {tab === 'requests' ? (
+          <BrowseToolsBar
+            qDraft={qDraft}
+            onQDraft={setQDraft}
+            onClearSearch={clearSearch}
+            whenLabel={whenLabel}
+            whenValue={when}
+            whenOptions={WHEN_FILTER_OPTIONS}
+            onWhen={setWhen}
+            payLabel={payLabel}
+            payValue={pay}
+            payOptions={PAY_FILTER_OPTIONS}
+            onPay={setPay}
+            sortLabel={sortLabel.replace(/ first$/, '')}
+            sortValue={sort}
+            sortOptions={sortOptions}
+            onSort={setSort}
+          />
+        ) : (
+          <BrowseToolsBar
+            qDraft={qDraft}
+            onQDraft={setQDraft}
+            onClearSearch={clearSearch}
+            whenLabel={availLabel}
+            whenValue={avail}
+            whenOptions={AVAIL_FILTER_OPTIONS}
+            onWhen={setAvail}
+            payLabel="All types"
+            payValue="all"
+            payOptions={[{ id: 'all', label: 'All types' }]}
+            onPay={() => undefined}
+            sortLabel={sortLabel.replace(/ first$/, '')}
+            sortValue={sort}
+            sortOptions={sortOptions}
+            onSort={setSort}
+          />
+        )}
+
+        {showFreshMarketplace ? (
+          <>
+            <BrowseFreshEmpty
+              hidePeerDiscovery={hidePeerDiscovery}
+              cityLabel={cityName}
+              onEnableAlerts={enableAlerts}
+              alertsEnabled={alertsEnabled}
+              onWidenRadius={() => setRadius('25')}
+            />
+            {showWhileYouWait ? (
+              <WhileYouWait
+                alertsEnabled={alertsEnabled}
+                onToggleAlerts={toggleAlerts}
+                onWidenRadius={() => setRadius('25')}
+                profileProgress={profileProgress}
+                showProfileCard={showProfileWaitCard}
+              />
+            ) : null}
+          </>
+        ) : showFilteredRequestsEmpty ? (
+          <div className="mt-5">
+            <BrowseFilteredEmpty
+              title="No jobs match these filters"
+              body={
+                categoryLabel
+                  ? `${categoryLabel} is selected and nothing matches right now. Try widening distance or timing.`
+                  : 'Nothing matches these filters right now. Try widening distance or timing.'
+              }
+              onReset={clearFilters}
+              suggestions={suggestions}
+            />
+          </div>
+        ) : tab === 'requests' ? (
+          <div className={`browse-hc-layout ${showDesktopDetail ? '' : 'browse-hc-layout--solo'}`}>
+            <div>
+              <ul className="browse-hc-job-list" data-testid="browse-job-list">
+                {shownRequests.map((request) => {
+                  const area = publicArea(request)
+                  const photos = normalizeListingImages(request.images, request.image)
+                  const imageSrc = listingCoverImage(photos)
+                  const openBudget = isOpenBudget(request)
+                  const budget = formatBudget(request)
+                  return (
+                    <BrowseJobRow
+                      key={request.id}
+                      request={request}
+                      title={request.title}
+                      categoryLabel={formatCategoryLabel(request.category, request.categoryCustom)}
+                      areaLabel={area}
+                      timingLabel={
+                        request.when === 'asap'
+                          ? 'ASAP'
+                          : request.whenLabel || relativeTime(request.createdAt)
+                      }
+                      asap={request.when === 'asap'}
+                      excerpt={oneLine(request.details)}
+                      priceLabel={openBudget ? 'Open' : budget}
+                      priceCaption={openBudget ? 'Accepting offers' : 'Fixed budget'}
+                      openBudget={openBudget}
+                      imageSrc={imageSrc}
+                      selected={request.id === jobId}
+                      onOpen={openJob}
+                    />
+                  )
+                })}
+              </ul>
+              {openRequests.length > shownRequests.length ? (
+                <div className="browse-hc-show-more">
+                  <button
+                    type="button"
+                    data-testid="browse-show-more"
+                    onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+                  >
+                    Show more jobs
+                  </button>
+                  <p>
+                    Showing {shownRequests.length} of {openRequests.length}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+
+            {showDesktopDetail && selectedRequest ? (
+              <BrowseJobDetailPanel
+                request={selectedRequest}
+                areaLabel={selectedArea || cityName}
+                cityName={cityName}
+                authHref={authHref}
+              />
+            ) : null}
+          </div>
+        ) : showHelpersEmpty ? (
+          <div className="mt-5">
+            <BrowseFilteredEmpty
+              title={hasActiveFilters ? 'No helpers match these filters' : 'No helpers nearby yet'}
+              body={
+                hasActiveFilters
+                  ? 'Try another category or a wider distance.'
+                  : 'Helpers near this city will show up here as they finish their profiles.'
+              }
+              onReset={hasActiveFilters ? clearFilters : () => setTab('requests')}
+              resetLabel={hasActiveFilters ? 'Reset filters' : 'Browse jobs'}
+              postHref="/onboarding/helper"
+              postLabel="Set up helper profile"
+              suggestions={hasActiveFilters ? suggestions : []}
+            />
+          </div>
+        ) : (
+          <>
+            <ul className="browse-hc-job-list mt-5" data-testid="browse-helper-list">
+              {shownPeople.map((person) => {
+                const skill = person.skills[0]
+                  ? formatCategoryLabel(skillId(person), person.otherSkillLabel)
+                  : 'Local help'
+                const slots = person.availability.slice(0, 2).map((s) => SLOT_LABELS[s])
+                return (
+                  <BrowseHelperRow
+                    key={person.id}
+                    person={person}
+                    skillLabel={skill}
+                    milesLabel={formatMiles(milesTo(person, browseAnchor))}
+                    availabilityLabel={person.availableNow ? 'Available now' : slots.join(' · ')}
+                    rateLabel={formatRate(person)}
+                    ratingLabel={formatPublicRating(person)}
+                  />
+                )
+              })}
+            </ul>
+            {people.length > shownPeople.length ? (
+              <div className="browse-hc-show-more">
+                <button type="button" onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}>
+                  Show more helpers
+                </button>
+                <p>
+                  Showing {shownPeople.length} of {people.length}
+                </p>
+              </div>
+            ) : null}
+          </>
         )}
       </div>
 
-      <BrowseFilterBar
-        tab={tab}
-        qDraft={qDraft}
-        onQDraft={setQDraft}
-        onClearSearch={clearSearch}
-        category={category}
-        categoryLabel={categoryLabel}
-        categoryCounts={categoryCounts}
-        onCategory={setCategory}
-        radius={radius}
-        radiusOptions={RADIUS_FILTER_OPTIONS}
-        onRadius={setRadius}
-        timingLabel={tab === 'people' ? availLabel : whenLabel}
-        timingValue={tab === 'people' ? avail : when}
-        timingOptions={tab === 'people' ? AVAIL_FILTER_OPTIONS : WHEN_FILTER_OPTIONS}
-        onTiming={tab === 'people' ? setAvail : setWhen}
-        timingTestId={tab === 'people' ? 'browse-availability-trigger' : 'browse-when-trigger'}
-        sort={sort}
-        sortLabel={sortLabel}
-        sortOptions={sortOptions}
-        onSort={setSort}
-        chips={chips}
-        onReset={clearFilters}
-        resultCount={liveCount}
-        resultNoun={noun}
-      />
-
-      {showFreshMarketplace ? (
-        <>
-          <BrowseFreshEmpty
-            hidePeerDiscovery={hidePeerDiscovery}
-            cityLabel={cityName}
-            onEnableAlerts={enableAlerts}
-            alertsEnabled={alertsEnabled}
-            onWidenRadius={() => setRadius('25')}
-          />
-          {showWhileYouWait ? (
-            <WhileYouWait
-              alertsEnabled={alertsEnabled}
-              onToggleAlerts={toggleAlerts}
-              onWidenRadius={() => setRadius('25')}
-              profileProgress={profileProgress}
-              showProfileCard={showProfileWaitCard}
-            />
-          ) : null}
-        </>
-      ) : showFilteredRequestsEmpty ? (
-        <BrowseFilteredEmpty
-          title="No jobs match these filters"
-          body={
-            categoryLabel
-              ? `${categoryLabel} is selected and nothing matches right now. Try widening distance or timing.`
-              : 'Nothing matches these filters right now. Try widening distance or timing.'
-          }
-          onReset={clearFilters}
-          suggestions={suggestions}
-        />
-      ) : tab === 'requests' ? (
-        <>
-          <ul className="browse-job-list mt-1 list-none" data-testid="browse-job-list">
-            {shownRequests.map((request) => {
-              const miles = formatMiles(milesTo(request, browseAnchor))
-              const photos = normalizeListingImages(request.images, request.image)
-              // Real listing photo only — missing photos use the category icon tile.
-              const imageSrc = listingCoverImage(photos)
-              const budget = formatBudget(request)
-              const openBudget = budget === 'Open to offers'
-              return (
-                <BrowseJobRow
-                  key={request.id}
-                  request={request}
-                  title={request.title}
-                  categoryLabel={formatCategoryLabel(request.category, request.categoryCustom)}
-                  milesLabel={miles}
-                  timingLabel={request.when === 'asap' ? 'ASAP' : request.whenLabel || relativeTime(request.createdAt)}
-                  asap={request.when === 'asap'}
-                  excerpt={oneLine(request.details)}
-                  priceLabel={openBudget ? 'Open' : budget}
-                  priceCaption={openBudget ? 'to offers' : 'Budget'}
-                  imageSrc={imageSrc}
-                  selected={request.id === jobId}
-                  onOpen={openJob}
-                />
-              )
-            })}
-          </ul>
-          {openRequests.length > shownRequests.length ? (
-            <div className="mt-7 flex flex-col items-center gap-3">
-              <button
-                type="button"
-                data-testid="browse-show-more"
-                onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
-                className="inline-flex h-12 min-w-[200px] items-center justify-center rounded-[10px] border border-[#CDD5E0] bg-white px-5 text-[15px] font-semibold text-[#071330] hover:bg-[#F4F8FD]"
-              >
-                Show more jobs
-              </button>
-              <p className="text-[13.5px] text-[#3D4A5F]">
-                Showing {shownRequests.length} of {openRequests.length}
-              </p>
-            </div>
-          ) : null}
-        </>
-      ) : showHelpersEmpty ? (
-        <BrowseFilteredEmpty
-          title={hasActiveFilters ? 'No helpers match these filters' : 'No helpers nearby yet'}
-          body={
-            hasActiveFilters
-              ? 'Try another category or a wider distance.'
-              : 'Helpers near this city will show up here as they finish their profiles.'
-          }
-          onReset={hasActiveFilters ? clearFilters : () => setTab('requests')}
-          resetLabel={hasActiveFilters ? 'Reset filters' : 'Browse jobs'}
-          postHref="/onboarding/helper"
-          postLabel="Set up helper profile"
-          suggestions={hasActiveFilters ? suggestions : []}
-        />
-      ) : (
-        <>
-          <ul className="browse-job-list mt-1 list-none" data-testid="browse-helper-list">
-            {shownPeople.map((person) => {
-              const skill = person.skills[0]
-                ? formatCategoryLabel(skillId(person), person.otherSkillLabel)
-                : 'Local help'
-              const slots = person.availability.slice(0, 2).map((s) => SLOT_LABELS[s])
-              return (
-                <BrowseHelperRow
-                  key={person.id}
-                  person={person}
-                  skillLabel={skill}
-                  milesLabel={formatMiles(milesTo(person, browseAnchor))}
-                  availabilityLabel={person.availableNow ? 'Available now' : slots.join(' · ')}
-                  rateLabel={formatRate(person)}
-                  ratingLabel={formatPublicRating(person)}
-                />
-              )
-            })}
-          </ul>
-          {people.length > shownPeople.length ? (
-            <div className="mt-7 flex flex-col items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
-                className="inline-flex h-12 min-w-[200px] items-center justify-center rounded-[10px] border border-[#CDD5E0] bg-white px-5 text-[15px] font-semibold text-[#071330] hover:bg-[#F4F8FD]"
-              >
-                Show more helpers
-              </button>
-              <p className="text-[13.5px] text-[#3D4A5F]">
-                Showing {shownPeople.length} of {people.length}
-              </p>
-            </div>
-          ) : null}
-        </>
-      )}
-
-      {selectedRequest ? (
+      {selectedRequest && narrow ? (
         <BrowseJobDrawer
           request={selectedRequest}
-          narrow={narrow}
+          narrow
           milesLabel={selectedMiles}
           areaLabel={selectedArea || cityName}
           cityName={cityName}
@@ -765,7 +835,6 @@ export function Browse() {
           onClose={closeJob}
         />
       ) : null}
-    </div>
     </div>
   )
 }
