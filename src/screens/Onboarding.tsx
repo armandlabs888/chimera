@@ -368,135 +368,147 @@ export function Onboarding() {
 
       {step === 1 ? (
         <main className="mx-auto w-full max-w-[1080px] flex-1 px-5 pb-10 pt-7 sm:px-10 sm:pb-16 sm:pt-14">
+          {/*
+            Two column wrappers (matches approved mockup):
+            - Desktop: left form column + right benefits column (items-stretch).
+            - Mobile: benefits render inside the form between roles and City.
+            Avoid per-field grid + row-end:-1 (that only spanned the first row).
+          */}
           <div
             data-testid="onboarding-step-1"
-            className="animate-fade-up grid grid-cols-1 lg:grid-cols-2 lg:items-stretch lg:gap-14"
+            className="animate-fade-up lg:grid lg:grid-cols-2 lg:items-stretch lg:gap-14"
           >
-            <h1 className="font-display text-[26px] font-bold leading-[1.15] tracking-[-0.028em] text-[#071330] text-balance sm:text-[32px] lg:col-start-1">
-              Welcome to Beam
-            </h1>
-            <p className="mt-2.5 max-w-[42ch] text-[15px] leading-[1.5] text-[#3D4A5F] sm:mt-3 sm:text-[15.5px] lg:col-start-1">
-              Choose how you want to use Beam and set your city.
-            </p>
-
-            <div className="mt-6 sm:mt-8 lg:col-start-1">
-              <p
-                id={`${roleGroupId}-label`}
-                className="mb-2.5 text-[13px] font-semibold text-[#273449]"
-              >
-                How you'll use Beam
+            <div className="min-w-0" data-testid="onboarding-form-column">
+              <h1 className="font-display text-[26px] font-bold leading-[1.15] tracking-[-0.028em] text-[#071330] text-balance sm:text-[32px]">
+                Welcome to Beam
+              </h1>
+              <p className="mt-2.5 max-w-[42ch] text-[15px] leading-[1.5] text-[#3D4A5F] sm:mt-3 sm:text-[15.5px]">
+                Choose how you want to use Beam and set your city.
               </p>
-              <div
-                role="radiogroup"
-                aria-labelledby={`${roleGroupId}-label`}
-                className="grid gap-2.5"
-                data-testid="onboarding-role-group"
-              >
-                {ROLES.map((item) => {
-                  const selected = role === item.id
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      tabIndex={role === null ? 0 : selected ? 0 : -1}
-                      onClick={() => handleRoleSelect(item.id)}
-                      onKeyDown={(e) => {
-                        if (role) onRoleKeyDown(e, role)
-                        else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-                          e.preventDefault()
-                          handleRoleSelect(item.id === 'customer' ? 'helper' : 'customer')
-                        }
-                      }}
-                      data-testid={`onboarding-role-${item.id}`}
-                      className={`flex items-start gap-3.5 rounded-[10px] border-[1.5px] px-4 py-4 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
-                        selected
-                          ? 'border-[#1D5CE5] bg-[#F5F9FF] shadow-[0_0_0_1px_rgba(29,92,229,0.18)]'
-                          : 'border-[#E3E8EF] bg-white hover:border-[#C5CDD8] hover:bg-[#F8FAFC]'
-                      }`}
-                    >
-                      <span
-                        className={`mt-px inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${
+
+              <div className="mt-6 sm:mt-8">
+                <p
+                  id={`${roleGroupId}-label`}
+                  className="mb-2.5 text-[13px] font-semibold text-[#273449]"
+                >
+                  How you'll use Beam
+                </p>
+                <div
+                  role="radiogroup"
+                  aria-labelledby={`${roleGroupId}-label`}
+                  className="grid gap-2.5"
+                  data-testid="onboarding-role-group"
+                >
+                  {ROLES.map((item) => {
+                    const selected = role === item.id
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        tabIndex={role === null ? 0 : selected ? 0 : -1}
+                        onClick={() => handleRoleSelect(item.id)}
+                        onKeyDown={(e) => {
+                          if (role) onRoleKeyDown(e, role)
+                          else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                            e.preventDefault()
+                            handleRoleSelect(item.id === 'customer' ? 'helper' : 'customer')
+                          }
+                        }}
+                        data-testid={`onboarding-role-${item.id}`}
+                        className={`flex items-start gap-3.5 rounded-[10px] border-[1.5px] px-4 py-4 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
                           selected
-                            ? 'border-[#1D5CE5] bg-[#1D5CE5] text-white'
-                            : 'border-[#CBD5E1] bg-white'
+                            ? 'border-[#1D5CE5] bg-[#F5F9FF] shadow-[0_0_0_1px_rgba(29,92,229,0.18)]'
+                            : 'border-[#E3E8EF] bg-white hover:border-[#C5CDD8] hover:bg-[#F8FAFC]'
                         }`}
-                        aria-hidden
                       >
-                        {selected ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[16px] font-bold tracking-[-0.015em] text-[#071330]">
-                          {item.title}
+                        <span
+                          className={`mt-px inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${
+                            selected
+                              ? 'border-[#1D5CE5] bg-[#1D5CE5] text-white'
+                              : 'border-[#CBD5E1] bg-white'
+                          }`}
+                          aria-hidden
+                        >
+                          {selected ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
                         </span>
-                        <span className="mt-[3px] block text-[13.5px] leading-[1.45] text-[#3D4A5F]">
-                          {item.body}
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-[16px] font-bold tracking-[-0.015em] text-[#071330]">
+                            {item.title}
+                          </span>
+                          <span className="mt-[3px] block text-[13.5px] leading-[1.45] text-[#3D4A5F]">
+                            {item.body}
+                          </span>
                         </span>
-                      </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {role ? (
+                <div className="mt-[18px] mb-1.5 lg:hidden" data-testid="onboarding-benefits-mobile">
+                  <BenefitsPanel role={role} />
+                </div>
+              ) : null}
+
+              <div className="mt-[22px] sm:mt-7">
+                <UsCityCombobox
+                  ref={cityRef}
+                  value={city}
+                  onChange={handleCityChange}
+                  error={step1Error && role && !city ? step1Error : undefined}
+                />
+              </div>
+
+              {step1Error && !role ? (
+                <p
+                  className="mt-3 text-[13px] font-medium text-red-600"
+                  role="alert"
+                  data-testid="onboarding-step1-error"
+                >
+                  {step1Error}
+                </p>
+              ) : null}
+
+              <div className="mt-7">
+                <Button
+                  type="button"
+                  size="lg"
+                  aria-disabled={!canNext}
+                  onClick={onStep1Continue}
+                  data-testid="onboarding-next"
+                  className={`h-[52px] w-full rounded-[10px] px-7 text-[15px] font-semibold tracking-[-0.01em] shadow-none !transition-[background-color] disabled:opacity-100 ${
+                    canNext
+                      ? 'bg-[#1D5CE5] text-white hover:bg-[#1649BD]'
+                      : 'bg-[#E2E8F0] text-[#64748B] hover:bg-[#CBD5E1]'
+                  }`}
+                >
+                  Continue
+                </Button>
+
+                {showAccountEscape ? (
+                  <p className="mt-[22px] text-center text-[13px] text-[#5B6575]">
+                    Not your account?{' '}
+                    <button
+                      type="button"
+                      className="font-medium text-[#5B6575] transition hover:text-[#071330]"
+                      data-testid="onboarding-sign-out"
+                      onClick={() => void signOut()}
+                    >
+                      Sign out
                     </button>
-                  )
-                })}
+                  </p>
+                ) : null}
               </div>
             </div>
 
-            {/* Source order: roles → benefits → city (mobile). Desktop places this in col 2. */}
             {role ? (
-              <BenefitsPanel
-                role={role}
-                className="mt-[18px] mb-1.5 lg:col-start-2 lg:row-start-1 lg:row-end-[-1] lg:mt-0 lg:mb-0"
-              />
+              <div className="hidden min-h-0 lg:flex lg:flex-col" data-testid="onboarding-benefits-desktop">
+                <BenefitsPanel role={role} className="flex-1" />
+              </div>
             ) : null}
-
-            <div className="mt-[22px] sm:mt-7 lg:col-start-1">
-              <UsCityCombobox
-                ref={cityRef}
-                value={city}
-                onChange={handleCityChange}
-                error={step1Error && role && !city ? step1Error : undefined}
-              />
-            </div>
-
-            {step1Error && !role ? (
-              <p
-                className="mt-3 text-[13px] font-medium text-red-600 lg:col-start-1"
-                role="alert"
-                data-testid="onboarding-step1-error"
-              >
-                {step1Error}
-              </p>
-            ) : null}
-
-            <div className="mt-7 lg:col-start-1">
-              <Button
-                type="button"
-                size="lg"
-                aria-disabled={!canNext}
-                onClick={onStep1Continue}
-                data-testid="onboarding-next"
-                className={`h-[52px] w-full rounded-[10px] px-7 text-[15px] font-semibold tracking-[-0.01em] shadow-none !transition-[background-color] disabled:opacity-100 ${
-                  canNext
-                    ? 'bg-[#1D5CE5] text-white hover:bg-[#1649BD]'
-                    : 'bg-[#E2E8F0] text-[#64748B] hover:bg-[#CBD5E1]'
-                }`}
-              >
-                Continue
-              </Button>
-
-              {showAccountEscape ? (
-                <p className="mt-[22px] text-center text-[13px] text-[#5B6575]">
-                  Not your account?{' '}
-                  <button
-                    type="button"
-                    className="font-medium text-[#5B6575] transition hover:text-[#071330]"
-                    data-testid="onboarding-sign-out"
-                    onClick={() => void signOut()}
-                  >
-                    Sign out
-                  </button>
-                </p>
-              ) : null}
-            </div>
           </div>
         </main>
       ) : (

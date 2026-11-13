@@ -154,11 +154,53 @@ async function assertDropdownNotClipped(page) {
   assert.equal(result.ok, true, `dropdown clipped: ${result.reason ?? 'unknown'}`)
 }
 
-async function shot(page, name) {
+async function shot(page, name, { fullPage = false } = {}) {
+  // Prefer viewport shots on desktop so a sticky header cannot stitch mid-page.
   const path = join(OUT, `${name}.png`)
-  await page.screenshot({ path, fullPage: true })
+  await page.screenshot({ path, fullPage })
   console.log(`saved ${path}`)
   return path
+}
+
+async function assertDesktopSideBySide(page, label) {
+  const layout = await page.evaluate(() => {
+    const form = document.querySelector('[data-testid="onboarding-form-column"]')
+    const benefitsDesktop = document.querySelector('[data-testid="onboarding-benefits-desktop"]')
+    const next = document.querySelector('[data-testid="onboarding-next"]')
+    const lede = form?.querySelector('p')
+    if (!form || !benefitsDesktop || !next || !lede) {
+      return { ok: false, reason: 'missing form/benefits/next/lede' }
+    }
+    const fr = form.getBoundingClientRect()
+    const br = benefitsDesktop.getBoundingClientRect()
+    const nr = next.getBoundingClientRect()
+    const lr = lede.getBoundingClientRect()
+    const vh = window.innerHeight
+    return {
+      ok: true,
+      formLeft: fr.left,
+      benefitsLeft: br.left,
+      sideBySide: br.left > fr.right - 8,
+      nextInViewport: nr.top >= 0 && nr.bottom <= vh + 1,
+      ledeBesideBenefits: Math.abs(lr.top - br.top) < br.height,
+      nextTop: nr.top,
+      benefitsTop: br.top,
+      benefitsBottom: br.bottom,
+      viewportHeight: vh,
+    }
+  })
+  assert.equal(layout.ok, true, `${label} layout probe failed: ${layout.reason}`)
+  assert.equal(layout.sideBySide, true, `${label} benefits must sit to the right of the form`)
+  assert.equal(
+    layout.nextInViewport,
+    true,
+    `${label} Continue must be in the viewport beside benefits (top=${layout.nextTop}, vh=${layout.viewportHeight})`,
+  )
+  assert.equal(
+    layout.ledeBesideBenefits,
+    true,
+    `${label} subtitle must not be pushed below the benefits panel`,
+  )
 }
 
 async function runViewport(browser, vp) {
@@ -179,11 +221,9 @@ async function runViewport(browser, vp) {
     await shot(page, `${prefix}-step1-empty`)
 
     await page.getByTestId('onboarding-role-customer').click()
-    await page.waitForSelector('[data-testid="onboarding-benefits"]')
-    assert.match(
-      await page.getByTestId('onboarding-benefits').first().innerText(),
-      /As a Neighbor/i,
-    )
+    const benefitsVisible = page.locator('[data-testid="onboarding-benefits"]:visible')
+    await benefitsVisible.first().waitFor({ state: 'visible' })
+    assert.match(await benefitsVisible.first().innerText(), /As a Neighbor/i)
     await page.waitForSelector('[data-testid="onboarding-city-input"]')
     await page.getByTestId('onboarding-city-input').click()
     await page.waitForSelector('[data-testid="onboarding-city-listbox"]')
@@ -219,14 +259,23 @@ async function runViewport(browser, vp) {
       `${prefix} next text expected white, got ${nextStyles.color}`,
     )
     await assertCleanChrome(page, `${prefix} step1-filled`, { expectBenefits: true })
+    if (vp.width >= 1024) {
+      await assertDesktopSideBySide(page, `${prefix} neighbor filled`)
+    }
     await shot(page, `${prefix}-step1-filled`)
 
     await page.getByTestId('onboarding-role-helper').click()
-    await page.waitForSelector('[data-testid="onboarding-helper-verify"]')
+    await page
+      .locator('[data-testid="onboarding-helper-verify"]:visible')
+      .first()
+      .waitFor({ state: 'visible' })
     assert.match(
-      await page.getByTestId('onboarding-benefits').first().innerText(),
+      await benefitsVisible.first().innerText(),
       /Address verification is required to perform a job/i,
     )
+    if (vp.width >= 1024) {
+      await assertDesktopSideBySide(page, `${prefix} helper benefits`)
+    }
     await shot(page, `${prefix}-step1-helper-benefits`)
     await page.getByTestId('onboarding-role-customer').click()
 
@@ -240,7 +289,7 @@ async function runViewport(browser, vp) {
     assert.match(step2, /Agree and continue/i)
     assert.doesNotMatch(step2, /no extra checkbox/i)
     await assertCleanChrome(page, `${prefix} step2`)
-    await shot(page, `${prefix}-step2-commitment`)
+    await shot(page, `${prefix}-step2-commitment`, { fullPage: true })
 
     console.log(`ok visual QA ${prefix}`)
   } finally {
