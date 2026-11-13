@@ -94,13 +94,15 @@ async function checkLandingMarkup() {
     /Illustrative samples for design review|Design preview — Sample listings/i,
     'no sample/design-preview labels on landing',
   )
-  assert.match(text, /data-testid="popular-gigs"/, 'popular gigs section present')
-  assert.match(text, /Popular gigs (near you|in )/, 'popular gigs heading')
-  assert.match(text, /Open (near you|in your city)/, 'popular gigs eyebrow')
-  assert.doesNotMatch(text, /Choose a city/, 'no popular-gigs city chip')
+  assert.doesNotMatch(text, /data-testid="popular-gigs"/, 'popular gigs section removed')
+  assert.doesNotMatch(text, /Popular gigs (near you|in )/, 'no popular gigs heading')
+  assert.doesNotMatch(text, /Open (near you|in your city)/, 'no popular gigs eyebrow')
+  assert.doesNotMatch(text, /See all jobs/, 'no popular gigs see-all CTA')
+  assert.doesNotMatch(text, /Need something different\?/, 'no popular gigs post-task footer')
+  assert.match(text, /data-testid="landing-categories"/, 'popular services follows hero')
   assert.doesNotMatch(
     text,
-    /data-testid="landing-hero"[\s\S]*?(Post a task|Browse services)[\s\S]*?data-testid="popular-gigs"/,
+    /data-testid="landing-hero"[\s\S]*?(Post a task|Browse services)[\s\S]*?data-testid="landing-categories"/,
     'hero has no Post a task / Browse services under search',
   )
   assert.doesNotMatch(text, /categories-tile-custom|Something else\?/, 'navy custom tile removed')
@@ -565,8 +567,8 @@ async function checkLandingBrowser() {
     await page.waitForFunction(
       () => {
         const imgs = [...document.querySelectorAll('img')]
-        // Paper landing: image-free hero + bento photos + six available-service cards.
-        return imgs.length >= 8 && imgs.every((img) => img.complete)
+        // Popular services: four photo tiles (hero is image-free).
+        return imgs.length >= 4 && imgs.every((img) => img.complete)
       },
       null,
       { timeout: 20000 },
@@ -586,11 +588,7 @@ async function checkLandingBrowser() {
           return raw
         }
       }
-      // Marketing images only — exclude live popular-gigs inventory photos
-      // (demo seed may reuse category assets; uniqueness applies to marketing chrome).
-      const imgs = [...document.querySelectorAll('img')].filter(
-        (img) => !img.closest('[data-testid="popular-gigs"]'),
-      )
+      const imgs = [...document.querySelectorAll('img')]
       const paths = imgs.map((img) => normalizeSrc(img.getAttribute('src') || img.currentSrc || ''))
       const uniquePaths = new Set(paths)
       return {
@@ -608,12 +606,14 @@ async function checkLandingBrowser() {
         unsplash: paths.filter((p) => /images\.unsplash\.com/i.test(p) || /unsplash/i.test(p)),
         previewPresent: !!document.querySelector('[data-testid="landing-browse-preview"]'),
         popularGigsPresent: !!document.querySelector('[data-testid="popular-gigs"]'),
+        categoriesPresent: !!document.querySelector('[data-testid="landing-categories"]'),
       }
     })
     assert.equal(landingImages.previewPresent, false, 'browse preview must be removed')
-    assert.equal(landingImages.popularGigsPresent, true, 'popular gigs section present')
+    assert.equal(landingImages.popularGigsPresent, false, 'popular gigs section removed')
+    assert.equal(landingImages.categoriesPresent, true, 'popular services section present')
     assert.ok(
-      landingImages.count >= 2,
+      landingImages.count >= 4,
       `landing should render Popular services marketing <img> elements, got ${landingImages.count}`,
     )
     assert.equal(landingImages.allComplete, true, 'every landing <img> must be complete')
