@@ -4,9 +4,9 @@
  * Saves screenshots to /opt/cursor/artifacts/onboarding-clean-qa/ and prints probes.
  *
  * Covers:
- * - step1-empty (clean single-column, no aside/email/sign-out/Popular chips)
+ * - step1-empty (clean form, no benefits/email/sign-out/Popular chips)
  * - step1-autocomplete-open (dropdown never clipped by overflow)
- * - step1-filled (role + city + active Continue)
+ * - step1-filled (Neighbor role + city + active Continue + benefits panel)
  * - step2-commitment (safety callout + Agree and continue CTA)
  */
 import assert from 'node:assert/strict'
@@ -55,33 +55,72 @@ async function probe(page) {
         document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
       textSample: bodyText.slice(0, 500),
       hasAustin: /Austin/i.test(bodyText),
-      hasSignOut: /Sign out/i.test(bodyText),
       hasEmailLike: /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(bodyText),
-      hasPopular: /\bPopular\b/i.test(bodyText),
       hasVerifiedBadge: /\bVerified\b/i.test(bodyText),
       hasPreviewMode: /Preview mode/i.test(bodyText),
-      asideCount: document.querySelectorAll('aside').length,
+      benefitsCount: document.querySelectorAll('[data-testid="onboarding-benefits"]').length,
+      foreignAsideCount: [...document.querySelectorAll('aside')].filter(
+        (el) => el.getAttribute('data-testid') !== 'onboarding-benefits',
+      ).length,
+      // Footer may mention Popular services; only the onboarding step chrome matters.
+      stepPopular: /\bPopular\b/i.test(
+        document.querySelector('[data-testid="onboarding-step-1"], [data-testid="onboarding-step-2"]')
+          ?.textContent || '',
+      ),
       imgCount: document.querySelectorAll('img').length,
       signOutTestIdCount: document.querySelectorAll('[data-testid="onboarding-sign-out"]').length,
     }
   })
 }
 
-async function assertCleanChrome(page, label) {
+async function assertCleanChrome(page, label, { expectBenefits = false } = {}) {
   const p = await probe(page)
   assert.equal(p.darkCount, 0, `${label} dark=${p.darkCount}`)
   assert.equal(p.horizontalOverflow, false, `${label} overflow`)
   assert.ok(!isDarkLeftover(p.bodyBg), `${label} body ${p.bodyBg}`)
   assert.equal(p.hasAustin, false, `${label} must not mention Austin`)
-  assert.equal(p.hasSignOut, false, `${label} must not show Sign out`)
   assert.equal(p.hasEmailLike, false, `${label} must not show email`)
-  assert.equal(p.hasPopular, false, `${label} must not show Popular chips`)
+  assert.equal(p.stepPopular, false, `${label} must not show Popular chips on step`)
   assert.equal(p.hasVerifiedBadge, false, `${label} must not show Verified badge`)
   assert.equal(p.hasPreviewMode, false, `${label} must not show Preview mode`)
-  assert.equal(p.asideCount, 0, `${label} must have zero <aside>`)
+  assert.equal(p.foreignAsideCount, 0, `${label} must not have non-benefits <aside>`)
+  if (expectBenefits) {
+    assert.ok(p.benefitsCount >= 1, `${label} must show benefits panel`)
+  } else {
+    assert.equal(p.benefitsCount, 0, `${label} must have zero benefits panels`)
+  }
   assert.equal(p.imgCount, 0, `${label} must have zero <img> stock photos`)
   assert.equal(p.signOutTestIdCount, 0, `${label} must not render onboarding-sign-out`)
   return p
+}
+
+async function clearDemoOnboardingSeed(page) {
+  await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded', timeout: 60000 })
+  await page.waitForFunction(() => !!localStorage.getItem('beam-demo-v1'), null, {
+    timeout: 20000,
+  })
+  await page.evaluate(() => {
+    const key = 'beam-demo-v1'
+    const state = JSON.parse(localStorage.getItem(key) || '{}')
+    const me = state.currentUserId
+    state.people = (state.people || []).map((p) =>
+      p.id === me
+        ? {
+            ...p,
+            accountRole: null,
+            isHelper: false,
+            skills: [],
+            hourlyRate: 0,
+            city: null,
+            stateCode: null,
+            locationLabel: '',
+            onboardingCompletedAt: null,
+            safetyDisclaimerAcceptedAt: null,
+          }
+        : p,
+    )
+    localStorage.setItem(key, JSON.stringify(state))
+  })
 }
 
 async function assertDropdownNotClipped(page) {
@@ -115,11 +154,53 @@ async function assertDropdownNotClipped(page) {
   assert.equal(result.ok, true, `dropdown clipped: ${result.reason ?? 'unknown'}`)
 }
 
-async function shot(page, name) {
+async function shot(page, name, { fullPage = false } = {}) {
+  // Prefer viewport shots on desktop so a sticky header cannot stitch mid-page.
   const path = join(OUT, `${name}.png`)
-  await page.screenshot({ path, fullPage: true })
+  await page.screenshot({ path, fullPage })
   console.log(`saved ${path}`)
   return path
+}
+
+async function assertDesktopSideBySide(page, label) {
+  const layout = await page.evaluate(() => {
+    const form = document.querySelector('[data-testid="onboarding-form-column"]')
+    const benefitsDesktop = document.querySelector('[data-testid="onboarding-benefits-desktop"]')
+    const next = document.querySelector('[data-testid="onboarding-next"]')
+    const lede = form?.querySelector('p')
+    if (!form || !benefitsDesktop || !next || !lede) {
+      return { ok: false, reason: 'missing form/benefits/next/lede' }
+    }
+    const fr = form.getBoundingClientRect()
+    const br = benefitsDesktop.getBoundingClientRect()
+    const nr = next.getBoundingClientRect()
+    const lr = lede.getBoundingClientRect()
+    const vh = window.innerHeight
+    return {
+      ok: true,
+      formLeft: fr.left,
+      benefitsLeft: br.left,
+      sideBySide: br.left > fr.right - 8,
+      nextInViewport: nr.top >= 0 && nr.bottom <= vh + 1,
+      ledeBesideBenefits: Math.abs(lr.top - br.top) < br.height,
+      nextTop: nr.top,
+      benefitsTop: br.top,
+      benefitsBottom: br.bottom,
+      viewportHeight: vh,
+    }
+  })
+  assert.equal(layout.ok, true, `${label} layout probe failed: ${layout.reason}`)
+  assert.equal(layout.sideBySide, true, `${label} benefits must sit to the right of the form`)
+  assert.equal(
+    layout.nextInViewport,
+    true,
+    `${label} Continue must be in the viewport beside benefits (top=${layout.nextTop}, vh=${layout.viewportHeight})`,
+  )
+  assert.equal(
+    layout.ledeBesideBenefits,
+    true,
+    `${label} subtitle must not be pushed below the benefits panel`,
+  )
 }
 
 async function runViewport(browser, vp) {
@@ -127,16 +208,22 @@ async function runViewport(browser, vp) {
   const prefix = vp.name
 
   try {
+    await clearDemoOnboardingSeed(page)
     await page.goto(`${BASE_URL}/onboarding?preview=1`, { waitUntil: 'networkidle' })
     await page.waitForSelector('[data-testid="onboarding-step-1"]')
 
     let p = await assertCleanChrome(page, `${prefix} step1-empty`)
     assert.match(p.textSample, /Welcome to Beam/i)
+    assert.match(await page.getByTestId('onboarding-step-1').innerText(), /\bNeighbor\b/)
+    assert.doesNotMatch(await page.getByTestId('onboarding-step-1').innerText(), /\bCustomer\b/)
     assert.doesNotMatch(await page.getByTestId('onboarding-step-1').innerText(), /Popular/i)
     assert.equal(await page.getByTestId('onboarding-next').isDisabled(), true)
     await shot(page, `${prefix}-step1-empty`)
 
     await page.getByTestId('onboarding-role-customer').click()
+    const benefitsVisible = page.locator('[data-testid="onboarding-benefits"]:visible')
+    await benefitsVisible.first().waitFor({ state: 'visible' })
+    assert.match(await benefitsVisible.first().innerText(), /As a Neighbor/i)
     await page.waitForSelector('[data-testid="onboarding-city-input"]')
     await page.getByTestId('onboarding-city-input').click()
     await page.waitForSelector('[data-testid="onboarding-city-listbox"]')
@@ -144,7 +231,7 @@ async function runViewport(browser, vp) {
     await page.getByTestId('onboarding-city-input').fill('San Jose')
     await page.waitForTimeout(200)
     await assertDropdownNotClipped(page)
-    await assertCleanChrome(page, `${prefix} dropdown`)
+    await assertCleanChrome(page, `${prefix} dropdown`, { expectBenefits: true })
     await shot(page, `${prefix}-step1-autocomplete-open`)
 
     await page.getByRole('option', { name: /San Jose,\s*CA/i }).first().click()
@@ -171,8 +258,26 @@ async function runViewport(browser, vp) {
       'rgb(255, 255, 255)',
       `${prefix} next text expected white, got ${nextStyles.color}`,
     )
-    await assertCleanChrome(page, `${prefix} step1-filled`)
+    await assertCleanChrome(page, `${prefix} step1-filled`, { expectBenefits: true })
+    if (vp.width >= 1024) {
+      await assertDesktopSideBySide(page, `${prefix} neighbor filled`)
+    }
     await shot(page, `${prefix}-step1-filled`)
+
+    await page.getByTestId('onboarding-role-helper').click()
+    await page
+      .locator('[data-testid="onboarding-helper-verify"]:visible')
+      .first()
+      .waitFor({ state: 'visible' })
+    assert.match(
+      await benefitsVisible.first().innerText(),
+      /Address verification is required to perform a job/i,
+    )
+    if (vp.width >= 1024) {
+      await assertDesktopSideBySide(page, `${prefix} helper benefits`)
+    }
+    await shot(page, `${prefix}-step1-helper-benefits`)
+    await page.getByTestId('onboarding-role-customer').click()
 
     await page.getByTestId('onboarding-next').click()
     await page.waitForSelector('[data-testid="onboarding-step-2"]')
@@ -184,7 +289,7 @@ async function runViewport(browser, vp) {
     assert.match(step2, /Agree and continue/i)
     assert.doesNotMatch(step2, /no extra checkbox/i)
     await assertCleanChrome(page, `${prefix} step2`)
-    await shot(page, `${prefix}-step2-commitment`)
+    await shot(page, `${prefix}-step2-commitment`, { fullPage: true })
 
     console.log(`ok visual QA ${prefix}`)
   } finally {

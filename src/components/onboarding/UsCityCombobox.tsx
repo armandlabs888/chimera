@@ -237,7 +237,7 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
     return (
       <div ref={rootRef} className="relative">
         <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
-          <label htmlFor={inputId} className="text-[13px] font-semibold text-[#475569]">
+          <label htmlFor={inputId} className="text-[13px] font-semibold text-[#273449]">
             City
           </label>
           {!value ? (
@@ -245,7 +245,7 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
               type="button"
               onClick={() => void snapToCurrentLocation()}
               disabled={disabled || locating || !ready}
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[12.5px] font-semibold text-[#1D5CE5] transition hover:bg-[#EEF4FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/30 disabled:cursor-not-allowed disabled:opacity-50"
               data-testid="onboarding-use-location"
             >
               {locating ? (

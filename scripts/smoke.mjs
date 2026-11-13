@@ -1163,8 +1163,10 @@ async function checkOnboardingFlow() {
 
     const step1 = await page.locator('[data-testid="onboarding-step-1"]').innerText()
     assert.match(step1, /Welcome to Beam/i)
-    assert.match(step1, /Customer/i)
+    assert.match(step1, /\bNeighbor\b/i)
     assert.match(step1, /\bHelper\b/i)
+    assert.match(step1, /How you'll use Beam/i)
+    assert.doesNotMatch(step1, /\bCustomer\b/i)
     assert.doesNotMatch(step1, /Popular/i)
     assert.doesNotMatch(step1, /Sign out/i)
     assert.doesNotMatch(step1, /Preview mode/i)
@@ -1180,7 +1182,7 @@ async function checkOnboardingFlow() {
       'Continue has no native disabled attr',
     )
     assert.equal(await page.locator('[data-testid="onboarding-sign-out"]').count(), 0, 'no sign-out control in preview')
-    assert.equal(await page.locator('aside').count(), 0, 'no gradient aside rail')
+    assert.equal(await page.locator('[data-testid="onboarding-benefits"]').count(), 0, 'no benefits panel before role')
     assert.equal(await page.locator('img').count(), 0, 'no stock photos on onboarding')
 
     // Clicking Continue with no role shows inline validation (never a dead button).
@@ -1188,7 +1190,7 @@ async function checkOnboardingFlow() {
     await page.waitForSelector('[data-testid="onboarding-step1-error"]')
     assert.match(
       await page.getByTestId('onboarding-step1-error').innerText(),
-      /Choose Customer or Helper/i,
+      /Choose Neighbor or Helper/i,
     )
 
     const darkProbe = await page.evaluate(() => {
@@ -1220,8 +1222,54 @@ async function checkOnboardingFlow() {
     assert.equal(darkProbe.austin, false, 'onboarding has no Austin assumptions')
     assert.equal(darkProbe.emailLike, false, 'onboarding must not show email')
 
+    await page.getByTestId('onboarding-role-customer').click()
+    assert.equal(await page.getByTestId('onboarding-role-customer').getAttribute('aria-checked'), 'true')
+    const benefitsVisible = page.locator('[data-testid="onboarding-benefits"]:visible')
+    await benefitsVisible.first().waitFor({ state: 'visible' })
+    const neighborBenefits = await benefitsVisible.first().innerText()
+    assert.match(neighborBenefits, /As a Neighbor/i)
+    assert.match(neighborBenefits, /Post a job and hire someone nearby/i)
+    assert.match(neighborBenefits, /No address verification is needed to post a job/i)
+    assert.doesNotMatch(neighborBenefits, /Address verification is required/i)
+    assert.equal(await page.locator('[data-testid="onboarding-helper-verify"]:visible').count(), 0)
+
     await page.getByTestId('onboarding-role-helper').click()
     assert.equal(await page.getByTestId('onboarding-role-helper').getAttribute('aria-checked'), 'true')
+    await page.locator('[data-testid="onboarding-helper-verify"]:visible').first().waitFor({ state: 'visible' })
+    const helperBenefits = await benefitsVisible.first().innerText()
+    assert.match(helperBenefits, /As a Helper/i)
+    assert.match(helperBenefits, /Offer on jobs and earn on your schedule/i)
+    assert.match(helperBenefits, /Address verification is required to perform a job/i)
+    assert.match(helperBenefits, /We will never sell your address/i)
+    assert.ok(await page.locator('[data-testid="onboarding-helper-verify"]:visible').count() >= 1)
+    // Mobile source order: benefits (mobile slot) before City so Helper verification is visible before Continue.
+    const step1Order = await page.evaluate(() => {
+      const step = document.querySelector('[data-testid="onboarding-step-1"]')
+      if (!step) return null
+      const mobileBenefits = step.querySelector('[data-testid="onboarding-benefits-mobile"]')
+      const benefits = mobileBenefits?.querySelector('[data-testid="onboarding-benefits"]')
+        ?? step.querySelector('[data-testid="onboarding-benefits"]')
+      const cityLabel = [...step.querySelectorAll('label')].find((el) => /City/i.test(el.textContent || ''))
+      const next = step.querySelector('[data-testid="onboarding-next"]')
+      if (!benefits || !cityLabel || !next) return null
+      const position = benefits.compareDocumentPosition(cityLabel)
+      const cityBeforeNext = cityLabel.compareDocumentPosition(next)
+      const form = step.querySelector('[data-testid="onboarding-form-column"]')
+      const desktop = step.querySelector('[data-testid="onboarding-benefits-desktop"]')
+      const fr = form?.getBoundingClientRect()
+      const br = desktop?.getBoundingClientRect()
+      const nr = next.getBoundingClientRect()
+      return {
+        benefitsBeforeCity: (position & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
+        cityBeforeContinue: (cityBeforeNext & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
+        desktopSideBySide: Boolean(fr && br && br.left > fr.right - 8),
+        continueInViewport: nr.top >= 0 && nr.bottom <= window.innerHeight + 1,
+      }
+    })
+    assert.equal(step1Order?.benefitsBeforeCity, true, 'benefits before City in DOM')
+    assert.equal(step1Order?.cityBeforeContinue, true, 'City before Continue in DOM')
+    assert.equal(step1Order?.desktopSideBySide, true, 'desktop benefits beside form column')
+    assert.equal(step1Order?.continueInViewport, true, 'Continue visible beside benefits on desktop')
 
     // Helper selected + no city → Continue focuses city + shows validation.
     await page.getByTestId('onboarding-next').click({ force: true })
