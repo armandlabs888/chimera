@@ -645,12 +645,21 @@ async function checkLandingBrowser() {
       `ok landing unique local images (${landingImages.uniqueCount}/${landingImages.count}, no unsplash)`,
     )
 
-    // Image-free hero: no fan stack / portrait collage.
+    // Full-bleed photo hero: no fan stack / portrait collage inside content.
     assert.equal(await page.getByTestId('hero-fan-stack').count(), 0, 'no hero fan stack')
+    assert.equal(
+      await page.getByTestId('landing-hero-photo').count(),
+      1,
+      'landing hero photo background present',
+    )
+    assert.ok(
+      (await page.locator('[data-testid="landing-hero-photo"] img').count()) >= 1,
+      'landing hero photo renders an image',
+    )
     assert.equal(
       await page.locator('[data-testid="landing-hero"] img').count(),
       0,
-      'hero must contain no images',
+      'hero content has no collage/portrait images',
     )
 
     const headline = await page.locator('h1').innerText()

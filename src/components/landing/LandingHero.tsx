@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Check, ChevronDown, MapPin, Search } from 'lucide-react'
 import { LandingNav } from './LandingNav'
@@ -12,7 +13,7 @@ import type { NeighborhoodId } from '@/types'
 import './landing-v2.css'
 
 /**
- * Landing v2 hero. Atmospheric brand-blue field, search-first (no framed Browse preview).
+ * Landing v2 hero. Full-bleed neighbor photo with navy overlays; search-first.
  * Guests: category picker. Signed-in: neighborhood picker.
  */
 export function LandingHero() {
@@ -67,42 +68,44 @@ export function LandingHero() {
   }
 
   return (
-    <section className="landing-hero-atmosphere relative isolate overflow-x-clip pb-0 pt-0">
+    <section className="landing-hero-photo relative isolate overflow-x-clip pb-0 pt-0">
+      <div
+        className="pointer-events-none absolute inset-0 z-0"
+        aria-hidden="true"
+        data-testid="landing-hero-photo"
+      >
+        <Image
+          src="/images/landing/hero-moving-neighbors.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          quality={85}
+          className="landing-hero-photo-img object-cover"
+        />
+        <div className="landing-hero-overlay absolute inset-0" />
+        <div className="landing-hero-overlay-mute absolute inset-0" />
+      </div>
+
       <LandingNav variant="float" />
 
       <div
         className="landing-hero-content relative z-20 overflow-x-clip"
         data-testid="landing-hero"
       >
-        <div className="landing-hero-noise absolute inset-0" aria-hidden="true" />
-        <div className="landing-hero-grid absolute inset-0" aria-hidden="true" />
-        <div
-          className="landing-cloud -left-24 top-16 h-80 w-80 bg-sky-400/50 md:h-[28rem] md:w-[28rem]"
-          aria-hidden="true"
-        />
-        <div
-          className="landing-cloud -right-16 top-0 h-96 w-96 bg-[#1D5CE5]/35 md:h-[32rem] md:w-[32rem]"
-          aria-hidden="true"
-        />
-        <div
-          className="landing-cloud bottom-24 left-[20%] h-64 w-64 bg-[#7DD3FC]/35"
-          aria-hidden="true"
-        />
-        <div
-          className="landing-cloud bottom-40 right-[18%] h-72 w-72 bg-[#071330]/15"
-          aria-hidden="true"
-        />
-
         <div className="relative z-10 mx-auto max-w-[1200px] px-5 text-center md:px-8">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#1D5CE5]">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#8FB2FF]">
             Local services · Real everyday help
           </p>
 
-          <h1 className="landing-headline-grad mx-auto mt-5 max-w-[17ch] text-[44px] font-extrabold leading-[1.02] tracking-[-0.045em] md:text-[72px]">
-            Trusted help, right next door.
+          <h1 className="mx-auto mt-5 max-w-[17ch] text-[44px] font-extrabold leading-[1.02] tracking-[-0.045em] text-white md:text-[72px]">
+            <span className="block">Trusted help,</span>
+            <span className="block whitespace-nowrap">
+              right <span className="text-[#8FB2FF]">next door.</span>
+            </span>
           </h1>
 
-          <p className="mx-auto mt-5 max-w-[46ch] text-[15px] leading-6 text-[#475569] md:text-[17px] md:leading-7">
+          <p className="mx-auto mt-5 max-w-[46ch] text-[15px] leading-6 text-white/80 md:text-[17px] md:leading-7">
             Describe the job, compare offers, and choose the help that fits your neighborhood.
           </p>
 
@@ -111,7 +114,7 @@ export function LandingHero() {
             className="relative z-40 mx-auto mt-9 w-full max-w-[740px] text-left"
             data-testid="hero-search-pill"
           >
-            <div className="flex flex-col gap-2 rounded-[10px] border border-white/80 bg-white/95 p-1.5 shadow-[0_16px_40px_rgba(12,42,102,0.14)] backdrop-blur sm:flex-row sm:items-center sm:gap-0 sm:p-2">
+            <div className="flex flex-col gap-2 rounded-[10px] border border-white/80 bg-white p-1.5 shadow-[0_16px_40px_rgba(12,42,102,0.14)] sm:flex-row sm:items-center sm:gap-0 sm:p-2">
               <label className="flex min-w-0 flex-1 items-center gap-2.5 rounded-[8px] px-3 py-2.5">
                 <Search className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
                 <span className="sr-only">What help do you need?</span>
