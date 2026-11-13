@@ -22,11 +22,19 @@ const SERVICES = [
     testId: 'categories-tile-auto',
   },
   {
+    id: 'moving',
+    label: 'Moving',
+    href: '/browse?category=moving',
+    src: '/images/landing/avail-moving.jpg',
+    alt: 'Neighbors carrying a sofa outdoors',
+    testId: 'categories-tile-moving',
+  },
+  {
     id: 'junk',
     label: 'Junk removal',
     href: '/browse?category=junk-removal',
-    src: '/images/landing/avail-junk-removal.jpg',
-    alt: 'Neighbors carrying a sofa outdoors',
+    src: '/images/landing/avail-junk-garage.jpg',
+    alt: 'Neighbors hauling junk from a garage into a pickup',
     testId: 'categories-tile-junk',
   },
   {
@@ -40,8 +48,8 @@ const SERVICES = [
 ] as const
 
 /**
- * Popular services: four equal photo tiles (House cleaning, Auto detailing,
- * Junk removal, Pet care) plus a quiet custom-task link.
+ * Popular services: five equal photo tiles (House cleaning, Auto detailing,
+ * Moving, Junk removal, Pet care) plus a quiet custom-task link.
  */
 export function LandingCategories() {
   return (
@@ -59,14 +67,15 @@ export function LandingCategories() {
             Popular services
           </h2>
           <p className="mt-2 max-w-xl text-[14px] leading-5 text-[#475569]">
-            House cleaning, auto detailing, junk removal, and pet care. Or post something custom.
+            House cleaning, auto detailing, moving, junk removal, and pet care. Or post something
+            custom.
           </p>
         </div>
 
         <div
           data-testid="categories-bento"
           aria-label="Popular services"
-          className="mt-7 grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3.5"
+          className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-5"
         >
           {SERVICES.map((service) => (
             <Link
@@ -81,13 +90,13 @@ export function LandingCategories() {
                 alt={service.alt}
                 fill
                 className="object-cover transition-transform duration-[450ms] ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                sizes="(max-width: 768px) 50vw, 25vw"
+                sizes="(max-width: 768px) 50vw, 20vw"
               />
               <span
                 className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[rgba(7,19,48,0.78)] via-[rgba(7,19,48,0.18)] to-transparent"
                 aria-hidden="true"
               />
-              <span className="absolute bottom-[18px] left-5 right-4 z-[1] text-[17px] font-bold leading-tight tracking-[-0.025em] text-white md:text-[20px]">
+              <span className="absolute bottom-[18px] left-5 right-4 z-[1] text-[17px] font-bold leading-tight tracking-[-0.025em] text-white">
                 {service.label}
               </span>
             </Link>

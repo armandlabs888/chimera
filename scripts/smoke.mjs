@@ -107,7 +107,16 @@ async function checkLandingMarkup() {
   )
   assert.doesNotMatch(text, /categories-tile-custom|Something else\?/, 'navy custom tile removed')
   assert.match(text, /data-testid="categories-tile-auto"/, 'auto detailing tile')
+  assert.match(text, /data-testid="categories-tile-moving"/, 'moving tile')
   assert.match(text, /data-testid="categories-tile-junk"/, 'junk removal tile')
+  assert.match(text, /\/browse\?category=moving/, 'moving browse href')
+  assert.match(text, /avail-moving\.jpg/, 'moving sofa photo path')
+  assert.match(text, /avail-junk-garage\.jpg/, 'junk garage photo path')
+  assert.match(
+    text,
+    /House cleaning, auto detailing, moving, junk removal, and pet care\. Or post something custom\./,
+    'popular services subtitle',
+  )
   assert.match(text, /Post a custom task/, 'popular services custom link')
   assert.match(
     text,
@@ -567,8 +576,8 @@ async function checkLandingBrowser() {
     await page.waitForFunction(
       () => {
         const imgs = [...document.querySelectorAll('img')]
-        // Popular services: four photo tiles (hero is image-free).
-        return imgs.length >= 4 && imgs.every((img) => img.complete)
+        // Popular services: five photo tiles (hero is image-free).
+        return imgs.length >= 5 && imgs.every((img) => img.complete)
       },
       null,
       { timeout: 20000 },
@@ -613,7 +622,7 @@ async function checkLandingBrowser() {
     assert.equal(landingImages.popularGigsPresent, false, 'popular gigs section removed')
     assert.equal(landingImages.categoriesPresent, true, 'popular services section present')
     assert.ok(
-      landingImages.count >= 4,
+      landingImages.count >= 5,
       `landing should render Popular services marketing <img> elements, got ${landingImages.count}`,
     )
     assert.equal(landingImages.allComplete, true, 'every landing <img> must be complete')

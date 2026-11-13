@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Popular services (Landing): 4 photo tiles + custom-task link.
+ * Popular services (Landing): 5 photo tiles + custom-task link.
  * Screenshots → /opt/cursor/artifacts/categories-bento-qa/
  */
 import assert from 'node:assert/strict'
@@ -32,54 +32,83 @@ async function main() {
         const grid = document.querySelector('[data-testid="categories-bento"]')
         const cleaning = document.querySelector('[data-testid="categories-tile-cleaning"]')
         const auto = document.querySelector('[data-testid="categories-tile-auto"]')
+        const moving = document.querySelector('[data-testid="categories-tile-moving"]')
         const junk = document.querySelector('[data-testid="categories-tile-junk"]')
         const pets = document.querySelector('[data-testid="categories-tile-pets"]')
         const custom = document.querySelector('[data-testid="categories-tile-custom"]')
         const customLink = document.querySelector('[data-testid="categories-custom-link"]')
         const cleaningImg = cleaning?.querySelector('img')
+        const movingImg = moving?.querySelector('img')
+        const junkImg = junk?.querySelector('img')
         const cols = grid ? getComputedStyle(grid).gridTemplateColumns.split(' ').length : 0
         const sectionStyle = section ? getComputedStyle(section) : null
+        const tiles = [...(grid?.querySelectorAll('a') || [])]
+        const petsRect = pets?.getBoundingClientRect()
+        const gridRect = grid?.getBoundingClientRect()
         return {
-          tiles: grid ? grid.querySelectorAll('a').length : 0,
+          tiles: tiles.length,
           cols,
           hasCleaning: !!cleaning,
           hasAuto: !!auto,
+          hasMoving: !!moving,
           hasJunk: !!junk,
           hasPets: !!pets,
           hasCustomTile: !!custom,
           hasCustomLink: !!customLink,
           customHref: customLink?.getAttribute('href') || '',
           cleaningSrc: cleaningImg?.getAttribute('src') || cleaningImg?.currentSrc || '',
+          movingSrc: movingImg?.getAttribute('src') || movingImg?.currentSrc || '',
+          junkSrc: junkImg?.getAttribute('src') || junkImg?.currentSrc || '',
+          labels: tiles.map((a) => a.getAttribute('aria-label') || ''),
           filterTabs: document.querySelectorAll('[data-testid="categories-filter-tabs"]').length,
-          hrefs: [...(grid?.querySelectorAll('a') || [])].map((a) => a.getAttribute('href')),
+          hrefs: tiles.map((a) => a.getAttribute('href')),
           sectionText: section?.innerText || '',
           padTop: sectionStyle ? Number.parseFloat(sectionStyle.paddingTop) : 0,
           padBottom: sectionStyle ? Number.parseFloat(sectionStyle.paddingBottom) : 0,
           popularGigs: !!document.querySelector('[data-testid="popular-gigs"]'),
+          petsWidth: petsRect?.width || 0,
+          gridWidth: gridRect?.width || 0,
         }
       })
       assert.equal(metrics.popularGigs, false, `no popular gigs @ ${vp.name}`)
-      assert.equal(metrics.tiles, 4, `4 popular tiles @ ${vp.name}`)
-      assert.equal(metrics.cols, vp.width >= 768 ? 4 : 2, `grid cols @ ${vp.name}`)
+      assert.equal(metrics.tiles, 5, `5 popular tiles @ ${vp.name}`)
+      assert.equal(metrics.cols, vp.width >= 768 ? 5 : 2, `grid cols @ ${vp.name}`)
       assert.equal(metrics.hasCleaning, true)
       assert.equal(metrics.hasAuto, true)
+      assert.equal(metrics.hasMoving, true)
       assert.equal(metrics.hasJunk, true)
       assert.equal(metrics.hasPets, true)
+      assert.deepEqual(metrics.labels, [
+        'House cleaning',
+        'Auto detailing',
+        'Moving',
+        'Junk removal',
+        'Pet care',
+      ])
       assert.equal(metrics.hasCustomTile, false, 'navy Something else tile removed')
       assert.equal(metrics.hasCustomLink, true)
       assert.equal(metrics.customHref, '/post')
       assert.equal(metrics.filterTabs, 0, 'popular has no filter chip row')
       assert.match(metrics.cleaningSrc, /avail-house-cleaning/, 'popular cleaning uses crew asset')
+      assert.match(metrics.movingSrc, /avail-moving/, 'moving uses sofa photo')
+      assert.match(metrics.junkSrc, /avail-junk-garage/, 'junk uses garage photo')
       assert.ok(metrics.hrefs.includes('/browse?category=home'))
       assert.ok(metrics.hrefs.includes('/browse?category=auto'))
+      assert.ok(metrics.hrefs.includes('/browse?category=moving'))
       assert.ok(metrics.hrefs.includes('/browse?category=junk-removal'))
       assert.ok(metrics.hrefs.includes('/browse?category=pets'))
       assert.ok(!metrics.hrefs.includes('/browse?category=other'))
+      if (vp.width < 768) {
+        assert.ok(
+          metrics.petsWidth < metrics.gridWidth * 0.6,
+          `pet care stays half-width on mobile @ ${vp.name}`,
+        )
+      }
       assert.match(metrics.sectionText, /Start here/i)
       assert.match(metrics.sectionText, /Popular services/)
       assert.match(
         metrics.sectionText,
-        /House cleaning, auto detailing, junk removal, and pet care\. Or post something custom\./i,
+        /House cleaning, auto detailing, moving, junk removal, and pet care\. Or post something custom\./i,
       )
       assert.match(metrics.sectionText, /Post a custom task/)
       assert.doesNotMatch(metrics.sectionText, /Something else\?/)
@@ -102,7 +131,7 @@ async function main() {
       await page.close()
     }
     writeFileSync(join(OUT, 'summary.json'), JSON.stringify(summary, null, 2))
-    console.log('ok categories-bento-qa (landing popular services 4-up)')
+    console.log('ok categories-bento-qa (landing popular services 5-up)')
   } finally {
     await browser.close()
   }
