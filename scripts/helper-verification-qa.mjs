@@ -155,12 +155,73 @@ async function run() {
   assert.match(await page.locator('[data-testid="verify-decline-banner"]').innerText(), /new submission/i)
   await page.screenshot({ path: `${OUT}/desk-declined.png`, fullPage: true })
 
-  // --- Admin ---
+  // --- Admin: seed rows without a real file show the labeled sample fallback ---
   await page.goto(`${BASE}/admin/helper-reviews?demo=1`, { waitUntil: 'networkidle' })
   await page.waitForSelector('[data-testid="helper-reviews-admin"]')
   assert.ok((await page.locator('[data-testid="helper-reviews-queue"] li').count()) >= 1)
   await page.waitForSelector('[data-testid="helper-review-approve"]')
-  await page.screenshot({ path: `${OUT}/desk-admin.png` })
+  if (await page.locator('[data-testid="helper-review-doc-sample"]').count()) {
+    assert.match(
+      await page.locator('[data-testid="helper-review-doc-sample"]').innerText(),
+      /Sample document preview/i,
+    )
+  }
+
+  // Inject a pending row with a real photo preview so staff can review the file
+  const billDataUrl = await page.evaluate(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 640
+    canvas.height = 820
+    const ctx = canvas.getContext('2d')
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, 640, 820)
+    ctx.fillStyle = '#F5F9FF'
+    ctx.fillRect(0, 0, 640, 96)
+    ctx.fillStyle = '#1D5CE5'
+    ctx.font = 'bold 28px sans-serif'
+    ctx.fillText('MUNICIPAL WATER SERVICE', 36, 58)
+    ctx.fillStyle = '#071330'
+    ctx.font = 'bold 22px sans-serif'
+    ctx.fillText('Account statement · October 2026', 36, 150)
+    ctx.font = '16px sans-serif'
+    ctx.fillStyle = '#273449'
+    ctx.fillText('Service for: Alex Rivera', 36, 200)
+    ctx.fillText('1842 Willow Street, San Jose, CA 95125', 36, 230)
+    ctx.fillText('Statement period: Oct 1 – Oct 31, 2026', 36, 270)
+    ctx.fillText('Amount due: $64.18', 36, 310)
+    return canvas.toDataURL('image/jpeg', 0.92)
+  })
+  await page.evaluate((previewUrl) => {
+    const fn = window.__BEAM_SET_DEMO_VERIFICATION__
+    if (typeof fn !== 'function') throw new Error('Demo verification hook missing')
+    fn({
+      status: 'pending',
+      email: 'alex.rivera@email.com',
+      street: '1842 Willow Street',
+      city: 'San Jose',
+      stateCode: 'CA',
+      zip: '95125',
+      documentName: 'October 2026 water bill.jpg',
+      documentMime: 'image/jpeg',
+      documentBytes: 180_000,
+      documentPath: 'user-you/bills/demo-october-2026-water-bill.jpg',
+      documentPreviewUrl: previewUrl,
+      reviewReason: null,
+    })
+  }, billDataUrl)
+  await page.goto(`${BASE}/admin/helper-reviews?demo=1`, { waitUntil: 'networkidle' })
+  await page.waitForSelector('[data-testid="helper-review-row-user-you"]')
+  await page.locator('[data-testid="helper-review-row-user-you"]').click()
+  await page.waitForSelector('[data-testid="helper-review-doc-image"]', { timeout: 10000 })
+  assert.equal(await page.locator('[data-testid="helper-review-doc-sample"]').count(), 0)
+  assert.equal(await page.locator('[data-testid="helper-review-open-document"]').count(), 1)
+  const detailText = await page.locator('[data-testid="helper-review-detail"]').innerText()
+  assert.match(detailText, /October 2026 water bill\.jpg/i)
+  assert.doesNotMatch(detailText, /Water bill ·/i)
+  assert.equal(await page.locator('[data-testid="helper-review-approve"]').isVisible(), true)
+  await page.locator('[data-testid="helper-review-doc-image"]').scrollIntoViewIfNeeded()
+  await page.waitForTimeout(200)
+  await page.screenshot({ path: `${OUT}/desk-admin.png`, fullPage: true })
 
   // --- Approved restores Make an offer ---
   await setVerification(page, 'approved')
