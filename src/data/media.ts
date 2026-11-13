@@ -64,10 +64,13 @@ export const LIFESTYLE = {
   /** Outdoor event / setup — used for Other custom everyday help */
   events: '/images/landing/service-events.jpg',
   /**
-   * Auth left panel — outdoor neighbors carrying moving boxes (Pexels 7464497).
-   * Source: https://www.pexels.com/photo/three-people-carrying-brown-boxes-7464497/
-   * License: Pexels License (free to use; attribution not required).
-   * Distinct from legacy indoor plant/move `auth-showcase.jpg`.
+   * Auth modal marketing panel — helper cleaning a carpet.
+   * Served from `/public/images/auth/carpet-cleaner.jpg`.
+   */
+  authCarpet: '/images/auth/carpet-cleaner.jpg',
+  /**
+   * Legacy auth left panel — outdoor neighbors carrying moving boxes (Pexels 7464497).
+   * Retired from auth UI when the modal replaced the split-screen layout.
    */
   authPanel: '/images/landing/auth-panel-neighbors.jpg',
   /** Legacy indoor plant/move photo — retired from auth UI */

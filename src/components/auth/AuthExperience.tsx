@@ -2,9 +2,9 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCallback, useMemo, useState, type FormEvent } from 'react'
-import { BeamWordmark } from '@/components/BeamMark'
-import { LandingFooter } from '@/components/landing/LandingFooter'
+import { useCallback, useMemo, useRef, useState, type FormEvent } from 'react'
+import { BeamMark } from '@/components/BeamMark'
+import { useFocusTrap } from '@/components/browse/useFocusTrap'
 import { useBeam } from '@/context/BeamContext'
 import { Button, Field, TextInput } from '@/components/ui'
 import { friendlyAuthError } from '@/lib/auth/errors'
@@ -18,12 +18,20 @@ type Props = {
   initialMode?: AuthMode
   nextPath?: string
   initialError?: string | null
+  onClose?: () => void
 }
+
+const BULLETS = [
+  'Post a task in a minute',
+  'Compare offers from people nearby',
+  'Pick who fits and message them',
+] as const
 
 export function AuthExperience({
   initialMode = 'signin',
   nextPath = '/onboarding',
   initialError = null,
+  onClose,
 }: Props) {
   const {
     mode,
@@ -49,6 +57,13 @@ export function AuthExperience({
   const [confirmSent, setConfirmSent] = useState(false)
   const [resendPending, setResendPending] = useState(false)
   const [info, setInfo] = useState('')
+
+  const modalRef = useRef<HTMLDivElement>(null)
+  const handleClose = useCallback(() => {
+    onClose?.()
+  }, [onClose])
+
+  useFocusTrap(Boolean(onClose), modalRef, handleClose)
 
   const switchTab = useCallback(
     (next: AuthMode) => {
@@ -126,104 +141,158 @@ export function AuthExperience({
   }
 
   const alertError = localError || (backendError ? friendlyAuthError(backendError) : '')
-  const form = (
-    <FormColumn
-      tab={tab}
-      switchTab={switchTab}
-      email={email}
-      setEmail={setEmail}
-      password={password}
-      setPassword={setPassword}
-      showPassword={showPassword}
-      setShowPassword={setShowPassword}
-      name={name}
-      setName={setName}
-      pending={pending}
-      googlePending={googlePending}
-      onGoogle={onGoogle}
-      onSubmit={onSubmit}
-      alertError={alertError}
-      info={info}
-      confirmSent={confirmSent}
-      onResend={onResend}
-      resendPending={resendPending}
-      setConfirmSent={setConfirmSent}
-      mode={mode}
-      safeNext={safeNext}
-    />
-  )
+  const titleId = 'auth-modal-title'
 
   return (
-    <div className="min-h-dvh bg-white text-[#071330]">
-      <div className="lg:grid lg:min-h-dvh lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-        <AsidePanel />
-        <div className="flex flex-col px-6 py-6 lg:px-10">
-          {/* Mobile/tablet: form-first — photo panel is desktop-only (lg+) */}
-          <div className="mb-6 lg:hidden">
-            <Link href="/">
-              <BeamWordmark markWidth={26} markHeight={26} wordClassName="text-[24px]" tone="ink" />
-            </Link>
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center p-3.5 md:p-8"
+      data-testid="auth-modal-overlay"
+    >
+      <div
+        className="absolute inset-0 bg-[rgba(7,19,48,0.5)] backdrop-blur-[8px]"
+        data-testid="auth-modal-scrim"
+        onClick={handleClose}
+        aria-hidden
+      />
+
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        data-testid="auth-modal"
+        className="relative z-[1] grid h-auto max-h-[calc(100vh-28px)] w-[min(100%,362px)] grid-cols-1 overflow-hidden rounded-2xl bg-white shadow-[0_24px_64px_rgba(7,19,48,0.28),0_2px_8px_rgba(7,19,48,0.08)] outline-none md:h-[736px] md:max-h-[calc(100vh-64px)] md:w-[1000px] md:max-w-[calc(100vw-64px)] md:grid-cols-2"
+      >
+        <div className="flex min-h-0 min-w-0 flex-col justify-start overflow-y-auto bg-white px-[22px] py-7 md:justify-center md:px-11 md:py-9">
+          <div
+            className="inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#E3E8EF] bg-[#F5F9FF] text-[#1D5CE5]"
+            aria-hidden
+          >
+            <BeamMark width={18} height={18} color="currentColor" />
           </div>
-          <div className="mx-auto w-full max-w-[400px] flex-1 self-center py-4 sm:py-8 lg:py-0">{form}</div>
+
+          <FormColumn
+            titleId={titleId}
+            tab={tab}
+            switchTab={switchTab}
+            email={email}
+            setEmail={setEmail}
+            password={password}
+            setPassword={setPassword}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+            name={name}
+            setName={setName}
+            pending={pending}
+            googlePending={googlePending}
+            onGoogle={onGoogle}
+            onSubmit={onSubmit}
+            alertError={alertError}
+            info={info}
+            confirmSent={confirmSent}
+            onResend={onResend}
+            resendPending={resendPending}
+            setConfirmSent={setConfirmSent}
+            mode={mode}
+            safeNext={safeNext}
+          />
         </div>
+
+        <AsidePanel />
+
+        {/* Close last in DOM so initial focus lands on the form, not the X. */}
+        <button
+          type="button"
+          onClick={handleClose}
+          aria-label="Close"
+          data-testid="auth-modal-close"
+          className="absolute right-2.5 top-2.5 z-[3] inline-flex h-9 w-9 items-center justify-center rounded-full text-[#64748B] transition hover:bg-[rgba(7,19,48,0.06)] hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/focus-visible:ring-offset-2 md:right-3.5 md:top-3.5"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden>
+            <path d="M4 4l8 8M12 4l-8 8" />
+          </svg>
+        </button>
       </div>
-      <LandingFooter />
     </div>
   )
 }
 
-/**
- * Desktop auth left column — full-bleed (near) photo hero.
- * Photo: Pexels 7464497 — three neighbors carrying moving boxes outdoors (daylight).
- * https://www.pexels.com/photo/three-people-carrying-brown-boxes-7464497/
- * License: Pexels License (https://www.pexels.com/license/) — free commercial use.
- */
+function VerifyBadge({ className = '' }: { className?: string }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-2 self-start rounded-[10px] border border-[#D7E0EC] bg-white px-3 py-2 text-[13px] font-semibold leading-tight text-[#071330] shadow-[0_1px_2px_rgba(7,19,48,0.04)] ${className}`}
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#1D5CE5"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+        className="shrink-0"
+      >
+        <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />
+        <path d="M9.5 12.2l1.7 1.7 3.4-3.6" />
+      </svg>
+      Helpers verify they live nearby
+    </span>
+  )
+}
+
 function AsidePanel() {
   return (
     <aside
-      className="relative hidden min-h-dvh overflow-hidden bg-[#0B2F86] p-5 lg:block"
+      className="relative hidden min-w-0 flex-col justify-start border-l border-[#E3E8EF] bg-[#F5F9FF] px-10 pb-11 pt-16 md:flex"
       data-testid="auth-aside-panel"
     >
-      <div className="relative h-full min-h-[calc(100dvh-2.5rem)] overflow-hidden rounded-[20px]">
+      <p className="font-display text-[36px] font-extrabold leading-[1.15] tracking-[-0.045em] text-[#071330]">
+        Trusted help,
+        <br />
+        <span className="whitespace-nowrap">
+          right <span className="text-[#1D5CE5]">next door.</span>
+        </span>
+      </p>
+
+      <VerifyBadge className="mt-5" />
+
+      <div className="relative mt-[22px] h-[328px] w-[360px] max-w-full shrink-0 overflow-hidden rounded-xl border border-[#E3E8EF] bg-[#E8EEF6] shadow-[0_8px_20px_rgba(7,19,48,0.08)]">
         <Image
-          src={LIFESTYLE.authPanel}
-          alt="Neighbors carrying moving boxes together outdoors"
+          src={LIFESTYLE.authCarpet}
+          alt="A HouseCall helper cleaning a carpet"
           fill
           className="object-cover object-[50%_30%]"
-          sizes="(min-width: 1024px) 50vw, 0px"
+          sizes="360px"
           priority
         />
-        {/* Brand-blue scrim keeps wordmark + headline crisp white (no purple) */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(180deg, rgba(11,47,134,0.55) 0%, rgba(29,92,229,0.18) 28%, rgba(29,92,229,0.08) 48%, rgba(11,47,134,0.72) 72%, rgba(7,19,48,0.88) 100%)',
-          }}
-          aria-hidden
-        />
-        <Link
-          href="/"
-          className="absolute left-7 top-7 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B2F86]"
-        >
-          <BeamWordmark markWidth={28} markHeight={28} tone="white" />
-        </Link>
-        <div className="absolute inset-x-7 bottom-8 z-10 max-w-[28rem]">
-          <p className="font-display text-[34px] font-bold leading-[1.08] tracking-[-0.02em] text-white drop-shadow-[0_2px_12px_rgba(7,19,48,0.45)] md:text-[40px]">
-            Trusted help,
-            <br />
-            <span className="whitespace-nowrap">right next door.</span>
-          </p>
-          <p className="mt-3 max-w-[34ch] text-[15px] leading-6 text-white/95 drop-shadow-[0_1px_8px_rgba(7,19,48,0.4)]">
-            Post a task, compare offers from people nearby, and pick who fits.
-          </p>
-        </div>
       </div>
+
+      <ul className="mt-7 flex flex-col gap-3.5">
+        {BULLETS.map((text) => (
+          <li key={text} className="flex items-start gap-2.5 text-[15px] font-medium leading-[22px] text-[#071330]">
+            <svg className="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="none" aria-hidden>
+              <circle cx="10" cy="10" r="9" fill="#EEF4FF" stroke="#1D5CE5" strokeWidth="1.2" />
+              <path
+                d="M6.2 10.2l2.3 2.3 5.3-5.4"
+                stroke="#1D5CE5"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {text}
+          </li>
+        ))}
+      </ul>
     </aside>
   )
 }
 
 function FormColumn(props: {
+  titleId: string
   tab: AuthMode
   switchTab: (t: AuthMode) => void
   email: string
@@ -248,6 +317,7 @@ function FormColumn(props: {
   safeNext: string
 }) {
   const {
+    titleId,
     tab,
     switchTab,
     email,
@@ -275,14 +345,18 @@ function FormColumn(props: {
   if (mode === 'demo') {
     return (
       <div>
-        <h1 className="font-display text-[36px] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
-          You’re in demo mode
+        <h1 id={titleId} className="mt-4 font-display text-[28px] font-extrabold leading-[1.15] tracking-[-0.035em] text-[#071330] md:text-[28px]">
+          You are in demo mode
         </h1>
-        <p className="mt-3 text-[16px] text-[#64748B]">
+        <p className="mt-2 max-w-[36ch] text-[14px] leading-[22px] text-[#475569]">
           Local demo skips live sign-in. Continue into HouseCall with sample marketplace data in this
           browser.
         </p>
-        {alertError ? <div className="mt-5"><ErrorBanner message={alertError} /></div> : null}
+        {alertError ? (
+          <div className="mt-5">
+            <ErrorBanner message={alertError} />
+          </div>
+        ) : null}
         <Link href={safeNext} className="cta-primary mt-8 w-full justify-center">
           Continue to HouseCall
         </Link>
@@ -293,14 +367,18 @@ function FormColumn(props: {
   if (mode === 'unconfigured') {
     return (
       <div>
-        <h1 className="font-display text-[36px] font-bold leading-[1.15] text-[#071330]">
+        <h1 id={titleId} className="mt-4 font-display text-[28px] font-extrabold leading-[1.15] tracking-[-0.035em] text-[#071330]">
           HouseCall needs configuration
         </h1>
-        <p className="mt-3 text-[16px] text-[#64748B]">
+        <p className="mt-2 max-w-[36ch] text-[14px] leading-[22px] text-[#475569]">
           Set Supabase env vars for live auth, or enable demo with{' '}
           <code className="text-[#1D5CE5]">NEXT_PUBLIC_BEAM_DEMO_MODE=1</code>.
         </p>
-        {alertError ? <div className="mt-5"><ErrorBanner message={alertError} /></div> : null}
+        {alertError ? (
+          <div className="mt-5">
+            <ErrorBanner message={alertError} />
+          </div>
+        ) : null}
         <Link href="/" className="cta-ghost mt-8 w-full justify-center">
           Back to home
         </Link>
@@ -311,7 +389,7 @@ function FormColumn(props: {
   if (confirmSent) {
     return (
       <div>
-        <h1 className="font-display text-[36px] font-bold leading-[1.15] text-[#071330]">
+        <h1 id={titleId} className="mt-4 font-display text-[28px] font-extrabold leading-[1.15] tracking-[-0.035em] text-[#071330]">
           Check your inbox
         </h1>
         <div className="mt-5 rounded-lg border border-[#FDE68A] bg-[#FFF8D6] px-4 py-3 text-[14px] text-[#92400E]">
@@ -320,13 +398,13 @@ function FormColumn(props: {
         {info ? <p className="mt-3 text-[14px] text-[#64748B]">{info}</p> : null}
         {alertError ? <ErrorBanner message={alertError} /> : null}
         <div className="mt-6 flex flex-col gap-3">
-          <Button type="button" onClick={onResend} disabled={resendPending} className="h-[52px] w-full">
+          <Button type="button" onClick={onResend} disabled={resendPending} className="h-11 w-full rounded-[10px]">
             {resendPending ? 'Sending…' : 'Resend confirmation email'}
           </Button>
           <Button
             type="button"
             variant="secondary"
-            className="h-[52px] w-full"
+            className="h-11 w-full rounded-[10px]"
             onClick={() => {
               setConfirmSent(false)
               switchTab('signin')
@@ -341,32 +419,37 @@ function FormColumn(props: {
 
   return (
     <div>
-      <h1 className="font-display text-[36px] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
+      <h1
+        id={titleId}
+        className="mt-4 font-display text-[26px] font-extrabold leading-[1.15] tracking-[-0.035em] text-[#071330] md:text-[28px]"
+      >
         {tab === 'signin' ? 'Welcome back' : 'Join HouseCall'}
       </h1>
-      <p className="mt-3 text-[16px] text-[#64748B]">
+      <p className="mt-2 max-w-[36ch] text-[14px] leading-[22px] text-[#475569]">
         {tab === 'signin'
-          ? 'Sign in to post requests, send offers, and message neighbors nearby.'
+          ? 'Sign in to post a task or help neighbors nearby.'
           : 'Join HouseCall to post practical jobs or help neighbors nearby.'}
       </p>
+
+      <VerifyBadge className="mt-3.5 md:hidden" />
 
       <button
         type="button"
         onClick={onGoogle}
         disabled={pending || googlePending}
-        className="mt-8 inline-flex h-[52px] w-full items-center justify-center gap-2.5 rounded-lg border border-[rgba(7,19,48,0.12)] bg-white text-[16px] font-semibold text-[#071330] transition hover:bg-[#F4F8FD] disabled:opacity-50"
+        className="mt-[18px] inline-flex h-11 w-full items-center justify-center gap-2.5 rounded-[10px] border border-[#E3E8EF] bg-white text-[14px] font-semibold text-[#071330] transition hover:bg-[#F8FAFC] disabled:opacity-50 md:mt-6"
       >
         <GoogleMark />
         {googlePending ? 'Redirecting…' : 'Continue with Google'}
       </button>
 
-      <div className="my-6 flex items-center gap-3" aria-hidden>
-        <span className="h-px flex-1 bg-[rgba(7,19,48,0.1)]" />
+      <div className="my-[18px] flex items-center gap-3" aria-hidden>
+        <span className="h-px flex-1 bg-[#E3E8EF]" />
         <span className="text-[13px] text-[#94A3B8]">or</span>
-        <span className="h-px flex-1 bg-[rgba(7,19,48,0.1)]" />
+        <span className="h-px flex-1 bg-[#E3E8EF]" />
       </div>
 
-      <div className="flex gap-6 border-b border-[rgba(7,19,48,0.08)]" role="tablist">
+      <div className="mb-[18px] flex gap-5 border-b border-[#E3E8EF]" role="tablist">
         {(['signin', 'signup'] as const).map((t) => (
           <button
             key={t}
@@ -374,7 +457,7 @@ function FormColumn(props: {
             role="tab"
             aria-selected={tab === t}
             onClick={() => switchTab(t)}
-            className={`pb-3 text-[15px] font-semibold transition ${
+            className={`pb-2.5 text-[14px] font-semibold transition ${
               tab === t
                 ? 'border-b-2 border-[#1D5CE5] text-[#1D5CE5]'
                 : 'border-b-2 border-transparent text-[#94A3B8] hover:text-[#475569]'
@@ -385,7 +468,7 @@ function FormColumn(props: {
         ))}
       </div>
 
-      <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+      <form className="space-y-3" onSubmit={onSubmit}>
         {tab === 'signup' ? (
           <Field label="Full name">
             <TextInput
@@ -395,7 +478,7 @@ function FormColumn(props: {
               maxLength={80}
               autoComplete="name"
               placeholder="Alex Rivera"
-              className="h-[52px] rounded-lg"
+              className="h-[42px] rounded-[10px] border-[#E3E8EF] text-[14px]"
             />
           </Field>
         ) : null}
@@ -407,7 +490,7 @@ function FormColumn(props: {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
-            className="h-[52px] rounded-lg"
+            className="h-[42px] rounded-[10px] border-[#E3E8EF] text-[14px]"
           />
         </Field>
 
@@ -420,11 +503,11 @@ function FormColumn(props: {
               required
               minLength={6}
               autoComplete={tab === 'signin' ? 'current-password' : 'new-password'}
-              className="h-[52px] rounded-lg pr-16"
+              className="h-[42px] rounded-[10px] border-[#E3E8EF] pr-16 text-[14px]"
             />
             <button
               type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2.5 py-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#071330]"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg px-1.5 py-1 text-[13px] font-semibold text-[#64748B] hover:text-[#071330]"
               onClick={() => setShowPassword((v) => !v)}
               aria-pressed={showPassword}
             >
@@ -440,21 +523,25 @@ function FormColumn(props: {
           </div>
         ) : null}
 
-        <Button type="submit" className="h-[52px] w-full rounded-lg" disabled={pending || googlePending}>
+        <Button
+          type="submit"
+          className="mt-[6px] h-11 w-full rounded-[10px] bg-[#1D5CE5] hover:bg-[#1649BD]"
+          disabled={pending || googlePending}
+        >
           {pending ? 'Working…' : tab === 'signin' ? 'Sign in' : 'Create account'}
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-[14px] text-[#64748B]">
+      <p className="mt-[18px] text-center text-[13px] text-[#64748B]">
         {tab === 'signin' ? (
           <>
-            New to HouseCall?{' '}
+            Don't have an account?{' '}
             <button
               type="button"
               className="font-semibold text-[#1D5CE5] underline-offset-2 hover:underline"
               onClick={() => switchTab('signup')}
             >
-              Create an account
+              Create account
             </button>
           </>
         ) : (

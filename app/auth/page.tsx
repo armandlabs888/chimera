@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { AuthExperience, type AuthMode } from '@/components/auth/AuthExperience'
+import { LandingPage } from '@/components/landing/LandingPage'
 import { useBeam } from '@/context/BeamContext'
 import { sanitizeNext } from '@/lib/auth/safeNext'
 
@@ -15,6 +16,10 @@ export default function AuthPage() {
   const initialMode: AuthMode = rawMode === 'signup' ? 'signup' : 'signin'
   const safeNext = sanitizeNext(searchParams.get('next'), '/onboarding')
   const initialError = searchParams.get('error')
+
+  const closeToLanding = useCallback(() => {
+    router.push('/')
+  }, [router])
 
   useEffect(() => {
     if (!ready) return
@@ -45,11 +50,15 @@ export default function AuthPage() {
   }
 
   return (
-    <AuthExperience
-      key={`${initialMode}:${initialError ?? ''}:${safeNext}`}
-      initialMode={initialMode}
-      nextPath={safeNext}
-      initialError={initialError}
-    />
+    <>
+      <LandingPage />
+      <AuthExperience
+        key={`${initialMode}:${initialError ?? ''}:${safeNext}`}
+        initialMode={initialMode}
+        nextPath={safeNext}
+        initialError={initialError}
+        onClose={closeToLanding}
+      />
+    </>
   )
 }
