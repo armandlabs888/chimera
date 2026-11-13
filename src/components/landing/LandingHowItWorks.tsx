@@ -23,7 +23,7 @@ export function LandingHowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="relative mt-12 overflow-hidden py-12 md:mt-14 md:py-14"
+      className="relative overflow-hidden py-12 md:py-14"
       data-testid="how-it-works"
     >
       <div

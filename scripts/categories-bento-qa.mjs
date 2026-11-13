@@ -25,8 +25,10 @@ async function main() {
     ]) {
       const page = await browser.newPage({ viewport: { width: vp.width, height: vp.height } })
       await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
+      assert.equal(await page.getByTestId('popular-gigs').count(), 0, 'popular gigs removed')
       await page.locator('#categories').scrollIntoViewIfNeeded()
       const metrics = await page.evaluate(() => {
+        const section = document.querySelector('#categories')
         const grid = document.querySelector('[data-testid="categories-bento"]')
         const cleaning = document.querySelector('[data-testid="categories-tile-cleaning"]')
         const auto = document.querySelector('[data-testid="categories-tile-auto"]')
@@ -36,6 +38,7 @@ async function main() {
         const customLink = document.querySelector('[data-testid="categories-custom-link"]')
         const cleaningImg = cleaning?.querySelector('img')
         const cols = grid ? getComputedStyle(grid).gridTemplateColumns.split(' ').length : 0
+        const sectionStyle = section ? getComputedStyle(section) : null
         return {
           tiles: grid ? grid.querySelectorAll('a').length : 0,
           cols,
@@ -49,9 +52,13 @@ async function main() {
           cleaningSrc: cleaningImg?.getAttribute('src') || cleaningImg?.currentSrc || '',
           filterTabs: document.querySelectorAll('[data-testid="categories-filter-tabs"]').length,
           hrefs: [...(grid?.querySelectorAll('a') || [])].map((a) => a.getAttribute('href')),
-          sectionText: document.querySelector('#categories')?.innerText || '',
+          sectionText: section?.innerText || '',
+          padTop: sectionStyle ? Number.parseFloat(sectionStyle.paddingTop) : 0,
+          padBottom: sectionStyle ? Number.parseFloat(sectionStyle.paddingBottom) : 0,
+          popularGigs: !!document.querySelector('[data-testid="popular-gigs"]'),
         }
       })
+      assert.equal(metrics.popularGigs, false, `no popular gigs @ ${vp.name}`)
       assert.equal(metrics.tiles, 4, `4 popular tiles @ ${vp.name}`)
       assert.equal(metrics.cols, vp.width >= 768 ? 4 : 2, `grid cols @ ${vp.name}`)
       assert.equal(metrics.hasCleaning, true)
@@ -69,14 +76,25 @@ async function main() {
       assert.ok(metrics.hrefs.includes('/browse?category=pets'))
       assert.ok(!metrics.hrefs.includes('/browse?category=other'))
       assert.match(metrics.sectionText, /Start here/i)
+      assert.match(metrics.sectionText, /Popular services/)
       assert.match(
         metrics.sectionText,
         /House cleaning, auto detailing, junk removal, and pet care\. Or post something custom\./i,
       )
+      assert.match(metrics.sectionText, /Post a custom task/)
       assert.doesNotMatch(metrics.sectionText, /Something else\?/)
       assert.doesNotMatch(metrics.sectionText, /Explore →/)
       assert.doesNotMatch(metrics.sectionText, /—|–/)
       assert.doesNotMatch(metrics.sectionText, /Carpet cleaning|Grooming/)
+      const expectedPad = vp.width >= 768 ? 72 : 56
+      assert.ok(
+        Math.abs(metrics.padTop - expectedPad) <= 1,
+        `categories pad-top ~${expectedPad} @ ${vp.name}, got ${metrics.padTop}`,
+      )
+      assert.ok(
+        Math.abs(metrics.padBottom - expectedPad) <= 1,
+        `categories pad-bottom ~${expectedPad} @ ${vp.name}, got ${metrics.padBottom}`,
+      )
       const shot = join(OUT, `categories-bento-${vp.name}.png`)
       await page.locator('#categories').screenshot({ path: shot })
       await page.screenshot({ path: join(LOCAL, `categories-bento-${vp.name}.png`) })

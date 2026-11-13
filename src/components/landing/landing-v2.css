@@ -54,15 +54,17 @@
   }
 }
 
-/* Popular services: no negative tuck under the previous section. */
+/* Popular services: first content after hero; comfortable section padding. */
 #categories {
   margin-top: 0;
-  padding-top: 40px;
+  padding-top: 56px;
+  padding-bottom: 56px;
 }
 
 @media (min-width: 768px) {
   #categories {
-    padding-top: 56px;
+    padding-top: 72px;
+    padding-bottom: 72px;
   }
 }
 
