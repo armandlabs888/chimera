@@ -1161,6 +1161,17 @@ async function checkOnboardingFlow() {
     await page.goto(`${BASE_URL}/onboarding?preview=1`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('[data-testid="onboarding-root"]', { timeout: 20000 })
 
+    const onboardingHeader = page.getByTestId('onboarding-header')
+    await onboardingHeader.waitFor({ state: 'visible' })
+    const headerStep1 = await onboardingHeader.innerText()
+    assert.match(headerStep1, /Step 1 of 2/i, 'step progress in header')
+    assert.doesNotMatch(headerStep1, /\bBeam\b/, 'no Beam wordmark in onboarding header')
+    assert.equal(
+      await onboardingHeader.locator('a[aria-label="Beam home"]').count(),
+      0,
+      'no Beam logo link in onboarding header',
+    )
+
     const step1 = await page.locator('[data-testid="onboarding-step-1"]').innerText()
     assert.match(step1, /Welcome to Beam/i)
     assert.match(step1, /\bNeighbor\b/i)
@@ -1347,6 +1358,14 @@ async function checkOnboardingFlow() {
 
     await page.getByTestId('onboarding-next').click()
     await page.waitForSelector('[data-testid="onboarding-step-2"]')
+    const headerStep2 = await page.getByTestId('onboarding-header').innerText()
+    assert.match(headerStep2, /Step 2 of 2/i, 'step progress updates on step 2')
+    assert.doesNotMatch(headerStep2, /\bBeam\b/, 'no Beam wordmark on step 2 header')
+    assert.equal(
+      await page.getByTestId('onboarding-header').locator('a[aria-label="Beam home"]').count(),
+      0,
+      'no Beam logo link on step 2 header',
+    )
     const step2 = await page.getByTestId('onboarding-step-2').innerText()
     assert.match(step2, /Posting illegal content or listing sexual services is strictly prohibited/i)
     assert.match(step2, /accounts are suspended/i)

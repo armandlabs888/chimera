@@ -10,7 +10,6 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
-import { BeamWordmark } from '@/components/BeamMark'
 import { LandingFooter } from '@/components/landing/LandingFooter'
 import {
   UsCityCombobox,
@@ -212,7 +211,6 @@ export function Onboarding() {
   const [error, setError] = useState('')
   const [step1Error, setStep1Error] = useState('')
 
-  const isPreviewOrDemo = mode === 'demo' || preview
   const alreadyOnboarded = Boolean(currentUser.onboardingCompletedAt)
   const showAccountEscape =
     mode === 'live' && Boolean(authUser) && !edit && !alreadyOnboarded
@@ -351,17 +349,17 @@ export function Onboarding() {
 
   return (
     <div className="min-h-dvh bg-white text-[#071330]" data-testid="onboarding-root" data-step={step}>
-      <header className="sticky top-0 z-30 border-b border-[rgba(7,19,48,0.08)] bg-white/95 backdrop-blur-md">
+      <header
+        className="sticky top-0 z-30 border-b border-[rgba(7,19,48,0.08)] bg-white/95 backdrop-blur-md"
+        data-testid="onboarding-header"
+      >
         <div
-          className={`mx-auto flex h-14 items-center justify-between gap-4 px-5 sm:h-16 ${
+          className={`mx-auto flex h-12 items-center justify-end gap-4 px-5 sm:h-14 ${
             step === 1
               ? 'max-w-[1080px] sm:px-10'
               : 'max-w-[480px] sm:px-6'
           }`}
         >
-          <Link href={isPreviewOrDemo ? '/browse' : '/'} aria-label="Beam home">
-            <BeamWordmark markWidth={24} markHeight={24} wordClassName="text-[20px]" tone="ink" />
-          </Link>
           <StepProgress step={step} />
         </div>
       </header>
