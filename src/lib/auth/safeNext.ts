@@ -33,8 +33,9 @@ export function sanitizeNext(raw: string | null | undefined, fallback = '/browse
 
 /**
  * Absolute callback URL for Google OAuth / email confirmation.
- * Works on www, apex, Vercel previews, and localhost when `origin` is
- * `window.location.origin` (or an equivalent request origin).
+ * Pass the current page origin (`window.location.origin`) so the PKCE verifier
+ * cookie host matches the callback host. Production middleware canonicalizes
+ * apex → www before sign-in, so this is normally https://www.yariapp.com.
  */
 export function buildAuthCallbackUrl(origin: string, nextPath?: string | null): string {
   const next = sanitizeNext(nextPath)

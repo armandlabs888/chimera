@@ -9,6 +9,7 @@ import { useBeam } from '@/context/BeamContext'
 import { Button, Field, TextInput } from '@/components/ui'
 import { friendlyAuthError } from '@/lib/auth/errors'
 import { buildAuthCallbackUrl, sanitizeNext } from '@/lib/auth/safeNext'
+import { resolveOAuthRedirectOrigin } from '@/lib/auth/siteOrigin'
 import { GoogleMark } from './GoogleMark'
 import { LIFESTYLE } from '@/data/media'
 
@@ -78,7 +79,7 @@ export function AuthExperience({
 
   const oauthRedirectTo =
     typeof window !== 'undefined'
-      ? buildAuthCallbackUrl(window.location.origin, safeNext)
+      ? buildAuthCallbackUrl(resolveOAuthRedirectOrigin(window.location.origin), safeNext)
       : buildAuthCallbackUrl('', safeNext)
 
   async function onGoogle() {
@@ -106,7 +107,7 @@ export function AuthExperience({
       } else {
         const emailRedirectTo =
           typeof window !== 'undefined'
-            ? buildAuthCallbackUrl(window.location.origin, safeNext)
+            ? buildAuthCallbackUrl(resolveOAuthRedirectOrigin(window.location.origin), safeNext)
             : undefined
         const result = await signUp(email.trim(), password, name.trim().slice(0, 80), {
           emailRedirectTo,
