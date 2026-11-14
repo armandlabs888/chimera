@@ -16,7 +16,6 @@ import { useBeam } from '@/context/BeamContext'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import { formatRate } from '@/lib/matching'
 import { hidesPeerHelperDiscovery } from '@/lib/roles'
-import { canMakeOffer } from '@/lib/verification/status'
 import '@/components/account/account-hc.css'
 
 const TABS = ['requests', 'offers', 'saved', 'helper'] as const
@@ -38,6 +37,7 @@ export function You() {
   const rawTab = params.get('tab')
   // Former notifications tab removed from UI; Messages covers that inbox.
   const tab: YouTab = TABS.includes(rawTab as YouTab) ? (rawTab as YouTab) : 'requests'
+  const verificationStatus = helperVerification?.status
 
   function setTab(next: YouTab) {
     const nextParams = new URLSearchParams(params.toString())
@@ -86,11 +86,16 @@ export function You() {
     [state.savedHelperIds, state.people],
   )
 
-  const isHelper = Boolean(currentUser.isHelper || currentUser.skills.length > 0)
+  const isHelper = Boolean(
+    currentUser.isHelper ||
+      currentUser.accountRole === 'helper' ||
+      currentUser.skills.length > 0,
+  )
   const isGuest = mode === 'live' && !authUser
   const hidePeerDiscovery = hidesPeerHelperDiscovery(currentUser, isGuest)
   const helpersBrowseHref = hidePeerDiscovery ? '/browse' : '/browse?tab=people'
-  const showGetVerified = isHelper && !canMakeOffer(helperVerification)
+  // Show until the helper is approved; hide once status is approved.
+  const showGetVerified = isHelper && verificationStatus !== 'approved'
 
   const quickLinks = useMemo((): AccountQuickLink[] => {
     const links: AccountQuickLink[] = [

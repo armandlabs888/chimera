@@ -30,4 +30,25 @@ assert.equal(isValidAccountDeleteConfirm(null), false)
 assert.equal(isValidAccountDeleteConfirm(undefined), false)
 assert.equal(isValidAccountDeleteConfirm({ confirm: 'I understand' }), false)
 
+const storageSrc = readFileSync(join(root, 'src/lib/account/deleteUserStorage.ts'), 'utf8')
+assert.match(storageSrc, /assertStorageUserId/)
+assert.match(storageSrc, /Invalid user id for storage deletion/)
+
+const USER_ID_UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function assertStorageUserId(userId) {
+  if (typeof userId !== 'string' || !userId.trim() || !USER_ID_UUID_RE.test(userId.trim())) {
+    throw new Error('Invalid user id for storage deletion')
+  }
+}
+
+assert.doesNotThrow(() =>
+  assertStorageUserId('550e8400-e29b-41d4-a716-446655440000'),
+)
+assert.throws(() => assertStorageUserId(''), /Invalid user id/)
+assert.throws(() => assertStorageUserId('   '), /Invalid user id/)
+assert.throws(() => assertStorageUserId('not-a-uuid'), /Invalid user id/)
+assert.throws(() => assertStorageUserId('../'), /Invalid user id/)
+
 console.log('account-delete-confirm-unit: ok')

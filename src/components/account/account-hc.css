@@ -2218,7 +2218,7 @@
   margin: 0;
 }
 
-.account-hc-danger-card > p {
+.account-hc-danger-card > p:not(.account-hc-danger-warn) {
   margin-top: 8px;
   font-size: 14px;
   line-height: 1.5;
@@ -2226,8 +2226,10 @@
 }
 
 .account-hc-danger-list {
-  margin: 12px 0 0 18px;
-  padding: 0;
+  list-style-type: disc;
+  list-style-position: outside;
+  margin: 12px 0 0;
+  padding-left: 1.25rem;
   font-size: 14px;
   line-height: 1.55;
   color: var(--hc-navy);
@@ -2235,12 +2237,18 @@
 
 .account-hc-danger-list li {
   margin-top: 4px;
+  padding-left: 0.15rem;
+}
+
+.account-hc-danger-list li::marker {
+  color: #071330;
+  font-size: 0.85em;
 }
 
 .account-hc-danger-warn {
-  margin-top: 12px;
+  margin-top: 14px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.45;
   color: var(--hc-red);
 }
@@ -2249,7 +2257,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-top: 16px;
+  margin-top: 20px;
   height: 44px;
   padding: 0 18px;
   border-radius: 10px;
@@ -2325,7 +2333,7 @@
   background: var(--hc-red-hover);
   border-radius: 10px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.45;
   color: var(--hc-red);
 }

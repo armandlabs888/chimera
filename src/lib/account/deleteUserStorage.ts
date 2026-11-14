@@ -6,6 +6,16 @@ type AdminClient = SupabaseClient<Database>
 const LIST_PAGE = 100
 const REMOVE_BATCH = 100
 
+/** Reject empty / non-UUID ids so we never list or wipe a whole bucket with prefix "". */
+const USER_ID_UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+export function assertStorageUserId(userId: string): void {
+  if (typeof userId !== 'string' || !userId.trim() || !USER_ID_UUID_RE.test(userId.trim())) {
+    throw new Error('Invalid user id for storage deletion')
+  }
+}
+
 /**
  * Recursively list object paths under a prefix in a storage bucket.
  * Supabase folders typically have `id === null` and no file metadata.
@@ -15,6 +25,7 @@ async function listObjectPathsRecursive(
   bucket: string,
   prefix: string,
 ): Promise<string[]> {
+  if (!prefix) throw new Error('Storage list prefix required')
   const paths: string[] = []
   const queue: string[] = [prefix.replace(/\/$/, '')]
 
@@ -63,8 +74,8 @@ export async function deleteBeamMediaForUser(
   admin: AdminClient,
   userId: string,
 ): Promise<void> {
-  const prefix = userId
-  const paths = await listObjectPathsRecursive(admin, 'beam-media', prefix)
+  assertStorageUserId(userId)
+  const paths = await listObjectPathsRecursive(admin, 'beam-media', userId.trim())
   if (paths.length) await removePaths(admin, 'beam-media', paths)
 }
 
@@ -76,7 +87,8 @@ export async function deleteHelperVerificationMediaForUser(
   admin: AdminClient,
   userId: string,
 ): Promise<void> {
-  const paths = await listObjectPathsRecursive(admin, 'helper-verification', userId)
+  assertStorageUserId(userId)
+  const paths = await listObjectPathsRecursive(admin, 'helper-verification', userId.trim())
   if (paths.length) await removePaths(admin, 'helper-verification', paths)
 }
 
@@ -85,6 +97,7 @@ export async function deleteAllUserStorage(
   admin: AdminClient,
   userId: string,
 ): Promise<void> {
+  assertStorageUserId(userId)
   await deleteBeamMediaForUser(admin, userId)
   await deleteHelperVerificationMediaForUser(admin, userId)
 }
