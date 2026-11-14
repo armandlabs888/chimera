@@ -93,7 +93,7 @@ export function LandingHero() {
         className="landing-hero-content relative z-20 overflow-x-clip"
         data-testid="landing-hero"
       >
-        <div className="relative z-10 mx-auto max-w-[1200px] px-5 text-center md:px-8">
+        <div className="beam-container relative z-10 text-center">
           <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#8FB2FF]">
             Local services · Real everyday help
           </p>

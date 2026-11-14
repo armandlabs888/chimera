@@ -28,7 +28,7 @@ export function LandingWhyBeam() {
       data-testid="why-beam-section"
       id="why-beam"
     >
-      <div className="relative mx-auto max-w-[1200px] px-5 md:px-8">
+      <div className="beam-container relative">
         <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-start">
           <div>
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#1D5CE5]">

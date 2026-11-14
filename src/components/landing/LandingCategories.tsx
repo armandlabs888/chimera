@@ -15,7 +15,7 @@ export function LandingCategories() {
       className="relative z-10 border-t border-transparent bg-white"
       data-testid="landing-categories"
     >
-      <div className="mx-auto max-w-[1200px] px-5 md:px-8">
+      <div className="beam-container">
         <div>
           <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#1D5CE5]">
             Start here

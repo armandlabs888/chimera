@@ -59,7 +59,7 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
     <div
       data-testid="messages-workspace"
       className={[
-        'grid min-h-0 grid-cols-1 gap-5',
+        'beam-container grid min-h-0 grid-cols-1 gap-5',
         hasExplicitThread ? 'h-[calc(100dvh-9.75rem)] min-h-[420px]' : '',
         'lg:h-[calc(100dvh-10rem)] lg:min-h-[560px] lg:max-h-[840px]',
         'lg:grid-cols-[minmax(280px,348px)_minmax(0,1fr)]',

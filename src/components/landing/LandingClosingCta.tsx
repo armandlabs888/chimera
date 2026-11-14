@@ -6,7 +6,7 @@ import Link from 'next/link'
 export function LandingClosingCta() {
   return (
     <section className="bg-white py-12 md:py-14" data-testid="landing-closing-cta">
-      <div className="mx-auto max-w-[1200px] px-5 text-center md:px-8">
+      <div className="beam-container text-center">
         <h2 className="text-[26px] font-bold tracking-[-0.02em] text-[#071330] md:text-[30px]">
           One less thing on your list.
         </h2>

@@ -21,10 +21,9 @@
   min-height: 100%;
 }
 
+/* Width/gutters come from shared .account-hc-wrap rules in globals.css. */
 .account-hc-wrap {
-  width: 1296px;
-  max-width: calc(100% - 48px);
-  margin: 0 auto;
+  margin-inline: auto;
 }
 
 .account-hc-page {
@@ -2426,7 +2425,8 @@
   height: 44px;
 }
 
-.account-hc-policy-page {
+/* Keep the shell at shared width; narrow the reading column inside. */
+.account-hc-policy-page .account-hc-policy-card {
   max-width: 720px;
 }
 
@@ -2453,10 +2453,6 @@
 
   .hc-mobile-sheet {
     display: block;
-  }
-
-  .account-hc-wrap {
-    max-width: calc(100% - 32px);
   }
 
   .account-hc-page {

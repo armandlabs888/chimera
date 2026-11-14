@@ -576,7 +576,7 @@ export function PostRequest() {
 
   return (
     <div className="min-h-full py-2 sm:py-4" style={{ backgroundColor: PAGE_BG }}>
-      <div className="mx-auto max-w-[1080px]">
+      <div className="beam-container">
         <header className="mb-6">
           <h1 className="text-[28px] font-bold tracking-tight sm:text-[32px]" style={{ color: INK }}>
             Post a task

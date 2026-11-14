@@ -6,7 +6,7 @@ export default function NotFound() {
   return (
     <BeamProvider nonBlocking>
       <GuestSiteChrome>
-        <div className="flex flex-1 flex-col items-center justify-center px-4 py-16 text-center sm:py-24">
+        <div className="beam-container flex flex-1 flex-col items-center justify-center py-16 text-center sm:py-24">
           <p className="font-display text-[22px] font-bold tracking-tight text-[#071330]">HouseCall</p>
           <h1 className="mt-4 type-h2 text-[#071330]">Page not found</h1>
           <p className="mt-2 max-w-md type-sec text-beam-muted">

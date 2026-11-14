@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { PageContainer } from '@/components/PageContainer'
 
 const COMMITMENTS = [
   {
@@ -57,7 +58,7 @@ const FAQ = [
 
 export function Safety() {
   return (
-    <div className="beam-container py-8 sm:py-12" data-testid="safety-page">
+    <PageContainer className="py-8 sm:py-12" testId="safety-page">
       <h1 className="font-display text-[clamp(2.5rem,5vw,3.5rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
         Safety on HouseCall
       </h1>
@@ -123,6 +124,6 @@ export function Safety() {
           Browse open requests →
         </Link>
       </p>
-    </div>
+    </PageContainer>
   )
 }

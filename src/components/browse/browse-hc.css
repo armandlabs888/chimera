@@ -19,10 +19,9 @@
   min-height: 100%;
 }
 
+/* Width/gutters come from shared .browse-hc-wrap rules in globals.css. */
 .browse-hc-wrap {
-  width: 1296px;
-  max-width: calc(100% - 48px);
-  margin: 0 auto;
+  margin-inline: auto;
 }
 
 .browse-hc-page {
@@ -1309,10 +1308,6 @@
 }
 
 @media (max-width: 860px) {
-  .browse-hc-wrap {
-    max-width: calc(100% - 32px);
-  }
-
   .browse-hc-header {
     height: 56px;
   }
