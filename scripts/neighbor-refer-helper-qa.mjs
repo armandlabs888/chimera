@@ -153,6 +153,33 @@ async function assertNeighborChrome(page, scope) {
     1,
     `${scope}: missing refer hint`,
   )
+  const btnMetrics = await page.locator('[data-testid="browse-refer-helper"]').evaluate((el) => {
+    const s = getComputedStyle(el)
+    const r = el.getBoundingClientRect()
+    return {
+      height: r.height,
+      minHeight: Number.parseFloat(s.minHeight) || 0,
+      paddingTop: Number.parseFloat(s.paddingTop) || 0,
+      paddingBottom: Number.parseFloat(s.paddingBottom) || 0,
+      fontSize: Number.parseFloat(s.fontSize) || 0,
+      radius: Number.parseFloat(s.borderRadius) || 0,
+    }
+  })
+  assert.ok(
+    btnMetrics.height >= 43.5 && btnMetrics.height <= 46,
+    `${scope}: refer button height ${btnMetrics.height} (expected ~44)`,
+  )
+  assert.ok(
+    btnMetrics.minHeight >= 44,
+    `${scope}: refer button min-height ${btnMetrics.minHeight} < 44`,
+  )
+  // Match offer CTAs: horizontal padding, flex-centered in 44px (~12px visual inset).
+  assert.ok(
+    btnMetrics.paddingTop <= 1 && btnMetrics.paddingBottom <= 1,
+    `${scope}: refer button should flex-center like offer CTAs, not crush via vertical padding`,
+  )
+  assert.ok(btnMetrics.fontSize >= 14 && btnMetrics.fontSize <= 15, `${scope}: refer font ${btnMetrics.fontSize}`)
+  assert.ok(btnMetrics.radius >= 11.5, `${scope}: refer button radius ${btnMetrics.radius}`)
   assert.equal(await page.locator('[data-testid="browse-ask-question"]').count(), 0, `${scope}: ask`)
   assert.equal(await page.locator('[data-testid="browse-make-offer"]').count(), 0, `${scope}: offer`)
   assert.equal(await page.locator('[data-testid="browse-offer-gated"]').count(), 0, `${scope}: gated`)

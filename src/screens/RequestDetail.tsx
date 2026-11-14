@@ -669,7 +669,7 @@ export function RequestDetail() {
             </section>
           ) : null}
 
-          {/* Neighbor open — refer a helper (no offer chrome) */}
+          {/* Neighbor open: refer a helper (no offer chrome) */}
           {isNeighborViewer && request.status === 'open' ? (
             <section className="space-y-3" data-testid="request-refer-panel">
               <div className={`${cardClass} p-5`}>

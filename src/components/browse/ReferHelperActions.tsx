@@ -23,7 +23,7 @@ export function useReferHelperShare(jobId: string, title: string) {
         return
       }
     } catch {
-      // Dismissed or unavailable — fall through to the copy dialog.
+      // Dismissed or unavailable; fall through to the copy dialog.
     }
     setDialogOpen(true)
   }, [shareUrl, title])
