@@ -12,6 +12,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (result.status === 'missing') notFound()
 
+  // Named, indexable metadata only for publicly listed open jobs.
   if (result.status === 'found') {
     const { title, areaLabel } = result.data
     return pageMetadata({
@@ -21,6 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     })
   }
 
+  // `private` (exists, not public) and `unknown` share generic noindex metadata.
   return {
     ...pageMetadata({
       title: 'Request',

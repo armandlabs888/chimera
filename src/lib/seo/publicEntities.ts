@@ -29,6 +29,8 @@ export type RequestSeoData = {
 
 export type LookupResult<T> =
   | { status: 'found'; data: T }
+  /** Row exists but must not expose public SEO details (noindex generic metadata). */
+  | { status: 'private' }
   | { status: 'missing' }
   | { status: 'unknown' }
 
@@ -168,9 +170,27 @@ export async function lookupPublicHelper(id: string): Promise<LookupResult<Helpe
   return { status: 'found', data: helper }
 }
 
+function isPubliclyListedRequest(row: RequestSeoRow): boolean {
+  return row.status === 'open'
+}
+
+async function findRequestInPublicMarketplace(
+  id: string,
+): Promise<RequestSeoRow | null | undefined> {
+  const anon = anonClient()
+  if (!anon) return undefined
+  const { data, error } = await anon.rpc('get_public_marketplace')
+  if (error || !data) return undefined
+  const payload = data as { requests?: RequestSeoRow[] }
+  return (payload.requests ?? []).find((r) => r.id === id) ?? null
+}
+
 /**
  * Resolve a help request for metadata / hard 404.
- * Definitive missing only via admin or an authenticated select that returns null.
+ *
+ * Admin / authenticated selects may prove existence, but title and area are only
+ * returned when the request is publicly listed (status `open`, or present in
+ * get_public_marketplace). Other existing rows return `private` (generic noindex).
  */
 export async function lookupPublicRequest(id: string): Promise<LookupResult<RequestSeoData>> {
   if (!isUuid(id)) return { status: 'missing' }
@@ -187,7 +207,14 @@ export async function lookupPublicRequest(id: string): Promise<LookupResult<Requ
       .maybeSingle()
     if (error) return { status: 'unknown' }
     if (!data) return { status: 'missing' }
-    return { status: 'found', data: toRequestSeo(data as RequestSeoRow) }
+    const row = data as RequestSeoRow
+    if (isPubliclyListedRequest(row)) {
+      return { status: 'found', data: toRequestSeo(row) }
+    }
+    // Exists but not open: confirm marketplace listing before exposing details.
+    const listed = await findRequestInPublicMarketplace(id)
+    if (listed) return { status: 'found', data: toRequestSeo(listed) }
+    return { status: 'private' }
   }
 
   try {
@@ -203,20 +230,22 @@ export async function lookupPublicRequest(id: string): Promise<LookupResult<Requ
         .maybeSingle()
       if (error) return { status: 'unknown' }
       if (!data) return { status: 'missing' }
-      return { status: 'found', data: toRequestSeo(data as RequestSeoRow) }
+      const row = data as RequestSeoRow
+      if (isPubliclyListedRequest(row)) {
+        return { status: 'found', data: toRequestSeo(row) }
+      }
+      const listed = await findRequestInPublicMarketplace(id)
+      if (listed) return { status: 'found', data: toRequestSeo(listed) }
+      return { status: 'private' }
     }
   } catch {
     // Fall through.
   }
 
-  const anon = anonClient()
-  if (!anon) return { status: 'unknown' }
-  const { data, error } = await anon.rpc('get_public_marketplace')
-  if (error || !data) return { status: 'unknown' }
-  const payload = data as { requests?: RequestSeoRow[] }
-  const row = (payload.requests ?? []).find((r) => r.id === id)
-  if (!row) return { status: 'unknown' }
-  return { status: 'found', data: toRequestSeo(row) }
+  const listed = await findRequestInPublicMarketplace(id)
+  if (listed === undefined) return { status: 'unknown' }
+  if (!listed) return { status: 'unknown' }
+  return { status: 'found', data: toRequestSeo(listed) }
 }
 
 /** Anon-readable helper ids for the sitemap (capped by get_public_marketplace). */
