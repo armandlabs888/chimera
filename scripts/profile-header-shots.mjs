@@ -14,6 +14,7 @@ import { chromium } from 'playwright'
 
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:43123'
 const PHASE = process.env.PHASE || 'before'
+const SUFFIX = process.env.SUFFIX ? `-${process.env.SUFFIX}` : ''
 const OUT = process.env.SHOT_DIR || '/opt/cursor/artifacts'
 const LOCAL = '/workspace/artifacts/profile-header'
 const STORAGE_KEY = 'beam-demo-v1'
@@ -165,7 +166,7 @@ async function captureYou(browser, role, label) {
     await page.goto(`${BASE}/you?demo=1`, { waitUntil: 'networkidle', timeout: 60000 })
     await page.getByTestId('you-page').waitFor({ state: 'visible', timeout: 20000 })
     await page.waitForTimeout(300)
-    await shot(page, `profile-header-${PHASE}-${label}-${vp.name}.png`)
+    await shot(page, `profile-header-${PHASE}${SUFFIX}-${label}-${vp.name}.png`)
     await context.close()
   }
 }
@@ -186,7 +187,7 @@ async function capturePublic(browser) {
     })
     await page.getByTestId('public-helper-profile').waitFor({ state: 'visible', timeout: 20000 })
     await page.waitForTimeout(300)
-    await shot(page, `profile-header-${PHASE}-public-helper-${vp.name}.png`)
+    await shot(page, `profile-header-${PHASE}${SUFFIX}-public-helper-${vp.name}.png`)
     await context.close()
   }
 }

@@ -59,13 +59,13 @@ export type ProfileHeaderMetaItem = {
 }
 
 const primaryBtnClass =
-  'inline-flex min-h-[40px] flex-1 items-center justify-center gap-2 rounded-full bg-[#1D5CE5] px-4 text-[14px] font-semibold text-white transition hover:bg-[#1649BD] disabled:opacity-40 sm:flex-none sm:min-h-[44px] sm:px-5'
+  'inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-[#1D5CE5] px-3.5 text-[14px] font-semibold text-white transition hover:bg-[#1649BD] disabled:opacity-40 sm:flex-none sm:min-h-[40px] sm:shrink-0 sm:px-3.5'
 
 const secondaryBtnClass =
-  'inline-flex min-h-[40px] flex-1 items-center justify-center gap-2 rounded-full bg-[#EEF2F7] px-4 text-[14px] font-semibold text-[#071330] transition hover:bg-[#E3E8EF] disabled:opacity-40 sm:flex-none sm:min-h-[44px] sm:px-5'
+  'inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-[#EEF2F7] px-3.5 text-[14px] font-semibold text-[#071330] transition hover:bg-[#E3E8EF] disabled:opacity-40 sm:flex-none sm:min-h-[40px] sm:shrink-0 sm:px-3.5'
 
 const overflowBtnClass =
-  'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-[#EEF2F7] text-[#071330] transition hover:bg-[#E3E8EF] sm:h-11 sm:w-11'
+  'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-[#EEF2F7] text-[#071330] transition hover:bg-[#E3E8EF]'
 
 function ActionControl({
   action,
@@ -105,13 +105,9 @@ function ActionControl({
   )
 }
 
-function Middot() {
-  return (
-    <span className="text-[#B0B8C6]" aria-hidden>
-      ·
-    </span>
-  )
-}
+/** Trailing separator stays with the prior item so wraps never start with a middot. */
+const sepItemClass =
+  "inline-flex max-w-full items-center gap-1.5 after:ml-2 after:text-[#B0B8C6] after:content-['·'] last:after:ml-0 last:after:content-none"
 
 function OverflowMenu({ items }: { items: ProfileHeaderOverflowItem[] }) {
   const [open, setOpen] = useState(false)
@@ -365,7 +361,7 @@ export function ProfileHeader({
 }) {
   const actions = (
     <div
-      className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end"
+      className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap sm:justify-end sm:gap-1.5"
       data-testid="profile-header-actions"
     >
       {primaryAction ? <ActionControl action={primaryAction} className={primaryBtnClass} /> : null}
@@ -381,9 +377,8 @@ export function ProfileHeader({
       className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px] font-medium text-[#4A5568] sm:text-[15px]"
       data-testid="profile-header-stats"
     >
-      {stats.map((item, i) => (
-        <span key={item.key} className="inline-flex items-center gap-2">
-          {i > 0 ? <Middot /> : null}
+      {stats.map((item) => (
+        <span key={item.key} className={sepItemClass}>
           {item.content}
         </span>
       ))}
@@ -395,13 +390,10 @@ export function ProfileHeader({
       className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] text-[#4A5568] sm:text-[13.5px]"
       data-testid="profile-header-meta"
     >
-      {meta.map((item, i) => (
-        <span key={item.key} className="inline-flex items-center gap-2">
-          {i > 0 ? <Middot /> : null}
-          <span className="inline-flex items-center gap-1.5">
-            {item.icon}
-            <span>{item.label}</span>
-          </span>
+      {meta.map((item) => (
+        <span key={item.key} className={sepItemClass}>
+          {item.icon}
+          <span>{item.label}</span>
         </span>
       ))}
     </p>
@@ -409,27 +401,29 @@ export function ProfileHeader({
 
   return (
     <header className="bg-white" data-testid={testId}>
-      <div className="h-[88px] bg-[#EEF2F7] sm:h-[104px]" data-testid="profile-header-cover" />
-
-      <div className="relative pb-5 pt-0 sm:pb-6">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:gap-5">
-          <div className="-mt-10 inline-flex w-fit shrink-0 rounded-full ring-4 ring-white sm:-mt-12">
+      <div className="pb-5 pt-1 sm:pb-6 sm:pt-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-5">
+          <div className="inline-flex w-fit shrink-0">
             <Avatar src={person.avatar} name={person.name} size={100} />
           </div>
 
-          <div className="mt-3 min-w-0 flex-1 sm:mt-0 sm:pt-1">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-              <div className="min-w-0">
-                <h1
-                  id={titleId}
-                  className="font-display text-[32px] font-bold leading-[1.15] tracking-[-0.03em] text-[#071330] sm:text-[34px]"
-                >
-                  {person.name}
-                </h1>
-                {statsRow}
-                {metaRow}
+          <div className="min-w-0 flex-1">
+            {/*
+              Mobile order: name → stats → meta → actions.
+              Desktop: name + actions on one row, then stats, meta.
+            */}
+            <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-3">
+              <h1
+                id={titleId}
+                className="min-w-0 font-display text-[32px] font-bold leading-[1.15] tracking-[-0.03em] text-[#071330] sm:col-start-1 sm:row-start-1 sm:text-[34px]"
+              >
+                {person.name}
+              </h1>
+              <div className="sm:col-start-1 sm:row-start-2">{statsRow}</div>
+              <div className="sm:col-start-1 sm:row-start-3">{metaRow}</div>
+              <div className="mt-3 sm:col-start-2 sm:row-start-1 sm:mt-0 sm:justify-self-end">
+                {actions}
               </div>
-              <div className="mt-4 sm:mt-0">{actions}</div>
             </div>
             {belowActions ? <div className="mt-3 sm:mt-4">{belowActions}</div> : null}
           </div>
