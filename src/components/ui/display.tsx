@@ -154,7 +154,7 @@ export function Avatar({
         alt=""
         width={size}
         height={size}
-        className="rounded-full object-cover ring-2 ring-white"
+        className="rounded-full object-cover object-[center_top] ring-2 ring-white"
         style={{ width: size, height: size }}
       />
     )
