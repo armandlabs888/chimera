@@ -75,8 +75,8 @@ export const LIFESTYLE = {
   authPanel: '/images/landing/auth-panel-neighbors.jpg',
   /** Legacy indoor plant/move photo — retired from auth UI */
   authShowcase: '/images/landing/auth-showcase.jpg',
-  /** Legacy step photos (superseded by UI-preview how-it-works; kept for assets) */
-  stepPost: '/images/landing/step-01-post.jpg',
-  stepOffers: '/images/landing/step-02-offers.jpg',
-  stepDone: '/images/landing/step-03-finish.jpg',
+  /** How it works card photos (16:9 WebP, ~1200px wide) */
+  stepPost: '/images/landing/how-it-works-post.webp',
+  stepOffers: '/images/landing/how-it-works-compare.webp',
+  stepDone: '/images/landing/how-it-works-finish.webp',
 } as const
