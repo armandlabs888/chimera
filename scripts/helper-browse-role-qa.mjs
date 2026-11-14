@@ -211,7 +211,7 @@ async function probeBrowse(page) {
 async function assertHelperJobsOnly(page, label, { expectPopulated = false, expectEmpty = false } = {}) {
   const m = await probeBrowse(page)
   assert.equal(m.layout, 'helper-jobs', `${label}: helper-jobs layout`)
-  assert.equal(m.hasTabs, false, `${label}: no mode tabs`)
+  assert.equal(m.hasTabs, true, `${label}: Jobs section tab row for layout parity`)
   assert.equal(m.hasLocalHelpersTab, false, `${label}: no Local helpers`)
   assert.equal(m.nestedScroll, false, `${label}: no nested feed scroll`)
   assert.equal(m.hasTrendingCopy, false, `${label}: no Trending helpers`)
@@ -280,7 +280,6 @@ async function assertNoFlashOnDeepLink(page, label) {
     })
     if (!snap.splash) {
       assert.equal(snap.peopleCards, 0, `${label}: no people flash #${i}`)
-      assert.equal(snap.hasTabs, false, `${label}: no tabs flash #${i}`)
       assert.equal(snap.hasTrending, false, `${label}: no trending flash #${i}`)
       assert.equal(
         snap.hasLocalHelpers,
@@ -574,13 +573,14 @@ async function main() {
           await page.waitForFunction(
             () =>
               !location.search.includes('tab=people') ||
-              !document.querySelector('[data-testid="browse-mode-tabs"]'),
+              !document.querySelector('[data-testid="browse-tab-local-helpers"]'),
             null,
             { timeout: 10000 },
           ).catch(() => {})
           const snap = await probeBrowse(page)
           assert.equal(snap.peopleCards, 0, 'history: no people cards for helper')
           assert.equal(snap.hasLocalHelpersTab, false, 'history: no Local helpers for helper')
+          assert.equal(snap.hasTabs, true, 'history: Jobs section tab still present')
         }
         report.checks.push({ role: 'guest', ok: true, note: 'demo mode — customer covers discovery; history guard checked' })
       }

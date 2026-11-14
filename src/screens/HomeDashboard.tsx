@@ -293,13 +293,15 @@ export function HomeDashboard() {
             )}
           </section>
         ) : (
-          <section className="account-hc-section">
-            <h2 className="account-hc-section-head" style={{ display: 'block', marginBottom: 8 }}>
-              Quick post
-            </h2>
-            <p className="account-hc-hero-sub" style={{ marginTop: 0, marginBottom: 16 }}>
-              Pick a category and get help today.
-            </p>
+          <section className="account-hc-section" aria-labelledby="quick-post-heading">
+            <div className="account-hc-section-head">
+              <div>
+                <h2 id="quick-post-heading">Quick post</h2>
+                <p className="account-hc-section-sub">
+                  Pick a category and get help today.
+                </p>
+              </div>
+            </div>
             <div className="account-hc-quick-grid">
               {BROWSE_PARENTS.map((p) => (
                 <Link

@@ -623,23 +623,24 @@ export function Browse() {
       data-browse-tab={tab}
     >
       <div className="browse-hc-wrap browse-hc-page">
-        {hidePeerDiscovery ? null : (
-          <div
-            className="browse-hc-section-tabs"
-            role="tablist"
-            aria-label="Browse type"
-            data-testid="browse-mode-tabs"
+        <div
+          className="browse-hc-section-tabs"
+          role="tablist"
+          aria-label="Browse type"
+          data-testid="browse-mode-tabs"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'requests'}
+            className={tab === 'requests' ? 'is-active' : undefined}
+            onClick={() => setTab('requests')}
+            data-testid="browse-tab-jobs"
           >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'requests'}
-              className={tab === 'requests' ? 'is-active' : undefined}
-              onClick={() => setTab('requests')}
-            >
-              Jobs
-              {ready ? <span className="browse-hc-section-count">{jobsTabCount}</span> : null}
-            </button>
+            Jobs
+            {ready ? <span className="browse-hc-section-count">{jobsTabCount}</span> : null}
+          </button>
+          {hidePeerDiscovery ? null : (
             <button
               type="button"
               role="tab"
@@ -651,14 +652,16 @@ export function Browse() {
               Helpers
               {ready ? <span className="browse-hc-section-count">{helpersTabCount}</span> : null}
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         <section
           className={`browse-hc-title-row${tab === 'people' ? ' browse-hc-title-row--helpers' : ''}`}
         >
           <div className="min-w-0">
-            <h1 className="browse-hc-hero-title">{heroTitle}</h1>
+            <h1 className="browse-hc-hero-title" data-testid="browse-hero-title">
+              {heroTitle}
+            </h1>
             {subline ? <p className="browse-hc-hero-sub">{subline}</p> : null}
           </div>
 
