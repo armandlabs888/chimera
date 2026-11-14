@@ -21,6 +21,7 @@ import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
+import { formatJobAreaCaption } from '@/lib/location'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 import { SuggestedHelpersSection } from '@/components/refer/SuggestedHelpersSection'
 import { ReferHelperFooterActions } from './ReferHelperActions'
@@ -30,11 +31,11 @@ const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexibl
 export function BrowseJobDetailPanel({
   request,
   areaLabel,
-  cityName,
   authHref,
 }: {
   request: HelpRequest
   areaLabel: string
+  /** Viewer browse city; kept for Browse callers, not used for job captions. */
   cityName: string
   authHref: string
 }) {
@@ -98,7 +99,12 @@ export function BrowseJobDetailPanel({
   const openBudget = request.budgetType === 'open' || request.budget === 0
   const budgetLabel = formatBudget(request)
   const posted = relativeTime(request.createdAt)
-  const place = areaLabel || cityName || 'Nearby'
+  const jobAreaCaption = formatJobAreaCaption(request)
+  // Job area only; never fall back to the viewer browse city (guest "you").
+  const place =
+    areaLabel && areaLabel.toLowerCase() !== 'you' && areaLabel.toLowerCase() !== 'your area'
+      ? areaLabel
+      : jobAreaCaption.split(',')[0]?.trim() || jobAreaCaption || 'Nearby'
   const canOffer = !isOwner && request.status === 'open'
   const pendingOffer =
     canOffer && !isGuest && myOffer?.status === 'pending' ? myOffer : undefined
@@ -307,9 +313,6 @@ export function BrowseJobDetailPanel({
             neighborhood={request.neighborhood}
             city={request.city}
             radiusMiles={request.radiusMiles}
-            areaLabel={
-              cityName && place !== cityName ? `${place}, ${cityName}` : place
-            }
           />
 
           <div className="browse-hc-about">

@@ -28,6 +28,7 @@ import type { HelpRequest } from '@/types'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
+import { formatJobAreaCaption } from '@/lib/location'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 import {
   ReferHelperButton,
@@ -43,7 +44,6 @@ export function BrowseJobDrawer({
   narrow,
   milesLabel,
   areaLabel,
-  cityName,
   authHref,
   onClose,
 }: {
@@ -51,6 +51,7 @@ export function BrowseJobDrawer({
   narrow: boolean
   milesLabel: string | null
   areaLabel: string
+  /** Viewer browse city; kept for Browse callers, not used for job captions. */
   cityName: string
   authHref: string
   onClose: () => void
@@ -104,13 +105,17 @@ export function BrowseJobDrawer({
   const openBudget = request.budgetType === 'open' || request.budget === 0
   const firstName = requester?.name?.split(/\s+/)[0] || 'a neighbor'
   const posted = relativeTime(request.createdAt)
-  const place = areaLabel || cityName || 'Nearby'
+  const jobAreaCaption = formatJobAreaCaption(request)
+  // Job area only; never combine with the viewer browse city (guest "you").
+  const place =
+    areaLabel && areaLabel.toLowerCase() !== 'you' && areaLabel.toLowerCase() !== 'your area'
+      ? areaLabel
+      : jobAreaCaption.split(',')[0]?.trim() || jobAreaCaption || 'Nearby'
   const canOffer = !isOwner && request.status === 'open'
   /** Source of truth for the sent-offer footer: a pending offer from this helper on an open job. */
   const pendingOffer =
     canOffer && !isGuest && myOffer?.status === 'pending' ? myOffer : undefined
-  const locationLine =
-    cityName && place !== cityName ? `${place}, ${cityName}` : place
+  const locationLine = jobAreaCaption
 
   const fullHref = `/requests/${request.id}`
 
@@ -285,7 +290,6 @@ export function BrowseJobDrawer({
           neighborhood={request.neighborhood}
           city={request.city}
           radiusMiles={request.radiusMiles}
-          areaLabel={locationLine}
           height={narrow ? 160 : 180}
         />
 
