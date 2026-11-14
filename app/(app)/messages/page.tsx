@@ -1,4 +1,13 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
+import { pageMetadata } from '@/lib/seo/site'
+
+export const metadata: Metadata = pageMetadata({
+  title: 'Messages',
+  description: 'Your HouseCall conversations with neighbors and helpers.',
+  path: '/messages',
+  noindex: true,
+})
 
 /**
  * Inbox route stays addressable. Signed-in visitors land on Browse with the
