@@ -22,7 +22,7 @@ import { HelperProfileReviews } from '@/components/profile/HelperProfileReviews'
 import { RequestCard } from '@/components/RequestCard'
 import { Button, ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import { hidesPeerHelperDiscovery } from '@/lib/roles'
+import { hidesPeerHelperDiscovery, isHelperPerson } from '@/lib/roles'
 import '@/components/account/account-hc.css'
 
 const ACTIVITY_TABS = ['requests', 'offers', 'saved'] as const
@@ -69,17 +69,20 @@ export function You() {
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
   }
 
+  const isHelper = isHelperPerson(currentUser)
+
   useEffect(() => {
-    if (rawTab === 'notifications') {
+    if (rawTab === 'notifications' || (rawTab === 'helper' && !isHelper)) {
       const nextParams = new URLSearchParams(params.toString())
       nextParams.delete('tab')
       const qs = nextParams.toString()
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
     }
-  }, [rawTab, params, pathname, router])
+  }, [rawTab, params, pathname, router, isHelper])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+    if (rawTab === 'helper' && !isHelper) return
     const hash = window.location.hash
     if (hash === '#helper-urgent-sms' || (rawTab === 'helper' && hash === '#helper-urgent-sms')) {
       scrollToId('helper-urgent-sms')
@@ -96,7 +99,7 @@ export function You() {
     if (rawTab === 'offers' || rawTab === 'saved') {
       scrollToId('you-activity')
     }
-  }, [rawTab, state])
+  }, [rawTab, state, isHelper])
 
   const myRequests = useMemo(
     () => state.requests.filter((r) => r.requesterId === currentUser.id),
@@ -124,11 +127,6 @@ export function You() {
     [state.reviews, currentUser.id],
   )
 
-  const isHelper = Boolean(
-    currentUser.isHelper ||
-      currentUser.accountRole === 'helper' ||
-      currentUser.skills.length > 0,
-  )
   const isGuest = mode === 'live' && !authUser
   const hidePeerDiscovery = hidesPeerHelperDiscovery(currentUser, isGuest)
   const helpersBrowseHref = hidePeerDiscovery ? '/browse' : '/browse?tab=people'

@@ -7,6 +7,21 @@ function normalizeAccountRole(
 }
 
 /**
+ * Whether this account is treated as a helper for chrome and profile access.
+ * Matches /you: published helpers, helper-role accounts, and legacy skill-only rows.
+ */
+export function isHelperPerson(
+  person: Pick<Person, 'isHelper' | 'accountRole' | 'skills'> | null | undefined,
+): boolean {
+  if (!person) return false
+  return Boolean(
+    person.isHelper ||
+      person.accountRole === 'helper' ||
+      (person.skills?.length ?? 0) > 0,
+  )
+}
+
+/**
  * Helpers browse open jobs only — never peer helper marketplace discovery.
  *
  * Source of truth is explicit `accountRole`:
