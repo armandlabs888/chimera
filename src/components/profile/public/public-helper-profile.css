@@ -7,9 +7,9 @@
   --php-tint-2: #f4f8fd;
   --php-line: #e3e8ef;
   --php-line-2: #d7e0ec;
-  --php-muted: #48556a;
-  --php-muted-2: #6b7384;
-  --php-sub: #878b95;
+  --php-muted: #4a5568;
+  --php-muted-2: #4a5568;
+  --php-sub: #4a5568;
   color: var(--php-navy);
 }
 
@@ -23,7 +23,7 @@
 }
 
 .public-helper-profile .php-crumb a:hover {
-  color: var(--php-blue);
+  color: #1649bd;
 }
 
 .public-helper-profile .php-crumb .php-here {
@@ -85,7 +85,7 @@
 }
 
 .public-helper-profile .php-cat-link {
-  color: var(--php-blue);
+  color: #1649bd;
   font-weight: 650;
 }
 
@@ -119,7 +119,7 @@
 }
 
 .public-helper-profile .php-facts .php-now {
-  color: var(--php-blue);
+  color: #1649bd;
   font-weight: 650;
 }
 
@@ -160,8 +160,8 @@
 }
 
 .public-helper-profile .php-icon-btn.is-on {
-  border-color: var(--php-blue);
-  color: var(--php-blue);
+  border-color: #1649bd;
+  color: #1649bd;
   background: var(--php-tint);
 }
 
@@ -299,7 +299,7 @@
   margin: 16px 0 12px;
   font-size: 14.5px;
   font-weight: 650;
-  color: var(--php-blue);
+  color: #1649bd;
   background: none;
   border: 0;
   cursor: pointer;
@@ -330,7 +330,7 @@
   border: 1px solid var(--php-line);
   border-radius: 8px;
   padding: 16px 16px 14px;
-  box-shadow: 0 10px 28px -16px rgba(12, 42, 102, 0.12);
+  box-shadow: none;
 }
 
 .public-helper-profile .php-fee-note {
@@ -365,7 +365,7 @@
 .public-helper-profile .php-hint {
   display: block;
   margin-top: 6px;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--php-muted);
   line-height: 1.4;
 }
@@ -396,7 +396,7 @@
 .public-helper-profile .php-select:focus,
 .public-helper-profile .php-text:focus,
 .public-helper-profile .php-area:focus {
-  border-color: var(--php-blue);
+  border-color: #1649bd;
   background-color: #fff;
 }
 
@@ -498,7 +498,7 @@
   margin-top: 8px;
   margin-bottom: 2px;
   text-align: center;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--php-muted);
   line-height: 1.4;
 }

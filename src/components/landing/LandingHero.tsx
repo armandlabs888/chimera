@@ -123,7 +123,7 @@ export function LandingHero() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="What help do you need?"
-                  className="min-w-0 flex-1 bg-transparent text-[15px] text-[#071330] outline-none placeholder:text-[#94A3B8]"
+                  className="min-w-0 flex-1 bg-transparent text-[15px] text-[#071330] outline-none placeholder:text-[#5B6576]"
                 />
               </label>
 
@@ -144,13 +144,13 @@ export function LandingHero() {
                       <CategoryIcon className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
                       <span
                         className={`min-w-0 flex-1 truncate text-[15px] ${
-                          category === 'all' ? 'text-[#64748B]' : 'text-[#071330]'
+                          category === 'all' ? 'text-[#4A5568]' : 'text-[#071330]'
                         }`}
                       >
                         {categoryLabel}
                       </span>
                       <ChevronDown
-                        className={`h-3.5 w-3.5 shrink-0 text-[#94A3B8] transition-transform ${
+                        className={`h-3.5 w-3.5 shrink-0 text-[#4A5568] transition-transform ${
                           locOpen ? 'rotate-180' : ''
                         }`}
                       />
@@ -194,7 +194,7 @@ export function LandingHero() {
                                 className={`flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
                                   category === p.id
                                     ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
-                                    : 'text-[#475569]'
+                                    : 'text-[#4A5568]'
                                 }`}
                                 onClick={() => {
                                   setCategory(p.id)
@@ -229,13 +229,13 @@ export function LandingHero() {
                       <MapPin className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
                       <span
                         className={`min-w-0 flex-1 truncate text-[15px] ${
-                          neighborhood === 'all' ? 'text-[#64748B]' : 'text-[#071330]'
+                          neighborhood === 'all' ? 'text-[#4A5568]' : 'text-[#071330]'
                         }`}
                       >
                         {neighborhoodLabel}
                       </span>
                       <ChevronDown
-                        className={`h-3.5 w-3.5 shrink-0 text-[#94A3B8] transition-transform ${
+                        className={`h-3.5 w-3.5 shrink-0 text-[#4A5568] transition-transform ${
                           locOpen ? 'rotate-180' : ''
                         }`}
                       />
@@ -274,7 +274,7 @@ export function LandingHero() {
                               className={`min-h-11 w-full px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
                                 neighborhood === n.id
                                   ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
-                                  : 'text-[#475569]'
+                                  : 'text-[#4A5568]'
                               }`}
                               onClick={() => {
                                 setNeighborhood(n.id)
@@ -293,7 +293,7 @@ export function LandingHero() {
 
               <button
                 type="submit"
-                className="inline-flex h-11 min-h-11 shrink-0 items-center justify-center rounded-lg bg-[#1D5CE5] px-[26px] text-[15px] font-bold text-white shadow-none transition-colors hover:bg-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/45 focus-visible:ring-offset-2 sm:ml-1"
+                className="inline-flex h-11 min-h-11 shrink-0 items-center justify-center rounded-full bg-[#1D5CE5] px-[26px] text-[15px] font-semibold text-white shadow-none transition-colors hover:bg-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/45 focus-visible:ring-offset-2 sm:ml-1"
               >
                 Find help
               </button>

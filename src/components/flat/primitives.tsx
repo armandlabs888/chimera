@@ -7,9 +7,9 @@ type Tone = 'base' | 'raised' | 'panel' | 'ink' | 'canvas'
 const toneClass: Record<Tone, string> = {
   base: 'bg-white',
   raised: 'bg-white',
-  panel: 'bg-[#F4F8FD]',
+  panel: 'bg-white',
   ink: 'bg-white',
-  canvas: 'bg-[#F4F8FD]',
+  canvas: 'bg-white',
 }
 
 export function MetaLabel({

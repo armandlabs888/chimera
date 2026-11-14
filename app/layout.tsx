@@ -1,22 +1,22 @@
 import type { Metadata, Viewport } from 'next'
-import { Open_Sans, Poppins } from 'next/font/google'
+import { DM_Sans, Inter } from 'next/font/google'
 import type { ReactNode } from 'react'
 import { DEFAULT_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/seo/site'
 import './globals.css'
 
-/* Yelp-style body: Open Sans (humanist, dense list scanning). */
-const openSans = Open_Sans({
+/* Uber Move Text role → UI/body. Inter is the licensed geometric stand-in. */
+const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '600', '700', '800'],
-  variable: '--font-open-sans',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-inter',
   display: 'swap',
 })
 
-/* Yelp Cookbook display: Poppins for headers, biz names, buttons. */
-const poppins = Poppins({
+/* Uber Move role → display/headlines. DM Sans mirrors circular transit bowls. */
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  weight: ['600', '700', '800'],
-  variable: '--font-poppins',
+  weight: ['500', '700'],
+  variable: '--font-dm-sans',
   display: 'swap',
 })
 
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     description,
     url: SITE_URL,
     siteName: SITE_NAME,
-    locale: 'en_US',
+    locale: 'en-US',
     type: 'website',
     images: [
       {
@@ -67,7 +67,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${openSans.variable} ${poppins.variable}`}>
+    <html lang="en" className={`${inter.variable} ${dmSans.variable}`}>
       <body className="font-body antialiased">{children}</body>
     </html>
   )

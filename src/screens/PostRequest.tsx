@@ -54,9 +54,9 @@ import type {
   WhenOption,
 } from '@/types'
 
-const PAGE_BG = '#F4F8FD'
+const PAGE_BG = '#FFFFFF'
 const INK = '#071330'
-const MUTED = '#64748B'
+const MUTED = '#4A5568'
 const NOTICE_BG = '#F5F9FF'
 
 const BUDGET_PRESETS = [40, 60, 80, 100, 120] as const
@@ -930,7 +930,7 @@ export function PostRequest() {
                       className={`flex items-start gap-3 rounded-lg border px-4 py-3.5 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
                         selected
                           ? 'border-[#1D5CE5] bg-[#F5F9FF] ring-1 ring-[#1D5CE5]/20'
-                          : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
+                          : 'border-[#E3E8EF] bg-white hover:border-[#CBD5E1] hover:bg-white'
                       }`}
                     >
                       <span
@@ -949,7 +949,7 @@ export function PostRequest() {
                         <span className="block text-[15px] font-semibold text-[#071330]">
                           {mode.title}
                         </span>
-                        <span className="mt-0.5 block text-[13px] leading-[1.45] text-[#64748B]">
+                        <span className="mt-0.5 block text-[13px] leading-[1.45] text-[#4A5568]">
                           {mode.body}
                         </span>
                       </span>
@@ -959,7 +959,7 @@ export function PostRequest() {
               </div>
 
               <label
-                className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-[#E2E8F0] bg-[#F5F9FF] px-4 py-3.5"
+                className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-[#E3E8EF] bg-[#F5F9FF] px-4 py-3.5"
                 data-testid="post-needs-help-now"
               >
                 <input
@@ -973,7 +973,7 @@ export function PostRequest() {
                   <span className="block text-[15px] font-semibold text-[#071330]">
                     I need help now
                   </span>
-                  <span className="mt-0.5 block text-[13px] leading-snug text-[#64748B]">
+                  <span className="mt-0.5 block text-[13px] leading-snug text-[#4A5568]">
                     Text verified helpers nearby who turned on optional urgent alerts. Regular
                     posts stay the same when this is off.
                   </span>
@@ -982,14 +982,14 @@ export function PostRequest() {
 
               {when === 'asap' ? (
                 <p
-                  className="mt-4 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3 text-[13.5px] leading-relaxed text-[#475569]"
+                  className="mt-4 rounded-lg border border-[#E3E8EF] bg-white px-4 py-3 text-[13.5px] leading-relaxed text-[#4A5568]"
                   data-testid="post-asap-note"
                 >
                   {ASAP_ARRIVAL_NOTE}
                 </p>
               ) : (
                 <div
-                  className="mt-4 space-y-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-4"
+                  className="mt-4 space-y-3 rounded-lg border border-[#E3E8EF] bg-white p-4"
                   data-testid="post-time-window"
                 >
                   <Field label="Date">

@@ -2005,7 +2005,7 @@ export function BeamProvider({
       return <BeamContext.Provider value={provisional}>{children}</BeamContext.Provider>
     }
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[#F4F8FD] text-[#071330]">
+      <div className="flex min-h-dvh items-center justify-center bg-white text-[#071330]">
         <p className="text-[22px] font-semibold tracking-tight text-[#071330]" aria-busy="true">
           HouseCall
         </p>

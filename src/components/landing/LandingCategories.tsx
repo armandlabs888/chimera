@@ -23,7 +23,7 @@ export function LandingCategories() {
           <h2 className="mt-1.5 text-[26px] font-bold tracking-[-0.02em] text-[#071330] md:text-[30px]">
             Popular services
           </h2>
-          <p className="mt-2 max-w-xl text-[14px] leading-5 text-[#475569]">
+          <p className="mt-2 max-w-xl text-[15px] leading-[1.55] text-[#4A5568]">
             House cleaning, auto detailing, moving, junk removal, and pet care. Or post something
             custom.
           </p>
@@ -60,7 +60,7 @@ export function LandingCategories() {
           ))}
         </div>
 
-        <p className="mt-[22px] text-[14px] text-[#475569]">
+        <p className="mt-[22px] text-[15px] text-[#4A5568]">
           Need something else?{' '}
           <Link
             href="/post"

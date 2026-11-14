@@ -10,18 +10,24 @@ const variantStyles: Record<ButtonVariant, string> = {
   brand:
     'bg-[#1D5CE5] text-white shadow-none hover:bg-[#1649BD] active:scale-[0.98] disabled:opacity-40',
   secondary:
-    'bg-white text-[#071330] border border-[#E3E8EF] hover:bg-[#F4F8FD] hover:border-[#D7E0EC] disabled:opacity-40',
+    'bg-[#EEF2F7] text-[#071330] border-0 hover:bg-[#E3E8EF] disabled:opacity-40',
   ghost:
-    'bg-transparent text-[#48556A] hover:bg-[#F4F8FD] hover:text-[#071330] disabled:opacity-40',
+    'bg-transparent text-[#4A5568] hover:bg-[#EEF2F7] hover:text-[#071330] disabled:opacity-40',
   danger:
     'bg-beam-danger-soft text-beam-danger border border-red-500/25 hover:bg-red-500/15 disabled:opacity-40',
 }
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'inline-flex min-h-[44px] items-center rounded-lg px-3.5 py-2 text-[13px] font-bold',
-  md: 'touch-target rounded-lg px-5 py-2 text-[15px] font-bold',
-  lg: 'touch-target rounded-lg px-[26px] py-2.5 text-[15px] font-bold',
+  sm: 'inline-flex min-h-[44px] items-center rounded-lg px-3.5 py-2 text-[13px] font-semibold',
+  md: 'touch-target rounded-lg px-5 py-2 text-[15px] font-semibold',
+  lg: 'touch-target rounded-lg px-[26px] py-2.5 text-[15px] font-semibold',
 }
+
+/** Secondary / tertiary actions that should read as Yelp-style flat pills. */
+export const secondaryPillClass =
+  'inline-flex min-h-[44px] items-center justify-center rounded-full bg-[#EEF2F7] px-5 text-[14px] font-semibold text-[#071330] hover:bg-[#E3E8EF]'
+export const outlinePillClass =
+  'inline-flex min-h-[40px] items-center justify-center rounded-full border border-[#D7E0EC] bg-white px-4 text-[14px] font-semibold text-[#071330] hover:bg-[#F5F9FF]'
 
 function Spinner() {
   return (

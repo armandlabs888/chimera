@@ -32,7 +32,7 @@ export function LandingHowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="relative overflow-hidden bg-[#F4F8FD] py-12 md:py-14"
+      className="relative overflow-hidden bg-white py-12 md:py-14"
       data-testid="how-it-works"
     >
       <div className="beam-container relative">
@@ -67,7 +67,7 @@ export function LandingHowItWorks() {
                   {step.n}
                 </span>
                 <h3 className="mt-2.5 text-[15px] font-semibold text-[#071330]">{step.title}</h3>
-                <p className="mt-1 text-[13px] leading-5 text-[#475569]">{step.body}</p>
+                <p className="mt-1 text-[15px] leading-[1.55] text-[#4A5568]">{step.body}</p>
               </div>
             </article>
           ))}
