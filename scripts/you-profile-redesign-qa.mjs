@@ -81,7 +81,7 @@ async function captureVariant(browser, role, prefix) {
     await seedRole(page, role)
     await page.goto(`${BASE}/you?demo=1`, { waitUntil: 'networkidle', timeout: 60000 })
     await page.getByTestId('you-page').waitFor({ state: 'visible', timeout: 20000 })
-    await page.getByTestId('helper-profile-hero').waitFor({ state: 'visible' })
+    await page.getByTestId('profile-header').waitFor({ state: 'visible' })
     if (role === 'helper') {
       await setDemoVerification(page, 'unverified')
       await page.getByTestId('you-link-get-verified').waitFor({ state: 'visible' })

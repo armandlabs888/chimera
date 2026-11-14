@@ -1,7 +1,7 @@
 'use client'
 
-import { Heart } from 'lucide-react'
-import { useEffect, useMemo, type ReactNode } from 'react'
+import { Eye, Heart, Settings } from 'lucide-react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -15,9 +15,15 @@ import { YouHelperDetailsForm } from '@/components/account/YouHelperDetailsForm'
 import { YouProfileForm } from '@/components/account/YouProfileForm'
 import { PersonCard } from '@/components/PersonCard'
 import {
-  HelperProfileHero,
-  HelperProfileSettingsButton,
-} from '@/components/profile/HelperProfileHero'
+  ProfileHeader,
+  ProfileHeaderIcons,
+  buildHelperStats,
+  buildNeighborStats,
+  buildRoleMeta,
+  formatMemberSince,
+  shareProfileLink,
+  type ProfileHeaderOverflowItem,
+} from '@/components/profile/ProfileHeader'
 import { HelperProfileReviews } from '@/components/profile/HelperProfileReviews'
 import { RequestCard } from '@/components/RequestCard'
 import { Button, ButtonLink } from '@/components/ui'
@@ -127,6 +133,60 @@ export function You() {
     [state.reviews, currentUser.id],
   )
 
+  const [shareToast, setShareToast] = useState('')
+
+  const headerStats = useMemo(() => {
+    if (isHelper) return buildHelperStats(currentUser)
+    return buildNeighborStats({
+      jobsPosted: myRequests.length,
+      memberSinceLabel: formatMemberSince(currentUser.onboardingCompletedAt),
+    })
+  }, [isHelper, currentUser, myRequests.length])
+
+  const headerMeta = useMemo(
+    () => buildRoleMeta(isHelper ? 'helper' : 'neighbor', currentUser),
+    [isHelper, currentUser],
+  )
+
+  const overflowItems = useMemo((): ProfileHeaderOverflowItem[] => {
+    const items: ProfileHeaderOverflowItem[] = [
+      {
+        key: 'settings',
+        label: 'Settings',
+        icon: <Settings className="h-4 w-4" strokeWidth={2} aria-hidden />,
+        href: '/settings',
+        testId: 'you-hero-settings',
+      },
+    ]
+    if (isHelper) {
+      items.push({
+        key: 'public',
+        label: 'View public profile',
+        icon: <Eye className="h-4 w-4" strokeWidth={2} aria-hidden />,
+        href: `/people/${currentUser.id}`,
+        testId: 'you-view-public-profile',
+      })
+    }
+    return items
+  }, [isHelper, currentUser.id])
+
+  async function onShareProfile() {
+    const path = isHelper ? `/people/${currentUser.id}` : '/you'
+    const url =
+      typeof window !== 'undefined' ? `${window.location.origin}${path}` : path
+    const result = await shareProfileLink({
+      title: `${currentUser.name} on HouseCall`,
+      url,
+    })
+    if (result === 'copied') {
+      setShareToast('Link copied')
+      window.setTimeout(() => setShareToast(''), 1600)
+    } else if (result === 'failed') {
+      setShareToast('Could not copy link')
+      window.setTimeout(() => setShareToast(''), 1600)
+    }
+  }
+
   const showGetVerified = isHelper && verificationStatus !== 'approved'
 
   const quickLinks = useMemo((): AccountQuickLink[] => {
@@ -170,29 +230,34 @@ export function You() {
   return (
     <div className="account-hc account-hc-you-page" data-testid="you-page">
       <div className="beam-container pb-10 pt-6 sm:pt-8" data-testid="you-page-shell">
-        <HelperProfileHero
+        <ProfileHeader
           person={currentUser}
-          showHelperMeta={isHelper}
-          accountType={isHelper ? 'helper' : 'neighbor'}
-          showBio={false}
-          trailingAction={<HelperProfileSettingsButton />}
-          actions={
-            <>
-              <ButtonLink href="#you-profile" data-testid="you-edit-profile">
-                Edit profile
-              </ButtonLink>
-              {isHelper ? (
-                <ButtonLink
-                  href={`/people/${currentUser.id}`}
-                  variant="secondary"
-                  data-testid="you-view-public-profile"
-                >
-                  View public profile
-                </ButtonLink>
-              ) : null}
-            </>
-          }
+          stats={headerStats}
+          meta={headerMeta}
+          primaryAction={{
+            key: 'edit',
+            label: 'Edit profile',
+            icon: ProfileHeaderIcons.edit,
+            href: '#you-profile',
+            testId: 'you-edit-profile',
+          }}
+          secondaryActions={[
+            {
+              key: 'share',
+              label: 'Share',
+              icon: ProfileHeaderIcons.share,
+              onClick: () => void onShareProfile(),
+              testId: 'you-share-profile',
+            },
+          ]}
+          overflowItems={overflowItems}
         />
+
+        {shareToast ? (
+          <p className="mt-3 text-[13px] font-medium text-[#4A5568]" role="status">
+            {shareToast}
+          </p>
+        ) : null}
 
         {isHelper ? <HelperProfileReviews reviews={reviews} getPerson={getPerson} /> : null}
 

@@ -1,10 +1,18 @@
 'use client'
 
-import { Heart, MessageSquare, Share2, Star } from 'lucide-react'
+import { Heart, MessageSquare, Star } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
+import {
+  ProfileHeader,
+  ProfileHeaderIcons,
+  buildHelperStats,
+  buildRoleMeta,
+  shareProfileLink,
+  type ProfileHeaderOverflowItem,
+} from '@/components/profile/ProfileHeader'
 import { ButtonLink, EmptyState } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { useBrowseLocation } from '@/hooks/useBrowseLocation'
@@ -18,7 +26,6 @@ import {
 } from '@/lib/listingSchedule'
 import { formatLocation } from '@/lib/location'
 import { formatRate, relativeTime } from '@/lib/matching'
-import { formatPublicRating, hasPublicRating } from '@/lib/ratingDisplay'
 import { hidesPeerHelperDiscovery } from '@/lib/roles'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import type { Person, Review } from '@/types'
@@ -113,12 +120,12 @@ export function PublicHelperProfileView({
   const [toast, setToast] = useState('')
   const [messaging, setMessaging] = useState(false)
 
-  const hasRating = hasPublicRating(person)
-  const ratingLabel = formatPublicRating(person)
   const availSlots = person.availability
     .map((slot) => AVAIL_LABELS[slot] ?? slot)
     .filter(Boolean)
   const usualTime = availSlots[0]
+  const headerStats = useMemo(() => buildHelperStats(person), [person])
+  const headerMeta = useMemo(() => buildRoleMeta('helper', person), [person])
 
   const total = hourly * hours
   const hoursLabel = hours === 1 ? '1 hr' : `${hours} hrs`
@@ -135,20 +142,14 @@ export function PublicHelperProfileView({
 
   async function onShare() {
     const url = typeof window !== 'undefined' ? window.location.href : profilePath
-    const title = `${person.name} on HouseCall`
-    try {
-      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-        await navigator.share({ title, url })
-        return
-      }
-    } catch {
-      // Fall through to clipboard when share is cancelled or unavailable.
-    }
-    try {
-      await navigator.clipboard.writeText(url)
+    const result = await shareProfileLink({
+      title: `${person.name} on HouseCall`,
+      url,
+    })
+    if (result === 'copied') {
       setToast('Link copied')
       window.setTimeout(() => setToast(''), 1600)
-    } catch {
+    } else if (result === 'failed') {
       setToast('Could not copy link')
       window.setTimeout(() => setToast(''), 1600)
     }
@@ -210,6 +211,48 @@ export function PublicHelperProfileView({
 
   const meetHelpersHref = hidePeerDiscovery ? '/browse' : '/browse?tab=people'
 
+  const overflowItems: ProfileHeaderOverflowItem[] = isYou
+    ? [
+        {
+          key: 'edit-helper',
+          label: 'Edit helper details',
+          href: '/you#you-helper',
+          testId: 'public-helper-edit-helper',
+        },
+      ]
+    : [
+        {
+          key: 'save',
+          label: isSaved ? 'Saved' : 'Save',
+          icon: (
+            <Heart
+              className={`h-4 w-4${isSaved ? ' fill-current text-[#1D5CE5]' : ''}`}
+              strokeWidth={1.8}
+              aria-hidden
+            />
+          ),
+          onClick: () => void onSave(),
+          testId: 'public-helper-save',
+        },
+      ]
+
+  const primaryAction = isYou
+    ? {
+        key: 'edit',
+        label: 'Edit profile',
+        icon: ProfileHeaderIcons.edit,
+        href: '/you#you-profile',
+        testId: 'public-helper-edit',
+      }
+    : {
+        key: 'message',
+        label: messaging ? 'Opening...' : 'Message',
+        icon: <MessageSquare className="h-4 w-4" strokeWidth={2} aria-hidden />,
+        disabled: messaging,
+        onClick: () => void onMessage(),
+        testId: 'public-helper-message',
+      }
+
   return (
     <div className="public-helper-profile" data-testid="public-helper-profile">
       <nav className="php-crumb" aria-label="Breadcrumb">
@@ -227,43 +270,35 @@ export function PublicHelperProfileView({
       <div className="php-layout">
         <div className="php-main">
           <section aria-labelledby="helper-name">
-            {person.avatar ? (
-              <img
-                className="php-photo"
-                src={person.avatar}
-                alt={person.name}
-                width={128}
-                height={128}
-              />
-            ) : (
-              <div
-                className="php-photo inline-flex items-center justify-center text-[28px] font-bold text-[#4A5568]"
-                aria-hidden
-              >
-                {person.name
-                  .split(' ')
-                  .map((p) => p[0])
-                  .join('')
-                  .slice(0, 2)
-                  .toUpperCase()}
-              </div>
-            )}
-
-            <div className="php-cat-line">
-              {primarySkill ? (
-                <Link className="php-cat-link" href={browseFallbackHref}>
-                  {primarySkill.label}
-                </Link>
-              ) : null}
-              {primarySkill ? <span className="php-dot">·</span> : null}
-              <span className="php-meta">
-                {locationLabel} · Within {radius} mi
-              </span>
-            </div>
-
-            <h1 id="helper-name" className="php-name">
-              {person.name}
-            </h1>
+            <ProfileHeader
+              person={person}
+              titleId="helper-name"
+              stats={headerStats}
+              meta={headerMeta}
+              primaryAction={primaryAction}
+              secondaryActions={[
+                {
+                  key: 'share',
+                  label: 'Share',
+                  icon: ProfileHeaderIcons.share,
+                  onClick: () => void onShare(),
+                  testId: 'public-helper-share',
+                },
+              ]}
+              overflowItems={overflowItems}
+              belowActions={
+                !isYou ? (
+                  <button
+                    type="button"
+                    className="php-book-hero"
+                    data-testid="public-helper-book-hero"
+                    onClick={scrollToEstimator}
+                  >
+                    Request to book · {rateLabel}
+                  </button>
+                ) : null
+              }
+            />
 
             {person.bio?.trim() ? (
               <p className="php-facts" data-testid="public-helper-bio">
@@ -281,85 +316,21 @@ export function PublicHelperProfileView({
               </p>
             )}
 
-            <p className="php-facts php-facts-2">
-              {hasRating && ratingLabel ? (
-                <>
-                  <span className="inline-flex items-center gap-1 font-semibold">
-                    <Star className="h-4 w-4 fill-[#071330] text-[#071330]" aria-hidden />
-                    {ratingLabel}
-                  </span>
-                  <span className="php-sep">·</span>
-                  <span>
-                    {person.reviewCount}{' '}
-                    {person.reviewCount === 1 ? 'review' : 'reviews'}
-                  </span>
-                  <span className="php-sep">·</span>
-                  <span>
-                    {person.jobsCompleted}{' '}
-                    {person.jobsCompleted === 1 ? 'job completed' : 'jobs completed'}
-                  </span>
-                </>
-              ) : (
-                <>New on HouseCall ({person.jobsCompleted} jobs completed)</>
-              )}
-            </p>
-
-            <div className="php-icon-actions">
-              <button
-                type="button"
-                className={`php-icon-btn${isSaved ? ' is-on' : ''}`}
-                aria-pressed={isSaved}
-                data-testid="public-helper-save"
-                onClick={() => void onSave()}
-              >
-                <Heart
-                  className={`h-[18px] w-[18px]${isSaved ? ' fill-current' : ''}`}
-                  strokeWidth={1.8}
-                  aria-hidden
-                />
-                {isSaved ? 'Saved' : 'Save'}
-              </button>
-              <button
-                type="button"
-                className="php-icon-btn"
-                data-testid="public-helper-share"
-                onClick={() => void onShare()}
-              >
-                <Share2 className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
-                Share
-              </button>
-              {!isYou ? (
-                <button
-                  type="button"
-                  className="php-icon-btn"
-                  data-testid="public-helper-message"
-                  disabled={messaging}
-                  onClick={() => void onMessage()}
-                >
-                  <MessageSquare className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
-                  Message
-                </button>
-              ) : (
-                <ButtonLink
-                  href="/you#you-profile"
-                  variant="secondary"
-                  className="!h-12 !rounded-[14px]"
-                >
-                  Edit profile
-                </ButtonLink>
-              )}
-            </div>
-
-            {!isYou ? (
-              <button
-                type="button"
-                className="php-book-hero"
-                data-testid="public-helper-book-hero"
-                onClick={scrollToEstimator}
-              >
-                Request to book · {rateLabel}
-              </button>
-            ) : null}
+            {primarySkill ? (
+              <p className="php-facts php-facts-2">
+                <Link className="php-cat-link" href={browseFallbackHref}>
+                  {primarySkill.label}
+                </Link>
+                <span className="php-sep">·</span>
+                <span className="php-meta">
+                  Within {radius} mi
+                </span>
+              </p>
+            ) : (
+              <p className="php-facts php-facts-2">
+                <span className="php-meta">Within {radius} mi</span>
+              </p>
+            )}
           </section>
 
           <section className="php-block" aria-labelledby="day-heading">
