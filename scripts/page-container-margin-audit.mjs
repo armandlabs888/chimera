@@ -24,6 +24,7 @@ const VIEWPORTS = [
 ]
 
 const ROUTES = [
+  // Auth is an intentional full-bleed modal; still audited but expected to differ.
   { path: '/', name: 'landing', shot: true },
   { path: '/browse', name: 'browse', shot: true },
   { path: '/people/' + HELPER_ID, name: 'people', shot: true },
@@ -48,44 +49,31 @@ const ROUTES = [
 function bodyProbeSelectors(name) {
   const map = {
     landing: [
-      '[data-testid="landing-hero"]',
-      'section',
-      'main h1',
-      'main',
-    ],
-    browse: [
-      '[data-testid="browse-hero-title"]',
-      '.browse-hc-wrap.browse-hc-page',
-      '.browse-hc-page',
-    ],
-    people: [
-      '[data-testid="public-helper-profile"]',
-      '[data-testid="helper-profile-hero"]',
+      '[data-testid="landing-hero"] .beam-container',
+      '[data-testid="landing-categories"] .beam-container',
+      '[data-testid="how-it-works"] .beam-container',
       'main .beam-container',
-      'main',
     ],
-    you: ['[data-testid="you-page"] .beam-container', '[data-testid="helper-profile-hero"]', 'main'],
-    saved: ['[data-testid="you-page"] .beam-container', 'main'],
-    offers: ['[data-testid="you-page"] .beam-container', 'main'],
-    messages: ['.browse-hc-wrap.browse-hc-page', '[data-testid="messages-drawer"]', 'main'],
-    'request-detail': [
-      '[data-testid="request-detail-root"]',
-      'main .beam-container',
-      'main',
-    ],
-    post: ['main .beam-container', 'main h1', 'main > div > div', 'main'],
-    settings: ['.account-hc-wrap', 'main'],
-    'helper-onboarding': ['.account-hc-wrap', 'main'],
-    verify: ['.account-hc-wrap', 'main'],
-    auth: ['[data-testid="auth-experience"]', 'main', 'body'],
-    'onboarding-edit': ['.account-hc-wrap', 'main'],
-    safety: ['[data-testid="safety-page"]', 'main'],
-    terms: ['.account-hc-wrap', 'main'],
-    privacy: ['.account-hc-wrap', 'main'],
-    home: ['.account-hc-wrap', 'main'],
-    '404': ['main .beam-container', 'main', 'body'],
+    browse: ['.browse-hc-wrap.browse-hc-page', '.browse-hc-page'],
+    people: ['main .beam-container', '[data-testid="public-helper-profile"]'],
+    you: ['[data-testid="you-page-shell"]', '[data-testid="you-page"] .beam-container', 'main'],
+    saved: ['[data-testid="you-page-shell"]', '[data-testid="you-page"] .beam-container', 'main'],
+    offers: ['[data-testid="you-page-shell"]', '[data-testid="you-page"] .beam-container', 'main'],
+    messages: ['.browse-hc-wrap.browse-hc-page', 'main .browse-hc-wrap'],
+    'request-detail': ['[data-testid="request-detail-root"]', 'main .beam-container'],
+    post: ['main .beam-container', 'main'],
+    settings: ['main .account-hc-wrap', '.account-hc-wrap'],
+    'helper-onboarding': ['main .account-hc-wrap', '.account-hc-wrap'],
+    verify: ['main .account-hc-wrap', '.account-hc-wrap'],
+    auth: ['[role="dialog"]', '[data-testid="auth-experience"]'],
+    'onboarding-edit': ['main .account-hc-wrap', '.account-hc-wrap'],
+    safety: ['[data-testid="safety-page"]', 'main .beam-container'],
+    terms: ['main .account-hc-wrap', '.account-hc-wrap'],
+    privacy: ['main .account-hc-wrap', '.account-hc-wrap'],
+    home: ['main .account-hc-wrap', '.account-hc-wrap'],
+    '404': ['main .beam-container', 'main'],
   }
-  return map[name] || ['main .beam-container', 'main']
+  return map[name] || ['main .beam-container', 'main .browse-hc-wrap', 'main .account-hc-wrap', 'main']
 }
 
 async function seedRole(page, role) {

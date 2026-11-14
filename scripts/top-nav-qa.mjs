@@ -78,7 +78,9 @@ async function measureChrome(page) {
       })(),
       contentLeftGutter: (() => {
         const el =
+          document.querySelector('[data-testid="app-topnav"] .browse-hc-wrap') ||
           document.querySelector('[data-testid="app-topnav"] .beam-container') ||
+          document.querySelector('.browse-hc-wrap') ||
           document.querySelector('.beam-container')
         if (!el) return null
         const cs = getComputedStyle(el)
@@ -195,9 +197,10 @@ try {
             record(m.footer, `${label}: landing-footer present`)
             record(m.footerSafety, `${label}: landing-footer has /safety`)
             if (vp.width === 1440 && m.contentLeftGutter != null) {
+              // Shared Browse shell: 1296px content -> ~72px side gutters at 1440.
               record(
-                m.contentLeftGutter <= 40,
-                `${label}: desktop left gutter <= 40px`,
+                m.contentLeftGutter >= 70 && m.contentLeftGutter <= 74,
+                `${label}: desktop left gutter ~72px for 1296 shell`,
                 `left=${m.contentLeftGutter}`,
               )
             }
