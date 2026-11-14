@@ -90,13 +90,13 @@ async function main() {
     {
       const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
       await seedCustomerDiscovery(page)
-      await page.waitForSelector('text=Browse Local Jobs', { timeout: 15000 })
+      await page.waitForSelector('text=/Jobs near|Helpers near/', { timeout: 15000 })
       await page.waitForSelector('[data-testid="browse-v3"]')
       await page.waitForSelector('[data-testid="browse-job-row"]')
       const m = await measure(page)
       assert.equal(m.overflowX, false, 'no x-overflow desktop')
       assert.equal(m.layout, 'discovery', 'discovery layout')
-      assert.equal(m.h1, 'Browse Local Jobs')
+      assert.match(m.h1, /^Jobs near /)
       assert.equal(m.has3col, false, 'no 3-col grid')
       assert.equal(m.hasTrending, false, 'no trending copy')
       assert.equal(m.hasFeedScroll, false, 'no nested feed scroll')
@@ -155,7 +155,7 @@ async function main() {
     {
       const page = await browser.newPage({ viewport: { width: 768, height: 1024 } })
       await seedCustomerDiscovery(page)
-      await page.waitForSelector('text=Browse Local Jobs')
+      await page.waitForSelector('text=/Jobs near|Helpers near/')
       const m = await measure(page)
       assert.equal(m.overflowX, false, 'no x-overflow tablet')
       assert.equal(m.hasTrending, false, 'tablet has no trending')
@@ -168,7 +168,7 @@ async function main() {
     {
       const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
       await seedCustomerDiscovery(page)
-      await page.waitForSelector('text=Browse Local Jobs')
+      await page.waitForSelector('text=/Jobs near|Helpers near/')
       const m = await measure(page)
       assert.equal(m.overflowX, false, 'no x-overflow mobile')
       await shot(page, 'browse-v3-mobile-390x844.png')

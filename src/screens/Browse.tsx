@@ -386,6 +386,17 @@ export function Browse() {
   ])
 
   const profileProgress = useMemo(() => helperProfileProgress(currentUser), [currentUser])
+  const jobsTabCount = useMemo(
+    () => state.requests.filter((r) => r.status === 'open').length,
+    [state.requests],
+  )
+  const helpersTabCount = useMemo(
+    () =>
+      state.people.filter(
+        (p) => isBrowseHelper(p) && !(p.isCurrentUser || p.id === currentUser.id),
+      ).length,
+    [state.people, currentUser.id],
+  )
   const showProfileWaitCard =
     hidePeerDiscovery &&
     (currentUser.accountRole === 'helper' || Boolean(currentUser.isHelper)) &&
@@ -553,6 +564,8 @@ export function Browse() {
   const selectedArea = selectedRequest ? publicArea(selectedRequest) : ''
   const showDesktopDetail = Boolean(selectedRequest) && !narrow && tab === 'requests'
 
+  const heroTitle =
+    tab === 'people' ? `Helpers near ${cityName}` : `Jobs near ${cityName}`
   const subline =
     tab === 'requests'
       ? radius === 'all'
@@ -567,45 +580,46 @@ export function Browse() {
       data-browse-layout={hidePeerDiscovery ? 'helper-jobs' : 'discovery'}
     >
       <div className="browse-hc-wrap browse-hc-page">
+        {hidePeerDiscovery ? null : (
+          <div
+            className="browse-hc-section-tabs"
+            role="tablist"
+            aria-label="Browse type"
+            data-testid="browse-mode-tabs"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'requests'}
+              className={tab === 'requests' ? 'is-active' : undefined}
+              onClick={() => setTab('requests')}
+            >
+              Jobs
+              {ready ? <span className="browse-hc-section-count">{jobsTabCount}</span> : null}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'people'}
+              data-testid="browse-tab-local-helpers"
+              className={tab === 'people' ? 'is-active' : undefined}
+              onClick={() => setTab('people')}
+            >
+              Helpers
+              {ready ? <span className="browse-hc-section-count">{helpersTabCount}</span> : null}
+            </button>
+          </div>
+        )}
+
         <section className="browse-hc-title-row">
           <div className="min-w-0">
-            <div className="flex flex-wrap items-end gap-3">
-              <h1 className="browse-hc-hero-title">Browse Local Jobs</h1>
-              {hidePeerDiscovery ? null : (
-                <div
-                  className="browse-hc-mode-tabs"
-                  role="tablist"
-                  aria-label="Browse type"
-                  data-testid="browse-mode-tabs"
-                >
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={tab === 'requests'}
-                    className={tab === 'requests' ? 'is-active' : undefined}
-                    onClick={() => setTab('requests')}
-                  >
-                    Jobs
-                  </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={tab === 'people'}
-                    data-testid="browse-tab-local-helpers"
-                    className={tab === 'people' ? 'is-active' : undefined}
-                    onClick={() => setTab('people')}
-                  >
-                    Helpers
-                  </button>
-                </div>
-              )}
-            </div>
+            <h1 className="browse-hc-hero-title">{heroTitle}</h1>
             <p className="browse-hc-hero-sub">{subline}</p>
           </div>
 
           <BrowseLocationTrigger label={areaLine} className="browse-hc-loc-pill">
             <MapPin className="pin h-4 w-4" strokeWidth={2} aria-hidden />
-            <span className="max-w-[12rem] truncate sm:max-w-[16rem]">{areaLine}</span>
+            <span className="browse-hc-loc-label">{areaLine}</span>
             <span className="divider" aria-hidden>
               ·
             </span>

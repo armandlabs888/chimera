@@ -183,7 +183,7 @@ try {
     console.log(`PASS why-beam @ ${vp.name} → ${whyArtifact}`)
     // ——— Guest browse ———
     await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
-    await page.waitForSelector('text=Browse Local Jobs', { timeout: 15000 })
+    await page.waitForSelector('text=/Jobs near|Helpers near/', { timeout: 15000 })
     const browseBody = await page.locator('body').innerText()
     if (/across Austin neighborhoods/i.test(browseBody)) {
       throw new Error(`Guest /browse still assumes Austin @ ${vp.name}`)
@@ -191,7 +191,7 @@ try {
     // Guest subtitle must stay location-neutral (no Austin assumption in heading/subtitle).
     const browseH1 = (await page.locator('h1').first().innerText()).replace(/\s+/g, ' ').trim()
     assertNoAustin(`guest browse h1 @ ${vp.name}`, browseH1)
-    if (!/Browse Local Jobs/i.test(browseH1)) {
+    if (!/^Jobs near /i.test(browseH1)) {
       throw new Error(`Guest /browse missing location-neutral title @ ${vp.name}: ${browseH1}`)
     }
     if (/Austin/i.test(browseBody.split('\n').slice(0, 12).join('\n'))) {
