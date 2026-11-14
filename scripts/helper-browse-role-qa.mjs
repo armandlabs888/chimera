@@ -341,7 +341,7 @@ async function main() {
         await seedRole(page, role)
         await seedRole(page, 'populated-jobs')
         await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
-        await page.waitForSelector('text=Browse Local Jobs', { timeout: 15000 })
+        await page.waitForSelector('text=/Jobs near|Helpers near/', { timeout: 15000 })
         const m = await assertHelperJobsOnly(page, `${role} ${vp.name}`, {
           expectPopulated: true,
         })
@@ -396,7 +396,7 @@ async function main() {
       await seedRole(page, 'helper-incomplete')
       await seedRole(page, 'empty-jobs')
       await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
-      await page.waitForSelector('text=Browse Local Jobs')
+      await page.waitForSelector('text=/Jobs near|Helpers near/')
       await assertHelperJobsOnly(page, 'helper empty jobs', { expectEmpty: true })
       await shot(page, 'helper-incomplete-empty-jobs-1440x900.png')
       report.checks.push({ role: 'helper-incomplete-empty', ok: true })
@@ -409,7 +409,7 @@ async function main() {
       await seedRole(page, 'customer')
       await seedRole(page, 'populated-jobs')
       await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
-      await page.waitForSelector('text=Browse Local Jobs')
+      await page.waitForSelector('text=/Jobs near|Helpers near/')
       const m = await assertDiscovery(page, 'customer browse')
       assert.equal(m.trendingVisible, false, 'customer v3 has no trending column')
       assert.ok(
@@ -596,7 +596,7 @@ async function main() {
         return /Sign in|Continue with Google/i.test(text) && !localStorage.getItem('beam-demo-v1')
       })
       if (isLiveGuest) {
-        await page.waitForSelector('text=Browse Local Jobs', { timeout: 15000 })
+        await page.waitForSelector('text=/Jobs near|Helpers near/', { timeout: 15000 })
         await assertDiscovery(page, 'live guest')
         await page.goto(`${BASE}/browse?tab=people`, { waitUntil: 'networkidle' })
         assert.ok(

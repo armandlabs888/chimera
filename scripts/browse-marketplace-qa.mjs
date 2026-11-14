@@ -144,7 +144,7 @@ try {
     })
     const page = await context.newPage()
     await seedCustomerDiscovery(page)
-    await page.waitForSelector('text=Browse Local Jobs', { timeout: 15000 })
+    await page.waitForSelector('text=/Jobs near|Helpers near/', { timeout: 15000 })
 
     let metrics = await measurePage(page)
     if (metrics.scrollWidth > metrics.innerWidth + 1) {
@@ -294,7 +294,7 @@ try {
     })
     const page = await context.newPage()
     await seedCustomerDiscovery(page)
-    await page.waitForSelector('text=Browse Local Jobs', { timeout: 15000 })
+    await page.waitForSelector('text=/Jobs near|Helpers near/', { timeout: 15000 })
     let metrics = await measurePage(page)
     if (metrics.scrollWidth > metrics.innerWidth + 1) {
       fail(`Horizontal overflow /browse @ ${vp.name}`)
@@ -314,7 +314,7 @@ try {
     if (vp.name === '390x844') {
       const mobileShot = join('/tmp', 'guest-browse-mobile-390x844.png')
       await page.goto(`${BASE}/browse`, { waitUntil: 'networkidle', timeout: 60000 })
-      await page.waitForSelector('text=Browse Local Jobs', { timeout: 15000 })
+      await page.waitForSelector('text=/Jobs near|Helpers near/', { timeout: 15000 })
       await page.screenshot({ path: mobileShot, fullPage: false })
       saveShot(mobileShot, 'guest-browse-mobile-390x844.png')
       saveShot(mobileShot, 'browse-mobile-390x844.png')

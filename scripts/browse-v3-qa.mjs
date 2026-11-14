@@ -86,7 +86,7 @@ async function main() {
       const page = await browser.newPage({ viewport: { width: vp.width, height: vp.height } })
       await seedCustomer(page)
       await page.waitForSelector('[data-testid="browse-v3"]', { timeout: 20000 })
-      await page.waitForSelector('text=Browse Local Jobs')
+      await page.waitForSelector('text=/Jobs near|Helpers near/')
 
       const metrics = await page.evaluate(() => {
         const root = document.querySelector('[data-testid="browse-v3"]')

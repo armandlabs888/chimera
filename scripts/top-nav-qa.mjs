@@ -178,7 +178,7 @@ try {
       const gated =
         /Welcome back|Continue with Google|Sign in to help|Create account|needs configuration/i.test(
           m.bodySample,
-        ) && !/Browse Local Jobs|Messages|Good morning|Good afternoon|Good evening|Profile/i.test(m.bodySample)
+        ) && !/Jobs near|Helpers near|Messages|Good morning|Good afternoon|Good evening|Profile/i.test(m.bodySample)
 
       if (!gated) {
         if (route === '/browse' || route === '/home' || route === '/messages' || route === '/you' || route === '/post') {
