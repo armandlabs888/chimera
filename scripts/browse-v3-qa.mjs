@@ -94,10 +94,17 @@ async function main() {
         const locBtn = document.querySelector('[data-testid="topnav-location"]')
         const locText = (locBtn?.textContent || '').replace(/\s+/g, ' ').trim()
         const locCity = locText.split(',')[0]?.trim() || ''
-        const countLine = [...document.querySelectorAll('[data-testid="browse-v3"] p, [data-testid="browse-v3"] span')]
-          .map((el) => el.textContent || '')
-          .find((t) => /\bjobs?\s+near\b|\bhelpers?\s+near\b/i.test(t)) || ''
-        const nearMatch = countLine.match(/near\s+([^.\n]+)/i)
+        // Jobs keeps a count subtitle; Helpers title is fixed ("Helpers near your area") with no subtitle.
+        const subline = (document.querySelector('.browse-hc-hero-sub')?.textContent || '').trim()
+        const countLine =
+          subline ||
+          [...document.querySelectorAll('[data-testid="browse-v3"] p, [data-testid="browse-v3"] span')]
+            .map((el) => el.textContent || '')
+            .find((t) => /\bjobs?\s+near\b|\bhelpers?\s+near\b/i.test(t)) ||
+          ''
+        const nearMatch = /\bhelpers?\s+near\s+your area\b/i.test(countLine)
+          ? null
+          : countLine.match(/near\s+([^.\n]+)/i)
         const countCity = (nearMatch?.[1] || '').trim()
         const letterThumbs = [...document.querySelectorAll('[data-testid="browse-job-row"]')].filter((row) => {
           const fallback = row.querySelector('[data-testid="browse-category-thumb"]')

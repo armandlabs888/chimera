@@ -238,6 +238,7 @@ try {
     if (metrics.broken.length) fail(`Broken images on helpers: ${metrics.broken.join(', ')}`)
     if (metrics.neighborhoodTrigger) fail('Helpers still shows neighborhood trigger')
     const availOk =
+      /Availability:\s*Any/i.test(metrics.availLabel) ||
       /Any availability/i.test(metrics.availLabel) ||
       (await page
         .locator('[data-testid="browse-filters-sidebar"]')
@@ -245,6 +246,12 @@ try {
         .count()) >= 1
     if (!availOk) {
       fail(`Availability default missing, got avail="${metrics.availLabel}"`)
+    }
+    if (metrics.h1 && !/^Helpers near your area$/i.test(metrics.h1)) {
+      fail(`Helpers title unexpected, got "${metrics.h1}"`)
+    }
+    if ((await page.locator('[data-testid="browse-pay-trigger"]').count()) > 0) {
+      fail('Helpers mode still shows Pay filter')
     }
     if (!/Sort:\s*Top rated|Top rated|Sort:\s*Nearest|Nearest/i.test(metrics.sortLabel)) {
       fail(`Helpers sort label unexpected, got "${metrics.sortLabel}"`)
