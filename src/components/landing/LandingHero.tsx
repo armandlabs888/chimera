@@ -144,7 +144,7 @@ export function LandingHero() {
                       <CategoryIcon className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
                       <span
                         className={`min-w-0 flex-1 truncate text-[15px] ${
-                          category === 'all' ? 'text-[#94A3B8]' : 'text-[#071330]'
+                          category === 'all' ? 'text-[#64748B]' : 'text-[#071330]'
                         }`}
                       >
                         {categoryLabel}
@@ -229,7 +229,7 @@ export function LandingHero() {
                       <MapPin className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
                       <span
                         className={`min-w-0 flex-1 truncate text-[15px] ${
-                          neighborhood === 'all' ? 'text-[#94A3B8]' : 'text-[#071330]'
+                          neighborhood === 'all' ? 'text-[#64748B]' : 'text-[#071330]'
                         }`}
                       >
                         {neighborhoodLabel}

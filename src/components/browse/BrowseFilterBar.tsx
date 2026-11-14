@@ -212,7 +212,7 @@ export function BrowseFilterBar({
             setMobileOpen(true)
             setPanel(null)
           }}
-          className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-[10px] border px-3 text-[14px] font-medium sm:hidden ${
+          className={`inline-flex h-11 min-h-[44px] shrink-0 items-center gap-1.5 rounded-[10px] border px-3 text-[14px] font-medium sm:hidden ${
             mobileOpen || activeFilterCount
               ? 'border-[#1D5CE5] bg-[#F4F8FD] text-[#123E9E]'
               : 'border-[#CDD5E0] bg-white text-[#071330]'
@@ -233,14 +233,14 @@ export function BrowseFilterBar({
           {chips.map((chip) => (
             <span
               key={chip.id}
-              className="inline-flex h-[30px] shrink-0 items-center gap-1.5 rounded-lg bg-[#071330] py-0 pl-2.5 pr-1.5 text-[13px] font-medium text-white"
+              className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-lg bg-[#071330] py-0 pl-2.5 pr-1.5 text-[13px] font-medium text-white"
             >
               {chip.label}
               <button
                 type="button"
                 aria-label={`Remove ${chip.label}`}
                 onClick={chip.onRemove}
-                className="grid h-5 w-5 place-items-center rounded-[5px] text-[#C9D6EE] hover:bg-white/15 hover:text-white"
+                className="grid h-9 w-9 place-items-center rounded-[5px] text-[#C9D6EE] hover:bg-white/15 hover:text-white"
               >
                 <X className="h-3.5 w-3.5" strokeWidth={2.4} />
               </button>
@@ -249,7 +249,7 @@ export function BrowseFilterBar({
           <button
             type="button"
             onClick={onReset}
-            className="h-[30px] shrink-0 px-1.5 text-[13.5px] font-semibold text-[#1D5CE5] hover:underline"
+            className="min-h-[44px] shrink-0 px-1.5 text-[13.5px] font-semibold text-[#1D5CE5] hover:underline"
             data-testid="browse-filters-reset"
           >
             Reset

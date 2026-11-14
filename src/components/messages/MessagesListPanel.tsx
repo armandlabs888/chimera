@@ -49,7 +49,7 @@ export function MessagesListPanel() {
         <span className="flex-1" />
         <button
           type="button"
-          className="grid h-9 w-9 place-items-center rounded-[9px] text-[#071330] hover:bg-[#F4F8FD]"
+          className="grid h-11 w-11 min-h-[44px] min-w-[44px] place-items-center rounded-[9px] text-[#071330] hover:bg-[#F4F8FD]"
           aria-label="Close messages"
           data-testid="messages-close"
           onClick={closeAll}
@@ -85,7 +85,7 @@ export function MessagesListPanel() {
             <label className="relative block">
               <span className="sr-only">Search messages</span>
               <Search
-                className="pointer-events-none absolute left-3 top-2.5 h-[18px] w-[18px] text-[#3D4A5F]"
+                className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#3D4A5F]"
                 strokeWidth={1.9}
               />
               <input
@@ -93,7 +93,7 @@ export function MessagesListPanel() {
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search people or jobs"
                 data-testid="messages-search"
-                className="h-[38px] w-full rounded-[10px] border border-[#CDD5E0] bg-white pl-9 pr-3 text-[14px] text-[#071330] outline-none placeholder:text-[#55627A] focus:border-[#1D5CE5] focus:shadow-[0_0_0_3px_rgba(29,92,229,0.14)]"
+                className="h-11 min-h-[44px] w-full rounded-[10px] border border-[#CDD5E0] bg-white pl-9 pr-3 text-[14px] text-[#071330] outline-none placeholder:text-[#55627A] focus:border-[#1D5CE5] focus:shadow-[0_0_0_3px_rgba(29,92,229,0.14)]"
               />
             </label>
             <div className="flex gap-1" role="tablist" aria-label="Message filters">
@@ -233,7 +233,7 @@ function FilterTab({
       aria-selected={selected}
       data-testid={testId}
       onClick={onClick}
-      className={`inline-flex h-[30px] items-center gap-1.5 rounded-lg px-2.5 text-[13.5px] font-semibold ${
+      className={`inline-flex h-11 min-h-[44px] items-center gap-1.5 rounded-lg px-2.5 text-[13.5px] font-semibold ${
         selected ? 'bg-[#071330] text-white' : 'text-[#273449] hover:bg-[#F4F8FD]'
       }`}
     >

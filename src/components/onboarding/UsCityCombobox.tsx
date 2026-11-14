@@ -269,7 +269,7 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
               type="button"
               onClick={clearSelection}
               disabled={disabled}
-              className="shrink-0 text-[13px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
+              className="inline-flex min-h-[44px] shrink-0 items-center px-1 text-[13px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
               aria-label="Change city"
             >
               Change
@@ -309,7 +309,7 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
               data-testid="onboarding-city-input"
               className={`h-[52px] w-full rounded-lg border bg-white py-3 pl-11 pr-11 text-[15px] text-[#071330] outline-none transition placeholder:text-[#94A3B8] focus-visible:ring-4 disabled:opacity-60 ${
                 inputInvalid
-                  ? 'border-red-400 focus-visible:border-red-500 focus-visible:ring-red-500/15'
+                  ? 'border-[#1D5CE5] focus-visible:border-[#1D5CE5] focus-visible:ring-[#1D5CE5]/15'
                   : 'border-[#E2E8F0] focus-visible:border-[#1D5CE5] focus-visible:ring-[#1D5CE5]/15'
               }`}
             />
@@ -377,11 +377,11 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
         ) : null}
 
         {loadError || geoError ? (
-          <p className="mt-2 text-[13px] text-red-600" role="alert">
+          <p className="mt-2 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] text-[#071330]" role="alert">
             {loadError || geoError}
           </p>
         ) : error ? (
-          <p className="mt-2 text-[13px] font-medium text-red-600" role="alert" data-testid="onboarding-city-error">
+          <p className="mt-2 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] font-medium text-[#071330]" role="alert" data-testid="onboarding-city-error">
             {error}
           </p>
         ) : needsSelectionHint ? (

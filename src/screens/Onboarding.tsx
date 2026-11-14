@@ -428,7 +428,7 @@ export function Onboarding() {
 
               {step1Error && !role ? (
                 <p
-                  className="mt-3 text-[13px] font-medium text-[#DC2626]"
+                  className="mt-3 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] font-medium text-[#071330]"
                   role="alert"
                   data-testid="onboarding-step1-error"
                 >
@@ -511,7 +511,7 @@ export function Onboarding() {
               {error ? (
                 <div
                   role="alert"
-                  className="mt-6 rounded-[10px] border border-[#DC2626]/25 bg-[#FEF2F2] px-4 py-3 text-[14px] text-[#DC2626]"
+                  className="mt-6 rounded-[10px] border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[14px] text-[#071330]"
                   data-testid="onboarding-error"
                 >
                   {error}

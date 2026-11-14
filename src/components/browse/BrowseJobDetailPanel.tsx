@@ -350,7 +350,7 @@ export function BrowseJobDetailPanel({
                 rows={3}
                 className="w-full rounded-[10px] border border-[#CDD5E0] px-3 py-2 text-[14px] text-[#071330] outline-none focus:border-[#1D5CE5]"
               />
-              {offerError ? <p className="text-[13px] font-medium text-[#DC2626]">{offerError}</p> : null}
+              {offerError ? <p className="text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[#071330]">{offerError}</p> : null}
             </form>
           ) : null}
 
@@ -360,7 +360,7 @@ export function BrowseJobDetailPanel({
             </p>
           ) : null}
           {offerError && !offerOpen ? (
-            <p className="mt-3 text-[13px] font-medium text-[#DC2626]" role="alert" data-testid="browse-offer-error">
+            <p className="mt-3 text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[#071330]" role="alert" data-testid="browse-offer-error">
               {offerError}
             </p>
           ) : null}

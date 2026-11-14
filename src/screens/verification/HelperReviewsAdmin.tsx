@@ -137,7 +137,7 @@ export function HelperReviewsAdmin() {
     <div className="flex min-h-dvh flex-col bg-white text-[#071330]" data-testid="helper-reviews-admin">
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-[#E3E8EF] px-5">
         <BeamWordmark markWidth={20} markHeight={20} wordClassName="!text-[20px]" />
-        <span className="text-[14px] font-semibold text-[#3D4A5F]">Helper reviews</span>
+        <h1 className="text-[14px] font-semibold text-[#3D4A5F]">Helper reviews</h1>
       </header>
 
       <div className="mx-auto grid min-h-0 w-full max-w-[1200px] flex-1 lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -231,7 +231,7 @@ function Detail({
 }) {
   return (
     <section className="px-5 py-6 sm:px-8 sm:py-8" data-testid="helper-review-detail">
-      <h1 className="font-display text-[24px] font-bold tracking-[-0.02em] text-[#071330]">{name}</h1>
+      <h2 className="font-display text-[24px] font-bold tracking-[-0.02em] text-[#071330]">{name}</h2>
       <p className="mt-1 text-[14px] text-[#5B6575]">
         Last check {formatSubmitted(selected.lastCheckedAt || selected.submittedAt)}
         {onboardingCity ? ` · Onboarding city ${onboardingCity}` : ''}
@@ -268,7 +268,7 @@ function Detail({
       </div>
 
       {error ? (
-        <p className="mt-4 text-[14px] font-medium text-[#DC2626]" role="alert">
+        <p className="mt-4 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[14px] font-medium text-[#071330]" role="alert">
           {error}
         </p>
       ) : null}

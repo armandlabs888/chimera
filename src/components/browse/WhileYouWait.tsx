@@ -71,7 +71,7 @@ export function WhileYouWait({
         </article>
 
         <article className={cardClass}>
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#CCFBF1] text-[#0D9488]">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#EEF4FF] text-[#1D5CE5]">
             <MapPinned className="h-4 w-4" strokeWidth={2} aria-hidden />
           </span>
           <h4 className="mt-3 text-[14.5px] font-bold text-[#071330]">Widen your service area</h4>

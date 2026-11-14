@@ -1,11 +1,11 @@
 'use client'
 
 import {
+  AlertCircle,
   Camera,
   ChevronDown,
   Lock,
   MapPin,
-  Sparkles,
   X,
 } from 'lucide-react'
 import {
@@ -57,7 +57,7 @@ import type {
 const PAGE_BG = '#F4F8FD'
 const INK = '#071330'
 const MUTED = '#64748B'
-const BUTTER = '#FFF8D6'
+const NOTICE_BG = '#F5F9FF'
 
 const BUDGET_PRESETS = [40, 60, 80, 100, 120] as const
 const TITLE_MAX = 70
@@ -373,7 +373,7 @@ export function PostRequest() {
     const truncated = selected.length > remaining
     const files = selected.slice(0, remaining)
     if (truncated) {
-      setPhotoError(`Only ${LISTING_PHOTO_MAX} photos allowed — kept the first ${remaining}.`)
+      setPhotoError(`Only ${LISTING_PHOTO_MAX} photos allowed. Kept the first ${remaining}.`)
     }
     setPhotoPending(true)
     const uploaded: string[] = []
@@ -582,7 +582,7 @@ export function PostRequest() {
             Post a task
           </h1>
           <p className="mt-1 text-[15px]" style={{ color: MUTED }}>
-            Describe the job once — helpers nearby can offer a price.
+            Describe the job once. Helpers nearby can offer a price.
           </p>
         </header>
 
@@ -610,20 +610,25 @@ export function PostRequest() {
             data-testid="post-request-form"
             noValidate
           >
-            {/* Smart draft */}
-            <section className={cardClass()} style={{ backgroundColor: BUTTER }}>
+            {/* Draft helper */}
+            <section className={cardClass()} style={{ backgroundColor: '#FFFFFF' }}>
               <h2 className="mb-1 text-[16px] font-semibold" style={{ color: INK }}>
-                Smart Task Drafter
+                Describe it in one sentence
               </h2>
               <p className="mb-3 text-[13px]" style={{ color: MUTED }}>
-                Describe the job in a sentence — we’ll draft title, details, and a budget hint.
+                Describe the job in a sentence. We’ll draft title, details, and a budget hint.
               </p>
+              <label htmlFor="post-draft-prompt" className="sr-only">
+                Describe the job in one sentence
+              </label>
               <TextArea
+                id="post-draft-prompt"
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
-                placeholder="e.g. Need help hauling boxes to the curb this Saturday afternoon…"
+                placeholder="e.g. Need help hauling boxes to the curb this Saturday afternoon"
                 rows={3}
                 className="min-h-[96px]"
+                aria-label="Describe the job in one sentence"
               />
               <div className="mt-3 flex justify-end">
                 <Button
@@ -633,17 +638,17 @@ export function PostRequest() {
                   loading={aiPending}
                   onClick={() => void onDraftWithAi()}
                 >
-                  <Sparkles className="h-4 w-4" aria-hidden />
                   Draft with AI
                 </Button>
               </div>
               {aiBlocked ? (
                 <p
-                  className="mt-3 rounded-lg px-3 py-2 text-[13px] leading-snug"
-                  style={{ backgroundColor: '#FEF2F2', color: '#B91C1C' }}
+                  className="mt-3 flex items-start gap-2 rounded-lg border border-[#D7E0EC] px-3 py-2 text-[13px] leading-snug text-[#071330]"
+                  style={{ backgroundColor: NOTICE_BG }}
                   role="alert"
                 >
-                  {aiBlocked}
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#1D5CE5]" aria-hidden />
+                  <span>{aiBlocked}</span>
                 </p>
               ) : null}
             </section>
@@ -684,11 +689,12 @@ export function PostRequest() {
               </div>
               {photoError ? (
                 <p
-                  className="mt-2 text-[13px] font-medium text-red-600"
+                  className="mt-2 flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] font-medium text-[#071330]"
                   role="alert"
                   data-testid="post-photo-error"
                 >
-                  {photoError}
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#1D5CE5]" aria-hidden />
+                  <span>{photoError}</span>
                 </p>
               ) : null}
               {photoUrls.length ? (
@@ -880,7 +886,7 @@ export function PostRequest() {
                     <TextInput
                       value={exactAddress}
                       onChange={(e) => setExactAddress(e.target.value)}
-                      placeholder="Street address — shared only after you accept an offer"
+                      placeholder="Street address, shared only after you accept an offer"
                       autoComplete="street-address"
                     />
                     <p className="flex items-start gap-1.5 text-[12.5px]" style={{ color: MUTED }}>
@@ -1064,7 +1070,7 @@ export function PostRequest() {
                 <div className="mt-4 space-y-3">
                   <Field
                     label="Budget (USD)"
-                    hint="Helpers still name their price — this sets expectations."
+                    hint="Helpers still name their price. This sets expectations."
                   >
                     <div className="relative">
                       <span
@@ -1110,12 +1116,12 @@ export function PostRequest() {
 
             {error ? (
               <p
-                className="rounded-lg px-4 py-3 text-[14px]"
-                style={{ backgroundColor: '#FEF2F2', color: '#B91C1C' }}
+                className="flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[14px] text-[#071330]"
                 role="alert"
                 data-testid="post-error"
               >
-                {error}
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#1D5CE5]" aria-hidden />
+                <span>{error}</span>
               </p>
             ) : null}
 

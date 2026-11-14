@@ -103,7 +103,7 @@ export function HelperProfileHero({
                       <Star className="h-4 w-4 fill-[#071330] text-[#071330]" aria-hidden />
                       {person.rating.toFixed(1)}
                     </span>
-                    <span className="text-[#94A3B8]">
+                    <span className="text-[#64748B]">
                       ({person.reviewCount} {person.reviewCount === 1 ? 'review' : 'reviews'})
                     </span>
                   </>

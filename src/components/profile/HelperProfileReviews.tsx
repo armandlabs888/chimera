@@ -28,7 +28,7 @@ export function HelperProfileReviews({
                   <Star className="h-4 w-4 fill-[#071330] text-[#071330]" aria-hidden />
                   <span className="font-semibold text-[#071330]">{review.rating}/5</span>
                   <span className="text-[#64748B]">from {from?.name ?? 'Neighbor'}</span>
-                  <span className="ml-auto text-[12px] text-[#94A3B8]">
+                  <span className="ml-auto text-[12px] text-[#64748B]">
                     {relativeTime(review.createdAt)}
                   </span>
                 </div>

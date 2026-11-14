@@ -13,7 +13,7 @@ const COMMITMENTS = [
   },
   {
     title: 'Everything stays in the thread',
-    body: 'Coordinate timing, share details, and report problems in-app so there is a record if something goes wrong.',
+    body: 'Coordinate timing and share details in the conversation so there is a clear record of what you agreed.',
   },
   {
     title: 'Scoped, everyday tasks',
@@ -47,7 +47,7 @@ const FAQ = [
   },
   {
     q: 'What if something goes wrong?',
-    a: 'Use in-thread reporting, review both ways after completion, and follow these community safety rules. Meet in public when it makes sense.',
+    a: 'Review both ways after completion, and follow these community safety rules. Meet in public when it makes sense.',
   },
   {
     q: 'Do I need an account to browse?',
@@ -83,20 +83,24 @@ export function Safety() {
           <ul className="mt-4 space-y-2 text-[15px] text-[#071330]">
             {PERMITTED.map((item) => (
               <li key={item} className="flex gap-2">
-                <span className="text-[#059669]">✓</span>
+                <span className="text-[#071330]" aria-hidden>
+                  ✓
+                </span>
                 {item}
               </li>
             ))}
           </ul>
         </div>
-        <div className="rounded-lg border border-[#FDE68A] bg-[#FFF8D6] p-6">
-          <h2 className="text-[15px] font-bold uppercase tracking-[0.08em] text-[#92400E]">
+        <div className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] p-6">
+          <h2 className="text-[15px] font-bold uppercase tracking-[0.08em] text-[#071330]">
             Not on HouseCall
           </h2>
           <ul className="mt-4 space-y-2 text-[15px] text-[#071330]">
             {EXCLUDED.map((item) => (
               <li key={item} className="flex gap-2">
-                <span className="text-[#DC2626]">×</span>
+                <span className="text-[#071330]" aria-hidden>
+                  ×
+                </span>
                 {item}
               </li>
             ))}

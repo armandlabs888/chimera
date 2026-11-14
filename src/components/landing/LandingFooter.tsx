@@ -8,7 +8,7 @@ import { POPULAR_SERVICES } from '@/lib/popularServices'
 import { hidesPeerHelperDiscovery, isHelperPerson } from '@/lib/roles'
 
 const linkClass =
-  'rounded-sm text-[14px] font-medium leading-snug text-[#CBD5E1] transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330]'
+  'inline-flex min-h-[44px] items-center rounded-sm py-2 text-[14px] font-medium leading-snug text-[#CBD5E1] transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330]'
 
 function FooterGroup({
   id,

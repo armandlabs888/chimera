@@ -1,5 +1,5 @@
 /**
- * How it works — Landing v2 tinted band with three compact steps (non-interactive).
+ * How it works. Landing v2 tinted band with three compact steps (non-interactive).
  */
 const STEPS = [
   {
@@ -23,17 +23,9 @@ export function LandingHowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="relative overflow-hidden py-12 md:py-14"
+      className="relative overflow-hidden bg-[#F4F8FD] py-12 md:py-14"
       data-testid="how-it-works"
     >
-      <div
-        className="absolute inset-0 bg-gradient-to-br from-[#EAF3FF] via-[#F4F8FD] to-[#D9EBFF]"
-        aria-hidden="true"
-      />
-      <div
-        className="landing-cloud absolute right-0 top-0 h-48 w-48 bg-sky-400/25"
-        aria-hidden="true"
-      />
       <div className="relative mx-auto max-w-[1200px] px-5 md:px-8">
         <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#1D5CE5]">
           How it works
@@ -42,7 +34,7 @@ export function LandingHowItWorks() {
           From to-do to done.
         </h2>
         <div
-          className="mt-6 grid gap-0 overflow-hidden rounded-[12px] border border-white/80 bg-white/90 shadow-sm backdrop-blur md:grid-cols-3"
+          className="mt-6 grid gap-0 overflow-hidden rounded-[12px] border border-[#D7E0EC] bg-white shadow-sm md:grid-cols-3"
           data-testid="how-it-works-steps"
         >
           {STEPS.map((step, i) => (

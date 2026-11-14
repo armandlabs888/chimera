@@ -418,7 +418,7 @@ export function PublicHelperProfileView({
                         <span className="text-[#64748B]">
                           from {from?.name ?? 'Neighbor'}
                         </span>
-                        <span className="ml-auto text-[12px] text-[#94A3B8]">
+                        <span className="ml-auto text-[12px] text-[#64748B]">
                           {relativeTime(review.createdAt)}
                         </span>
                       </div>
@@ -666,6 +666,7 @@ export function PublicHelperNotFound() {
   return (
     <div className="py-10" data-testid="public-helper-not-found">
       <EmptyState
+        titleAs="h1"
         title="This profile isn't available"
         body="It may be private, or the link may be incorrect."
         action={

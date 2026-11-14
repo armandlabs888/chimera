@@ -77,13 +77,13 @@ export function PersonCard({
                   {ratingLabel ? (
                     <span className="inline-flex items-center gap-1 font-bold text-[#071330]">
                       <Star
-                        className="h-3.5 w-3.5 fill-amber-400 text-amber-400"
+                        className="h-3.5 w-3.5 fill-[#071330] text-[#071330]"
                         aria-hidden
                       />
                       {ratingLabel}
                     </span>
                   ) : (
-                    <span className="rounded-md bg-[#E0F2FE] px-1.5 py-0.5 text-[11px] font-bold text-[#0369A1]">
+                    <span className="rounded-md bg-[#EEF4FF] px-1.5 py-0.5 text-[11px] font-bold text-[#1D5CE5]">
                       New
                     </span>
                   )}
@@ -116,7 +116,7 @@ export function PersonCard({
                 {skills.map((label) => (
                   <span
                     key={label}
-                    className="inline-flex rounded-md border border-[#99F6E4]/80 bg-[#F0FDFA] px-2 py-0.5 text-[11.5px] font-bold text-[#0F766E]"
+                    className="inline-flex rounded-md border border-[#D7E0EC] bg-[#F5F9FF] px-2 py-0.5 text-[11.5px] font-bold text-[#071330]"
                   >
                     {label}
                   </span>
@@ -128,12 +128,12 @@ export function PersonCard({
 
         <div className="mt-auto flex items-center justify-between gap-2 border-t border-[#D7E3F4] pt-2.5 mt-3">
           <p className="inline-flex min-w-0 items-center gap-1 text-[12px] font-semibold text-[#334155]">
-            <MapPin className="h-3.5 w-3.5 shrink-0 text-[#0D9488]" aria-hidden />
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-[#1D5CE5]" aria-hidden />
             <span className="truncate">{locationLabel}</span>
           </p>
           {person.availableNow ? (
-            <span className="inline-flex shrink-0 items-center gap-1 text-[12px] font-bold text-emerald-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span className="inline-flex shrink-0 items-center gap-1 text-[12px] font-bold text-[#1D5CE5]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#1D5CE5]" />
               Available
             </span>
           ) : (

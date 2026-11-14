@@ -772,6 +772,7 @@ export function HelperOnboarding() {
                   type="button"
                   role="switch"
                   aria-checked={availableNow}
+                  aria-label="Available now"
                   onClick={() => setAvailableNow((v) => !v)}
                   data-testid="helper-available-now"
                   className="account-hc-switch"

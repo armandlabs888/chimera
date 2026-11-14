@@ -190,6 +190,7 @@ export function MessagesChatPanel({
         </button>
         <Link
           href={`/people/${other.id}`}
+          aria-label={`View ${other.name}'s profile`}
           className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D5CE5]"
         >
           <Avatar src={other.avatar} name={other.name} size={38} />
@@ -239,12 +240,12 @@ export function MessagesChatPanel({
                 {' · '}
                 <span
                   className={`inline-flex items-center gap-1 font-semibold ${
-                    statusLive ? 'text-[#0F5132]' : 'text-[#3D4A5F]'
+                    statusLive ? 'text-[#071330]' : 'text-[#3D4A5F]'
                   }`}
                 >
                   <span
                     className={`inline-block h-1.5 w-1.5 rounded-full ${
-                      statusLive ? 'bg-[#1F9D55]' : 'bg-[#94A3B8]'
+                      statusLive ? 'bg-[#1D5CE5]' : 'bg-[#94A3B8]'
                     }`}
                     aria-hidden
                   />

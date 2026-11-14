@@ -70,17 +70,21 @@ export function LandingNav({
       : 'hidden text-[15px] font-medium text-white transition hover:text-white/85 sm:inline'
 
   const ctaClass = isFloat
-    ? 'inline-flex h-[38px] items-center justify-center rounded-full bg-[#071330] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D5CE5]'
+    ? 'inline-flex h-11 min-h-[44px] items-center justify-center rounded-full bg-[#071330] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D5CE5]'
     : light
-      ? 'hidden h-9 min-h-11 items-center justify-center rounded-[10px] bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD] sm:inline-flex sm:min-h-9'
-      : 'hidden h-9 min-h-11 items-center justify-center rounded-[10px] bg-white px-4 text-[13.5px] font-semibold text-[#1D5CE5] transition hover:bg-blue-50 sm:inline-flex sm:min-h-9'
+      ? 'hidden min-h-[44px] items-center justify-center rounded-[10px] bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD] sm:inline-flex'
+      : 'hidden min-h-[44px] items-center justify-center rounded-[10px] bg-white px-4 text-[13.5px] font-semibold text-[#1D5CE5] transition hover:bg-blue-50 sm:inline-flex'
 
   const primaryHref = onboardingDone ? '/browse' : '/onboarding'
   const primaryLabel = onboardingDone ? 'Browse' : 'Continue setup'
 
   const bar = (
     <>
-      <Link href="/" className={`relative z-10 shrink-0 ${isFloat ? '' : 'pl-1'}`}>
+      <Link
+        href="/"
+        className={`relative z-10 inline-flex min-h-[44px] shrink-0 items-center ${isFloat ? '' : 'pl-1'}`}
+        aria-label="HouseCall home"
+      >
         <BeamWordmark
           tone={light ? 'ink' : 'white'}
           markWidth={18}
@@ -118,7 +122,7 @@ export function LandingNav({
         {browseLocationLabel ? (
           <BrowseLocationTrigger
             label={browseLocationLabel}
-            className={`inline-flex h-9 max-w-[9.5rem] items-center gap-1.5 rounded-[10px] px-2 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:px-2.5 ${
+            className={`inline-flex h-11 min-h-[44px] max-w-[9.5rem] items-center gap-1.5 rounded-[10px] px-2 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:px-2.5 ${
               isFloat
                 ? 'border border-[#E3E8EF] bg-white/70 text-[#071330] hover:bg-white'
                 : light
@@ -159,8 +163,8 @@ export function LandingNav({
           type="button"
           className={
             isFloat
-              ? 'inline-flex h-[38px] w-[38px] items-center justify-center rounded-full border border-[#E3E8EF] bg-white text-[#071330] md:hidden'
-              : `inline-flex h-9 w-9 items-center justify-center rounded-[10px] border lg:hidden ${
+              ? 'inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-[#E3E8EF] bg-white text-[#071330] md:hidden'
+              : `inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-[10px] border lg:hidden ${
                   light
                     ? 'border-[#E2E8F0] text-[#071330]'
                     : 'border-white/30 text-white'

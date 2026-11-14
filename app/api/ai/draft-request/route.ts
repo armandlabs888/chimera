@@ -136,18 +136,40 @@ function synthesizeDetails(prompt: string): string {
   return [body, ...extras].join(' ').slice(0, 1200)
 }
 
+/** Strip em (U+2014) and en (U+2013) dashes from model or heuristic draft strings. */
+function stripEmEnDashes<T extends DraftResult>(draft: T): T {
+  const clean = (value: string | undefined) => {
+    if (value == null) return value
+    return value
+      .replace(/\u2013/g, ' to ')
+      .replace(/\u2014/g, '. ')
+      .replace(/\s{2,}/g, ' ')
+      .replace(/\.\s*\./g, '.')
+      .trim()
+  }
+  return {
+    ...draft,
+    reason: clean(draft.reason),
+    title: clean(draft.title),
+    details: clean(draft.details),
+    whenLabel: clean(draft.whenLabel),
+  }
+}
+
 function smartDraft(prompt: string, categoryHint?: CategoryId): DraftResult {
   const category = inferCategory(prompt, categoryHint)
   const { when, whenLabel } = inferWhen(prompt)
   const budget = estimateBudget(category, prompt)
-  return sanitizeDraftWhen({
-    category,
-    title: synthesizeTitle(category, prompt),
-    details: synthesizeDetails(prompt),
-    when,
-    whenLabel,
-    ...budget,
-  })
+  return stripEmEnDashes(
+    sanitizeDraftWhen({
+      category,
+      title: synthesizeTitle(category, prompt),
+      details: synthesizeDetails(prompt),
+      when,
+      whenLabel,
+      ...budget,
+    }),
+  )
 }
 
 async function llmDraft(
@@ -165,12 +187,13 @@ async function llmDraft(
   const key = openaiKey || xaiKey!
   const model = openaiKey ? 'gpt-4o-mini' : 'grok-3-mini'
 
-  const system = `You are HouseCall's Smart Task Drafter for a peer-to-peer local help marketplace.
+  const system = `You are HouseCall's task drafter for a peer-to-peer local help marketplace.
 Allowed categories ONLY: house-cleaning, carpet-cleaning, auto-detailing, junk-removal, pet-sitting, grooming, other.
 Never suggest licensed trades, childcare, medical/elder care, or passenger rides. Same exclusions apply when category is other.
-Return JSON with keys: category, title (<=70 chars), details, when (asap|scheduled ONLY — never today, tomorrow, or this-week), whenLabel, suggestedMin, suggestedMax, suggestedBudget.
+Never use em or en dashes.
+Return JSON with keys: category, title (<=70 chars), details, when (asap|scheduled ONLY, never today, tomorrow, or this-week), whenLabel, suggestedMin, suggestedMax, suggestedBudget.
 Use when=asap when the customer wants help soon / urgently (not a guaranteed dispatch). Use when=scheduled only if they clearly name a future day or appointment.
-${hasPhoto ? 'A photo was attached — mention checking the photo in details.' : ''}
+${hasPhoto ? 'A photo was attached. Mention checking the photo in details.' : ''}
 ${categoryHint ? `Prefer category ${categoryHint} if it fits.` : ''}`
 
   try {
@@ -197,7 +220,7 @@ ${categoryHint ? `Prefer category ${categoryHint} if it fits.` : ''}`
     const content = data.choices?.[0]?.message?.content
     if (!content) return null
     const parsed = JSON.parse(content) as DraftResult
-    return parsed
+    return stripEmEnDashes(parsed)
   } catch {
     return null
   }
@@ -223,7 +246,7 @@ export async function POST(req: NextRequest) {
 
   const llm = await llmDraft(prompt, Boolean(body.hasPhoto), body.categoryHint)
   if (llm && llm.category && isCategoryId(llm.category) && llm.title) {
-    return NextResponse.json(sanitizeDraftWhen(llm))
+    return NextResponse.json(stripEmEnDashes(sanitizeDraftWhen(llm)))
   }
 
   return NextResponse.json(smartDraft(prompt, body.categoryHint))

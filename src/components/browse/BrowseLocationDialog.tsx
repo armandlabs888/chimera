@@ -267,7 +267,7 @@ function BrowseLocationDialog({
 
           {error ? (
             <p
-              className="mt-2 text-[13px] font-medium text-red-600"
+              className="mt-2 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] font-medium text-[#071330]"
               role="alert"
               data-testid="browse-location-error"
             >

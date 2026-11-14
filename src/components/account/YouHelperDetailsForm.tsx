@@ -252,6 +252,7 @@ export function YouHelperDetailsForm() {
             type="button"
             role="switch"
             aria-checked={availableNow}
+            aria-label="Available now"
             onClick={() => setAvailableNow((v) => !v)}
             data-testid="you-helper-available-now"
             className="account-hc-switch"

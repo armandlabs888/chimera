@@ -123,7 +123,7 @@ export function MessagesDrawerHost() {
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label={chatOpen ? 'Conversation' : 'Messages'}
+        aria-labelledby="messages-drawer-title"
         tabIndex={-1}
         data-testid="messages-drawer"
         data-chat-open={chatOpen ? 'true' : 'false'}

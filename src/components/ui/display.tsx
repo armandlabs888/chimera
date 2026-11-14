@@ -24,14 +24,16 @@ export function EmptyState({
   title,
   body,
   action,
+  titleAs: TitleTag = 'h3',
 }: {
   title: string
   body: string
   action?: ReactNode
+  titleAs?: 'h1' | 'h2' | 'h3'
 }) {
   return (
     <div className="rounded-[10px] border border-[#C7D7F0] bg-[#FBFDFF] px-6 py-12 text-center">
-      <h3 className="type-h3 text-[#071330]">{title}</h3>
+      <TitleTag className="type-h3 text-[#071330]">{title}</TitleTag>
       <p className="mx-auto mt-2 max-w-sm type-sec text-beam-muted">{body}</p>
       {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
     </div>
@@ -49,11 +51,11 @@ export function Badge({
     tone === 'amber' || tone === 'brand'
       ? 'bg-beam-amber-soft text-[#1D5CE5]'
       : tone === 'live' || tone === 'success'
-        ? 'bg-beam-success-soft text-beam-success'
+        ? 'bg-[#EEF4FF] text-[#1D5CE5]'
         : tone === 'warning'
-          ? 'bg-beam-warning-soft text-beam-warning'
+          ? 'bg-[#F5F9FF] text-[#071330]'
           : tone === 'danger'
-            ? 'bg-beam-danger-soft text-beam-danger'
+            ? 'bg-[#F5F9FF] text-[#071330]'
             : tone === 'outline'
               ? 'border border-[rgba(7,19,48,0.12)] bg-transparent text-[#64748B]'
               : 'bg-[#F4F8FD] text-[#475569]'
@@ -67,7 +69,7 @@ export function Badge({
 export function StarRow({ rating, size = 14 }: { rating: number; size?: number }) {
   const full = Math.round(rating)
   return (
-    <span className="inline-flex items-center gap-0.5 text-[#1D5CE5]" aria-label={`${rating} out of 5`}>
+    <span className="inline-flex items-center gap-0.5 text-[#071330]" aria-label={`${rating} out of 5`}>
       {Array.from({ length: 5 }).map((_, i) => (
         <svg
           key={i}
@@ -119,11 +121,11 @@ export function InlineBanner({
 }) {
   const styles =
     tone === 'error'
-      ? 'bg-beam-danger-soft text-beam-danger shadow-[0_0_0_1px_rgba(185,28,28,0.12)]'
+      ? 'border border-[#D7E0EC] bg-[#F5F9FF] text-[#071330]'
       : tone === 'success'
-        ? 'bg-beam-success-soft text-beam-success shadow-[0_0_0_1px_rgba(21,128,61,0.12)]'
+        ? 'border border-[#D7E0EC] bg-[#F5F9FF] text-[#071330]'
         : tone === 'warning'
-          ? 'bg-[#FFF8D6] text-[#92400E] shadow-[0_0_0_1px_rgba(217,119,6,0.15)]'
+          ? 'border border-[#D7E0EC] bg-[#F5F9FF] text-[#071330]'
           : 'bg-[#F4F8FD] text-[#475569] shadow-[0_0_0_1px_rgba(7,19,48,0.06)]'
   return (
     <div className={`rounded-lg px-3.5 py-2.5 type-sec ${styles}`} role="status" aria-live="polite">

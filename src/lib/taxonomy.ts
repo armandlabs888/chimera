@@ -68,15 +68,15 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     shortLabel: 'House Cleaning',
     description: 'Homes, apartments, kitchens & baths',
     image: LIFESTYLE.cleaning,
-    tintBg: '#E0F2FE',
-    tintFg: '#0369A1',
-    typicalRange: '$60–$140',
+    tintBg: '#F5F9FF',
+    tintFg: '#1D5CE5',
+    typicalRange: '$60 to $140',
     arrival: 'Same day or next',
     templates: [
       {
         title: 'Post-brunch kitchen reset',
         details:
-          'Kitchen and dining area after a small brunch. Dishes, counters, floors. Supplies are here — just need an extra pair of hands for ~90 minutes.',
+          'Kitchen and dining area after a small brunch. Dishes, counters, floors. Supplies are here. Just need an extra pair of hands for ~90 minutes.',
         budgetHint: 65,
       },
       {
@@ -94,9 +94,9 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     shortLabel: 'Carpet Cleaning',
     description: 'Rooms, stairs, spot treatment',
     image: LIFESTYLE.cleaning,
-    tintBg: '#DBEAFE',
-    tintFg: '#1D4ED8',
-    typicalRange: '$80–$180',
+    tintBg: '#F5F9FF',
+    tintFg: '#1D5CE5',
+    typicalRange: '$80 to $180',
     arrival: 'Same day or next',
     templates: [
       {
@@ -116,9 +116,9 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     // No dedicated auto-detailing photo in the asset set — do not reuse assembly imagery.
     // Cards fall back to requester photo / neutral placeholder when image is empty.
     image: '',
-    tintBg: '#FFEDD5',
-    tintFg: '#C2410C',
-    typicalRange: '$75–$200',
+    tintBg: '#F5F9FF',
+    tintFg: '#071330',
+    typicalRange: '$75 to $200',
     arrival: 'Book ahead or same day',
     templates: [
       {
@@ -138,7 +138,7 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     image: LIFESTYLE.moving,
     tintBg: '#E2E8F0',
     tintFg: '#334155',
-    typicalRange: '$60–$250',
+    typicalRange: '$60 to $250',
     arrival: 'Often same day',
     templates: [
       {
@@ -156,15 +156,15 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     shortLabel: 'Pet Sitting',
     description: 'Drop-ins, walks, overnight sitting',
     image: LIFESTYLE.petcare,
-    tintBg: '#FFE4E6',
-    tintFg: '#BE123C',
-    typicalRange: '$25–$75',
+    tintBg: '#F5F9FF',
+    tintFg: '#071330',
+    typicalRange: '$25 to $75',
     arrival: 'Walks within hours',
     templates: [
       {
         title: 'Afternoon dog walk (friendly lab)',
         details:
-          'Need someone to walk our 3-year-old lab for 30–40 minutes. Friendly with people and dogs. Leash and bags ready by the door.',
+          'Need someone to walk our 3-year-old lab for 30 to 40 minutes. Friendly with people and dogs. Leash and bags ready by the door.',
         budgetHint: 30,
       },
       {
@@ -180,11 +180,11 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     parentId: 'pets',
     label: 'Grooming',
     shortLabel: 'Grooming',
-    description: 'Bath, brush, nail trim — non-clinic',
+    description: 'Bath, brush, nail trim, non-clinic',
     image: LIFESTYLE.petcare,
-    tintBg: '#FCE7F3',
-    tintFg: '#9D174D',
-    typicalRange: '$40–$120',
+    tintBg: '#F5F9FF',
+    tintFg: '#071330',
+    typicalRange: '$40 to $120',
     arrival: 'Book ahead',
     templates: [
       {

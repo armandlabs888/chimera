@@ -25,11 +25,15 @@ export function Field({
     <label className="block space-y-1.5">
       <span className="type-meta text-beam-muted">
         {label}
-        {required ? <span className="text-beam-danger"> *</span> : null}
+        {required ? <span className="text-[#1D5CE5]"> *</span> : null}
       </span>
       {children}
       {error ? (
-        <span id={errorId} className="block type-sec text-beam-danger" role="alert">
+        <span
+          id={errorId}
+          className="mt-1 flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 type-sec text-[#071330]"
+          role="alert"
+        >
           {error}
         </span>
       ) : hint ? (
@@ -40,7 +44,7 @@ export function Field({
 }
 
 const controlClass =
-  'w-full rounded-lg border border-[rgba(7,19,48,0.1)] bg-white px-3.5 py-2 text-[15px] text-[#071330] placeholder:text-[#94A3B8] transition hover:border-[rgba(7,19,48,0.18)] focus:border-[#1D5CE5] focus:outline-none aria-[invalid=true]:border-beam-danger'
+  'w-full rounded-lg border border-[rgba(7,19,48,0.1)] bg-white px-3.5 py-2 text-[15px] text-[#071330] placeholder:text-[#94A3B8] transition hover:border-[rgba(7,19,48,0.18)] focus:border-[#1D5CE5] focus:outline-none aria-[invalid=true]:border-[#1D5CE5]'
 
 export const TextInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   function TextInput({ className = '', ...props }, ref) {

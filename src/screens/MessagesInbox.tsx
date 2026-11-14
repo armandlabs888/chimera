@@ -135,7 +135,7 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
                           <p className="truncate text-[14px] font-semibold text-[#071330]">
                             {other?.name ?? 'Neighbor'}
                           </p>
-                          <span className="shrink-0 text-[12px] tabular-nums text-[#94A3B8]">
+                          <span className="shrink-0 text-[12px] tabular-nums text-[#64748B]">
                             {relativeTime(thread.lastMessageAt)}
                           </span>
                         </div>
