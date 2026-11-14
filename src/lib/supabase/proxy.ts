@@ -5,6 +5,7 @@ import { redirectToCanonicalHost } from '@/lib/auth/canonicalHost'
 import { redirectStrandedAuth } from '@/lib/auth/strandedAuth'
 import { cookieDomainForHost } from '@/lib/auth/siteOrigin'
 import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/config'
+import { rewriteIfMissingPublicDetail } from '@/lib/seo/missingPublicDetail'
 
 export async function updateSession(request: NextRequest) {
   // Apex → www so Google OAuth redirectTo matches Site URL + PKCE cookies.
@@ -15,6 +16,10 @@ export async function updateSession(request: NextRequest) {
   // Runs even in demo / unconfigured mode so production never drops the code on `/`.
   const stranded = redirectStrandedAuth(request)
   if (stranded) return stranded
+
+  // Hard 404 for missing public detail URLs before (app)/loading streams a 200.
+  const missingDetail = await rewriteIfMissingPublicDetail(request)
+  if (missingDetail) return missingDetail
 
   const url = getSupabaseUrl()
   const key = getSupabasePublishableKey()
