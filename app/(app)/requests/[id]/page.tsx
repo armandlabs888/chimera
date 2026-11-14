@@ -10,6 +10,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
   const result = await lookupPublicRequest(id)
 
+  if (result.status === 'missing') notFound()
+
   if (result.status === 'found') {
     const { title, areaLabel } = result.data
     return pageMetadata({

@@ -7,16 +7,12 @@ import {
   resolveBeamMode,
 } from '@/lib/config'
 import { isHelperPerson } from '@/lib/roles'
+import { isUuid } from '@/lib/seo/ids'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import type { AccountRole, CategoryId } from '@/types'
 import type { Database } from '@/lib/supabase/database.types'
 
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
-export function isUuid(id: string): boolean {
-  return UUID_RE.test(id)
-}
+export { isUuid } from '@/lib/seo/ids'
 
 export type HelperSeoData = {
   id: string

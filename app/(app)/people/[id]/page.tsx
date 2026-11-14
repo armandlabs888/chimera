@@ -10,6 +10,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
   const result = await lookupPublicHelper(id)
 
+  if (result.status === 'missing') notFound()
+
   if (result.status === 'found') {
     const { name, categoryLabel, cityLabel } = result.data
     const title = `${name}`
