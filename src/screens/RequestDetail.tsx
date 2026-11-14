@@ -17,6 +17,7 @@ import {
   ReferHelperHint,
   useReferHelperShare,
 } from '@/components/browse/ReferHelperActions'
+import { SuggestedHelpersSection } from '@/components/refer/SuggestedHelpersSection'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { Avatar, Button, ButtonLink, ConfirmDialog, TextArea } from '@/components/ui'
@@ -124,6 +125,7 @@ export function RequestDetail() {
   const { referHelper, dialog: referDialog } = useReferHelperShare(
     request?.id ?? id,
     request?.title ?? '',
+    request?.requesterId,
   )
 
   const offers = useMemo(
@@ -448,6 +450,15 @@ export function RequestDetail() {
               </div>
             </div>
           </article>
+
+          {isOwner && request.status === 'open' ? (
+            <div
+              data-testid="request-suggested-helpers"
+              className={`${cardClass} p-5 sm:p-6 empty:hidden`}
+            >
+              <SuggestedHelpersSection jobId={request.id} />
+            </div>
+          ) : null}
 
           {/* Nearby matches for owner - left column */}
           {isOwner && request.status === 'open' ? (

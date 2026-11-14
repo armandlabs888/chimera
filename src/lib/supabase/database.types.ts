@@ -234,6 +234,58 @@ export type Database = {
           },
         ]
       }
+      job_referrals: {
+        Row: {
+          created_at: string
+          helper_id: string
+          id: string
+          job_id: string
+          note: string
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          helper_id: string
+          id?: string
+          job_id: string
+          note?: string
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          helper_id?: string
+          id?: string
+          job_id?: string
+          note?: string
+          referrer_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_referrals_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_referrals_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "help_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string
@@ -944,6 +996,60 @@ export type Database = {
         }
       }
       mark_all_notifications_read: { Args: never; Returns: number }
+      refer_helpers_to_job: {
+        Args: { p_helper_ids: string[]; p_job_id: string; p_note?: string }
+        Returns: {
+          created_at: string
+          helper_id: string
+          id: string
+          job_id: string
+          note: string
+          referrer_id: string
+          status: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "job_referrals"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      dismiss_job_referral: {
+        Args: { p_referral_id: string }
+        Returns: {
+          created_at: string
+          helper_id: string
+          id: string
+          job_id: string
+          note: string
+          referrer_id: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "job_referrals"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mark_job_referral_viewed: {
+        Args: { p_referral_id: string }
+        Returns: {
+          created_at: string
+          helper_id: string
+          id: string
+          job_id: string
+          note: string
+          referrer_id: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "job_referrals"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       submit_review: {
         Args: {
           p_comment: string

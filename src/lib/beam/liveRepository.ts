@@ -5,6 +5,7 @@ import type {
   BudgetType,
   CategoryId,
   HelpRequest,
+  JobReferral,
   NeighborhoodId,
   Offer,
   Person,
@@ -16,6 +17,7 @@ import type {
 import {
   mapHelperVerification,
   mapInvite,
+  mapJobReferral,
   mapMessage,
   mapNotification,
   mapOffer,
@@ -44,8 +46,24 @@ function throwOnError(error: { message: string } | null, action: string): void {
   if (error) throw new BeamBackendError(`${action}: ${error.message}`, error)
 }
 
-function emptyExtras(): Pick<AppState, 'invites' | 'savedHelperIds' | 'notifications'> {
-  return { invites: [], savedHelperIds: [], notifications: [] }
+function emptyExtras(): Pick<
+  AppState,
+  'invites' | 'savedHelperIds' | 'notifications' | 'jobReferrals'
+> {
+  return { invites: [], savedHelperIds: [], notifications: [], jobReferrals: [] }
+}
+
+/** Missing-table / not-yet-migrated errors should not crash the app. */
+function isMissingRelationError(error: { message?: string; code?: string } | null): boolean {
+  if (!error) return false
+  const msg = (error.message || '').toLowerCase()
+  return (
+    error.code === '42P01' ||
+    error.code === 'PGRST205' ||
+    msg.includes('does not exist') ||
+    msg.includes('could not find the table') ||
+    msg.includes('schema cache')
+  )
 }
 
 export async function loadPublicLiveMarketplace(client: Client): Promise<AppState> {
@@ -80,6 +98,7 @@ export async function loadLiveState(client: Client, userId: string): Promise<App
     invites,
     saved,
     notifications,
+    jobReferrals,
     privateDetails,
     myVerification,
     staffFlag,
@@ -95,6 +114,7 @@ export async function loadLiveState(client: Client, userId: string): Promise<App
     client.from('notifications').select('*').eq('user_id', userId).order('created_at', {
       ascending: false,
     }),
+    client.from('job_referrals').select('*').order('created_at', { ascending: false }),
     client.from('request_private_details').select('*'),
     client.from('helper_verifications').select('*').eq('profile_id', userId).maybeSingle(),
     client.rpc('is_beam_staff'),
@@ -106,10 +126,12 @@ export async function loadLiveState(client: Client, userId: string): Promise<App
   throwOnError(threads.error, 'Load threads')
   throwOnError(messages.error, 'Load messages')
   throwOnError(reviews.error, 'Load reviews')
-  // New tables may fail briefly on older deploys — treat as empty rather than hard-fail.
+  // New tables may fail briefly on older deploys - treat as empty rather than hard-fail.
   const inviteRows = invites.error ? [] : (invites.data ?? [])
   const savedIds = saved.error ? [] : (saved.data ?? []).map((r) => r.helper_id as string)
   const notifRows = notifications.error ? [] : (notifications.data ?? [])
+  // job_referrals may be missing until the migration is applied.
+  const referralRows = jobReferrals.error ? [] : (jobReferrals.data ?? [])
   const privateMap = new Map<string, string>()
   if (!privateDetails.error) {
     for (const row of privateDetails.data ?? []) {
@@ -152,6 +174,7 @@ export async function loadLiveState(client: Client, userId: string): Promise<App
     invites: inviteRows.map(mapInvite),
     savedHelperIds: savedIds,
     notifications: notifRows.map(mapNotification),
+    jobReferrals: referralRows.map((row) => mapJobReferral(row as Record<string, unknown>)),
     helperVerification,
     helperVerifications,
     isBeamStaff,
@@ -649,6 +672,59 @@ export async function reviewLiveHelperVerification(
   })
   throwOnError(error, 'Review verification')
   return mapHelperVerification(data as Record<string, unknown>)
+}
+
+export async function referLiveHelpersToJob(
+  client: Client,
+  input: { jobId: string; helperIds: string[]; note?: string },
+): Promise<JobReferral[]> {
+  const { data, error } = await client.rpc('refer_helpers_to_job', {
+    p_job_id: input.jobId,
+    p_helper_ids: input.helperIds,
+    p_note: (input.note ?? '').slice(0, 280),
+  })
+  if (error && isMissingRelationError(error)) {
+    throw new BeamBackendError(
+      'Referrals are not available yet. Ask an admin to apply the job_referrals migration.',
+      error,
+    )
+  }
+  throwOnError(error, 'Refer helpers')
+  return (data ?? []).map((row: Record<string, unknown>) => mapJobReferral(row))
+}
+
+export async function dismissLiveJobReferral(
+  client: Client,
+  referralId: string,
+): Promise<JobReferral> {
+  const { data, error } = await client.rpc('dismiss_job_referral', {
+    p_referral_id: referralId,
+  })
+  if (error && isMissingRelationError(error)) {
+    throw new BeamBackendError(
+      'Referrals are not available yet. Ask an admin to apply the job_referrals migration.',
+      error,
+    )
+  }
+  throwOnError(error, 'Dismiss referral')
+  return mapJobReferral(data as Record<string, unknown>)
+}
+
+export async function markLiveJobReferralViewed(
+  client: Client,
+  referralId: string,
+): Promise<JobReferral> {
+  const { data, error } = await client.rpc('mark_job_referral_viewed', {
+    p_referral_id: referralId,
+  })
+  if (error && isMissingRelationError(error)) {
+    throw new BeamBackendError(
+      'Referrals are not available yet. Ask an admin to apply the job_referrals migration.',
+      error,
+    )
+  }
+  throwOnError(error, 'Mark referral viewed')
+  return mapJobReferral(data as Record<string, unknown>)
 }
 
 export type { RateType, BeamNotification }
