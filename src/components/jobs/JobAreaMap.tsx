@@ -126,7 +126,7 @@ export function JobAreaMap({
 
     // Keep the soft circle fully inside the frame so the edge is not clipped.
     const rawCircle = metersToPixels(fuzzed.radiusMeters, fuzzed.lat, TILE_ZOOM)
-    const maxRadius = Math.min(frameW, frameH) * 0.42
+    const maxRadius = Math.min(frameW, frameH) * 0.36
     const circlePx = Math.min(rawCircle, maxRadius)
 
     const tiles: { key: string; src: string; left: number; top: number }[] = []
