@@ -25,7 +25,7 @@ export function HelperProfileReviews({
                 className="rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4"
               >
                 <div className="flex items-center gap-2 text-[14px]">
-                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
+                  <Star className="h-4 w-4 fill-[#071330] text-[#071330]" aria-hidden />
                   <span className="font-semibold text-[#071330]">{review.rating}/5</span>
                   <span className="text-[#64748B]">from {from?.name ?? 'Neighbor'}</span>
                   <span className="ml-auto text-[12px] text-[#94A3B8]">

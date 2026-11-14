@@ -100,7 +100,7 @@ export function HelperProfileHero({
                 {person.rating > 0 && person.reviewCount > 0 ? (
                   <>
                     <span className="inline-flex items-center gap-1 font-semibold text-[#071330]">
-                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
+                      <Star className="h-4 w-4 fill-[#071330] text-[#071330]" aria-hidden />
                       {person.rating.toFixed(1)}
                     </span>
                     <span className="text-[#94A3B8]">({person.reviewCount} reviews)</span>
