@@ -22,10 +22,10 @@ export function BrowseFilteredEmpty({
 }) {
   return (
     <div
-      className="mt-9 rounded-xl border border-[#E3E8EF] bg-gradient-to-b from-[#F4F8FD] to-white px-6 py-12 text-center sm:px-8 sm:py-14"
+      className="mt-9 rounded-xl border border-[#E3E8EF] bg-gradient-to-b from-[#EEF2F7] to-white px-6 py-12 text-center sm:px-8 sm:py-14"
       data-testid="browse-filtered-empty"
     >
-      <span className="mx-auto grid h-14 w-14 place-items-center rounded-xl border border-[#D6E2F5] bg-white text-[#1D5CE5] shadow-[0_6px_16px_-8px_rgba(29,92,229,0.4)]">
+      <span className="mx-auto grid h-14 w-14 place-items-center rounded-xl border border-[#E3E8EF] bg-[#EEF2F7] text-[#1D5CE5] shadow-none">
         <Search className="h-6 w-6" strokeWidth={1.9} aria-hidden />
       </span>
       <h2 className="mt-4 text-[21px] font-bold tracking-[-0.02em] text-[#071330]">{title}</h2>
@@ -34,7 +34,7 @@ export function BrowseFilteredEmpty({
         <button
           type="button"
           onClick={onReset}
-          className="inline-flex h-12 items-center justify-center rounded-[10px] border border-[#CDD5E0] bg-white px-5 text-[15px] font-semibold text-[#071330] transition hover:bg-[#F4F8FD]"
+          className="inline-flex h-12 items-center justify-center rounded-[10px] border border-[#D7E0EC] bg-white px-5 text-[15px] font-semibold text-[#071330] transition hover:bg-white"
           data-testid="browse-reset-filters"
         >
           {resetLabel}

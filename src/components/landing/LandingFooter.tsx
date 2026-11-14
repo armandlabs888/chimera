@@ -158,8 +158,8 @@ export function LandingFooter({
 
       <div className="border-t border-white/10" data-testid="footer-legal">
         <div className="beam-container flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-          <p className="shrink-0 text-[12.5px] leading-[1.35] text-[#94A3B8]">© HouseCall</p>
-          <p className="max-w-[68ch] text-[12px] leading-[1.45] text-[#94A3B8] sm:text-right">
+          <p className="shrink-0 text-[13px] leading-[1.35] text-[#94A3B8]">© HouseCall</p>
+          <p className="max-w-[68ch] text-[13px] leading-[1.45] text-[#94A3B8] sm:text-right">
             Payments are arranged directly between neighbors. Not for licensed trades, childcare,
             medical/senior care, or passenger driving.
           </p>

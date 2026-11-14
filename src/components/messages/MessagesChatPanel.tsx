@@ -114,7 +114,7 @@ export function MessagesChatPanel({
         <div className="flex h-16 shrink-0 items-center justify-end border-b border-[#E3E8EF] px-2">
           <button
             type="button"
-            className="messages-back h-9 w-9 place-items-center rounded-[9px] text-[#071330] hover:bg-[#F4F8FD]"
+            className="messages-back h-9 w-9 place-items-center rounded-[9px] text-[#071330] hover:bg-white"
             aria-label="Back to conversations"
             data-testid="messages-back"
             onClick={onBack}
@@ -124,7 +124,7 @@ export function MessagesChatPanel({
           <span className="flex-1" />
           <button
             type="button"
-            className="grid h-9 w-9 place-items-center rounded-[9px] text-[#071330] hover:bg-[#F4F8FD]"
+            className="grid h-9 w-9 place-items-center rounded-[9px] text-[#071330] hover:bg-white"
             aria-label="Close conversation"
             data-testid="messages-chat-close"
             onClick={onClose}
@@ -181,7 +181,7 @@ export function MessagesChatPanel({
       <header className="flex h-16 shrink-0 items-center gap-2.5 border-b border-[#E3E8EF] px-2.5 sm:px-4">
         <button
           type="button"
-          className="messages-back h-9 w-9 shrink-0 place-items-center rounded-[9px] text-[#071330] hover:bg-[#F4F8FD]"
+          className="messages-back h-9 w-9 shrink-0 place-items-center rounded-[9px] text-[#071330] hover:bg-white"
           aria-label="Back to conversations"
           data-testid="messages-back"
           onClick={onBack}
@@ -202,13 +202,13 @@ export function MessagesChatPanel({
         <Link
           href={`/people/${other.id}`}
           data-testid="messages-view-profile"
-          className="messages-view-profile shrink-0 rounded-lg px-2 py-1.5 text-[13px] font-semibold text-[#071330] hover:bg-[#F4F8FD]"
+          className="messages-view-profile shrink-0 rounded-lg px-2 py-1.5 text-[13px] font-semibold text-[#071330] hover:bg-white"
         >
           View profile
         </Link>
         <button
           type="button"
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-[9px] text-[#071330] hover:bg-[#F4F8FD]"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-[9px] text-[#071330] hover:bg-white"
           aria-label="Close conversation"
           data-testid="messages-chat-close"
           onClick={onClose}
@@ -245,7 +245,7 @@ export function MessagesChatPanel({
                 >
                   <span
                     className={`inline-block h-1.5 w-1.5 rounded-full ${
-                      statusLive ? 'bg-[#1D5CE5]' : 'bg-[#94A3B8]'
+                      statusLive ? 'bg-[#1D5CE5]' : 'bg-[#5B6576]'
                     }`}
                     aria-hidden
                   />
@@ -256,7 +256,7 @@ export function MessagesChatPanel({
             <Link
               href={`/requests/${request.id}`}
               data-testid="messages-view-request"
-              className="inline-flex h-[34px] shrink-0 items-center gap-1 rounded-[9px] border border-[#CDD5E0] px-2.5 text-[13px] font-semibold text-[#071330] hover:bg-[#F4F8FD]"
+              className="inline-flex h-[34px] shrink-0 items-center gap-1 rounded-[9px] border border-[#D7E0EC] px-2.5 text-[13px] font-semibold text-[#071330] hover:bg-white"
             >
               <span className="messages-view-request-full">View request</span>
               <span className="messages-view-request-short">View</span>
@@ -290,7 +290,7 @@ export function MessagesChatPanel({
           >
             <Avatar src={other.avatar} name={other.name} size={44} />
             <p className="mt-3 text-[14px] font-semibold text-[#071330]">{other.name}</p>
-            <p className="mt-1 max-w-[36ch] text-[13px] leading-relaxed text-[#64748B]">
+            <p className="mt-1 max-w-[36ch] text-[13px] leading-relaxed text-[#4A5568]">
               {isDirect
                 ? `Ask ${firstName} about timing, parking, stairs, or tools before you book.`
                 : 'Ask about timing, parking, stairs, or tools. Open the request anytime for offers and details.'}
@@ -330,7 +330,7 @@ export function MessagesChatPanel({
                       className={`max-w-[78%] px-3.5 py-2 text-[14.5px] leading-[1.48] break-words ${
                         item.mine
                           ? `bg-[#1D5CE5] text-white ${last ? 'rounded-xl rounded-br-[4px]' : 'rounded-xl'}`
-                          : `border border-[#DCE6F5] bg-[#F4F8FD] text-[#071330] ${
+                          : `border border-[#DCE6F5] bg-white text-[#071330] ${
                               last ? 'rounded-xl rounded-bl-[4px]' : 'rounded-xl'
                             }`
                       }`}
@@ -351,12 +351,12 @@ export function MessagesChatPanel({
         className="shrink-0 border-t border-[#E3E8EF] px-3 py-3 sm:px-4"
         data-testid="messages-composer"
       >
-        <div className="flex items-center gap-2 rounded-xl border border-[#CDD5E0] bg-white py-1 pl-3.5 pr-1">
+        <div className="flex items-center gap-2 rounded-xl border border-[#D7E0EC] bg-white py-1 pl-3.5 pr-1">
           <input
             value={body}
             onChange={(event) => setBody(event.target.value)}
             placeholder={`Message ${firstName}…`}
-            className="h-9 min-w-0 flex-1 bg-transparent text-[14.5px] text-[#071330] outline-none placeholder:text-[#55627A]"
+            className="h-9 min-w-0 flex-1 bg-transparent text-[14.5px] text-[#071330] outline-none placeholder:text-[#5B6576]"
             disabled={sending}
             aria-label="Message"
             data-testid="messages-composer-input"
@@ -367,7 +367,7 @@ export function MessagesChatPanel({
             className={`grid h-9 w-9 shrink-0 place-items-center rounded-[9px] ${
               body.trim() && !sending
                 ? 'bg-[#1D5CE5] text-white hover:bg-[#1649BD]'
-                : 'bg-[#E3E8EF] text-[#55627A]'
+                : 'bg-[#E3E8EF] text-[#4A5568]'
             }`}
             disabled={!body.trim() || sending}
             aria-label="Send"

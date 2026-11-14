@@ -58,7 +58,7 @@ export function MessagesTrigger({
         aria-label={label}
         aria-expanded={isGuest ? undefined : open}
         onClick={onClick}
-        className={`relative grid h-[38px] w-[38px] place-items-center rounded-[10px] border border-[#E3E8EF] bg-white text-[#071330] hover:bg-[#F4F8FD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 ${
+        className={`relative grid h-[38px] w-[38px] place-items-center rounded-[10px] border border-[#E3E8EF] bg-white text-[#071330] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 ${
           hideFrom === 'sm' ? 'sm:hidden' : 'md:hidden'
         }`}
       >
@@ -76,7 +76,7 @@ export function MessagesTrigger({
         aria-expanded={isGuest ? undefined : open}
         onClick={onClick}
         className={`hidden h-9 items-center gap-1.5 rounded-[10px] px-2 text-[13.5px] font-medium sm:inline-flex ${
-          open ? 'bg-[#F4F8FD] text-[#1D5CE5]' : 'text-[#071330] hover:bg-[#F4F8FD]'
+          open ? 'bg-white text-[#1D5CE5]' : 'text-[#071330] hover:bg-white'
         }`}
       >
         <MessageCircle className="h-[17px] w-[17px]" strokeWidth={1.9} aria-hidden />
@@ -96,7 +96,7 @@ export function MessagesTrigger({
       className={`relative inline-flex h-14 items-center gap-1.5 px-3 text-[13.5px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 ${
         open
           ? 'text-[#071330] after:absolute after:inset-x-2 after:bottom-0 after:h-[2px] after:bg-[#1D5CE5]'
-          : 'text-[#475569] hover:text-[#071330]'
+          : 'text-[#4A5568] hover:text-[#071330]'
       }`}
     >
       Messages

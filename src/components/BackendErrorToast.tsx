@@ -33,7 +33,7 @@ export function BackendErrorToast() {
         <button
           type="button"
           aria-label="Dismiss"
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#48556A] transition hover:bg-[#F4F8FD] hover:text-[#071330]"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#48556A] transition hover:bg-white hover:text-[#071330]"
           onClick={() => clearBackendError()}
           data-testid="backend-error-toast-dismiss"
         >

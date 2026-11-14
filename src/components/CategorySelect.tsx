@@ -88,8 +88,8 @@ export function CategorySelect({
               onClick={() => selectParent(p.id)}
               className={`relative flex flex-col items-start gap-1.5 rounded-xl border px-3 py-3 text-left transition ${
                 selected
-                  ? 'border-[#1D5CE5] bg-[#F5F9FF]'
-                  : 'border-[#E3E8EF] bg-[#F4F8FD] hover:bg-white'
+                  ? 'border-[#1D5CE5] bg-white'
+                  : 'border-[#E3E8EF] bg-white hover:bg-white'
               }`}
             >
               {selected ? (
@@ -109,10 +109,10 @@ export function CategorySelect({
 
       {showChildren ? (
         <div
-          className="rounded-lg border border-[#E2E8F0] bg-white p-3"
+          className="rounded-lg border border-[#E3E8EF] bg-white p-3"
           data-testid={`${testIdPrefix}-children`}
         >
-          <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64748B]">
+          <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-[#4A5568]">
             Choose a service
           </p>
           <div className="flex flex-wrap gap-2">
@@ -135,7 +135,7 @@ export function CategorySelect({
                   className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-[13px] font-semibold transition ${
                     on
                       ? 'bg-[#1D5CE5] text-white'
-                      : 'bg-[#F8FAFC] text-[#475569] ring-1 ring-[#E2E8F0] hover:text-[#071330]'
+                      : 'bg-white text-[#4A5568] ring-1 ring-[#E2E8F0] hover:text-[#071330]'
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" aria-hidden />
@@ -151,7 +151,7 @@ export function CategorySelect({
         <div data-testid={`${testIdPrefix}-other-field`}>
           <label
             htmlFor={`${testIdPrefix}-other-input`}
-            className="mb-1.5 block text-[13px] font-semibold text-[#475569]"
+            className="mb-1.5 block text-[13px] font-semibold text-[#4A5568]"
           >
             Describe the service
           </label>
@@ -163,14 +163,14 @@ export function CategorySelect({
             maxLength={OTHER_CUSTOM_MAX}
             onChange={(e) => onCustomChange(e.target.value.slice(0, OTHER_CUSTOM_MAX))}
             placeholder="e.g. Patio furniture setup"
-            className="h-10 w-full rounded-lg border border-[#E2E8F0] bg-white px-3 text-[14px] text-[#071330] outline-none transition placeholder:text-[#94A3B8] focus-visible:border-[#1D5CE5] focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/15"
+            className="h-10 w-full rounded-lg border border-[#E3E8EF] bg-white px-3 text-[14px] text-[#071330] outline-none transition placeholder:text-[#5B6576] focus-visible:border-[#1D5CE5] focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/15"
             aria-invalid={Boolean(customError) || undefined}
           />
-          <p className="mt-1 text-[12px] text-[#64748B]">
+          <p className="mt-1 text-[12px] text-[#4A5568]">
             {customLabel.trim().length}/{OTHER_CUSTOM_MAX}
           </p>
           {customError ? (
-            <p className="mt-1 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] font-medium text-[#071330]" role="alert">
+            <p className="mt-1 rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[13px] font-medium text-[#071330]" role="alert">
               {customError}
             </p>
           ) : null}
@@ -178,7 +178,7 @@ export function CategorySelect({
       ) : null}
 
       {error ? (
-        <p className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] font-medium text-[#071330]" role="alert">
+        <p className="rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[13px] font-medium text-[#071330]" role="alert">
           {error}
         </p>
       ) : null}

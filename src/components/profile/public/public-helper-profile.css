@@ -3,8 +3,8 @@
   --php-ink: #10172a;
   --php-blue: #1d5ce5;
   --php-blue-hover: #1649bd;
-  --php-tint: #f5f9ff;
-  --php-tint-2: #f4f8fd;
+  --php-tint: #eef2f7;
+  --php-tint-2: #eef2f7;
   --php-line: #e3e8ef;
   --php-line-2: #d7e0ec;
   --php-muted: #4a5568;
@@ -387,7 +387,7 @@
 }
 
 .public-helper-profile .php-select {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%236B7384' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 8 4 4 4-4'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%234A5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 8 4 4 4-4'/></svg>");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 40px;
@@ -515,7 +515,7 @@
   font-weight: 600;
   padding: 10px 16px;
   border-radius: 9999px;
-  box-shadow: 0 10px 24px -12px rgba(7, 19, 48, 0.45);
+  box-shadow: none;
 }
 
 @media (min-width: 961px) {

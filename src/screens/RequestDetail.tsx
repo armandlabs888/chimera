@@ -194,7 +194,7 @@ export function RequestDetail() {
   if (!request || !categoryLabel || !requester) {
     return (
       <div className="beam-container py-10" data-testid="request-not-found">
-        <div className="rounded-[10px] border border-[#C7D7F0] bg-white px-6 py-12 text-center">
+        <div className="rounded-[10px] border border-[#E3E8EF] bg-white px-6 py-12 text-center">
           <h1 className="type-h3 text-[#071330]">This request isn&apos;t available</h1>
           <p className="mx-auto mt-2 max-w-sm type-sec text-beam-muted">
             It may have been filled or removed.
@@ -344,8 +344,8 @@ export function RequestDetail() {
                       : request.status === 'accepted'
                         ? 'bg-[#EEF4FF] text-[#1D5CE5]'
                         : request.status === 'completed'
-                          ? 'bg-[#F4F8FD] text-[#4A5568]'
-                          : 'bg-[#F4F8FD] text-[#4A5568]'
+                          ? 'bg-white text-[#4A5568]'
+                          : 'bg-white text-[#4A5568]'
                   }`}
                 >
                   {statusLabel(request.status)}
@@ -358,7 +358,7 @@ export function RequestDetail() {
               {isOwner && request.isUrgent ? (
                 (request.urgentHelpersNotifiedCount ?? 0) > 0 ? (
                   <p
-                    className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
+                    className="rounded-lg border border-[#D7E0EC] bg-white px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
                     data-testid="urgent-texted-helpers"
                   >
                     We texted{' '}
@@ -366,7 +366,7 @@ export function RequestDetail() {
                   </p>
                 ) : (
                   <p
-                    className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
+                    className="rounded-lg border border-[#D7E0EC] bg-white px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
                     data-testid="urgent-texted-helpers-pending"
                   >
                     We&apos;ll text helpers nearby as they become available
@@ -403,7 +403,7 @@ export function RequestDetail() {
                       {listingImages.map((src, i) => (
                         <li
                           key={`${src}-${i}`}
-                          className="relative aspect-square overflow-hidden rounded-md bg-[#F4F8FD]"
+                          className="relative aspect-square overflow-hidden rounded-md bg-white"
                         >
                           <Image
                             src={src}
@@ -705,7 +705,7 @@ export function RequestDetail() {
           {!isOwner && !isNeighborViewer && request.status === 'open' ? (
             <section className="space-y-3" data-testid="request-offer-panel">
               {myInvite ? (
-                <div className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[14px] font-semibold text-[#071330]">
+                <div className="rounded-lg border border-[#D7E0EC] bg-white px-4 py-3 text-[14px] font-semibold text-[#071330]">
                   You were invited to offer on this task
                 </div>
               ) : null}
@@ -793,7 +793,7 @@ export function RequestDetail() {
                       </div>
 
                       {offerError ? (
-                        <p className="flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[14px] text-[#071330]" role="alert">
+                        <p className="flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[14px] text-[#071330]" role="alert">
                           {offerError}
                         </p>
                       ) : null}
@@ -894,7 +894,7 @@ export function RequestDetail() {
                 ) : null}
               </dl>
 
-              <div className="mt-5 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[13.5px] leading-relaxed text-[#071330]">
+              <div className="mt-5 rounded-lg border border-[#D7E0EC] bg-white px-4 py-3 text-[13.5px] leading-relaxed text-[#071330]">
                 Pay your helper peer-to-peer (Venmo, cash, Zelle, etc.). HouseCall doesn’t process
                 payments yet. Agree on the method in chat before you start.
               </div>
@@ -962,7 +962,7 @@ export function RequestDetail() {
                         onClick={() => setReviewRating(n)}
                         className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border transition ${
                           reviewRating >= n
-                            ? 'border-[#071330] bg-[#F5F9FF] text-[#071330]'
+                            ? 'border-[#071330] bg-white text-[#071330]'
                             : 'border-[rgba(7,19,48,0.12)] bg-white text-[#4A5568]'
                         }`}
                         aria-label={`${n} stars`}

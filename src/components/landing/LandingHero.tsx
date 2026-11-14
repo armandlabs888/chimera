@@ -167,7 +167,7 @@ export function LandingHero() {
                             type="button"
                             role="option"
                             aria-selected={category === 'all'}
-                            className={`flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                            className={`flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-white ${
                               category === 'all'
                                 ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
                                 : 'text-[#071330]'
@@ -191,7 +191,7 @@ export function LandingHero() {
                                 type="button"
                                 role="option"
                                 aria-selected={category === p.id}
-                                className={`flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                                className={`flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-white ${
                                   category === p.id
                                     ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
                                     : 'text-[#4A5568]'
@@ -252,7 +252,7 @@ export function LandingHero() {
                             type="button"
                             role="option"
                             aria-selected={neighborhood === 'all'}
-                            className={`min-h-11 w-full px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                            className={`min-h-11 w-full px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-white ${
                               neighborhood === 'all'
                                 ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
                                 : 'text-[#071330]'
@@ -271,7 +271,7 @@ export function LandingHero() {
                               type="button"
                               role="option"
                               aria-selected={neighborhood === n.id}
-                              className={`min-h-11 w-full px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                              className={`min-h-11 w-full px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-white ${
                                 neighborhood === n.id
                                   ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
                                   : 'text-[#4A5568]'

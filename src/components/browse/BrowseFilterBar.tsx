@@ -214,8 +214,8 @@ export function BrowseFilterBar({
           }}
           className={`inline-flex h-11 min-h-[44px] shrink-0 items-center gap-1.5 rounded-[10px] border px-3 text-[14px] font-medium sm:hidden ${
             mobileOpen || activeFilterCount
-              ? 'border-[#1D5CE5] bg-[#F4F8FD] text-[#123E9E]'
-              : 'border-[#CDD5E0] bg-white text-[#071330]'
+              ? 'border-[#1D5CE5] bg-white text-[#123E9E]'
+              : 'border-[#D7E0EC] bg-white text-[#071330]'
           }`}
         >
           <SlidersHorizontal className="h-4 w-4" strokeWidth={1.9} aria-hidden />
@@ -285,7 +285,7 @@ export function BrowseFilterBar({
                 aria-label="Close"
                 onClick={closeSheet}
                 data-testid="browse-mobile-filters-close"
-                className="grid h-9 w-9 place-items-center rounded-[9px] text-[#071330] hover:bg-[#F4F8FD]"
+                className="grid h-9 w-9 place-items-center rounded-[9px] text-[#071330] hover:bg-white"
               >
                 <X className="h-[18px] w-[18px]" />
               </button>
@@ -309,7 +309,7 @@ export function BrowseFilterBar({
                 </div>
               </SheetGroup>
               <SheetGroup title="Distance">
-                <div className="grid grid-cols-5 overflow-hidden rounded-[10px] border border-[#CDD5E0]">
+                <div className="grid grid-cols-5 overflow-hidden rounded-[10px] border border-[#D7E0EC]">
                   {radiusOptions.map((opt) => (
                     <button
                       key={opt.id}
@@ -317,7 +317,7 @@ export function BrowseFilterBar({
                       onClick={() => onRadius(opt.id)}
                       className={`h-10 text-[13px] font-medium ${
                         radius === opt.id ? 'bg-[#071330] font-semibold text-white' : 'text-[#071330]'
-                      } ${opt.id === radiusOptions[0]?.id ? '' : 'border-l border-[#CDD5E0]'}`}
+                      } ${opt.id === radiusOptions[0]?.id ? '' : 'border-l border-[#D7E0EC]'}`}
                     >
                       {opt.id === 'all' ? 'Any' : opt.label.replace('Within ', '').replace(' mi', '')}
                     </button>
@@ -337,7 +337,7 @@ export function BrowseFilterBar({
                 </div>
               </SheetGroup>
               <SheetGroup title="Sort by" last>
-                <div className="grid grid-cols-3 overflow-hidden rounded-[10px] border border-[#CDD5E0]">
+                <div className="grid grid-cols-3 overflow-hidden rounded-[10px] border border-[#D7E0EC]">
                   {sortOptions.map((opt, index) => (
                     <button
                       key={opt.id}
@@ -345,7 +345,7 @@ export function BrowseFilterBar({
                       onClick={() => onSort(opt.id)}
                       className={`h-10 px-1 text-[13px] font-medium ${
                         sort === opt.id ? 'bg-[#071330] font-semibold text-white' : 'text-[#071330]'
-                      } ${index ? 'border-l border-[#CDD5E0]' : ''}`}
+                      } ${index ? 'border-l border-[#D7E0EC]' : ''}`}
                     >
                       {opt.label.replace(' first', '')}
                     </button>
@@ -357,7 +357,7 @@ export function BrowseFilterBar({
               <button
                 type="button"
                 onClick={onReset}
-                className="inline-flex h-12 w-28 items-center justify-center rounded-[10px] border border-[#CDD5E0] text-[15px] font-semibold text-[#071330]"
+                className="inline-flex h-12 w-28 items-center justify-center rounded-[10px] border border-[#D7E0EC] text-[15px] font-semibold text-[#071330]"
                 data-testid="browse-mobile-filters-reset"
               >
                 Reset
@@ -398,14 +398,14 @@ function SearchField({
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search jobs"
         aria-label="Search browse"
-        className="h-10 w-full rounded-[10px] border border-[#CDD5E0] bg-white pl-9 pr-9 text-[14.5px] text-[#071330] outline-none placeholder:text-[#55627A] focus:border-[#1D5CE5] focus:shadow-[0_0_0_3px_rgba(29,92,229,0.14)]"
+        className="h-10 w-full rounded-[10px] border border-[#D7E0EC] bg-white pl-9 pr-9 text-[14.5px] text-[#071330] outline-none placeholder:text-[#5B6576] focus:border-[#1D5CE5] focus:shadow-[0_0_0_3px_rgba(29,92,229,0.14)]"
       />
       {value ? (
         <button
           type="button"
           aria-label="Clear search"
           onClick={onClear}
-          className="absolute right-1.5 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md text-[#3D4A5F] hover:bg-[#F4F8FD]"
+          className="absolute right-1.5 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md text-[#3D4A5F] hover:bg-white"
         >
           <X className="h-3.5 w-3.5" />
         </button>
@@ -457,8 +457,8 @@ function FilterPopover({
                 open
                   ? 'border-[#1D5CE5] shadow-[0_0_0_3px_rgba(29,92,229,0.14)]'
                   : active
-                    ? 'border-[#1D5CE5] bg-[#F4F8FD] text-[#123E9E]'
-                    : 'border-[#CDD5E0] bg-white text-[#071330] hover:border-[#9FB0C7] hover:bg-[#FAFBFD]'
+                    ? 'border-[#1D5CE5] bg-white text-[#123E9E]'
+                    : 'border-[#D7E0EC] bg-white text-[#071330] hover:border-[#9FB0C7] hover:bg-[#FAFBFD]'
               } ${buttonClassName}`
         }
       >
@@ -473,7 +473,7 @@ function FilterPopover({
       </button>
       {open ? (
         <div
-          className={`absolute top-[calc(100%+8px)] z-[60] w-[300px] max-w-[calc(100vw-2rem)] rounded-xl border border-[#CDD5E0] bg-white p-2 text-left shadow-[0_18px_44px_-12px_rgba(7,19,48,0.28),0_2px_6px_rgba(7,19,48,0.06)] ${
+          className={`absolute top-[calc(100%+8px)] z-[60] w-[300px] max-w-[calc(100vw-2rem)] rounded-xl border border-[#D7E0EC] bg-white p-2 text-left shadow-[0_18px_44px_-12px_rgba(7,19,48,0.28),0_2px_6px_rgba(7,19,48,0.06)] ${
             align === 'right' ? 'right-0' : 'left-0'
           }`}
         >
@@ -530,7 +530,7 @@ function OptionList({
                 role="option"
                 aria-selected={selected}
                 onClick={() => onSelect(opt.id)}
-                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[14.5px] font-medium text-[#071330] hover:bg-[#F4F8FD]"
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[14.5px] font-medium text-[#071330] hover:bg-white"
               >
                 <span
                   className={`grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] border ${
@@ -601,8 +601,8 @@ function ToggleChip({ label, on, onClick }: { label: string; on: boolean; onClic
       onClick={onClick}
       className={`inline-flex h-[38px] items-center gap-1.5 rounded-[9px] border px-3 text-[14px] ${
         on
-          ? 'border-[#1D5CE5] bg-[#F4F8FD] font-semibold text-[#123E9E] shadow-[inset_0_0_0_1px_#1D5CE5]'
-          : 'border-[#CDD5E0] font-medium text-[#071330]'
+          ? 'border-[#1D5CE5] bg-white font-semibold text-[#123E9E] shadow-[inset_0_0_0_1px_#1D5CE5]'
+          : 'border-[#D7E0EC] font-medium text-[#071330]'
       }`}
     >
       {on ? <Check className="h-3.5 w-3.5" strokeWidth={2.6} aria-hidden /> : null}

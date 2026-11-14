@@ -27,13 +27,13 @@ export function HelperProfileReviews({
                 <div className="flex items-center gap-2 text-[14px]">
                   <Star className="h-4 w-4 fill-[#071330] text-[#071330]" aria-hidden />
                   <span className="font-semibold text-[#071330]">{review.rating}/5</span>
-                  <span className="text-[#64748B]">from {from?.name ?? 'Neighbor'}</span>
-                  <span className="ml-auto text-[12px] text-[#64748B]">
+                  <span className="text-[#4A5568]">from {from?.name ?? 'Neighbor'}</span>
+                  <span className="ml-auto text-[12px] text-[#4A5568]">
                     {relativeTime(review.createdAt)}
                   </span>
                 </div>
                 {review.comment?.trim() ? (
-                  <p className="mt-2 text-[14px] leading-[1.5] text-[#475569]">{review.comment}</p>
+                  <p className="mt-2 text-[14px] leading-[1.5] text-[#4A5568]">{review.comment}</p>
                 ) : null}
               </li>
             )

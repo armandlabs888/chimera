@@ -70,7 +70,7 @@ export function BrowseFreshEmpty({
                 <button
                   type="button"
                   onClick={onEnableAlerts}
-                  className="inline-flex h-9 items-center justify-center rounded-lg bg-white px-3.5 text-[13px] font-semibold text-[#0A2FA8] shadow-[0_2px_8px_rgba(7,19,48,0.12)] transition hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330] sm:h-10 sm:px-4 sm:text-[13.5px]"
+                  className="inline-flex h-9 items-center justify-center rounded-lg bg-white px-3.5 text-[13px] font-semibold text-[#0A2FA8] shadow-[0_2px_8px_rgba(7,19,48,0.12)] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330] sm:h-10 sm:px-4 sm:text-[13.5px]"
                   data-testid="browse-empty-alerts-cta"
                 >
                   {alertsEnabled ? 'Alerts on' : 'Get job alerts'}
@@ -96,7 +96,7 @@ export function BrowseFreshEmpty({
               <>
                 <Link
                   href="/post"
-                  className="inline-flex h-9 items-center justify-center rounded-lg bg-white px-3.5 text-[13px] font-semibold text-[#0A2FA8] shadow-[0_2px_8px_rgba(7,19,48,0.12)] transition hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330] sm:h-10 sm:px-4 sm:text-[13.5px]"
+                  className="inline-flex h-9 items-center justify-center rounded-lg bg-white px-3.5 text-[13px] font-semibold text-[#0A2FA8] shadow-[0_2px_8px_rgba(7,19,48,0.12)] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330] sm:h-10 sm:px-4 sm:text-[13.5px]"
                 >
                   Post the first request
                 </Link>

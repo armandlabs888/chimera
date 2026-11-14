@@ -2017,7 +2017,7 @@ export function BeamProvider({
     return (
       <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-4 text-[#071330]">
         <h1 className="type-h2 text-[#071330]">HouseCall needs configuration</h1>
-        <p className="text-sm text-[#64748B]">
+        <p className="text-sm text-[#4A5568]">
           {backendError ||
             'Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, or enable local demo with NEXT_PUBLIC_BEAM_DEMO_MODE=1.'}
         </p>
@@ -2048,10 +2048,10 @@ export function BeamProvider({
     return (
       <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-4 text-[#071330]">
         <h1 className="type-h2 text-[#071330]">HouseCall backend error</h1>
-        <p className="text-sm text-[#64748B]">
+        <p className="text-sm text-[#4A5568]">
           {backendError || 'Could not load your HouseCall session from Supabase.'}
         </p>
-        <p className="text-xs text-[#64748B]">
+        <p className="text-xs text-[#4A5568]">
           Live mode does not fall back to localStorage. Fix the backend error or use explicit demo
           mode.
         </p>

@@ -23,7 +23,7 @@ export function OfferGateNotice({
 
   return (
     <div
-      className={`flex items-start gap-2.5 rounded-[10px] border border-[#D6E2F5] bg-[#F5F9FF] ${
+      className={`flex items-start gap-2.5 rounded-[10px] border border-[#E3E8EF] bg-white ${
         narrow ? 'px-3.5 py-3' : 'px-4 py-3'
       }`}
       data-testid="offer-gate-notice"

@@ -27,7 +27,7 @@ const sizeStyles: Record<ButtonSize, string> = {
 export const secondaryPillClass =
   'inline-flex min-h-[44px] items-center justify-center rounded-full bg-[#EEF2F7] px-5 text-[14px] font-semibold text-[#071330] hover:bg-[#E3E8EF]'
 export const outlinePillClass =
-  'inline-flex min-h-[40px] items-center justify-center rounded-full border border-[#D7E0EC] bg-white px-4 text-[14px] font-semibold text-[#071330] hover:bg-[#F5F9FF]'
+  'inline-flex min-h-[40px] items-center justify-center rounded-full border border-[#D7E0EC] bg-white px-4 text-[14px] font-semibold text-[#071330] hover:bg-white'
 
 function Spinner() {
   return (

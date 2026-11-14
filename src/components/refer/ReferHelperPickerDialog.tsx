@@ -271,7 +271,7 @@ export function ReferHelperPickerDialog({
                 </div>
                 {error ? (
                   <p
-                    className="mt-3 rounded-[10px] border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] font-semibold text-[#071330]"
+                    className="mt-3 rounded-[10px] border border-[#D7E0EC] bg-white px-3 py-2 text-[13px] font-semibold text-[#071330]"
                     role="alert"
                     data-testid="refer-helper-error"
                   >

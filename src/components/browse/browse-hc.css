@@ -4,15 +4,15 @@
   --hc-ink: #10172a;
   --hc-blue: #1d5ce5;
   --hc-blue-hover: #1649bd;
-  --hc-tint: #f5f9ff;
-  --hc-tint-2: #f4f8fd;
+  --hc-tint: #eef2f7;
+  --hc-tint-2: #eef2f7;
   --hc-line: #e3e8ef;
   --hc-line-2: #d7e0ec;
   --hc-muted: #4a5568;
   --hc-muted-2: #4a5568;
   --hc-sub: #4a5568;
   --hc-page: #ffffff;
-  --hc-selected: #f5f9ff;
+  --hc-selected: #eef2f7;
   --hc-white: #ffffff;
   color: var(--hc-navy);
   background: var(--hc-page);
@@ -397,7 +397,7 @@
   border-radius: 8px;
   border: 1px solid var(--hc-line);
   background: var(--hc-white);
-  box-shadow: 0 6px 18px rgba(7, 19, 48, 0.1);
+  box-shadow: none;
 }
 
 .browse-hc-filter-menu button {
@@ -472,7 +472,7 @@
 }
 
 .browse-hc-job-row:hover {
-  background: #f5f9ff;
+  background: #ffffff;
 }
 
 .browse-hc-job-list > li:last-child .browse-hc-job-row {
@@ -917,7 +917,7 @@
   font-size: 13px;
   line-height: 1.4;
   font-weight: 500;
-  color: var(--hc-muted-2, #6b7384);
+  color: var(--hc-muted-2, #4A5568);
   text-align: center;
 }
 
@@ -934,7 +934,7 @@
   font-size: 13.5px;
   font-weight: 600;
   letter-spacing: -0.01em;
-  box-shadow: 0 10px 28px -12px rgba(7, 19, 48, 0.45);
+  box-shadow: none;
   pointer-events: none;
 }
 
@@ -952,7 +952,7 @@
 }
 
 .browse-hc-btn-cancel:hover {
-  background: #f4f8fd;
+  background: #ffffff;
 }
 
 /* ---- Helpers list + preview (Direction B) ---- */

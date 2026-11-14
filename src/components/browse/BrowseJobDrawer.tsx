@@ -242,7 +242,7 @@ export function BrowseJobDrawer({
         }
       >
         <div>
-          <span className="inline-flex h-6 items-center rounded-md border border-[#D6E2F5] bg-[#F4F8FD] px-2.5 text-[12px] font-semibold tracking-[-0.01em] text-[#123E9E]">
+          <span className="inline-flex h-6 items-center rounded-md border border-[#E3E8EF] bg-white px-2.5 text-[12px] font-semibold tracking-[-0.01em] text-[#123E9E]">
             {categoryLabel}
           </span>
           <h2
@@ -303,7 +303,7 @@ export function BrowseJobDrawer({
         <section>
           <h3 className="text-[15px] font-bold tracking-[-0.015em] text-[#071330]">Location</h3>
           <div className="mt-2.5 flex items-start gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#F4F8FD] text-[#1D5CE5]">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white text-[#1D5CE5]">
               <MapPin className="h-4 w-4" strokeWidth={2} aria-hidden />
             </span>
             <span className="min-w-0 pt-px">
@@ -332,7 +332,7 @@ export function BrowseJobDrawer({
             <label className="block text-[13px] font-semibold text-[#071330]" htmlFor="browse-offer-price">
               Price
             </label>
-            <div className="flex h-11 items-center rounded-[10px] border border-[#CDD5E0] px-3 focus-within:border-[#1D5CE5] focus-within:ring-[3px] focus-within:ring-[#1D5CE5]/15">
+            <div className="flex h-11 items-center rounded-[10px] border border-[#D7E0EC] px-3 focus-within:border-[#1D5CE5] focus-within:ring-[3px] focus-within:ring-[#1D5CE5]/15">
               <span className="text-[15px] font-semibold text-[#3D4A5F]" aria-hidden>
                 $
               </span>
@@ -354,7 +354,7 @@ export function BrowseJobDrawer({
                   className={`h-9 rounded-[9px] px-3 text-[13px] font-semibold ${
                     offerEta === chip
                       ? 'bg-[#071330] text-white'
-                      : 'border border-[#CDD5E0] text-[#071330]'
+                      : 'border border-[#D7E0EC] text-[#071330]'
                   }`}
                 >
                   {chip}
@@ -369,9 +369,9 @@ export function BrowseJobDrawer({
               value={offerNote}
               onChange={(e) => setOfferNote(e.target.value)}
               rows={3}
-              className="w-full rounded-[10px] border border-[#CDD5E0] px-3 py-2 text-[14px] text-[#071330] outline-none focus:border-[#1D5CE5]"
+              className="w-full rounded-[10px] border border-[#D7E0EC] px-3 py-2 text-[14px] text-[#071330] outline-none focus:border-[#1D5CE5]"
             />
-            {offerError ? <p className="text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[#071330]">{offerError}</p> : null}
+            {offerError ? <p className="text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[#071330]">{offerError}</p> : null}
           </form>
         ) : null}
         {pendingOffer && !offerOpen ? (
@@ -380,7 +380,7 @@ export function BrowseJobDrawer({
           </p>
         ) : null}
         {offerError && !offerOpen ? (
-          <p className="text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[#071330]" role="alert" data-testid="browse-offer-error">
+          <p className="text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[#071330]" role="alert" data-testid="browse-offer-error">
             {offerError}
           </p>
         ) : null}
@@ -396,7 +396,7 @@ export function BrowseJobDrawer({
       data-testid="browse-ask-question"
       disabled={askPending}
       onClick={() => void askQuestion()}
-      className={`inline-flex h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-[#CDD5E0] bg-white px-4 text-[14px] font-semibold tracking-[-0.01em] text-[#071330] hover:bg-[#F4F8FD] disabled:opacity-60 ${
+      className={`inline-flex h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-[#D7E0EC] bg-white px-4 text-[14px] font-semibold tracking-[-0.01em] text-[#071330] hover:bg-white disabled:opacity-60 ${
         narrow ? 'w-full' : 'shrink-0'
       }`}
       aria-label="Ask a question"
@@ -413,7 +413,7 @@ export function BrowseJobDrawer({
       disabled={cancelPending}
       aria-busy={cancelPending || undefined}
       onClick={() => void cancelOffer()}
-      className={`inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg border-[1.5px] border-[#071330] bg-white px-[18px] text-[14px] font-semibold tracking-[-0.01em] text-[#071330] hover:bg-[#F4F8FD] disabled:cursor-not-allowed disabled:opacity-60 ${
+      className={`inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg border-[1.5px] border-[#071330] bg-white px-[18px] text-[14px] font-semibold tracking-[-0.01em] text-[#071330] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 ${
         narrow ? 'w-full' : 'shrink-0'
       }`}
     >
@@ -580,4 +580,4 @@ export function BrowseJobDrawer({
 }
 
 const iconBtn =
-  'grid h-9 w-9 place-items-center rounded-lg text-[#071330] transition hover:bg-[#F4F8FD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40'
+  'grid h-9 w-9 place-items-center rounded-lg text-[#071330] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40'

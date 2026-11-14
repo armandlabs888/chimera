@@ -61,13 +61,13 @@ export function FlatRow({
       className={`flat-row group flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 transition ${
         active
           ? 'bg-[rgba(29,92,229,0.1)] text-[#1D5CE5]'
-          : 'text-[#071330] hover:bg-[#F4F8FD]'
+          : 'text-[#071330] hover:bg-white'
       } ${className}`}
     >
       <div className="min-w-0 flex-1">{children}</div>
       {arrow ? (
         <ArrowRight
-          className="h-4 w-4 shrink-0 text-[#94A3B8] transition duration-150 group-hover:translate-x-0.5 group-hover:text-[#1D5CE5]"
+          className="h-4 w-4 shrink-0 text-[#5B6576] transition duration-150 group-hover:translate-x-0.5 group-hover:text-[#1D5CE5]"
           aria-hidden
         />
       ) : null}
@@ -126,7 +126,7 @@ export function SegmentedControl({
 }) {
   return (
     <div
-      className={`flex rounded-lg border border-[rgba(7,19,48,0.1)] bg-[#F4F8FD] p-1 ${className}`}
+      className={`flex rounded-lg border border-[rgba(7,19,48,0.1)] bg-white p-1 ${className}`}
       role="tablist"
     >
       {options.map((opt) => {
@@ -141,7 +141,7 @@ export function SegmentedControl({
             className={`btn-compact flex-1 rounded-md px-3 text-[13px] font-semibold capitalize transition ${
               selected
                 ? 'bg-[#1D5CE5] text-white shadow-sm'
-                : 'text-[#64748B] hover:text-[#071330]'
+                : 'text-[#4A5568] hover:text-[#071330]'
             }`}
           >
             {opt.label}
@@ -168,7 +168,7 @@ export function FilterChip({
       className={`btn-compact h-9 shrink-0 rounded-lg px-3.5 text-[13px] font-semibold transition ${
         active
           ? 'bg-[#1D5CE5] text-white'
-          : 'bg-white text-[#475569] ring-1 ring-[rgba(7,19,48,0.1)] hover:text-[#071330]'
+          : 'bg-white text-[#4A5568] ring-1 ring-[rgba(7,19,48,0.1)] hover:text-[#071330]'
       }`}
     >
       {label}
@@ -193,8 +193,8 @@ export function AppWindow({
 }) {
   return (
     <div className={`elevated overflow-hidden ${className}`}>
-      <div className="flex items-center justify-between gap-3 border-b border-[rgba(7,19,48,0.08)] bg-[#F4F8FD] px-3.5 py-2.5">
-        <p className="truncate type-meta text-[#64748B]">{url}</p>
+      <div className="flex items-center justify-between gap-3 border-b border-[rgba(7,19,48,0.08)] bg-white px-3.5 py-2.5">
+        <p className="truncate type-meta text-[#4A5568]">{url}</p>
         {toolbar}
       </div>
       {children}

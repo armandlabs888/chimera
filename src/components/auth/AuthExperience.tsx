@@ -167,7 +167,7 @@ export function AuthExperience({
       >
         <div className="flex min-h-0 min-w-0 flex-col justify-start overflow-y-auto bg-white px-[22px] py-7 md:justify-center md:px-11 md:py-9">
           <div
-            className="inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#E3E8EF] bg-[#F5F9FF] text-[#1D5CE5]"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#E3E8EF] bg-white text-[#1D5CE5]"
             aria-hidden
           >
             <BeamMark width={18} height={18} color="currentColor" />
@@ -208,7 +208,7 @@ export function AuthExperience({
           onClick={handleClose}
           aria-label="Close"
           data-testid="auth-modal-close"
-          className="absolute right-2.5 top-2.5 z-[3] inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-[#64748B] transition hover:bg-[rgba(7,19,48,0.06)] hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5] focus-visible:ring-offset-2 md:right-3.5 md:top-3.5"
+          className="absolute right-2.5 top-2.5 z-[3] inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-[#4A5568] transition hover:bg-[rgba(7,19,48,0.06)] hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5] focus-visible:ring-offset-2 md:right-3.5 md:top-3.5"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden>
             <path d="M4 4l8 8M12 4l-8 8" />
@@ -247,7 +247,7 @@ function VerifyBadge({ className = '' }: { className?: string }) {
 function AsidePanel() {
   return (
     <aside
-      className="relative hidden min-w-0 flex-col items-center justify-center border-l border-[#E3E8EF] bg-[#F5F9FF] px-6 md:flex"
+      className="relative hidden min-w-0 flex-col items-center justify-center border-l border-[#E3E8EF] bg-white px-6 md:flex"
       data-testid="auth-aside-panel"
     >
       {/* Content group width matches the photo (360px); centered in the panel. */}
@@ -352,7 +352,7 @@ function FormColumn(props: {
         <h1 id={titleId} className="mt-4 font-display text-[28px] font-extrabold leading-[1.15] tracking-[-0.035em] text-[#071330] md:text-[28px]">
           You are in demo mode
         </h1>
-        <p className="mt-2 max-w-[36ch] text-[14px] leading-[22px] text-[#475569]">
+        <p className="mt-2 max-w-[36ch] text-[14px] leading-[22px] text-[#4A5568]">
           Local demo skips live sign-in. Continue into HouseCall with sample marketplace data in this
           browser.
         </p>
@@ -374,7 +374,7 @@ function FormColumn(props: {
         <h1 id={titleId} className="mt-4 font-display text-[28px] font-extrabold leading-[1.15] tracking-[-0.035em] text-[#071330]">
           HouseCall needs configuration
         </h1>
-        <p className="mt-2 max-w-[36ch] text-[14px] leading-[22px] text-[#475569]">
+        <p className="mt-2 max-w-[36ch] text-[14px] leading-[22px] text-[#4A5568]">
           Set Supabase env vars for live auth, or enable demo with{' '}
           <code className="text-[#1D5CE5]">NEXT_PUBLIC_BEAM_DEMO_MODE=1</code>.
         </p>
@@ -396,10 +396,10 @@ function FormColumn(props: {
         <h1 id={titleId} className="mt-4 font-display text-[28px] font-extrabold leading-[1.15] tracking-[-0.035em] text-[#071330]">
           Check your inbox
         </h1>
-        <div className="mt-5 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[14px] text-[#071330]">
+        <div className="mt-5 rounded-lg border border-[#D7E0EC] bg-white px-4 py-3 text-[14px] text-[#071330]">
           We sent a confirmation link to <strong className="text-[#071330]">{email}</strong>.
         </div>
-        {info ? <p className="mt-3 text-[14px] text-[#64748B]">{info}</p> : null}
+        {info ? <p className="mt-3 text-[14px] text-[#4A5568]">{info}</p> : null}
         {alertError ? <ErrorBanner message={alertError} /> : null}
         <div className="mt-6 flex flex-col gap-3">
           <Button type="button" onClick={onResend} disabled={resendPending} className="h-11 w-full rounded-[10px]">
@@ -429,7 +429,7 @@ function FormColumn(props: {
       >
         {tab === 'signin' ? 'Welcome back' : 'Join HouseCall'}
       </h1>
-      <p className="mt-2 max-w-[36ch] text-[14px] leading-[22px] text-[#475569]">
+      <p className="mt-2 max-w-[36ch] text-[14px] leading-[22px] text-[#4A5568]">
         {tab === 'signin'
           ? 'Sign in to post a task or help neighbors nearby.'
           : 'Join HouseCall to post practical jobs or help neighbors nearby.'}
@@ -441,7 +441,7 @@ function FormColumn(props: {
         type="button"
         onClick={onGoogle}
         disabled={pending || googlePending}
-        className="mt-[18px] inline-flex h-11 w-full items-center justify-center gap-2.5 rounded-[10px] border border-[#E3E8EF] bg-white text-[14px] font-semibold text-[#071330] transition hover:bg-[#F8FAFC] disabled:opacity-50 md:mt-6"
+        className="mt-[18px] inline-flex h-11 w-full items-center justify-center gap-2.5 rounded-[10px] border border-[#E3E8EF] bg-white text-[14px] font-semibold text-[#071330] transition hover:bg-white disabled:opacity-50 md:mt-6"
       >
         <GoogleMark />
         {googlePending ? 'Redirecting…' : 'Continue with Google'}
@@ -449,7 +449,7 @@ function FormColumn(props: {
 
       <div className="my-[18px] flex items-center gap-3" aria-hidden>
         <span className="h-px flex-1 bg-[#E3E8EF]" />
-        <span className="text-[13px] text-[#64748B]">or</span>
+        <span className="text-[13px] text-[#4A5568]">or</span>
         <span className="h-px flex-1 bg-[#E3E8EF]" />
       </div>
 
@@ -464,7 +464,7 @@ function FormColumn(props: {
             className={`pb-2.5 text-[14px] font-semibold transition ${
               tab === t
                 ? 'border-b-2 border-[#1D5CE5] text-[#1D5CE5]'
-                : 'border-b-2 border-transparent text-[#64748B] hover:text-[#475569]'
+                : 'border-b-2 border-transparent text-[#4A5568] hover:text-[#4A5568]'
             }`}
           >
             {t === 'signin' ? 'Sign in' : 'Create account'}
@@ -511,7 +511,7 @@ function FormColumn(props: {
             />
             <button
               type="button"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg px-1.5 py-1 text-[13px] font-semibold text-[#64748B] hover:text-[#071330]"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg px-1.5 py-1 text-[13px] font-semibold text-[#4A5568] hover:text-[#071330]"
               onClick={() => setShowPassword((v) => !v)}
               aria-pressed={showPassword}
             >
@@ -522,7 +522,7 @@ function FormColumn(props: {
 
         {alertError ? <ErrorBanner message={alertError} /> : null}
         {info ? (
-          <div className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[14px] text-[#071330]">
+          <div className="rounded-lg border border-[#D7E0EC] bg-white px-4 py-3 text-[14px] text-[#071330]">
             {info}
           </div>
         ) : null}
@@ -536,7 +536,7 @@ function FormColumn(props: {
         </Button>
       </form>
 
-      <p className="mt-[18px] text-center text-[13px] text-[#64748B]">
+      <p className="mt-[18px] text-center text-[13px] text-[#4A5568]">
         {tab === 'signin' ? (
           <>
             Don't have an account?{' '}
@@ -569,7 +569,7 @@ function ErrorBanner({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[14px] text-[#071330]"
+      className="rounded-lg border border-[#D7E0EC] bg-white px-4 py-3 text-[14px] text-[#071330]"
     >
       {message}
     </div>

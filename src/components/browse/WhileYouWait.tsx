@@ -5,7 +5,7 @@ import { Bell, MapPinned, UserRound } from 'lucide-react'
 import type { HelperProfileProgress } from '@/lib/helperProfileProgress'
 
 const cardClass =
-  'rounded-[12px] border border-[#C7D7F0] bg-[#F8FBFF] p-4 shadow-[0_6px_18px_-10px_rgba(29,92,229,0.2)]'
+  'rounded-lg border border-[#E3E8EF] bg-white p-4 shadow-none'
 
 export function WhileYouWait({
   alertsEnabled,
@@ -26,7 +26,7 @@ export function WhileYouWait({
         <h3 id="while-you-wait-heading" className="text-[16px] font-bold text-[#071330]">
           While you wait
         </h3>
-        <p className="text-[13px] font-medium text-[#475569]">Useful next steps nearby</p>
+        <p className="text-[13px] font-medium text-[#4A5568]">Useful next steps nearby</p>
       </div>
 
       <div
@@ -58,12 +58,12 @@ export function WhileYouWait({
             </button>
           </div>
           <h4 className="mt-3 text-[14.5px] font-bold text-[#071330]">In-app job alerts</h4>
-          <p className="mt-1 text-[13px] leading-[1.45] text-[#334155]">
+          <p className="mt-1 text-[13px] leading-[1.45] text-[#4A5568]">
             Save a preference so new nearby jobs stand out when you come back. No push or SMS.
           </p>
           <p
             className={`mt-3 text-[13px] font-bold ${
-              alertsEnabled ? 'text-[#1D5CE5]' : 'text-[#475569]'
+              alertsEnabled ? 'text-[#1D5CE5]' : 'text-[#4A5568]'
             }`}
           >
             {alertsEnabled ? 'Alerts are on' : 'Alerts are off'}
@@ -75,7 +75,7 @@ export function WhileYouWait({
             <MapPinned className="h-4 w-4" strokeWidth={2} aria-hidden />
           </span>
           <h4 className="mt-3 text-[14.5px] font-bold text-[#071330]">Widen your service area</h4>
-          <p className="mt-1 text-[13px] leading-[1.45] text-[#334155]">
+          <p className="mt-1 text-[13px] leading-[1.45] text-[#4A5568]">
             Expand the browse travel distance to catch open jobs a bit farther from your pin.
           </p>
           <button
@@ -99,7 +99,7 @@ export function WhileYouWait({
               </span>
             </div>
             <h4 className="mt-3 text-[14.5px] font-bold text-[#071330]">Finish your helper profile</h4>
-            <p className="mt-1 text-[13px] leading-[1.45] text-[#334155]">
+            <p className="mt-1 text-[13px] leading-[1.45] text-[#4A5568]">
               {profileProgress.missing.length
                 ? `Still needed: ${profileProgress.missing.slice(0, 2).join(', ')}${
                     profileProgress.missing.length > 2 ? '…' : ''

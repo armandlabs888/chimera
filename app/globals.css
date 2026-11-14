@@ -8,7 +8,7 @@
   --color-beam-base: #ffffff;
   --color-beam-canvas: #ffffff;
   --color-beam-surface-1: #ffffff;
-  --color-beam-surface-2: #f4f8fd;
+  --color-beam-surface-2: #ffffff;
   --color-beam-surface-3: #e8eef7;
   --color-beam-ink: #071330;
   --color-beam-raised: #ffffff;
@@ -31,12 +31,12 @@
   --color-beam-danger: #dc2626;
   --color-beam-danger-soft: rgba(220, 38, 38, 0.1);
   --color-beam-warning: #071330;
-  --color-beam-warning-soft: #f5f9ff;
+  --color-beam-warning-soft: #eef2f7;
   --color-beam-royal: #1d5ce5;
   --color-beam-royal-hover: #1649bd;
-  --color-beam-butter: #f5f9ff;
+  --color-beam-butter: #eef2f7;
   --color-beam-butter-deep: #e3e8ef;
-  --color-beam-sky: #f4f8fd;
+  --color-beam-sky: #ffffff;
   /* Keep HouseCall fonts (Uber Move stand-ins). Readability via contrast + size, not a font swap. */
   --font-display: 'UberMove', 'Uber Move', var(--font-dm-sans), system-ui, -apple-system,
     BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -77,7 +77,7 @@
   --link: #1649bd;
   --focus: #1d5ce5;
   --teal-accent: #1d5ce5;
-  --surface-tint: #f5f9ff;
+  --surface-tint: #eef2f7;
   --surface-tint-border: #d7e0ec;
   --btn-secondary-fill: #eef2f7;
 }
@@ -368,7 +368,7 @@
 
   .elevated-hover:hover {
     border-color: var(--hairline-strong);
-    background: #f4f8fd;
+    background: #ffffff;
   }
 
   .flat-row {
@@ -462,7 +462,7 @@
 
   .skeleton-block {
     border-radius: var(--beam-radius-sm);
-    background: linear-gradient(90deg, #e8eef7 0%, #f4f8fd 50%, #e8eef7 100%);
+    background: linear-gradient(90deg, #e8eef7 0%, #eef2f7 50%, #e8eef7 100%);
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.4s ease-in-out infinite;
   }
@@ -553,7 +553,7 @@
   }
 
   .cta-outline:hover {
-    background: #f5f9ff;
+    background: #ffffff;
   }
 
   /* Yelp-mapped chip / rating helpers (HouseCall blue palette). */
@@ -600,7 +600,7 @@
 
   /* Retired decorative sky / butter bands (flat blue-palette surfaces only). */
   .hero-sky {
-    background: #f4f8fd;
+    background: #ffffff;
   }
 
   .hero-clouds {
@@ -609,7 +609,7 @@
 
   .scallop-band {
     position: relative;
-    background: #f5f9ff;
+    background: #ffffff;
   }
 
   .scallop-band::before,

@@ -57,7 +57,7 @@ import type {
 const PAGE_BG = '#FFFFFF'
 const INK = '#071330'
 const MUTED = '#4A5568'
-const NOTICE_BG = '#F5F9FF'
+const NOTICE_BG = '#EEF2F7'
 
 const BUDGET_PRESETS = [40, 60, 80, 100, 120] as const
 const TITLE_MAX = 70
@@ -689,7 +689,7 @@ export function PostRequest() {
               </div>
               {photoError ? (
                 <p
-                  className="mt-2 flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] font-medium text-[#071330]"
+                  className="mt-2 flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[13px] font-medium text-[#071330]"
                   role="alert"
                   data-testid="post-photo-error"
                 >
@@ -700,7 +700,7 @@ export function PostRequest() {
               {photoUrls.length ? (
                 <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5" data-testid="post-photo-thumbs">
                   {photoUrls.map((url, i) => (
-                    <li key={`${url}-${i}`} className="relative aspect-square overflow-hidden rounded-lg bg-[#F1F5F9]">
+                    <li key={`${url}-${i}`} className="relative aspect-square overflow-hidden rounded-lg bg-[#EEF2F7]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={url} alt="" className="h-full w-full object-cover" />
                       <button
@@ -853,7 +853,7 @@ export function PostRequest() {
                       <li key={`${s.label}-${s.lat}-${s.lng}`}>
                         <button
                           type="button"
-                          className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-[14px] hover:bg-[#F4F8FD]"
+                          className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-[14px] hover:bg-white"
                           style={{ color: INK }}
                           onClick={() => pickSuggestion(s)}
                         >
@@ -929,7 +929,7 @@ export function PostRequest() {
                       onClick={() => selectWhenMode(mode.id)}
                       className={`flex items-start gap-3 rounded-lg border px-4 py-3.5 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
                         selected
-                          ? 'border-[#1D5CE5] bg-[#F5F9FF] ring-1 ring-[#1D5CE5]/20'
+                          ? 'border-[#1D5CE5] bg-white ring-1 ring-[#1D5CE5]/20'
                           : 'border-[#E3E8EF] bg-white hover:border-[#CBD5E1] hover:bg-white'
                       }`}
                     >
@@ -959,7 +959,7 @@ export function PostRequest() {
               </div>
 
               <label
-                className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-[#E3E8EF] bg-[#F5F9FF] px-4 py-3.5"
+                className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-[#E3E8EF] bg-white px-4 py-3.5"
                 data-testid="post-needs-help-now"
               >
                 <input
@@ -1045,7 +1045,7 @@ export function PostRequest() {
                   className={`rounded-md px-3.5 py-2 text-[13px] font-semibold transition ${
                     budgetType === 'fixed'
                       ? 'bg-[#1D5CE5] text-white'
-                      : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330] hover:bg-[#F4F8FD]'
+                      : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330] hover:bg-white'
                   }`}
                 >
                   Set a budget
@@ -1059,7 +1059,7 @@ export function PostRequest() {
                   className={`rounded-md px-3.5 py-2 text-[13px] font-semibold transition ${
                     budgetType === 'open'
                       ? 'bg-[#1D5CE5] text-white'
-                      : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330] hover:bg-[#F4F8FD]'
+                      : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330] hover:bg-white'
                   }`}
                 >
                   Open to offers
@@ -1116,7 +1116,7 @@ export function PostRequest() {
 
             {error ? (
               <p
-                className="flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[14px] text-[#071330]"
+                className="flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-white px-4 py-3 text-[14px] text-[#071330]"
                 role="alert"
                 data-testid="post-error"
               >

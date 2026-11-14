@@ -35,7 +35,7 @@ export default function AuthPage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[#F4F8FD]">
+      <div className="flex min-h-dvh items-center justify-center bg-white">
         <p className="text-[22px] font-semibold tracking-tight text-[#071330]">HouseCall</p>
       </div>
     )
@@ -43,7 +43,7 @@ export default function AuthPage() {
 
   if (authUser) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[#F4F8FD]">
+      <div className="flex min-h-dvh items-center justify-center bg-white">
         <p className="type-sec text-beam-muted">Continuing…</p>
       </div>
     )
