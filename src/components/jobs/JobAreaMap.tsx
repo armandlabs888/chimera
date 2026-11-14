@@ -10,8 +10,9 @@ import './job-area-map.css'
 
 const TILE_ZOOM = 14
 const TILE_SIZE = 256
-/** OSM raster tiles: free, no API key. Lazy 3x2 mosaic only (no prefetch). */
+/** OSM raster tiles: free, no API key. Grid size follows the card width. */
 const TILE_TMPL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+const STAR_SIZE = 24
 
 type Props = {
   jobId: string
@@ -29,6 +30,11 @@ function tileUrl(z: number, x: number, y: number): string {
   return TILE_TMPL.replace('{z}', String(z)).replace('{x}', String(x)).replace('{y}', String(y))
 }
 
+function wrapTileIndex(n: number, z: number): number {
+  const max = 2 ** z
+  return ((n % max) + max) % max
+}
+
 /**
  * Lazy, non-interactive neighborhood area map.
  * Hides itself when lat/lng are missing. Coordinates are fuzzed for privacy.
@@ -43,14 +49,37 @@ export function JobAreaMap({
   height = 180,
 }: Props) {
   const rootRef = useRef<HTMLElement>(null)
+  const frameRef = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(
     () => typeof IntersectionObserver === 'undefined',
   )
+  const [frameSize, setFrameSize] = useState({ width: 0, height })
 
   const fuzzed = useMemo(() => {
     if (typeof lat !== 'number' || typeof lng !== 'number') return null
     return fuzzJobCoordinates(jobId, lat, lng, radiusMiles)
   }, [jobId, lat, lng, radiusMiles])
+
+  useEffect(() => {
+    const frame = frameRef.current
+    if (!frame || typeof ResizeObserver === 'undefined') {
+      setFrameSize({ width: frame?.clientWidth ?? 640, height })
+      return
+    }
+    const ro = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (!entry) return
+      const w = Math.round(entry.contentRect.width)
+      const h = Math.round(entry.contentRect.height) || height
+      setFrameSize((prev) => (prev.width === w && prev.height === h ? prev : { width: w, height: h }))
+    })
+    ro.observe(frame)
+    setFrameSize({
+      width: Math.round(frame.clientWidth) || 640,
+      height: Math.round(frame.clientHeight) || height,
+    })
+    return () => ro.disconnect()
+  }, [height, fuzzed])
 
   useEffect(() => {
     if (!fuzzed) return
@@ -72,25 +101,40 @@ export function JobAreaMap({
 
   const mosaic = useMemo(() => {
     if (!fuzzed) return null
+    const frameW = Math.max(frameSize.width, 320)
+    const frameH = Math.max(frameSize.height, height)
     const { x: worldX, y: worldY } = latLngToWorldPixel(fuzzed.lat, fuzzed.lng, TILE_ZOOM)
-    const centerTileX = Math.floor(worldX / TILE_SIZE)
-    const centerTileY = Math.floor(worldY / TILE_SIZE)
-    // 3x3 mosaic so the pin can sit at the frame center with cover.
-    const tilesX = 3
-    const tilesY = 3
-    const originTileX = centerTileX - 1
-    const originTileY = centerTileY - 1
+
+    // Cover the full card with pad so edges stay filled after integer rounding.
+    const pad = TILE_SIZE + 8
+    const minWorldX = worldX - frameW / 2 - pad
+    const maxWorldX = worldX + frameW / 2 + pad
+    const minWorldY = worldY - frameH / 2 - pad
+    const maxWorldY = worldY + frameH / 2 + pad
+
+    const originTileX = Math.floor(minWorldX / TILE_SIZE)
+    const originTileY = Math.floor(minWorldY / TILE_SIZE)
+    const endTileX = Math.floor(maxWorldX / TILE_SIZE)
+    const endTileY = Math.floor(maxWorldY / TILE_SIZE)
+    const tilesX = endTileX - originTileX + 1
+    const tilesY = endTileY - originTileY + 1
+
     const mosaicW = tilesX * TILE_SIZE
     const mosaicH = tilesY * TILE_SIZE
     const markerX = worldX - originTileX * TILE_SIZE
     const markerY = worldY - originTileY * TILE_SIZE
-    const circlePx = metersToPixels(fuzzed.radiusMeters, fuzzed.lat, TILE_ZOOM)
+
+    // Keep the soft circle fully inside the frame so the edge is not clipped.
+    const rawCircle = metersToPixels(fuzzed.radiusMeters, fuzzed.lat, TILE_ZOOM)
+    const maxRadius = Math.min(frameW, frameH) * 0.42
+    const circlePx = Math.min(rawCircle, maxRadius)
 
     const tiles: { key: string; src: string; left: number; top: number }[] = []
     for (let ty = 0; ty < tilesY; ty += 1) {
       for (let tx = 0; tx < tilesX; tx += 1) {
-        const x = originTileX + tx
+        const x = wrapTileIndex(originTileX + tx, TILE_ZOOM)
         const y = originTileY + ty
+        if (y < 0 || y >= 2 ** TILE_ZOOM) continue
         tiles.push({
           key: `${TILE_ZOOM}/${x}/${y}`,
           src: tileUrl(TILE_ZOOM, x, y),
@@ -101,7 +145,7 @@ export function JobAreaMap({
     }
 
     return { tiles, mosaicW, mosaicH, markerX, markerY, circlePx }
-  }, [fuzzed])
+  }, [fuzzed, frameSize.width, frameSize.height, height])
 
   if (!fuzzed || !mosaic) return null
 
@@ -114,16 +158,15 @@ export function JobAreaMap({
       data-testid="job-area-map"
       aria-label={`Approximate area near ${label}`}
     >
-      <div className="job-area-map-frame" style={{ height }}>
+      <div ref={frameRef} className="job-area-map-frame" style={{ height }}>
         {visible ? (
           <div
             className="job-area-map-mosaic"
             style={{
               width: mosaic.mosaicW,
               height: mosaic.mosaicH,
-              // Pin the fuzzed point to the frame center (not the mosaic center).
-              left: `calc(50% - ${mosaic.markerX}px)`,
-              top: `calc(50% - ${mosaic.markerY}px)`,
+              // Integer translate + 2px overscan avoids hairline gaps at rounded edges.
+              transform: `translate(${Math.round(frameSize.width / 2 - mosaic.markerX) - 2}px, ${Math.round(frameSize.height / 2 - mosaic.markerY) - 2}px)`,
             }}
             aria-hidden
           >
@@ -154,13 +197,14 @@ export function JobAreaMap({
               className="job-area-map-star"
               style={{ left: mosaic.markerX, top: mosaic.markerY }}
             >
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+              <svg viewBox="0 0 24 24" width={STAR_SIZE} height={STAR_SIZE} aria-hidden>
                 <path
                   d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.4l1.1-6.5L2.6 9.3l6.5-.9L12 2.5z"
                   fill="#1D5CE5"
                   stroke="#FFFFFF"
-                  strokeWidth="1.8"
+                  strokeWidth="2.25"
                   strokeLinejoin="round"
+                  paintOrder="stroke fill"
                 />
               </svg>
             </span>
