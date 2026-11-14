@@ -7,6 +7,8 @@ import type {
   HelperVerification,
   HelperVerificationStatus,
   HelpRequest,
+  JobReferral,
+  JobReferralStatus,
   Message,
   MessageThread,
   NeighborhoodId,
@@ -28,6 +30,7 @@ type MessageRow = Database['public']['Tables']['messages']['Row']
 type ReviewRow = Database['public']['Tables']['reviews']['Row']
 type InviteRow = Database['public']['Tables']['request_invites']['Row']
 type NotificationRow = Database['public']['Tables']['notifications']['Row']
+type JobReferralRow = Database['public']['Tables']['job_referrals']['Row']
 
 export function mapProfile(row: ProfileRow, currentUserId?: string): Person {
   const skills = (row.skills ?? []) as CategoryId[]
@@ -172,6 +175,19 @@ export function mapNotification(row: NotificationRow): BeamNotification {
     requestId: row.request_id,
     readAt: row.read_at,
     createdAt: row.created_at,
+  }
+}
+
+export function mapJobReferral(row: JobReferralRow | Record<string, unknown>): JobReferral {
+  const r = row as Record<string, unknown>
+  return {
+    id: String(r.id),
+    jobId: String(r.job_id),
+    referrerId: String(r.referrer_id),
+    helperId: String(r.helper_id),
+    note: String(r.note ?? ''),
+    status: (r.status as JobReferralStatus) || 'pending',
+    createdAt: String(r.created_at),
   }
 }
 

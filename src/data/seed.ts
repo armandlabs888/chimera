@@ -3,6 +3,7 @@ import type {
   BeamNotification,
   HelperVerification,
   HelpRequest,
+  JobReferral,
   Message,
   MessageThread,
   Offer,
@@ -408,6 +409,18 @@ const threads: MessageThread[] = [
     participantIds: [CURRENT_USER_ID, 'p-devon'],
     lastMessageAt: minutesAgo(40),
   },
+  {
+    id: 'th-3',
+    requestId: null,
+    participantIds: [CURRENT_USER_ID, 'p-maya'],
+    lastMessageAt: hoursAgo(20),
+  },
+  {
+    id: 'th-4',
+    requestId: null,
+    participantIds: [CURRENT_USER_ID, 'p-jordan'],
+    lastMessageAt: hoursAgo(30),
+  },
 ]
 
 const messages: Message[] = [
@@ -451,6 +464,22 @@ const messages: Message[] = [
     body: 'That timing is great. Door code is in the offer notes once I accept. Thanks!',
     createdAt: minutesAgo(40),
   },
+  {
+    id: 'msg-6',
+    threadId: 'th-3',
+    requestId: null,
+    senderId: CURRENT_USER_ID,
+    body: 'Thanks again for the cleaning tip last week, Maya.',
+    createdAt: hoursAgo(20),
+  },
+  {
+    id: 'msg-7',
+    threadId: 'th-4',
+    requestId: null,
+    senderId: 'p-jordan',
+    body: 'Anytime. Ping me if you need another set of hands.',
+    createdAt: hoursAgo(30),
+  },
 ]
 
 const reviews: Review[] = [
@@ -475,6 +504,55 @@ const reviews: Review[] = [
 ]
 
 const invites: RequestInvite[] = []
+
+/** Owner suggestions on Alex's open job + one inbound referral for the current helper. */
+const jobReferrals: JobReferral[] = [
+  {
+    id: 'ref-1',
+    jobId: 'req-you-open',
+    referrerId: 'p-jordan',
+    helperId: 'p-maya',
+    note: 'He fixed my fence, great work',
+    status: 'pending',
+    createdAt: minutesAgo(55),
+  },
+  {
+    id: 'ref-2',
+    jobId: 'req-you-open',
+    referrerId: 'p-jordan',
+    helperId: 'p-sam',
+    note: 'Super careful with pets at my place last month.',
+    status: 'pending',
+    createdAt: minutesAgo(50),
+  },
+  {
+    id: 'ref-3',
+    jobId: 'req-you-open',
+    referrerId: 'p-jordan',
+    helperId: 'p-casey',
+    note: 'Reliable and on time for a move I posted.',
+    status: 'pending',
+    createdAt: minutesAgo(48),
+  },
+  {
+    id: 'ref-4',
+    jobId: 'req-you-open',
+    referrerId: 'p-devon',
+    helperId: 'p-riley',
+    note: 'Helped me hang lights for a small party.',
+    status: 'pending',
+    createdAt: minutesAgo(45),
+  },
+  {
+    id: 'ref-inbound-1',
+    jobId: 'req-1',
+    referrerId: 'p-jordan',
+    helperId: CURRENT_USER_ID,
+    note: 'Alex moved my couch last month. Strong and careful.',
+    status: 'pending',
+    createdAt: minutesAgo(8),
+  },
+]
 
 const notifications: BeamNotification[] = [
   {
@@ -509,6 +587,17 @@ const notifications: BeamNotification[] = [
     requestId: 'req-1',
     readAt: minutesAgo(5),
     createdAt: minutesAgo(40),
+  },
+  {
+    id: 'notif-referral-1',
+    userId: CURRENT_USER_ID,
+    kind: 'job_referral',
+    title: 'Jordan suggested you for Help move a couch upstairs',
+    body: 'Alex moved my couch last month. Strong and careful.',
+    href: '/requests/req-1',
+    requestId: 'req-1',
+    readAt: null,
+    createdAt: minutesAgo(8),
   },
 ]
 
@@ -599,6 +688,7 @@ export function createSeedState(): AppState {
     invites: structuredClone(invites),
     savedHelperIds: ['p-maya'],
     notifications: structuredClone(notifications),
+    jobReferrals: structuredClone(jobReferrals),
     helperVerification: structuredClone(demoCurrentVerification),
     helperVerifications: structuredClone([
       demoCurrentVerification,

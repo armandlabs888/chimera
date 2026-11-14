@@ -2,38 +2,26 @@
 
 import { UserPlus } from 'lucide-react'
 import { useCallback, useState } from 'react'
-import { referHelperShareText } from '@/lib/displayTitle'
+import { ReferHelperPickerDialog } from '@/components/refer/ReferHelperPickerDialog'
 import './browse-hc.css'
-import { ReferHelperShareDialog } from './ReferHelperShareDialog'
 
-export function useReferHelperShare(jobId: string, title: string) {
+export function useReferHelperShare(
+  jobId: string,
+  title: string,
+  jobOwnerId?: string,
+) {
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  const shareUrl = useCallback(() => {
-    if (typeof window === 'undefined') return ''
-    return `${window.location.origin}/requests/${jobId}`
-  }, [jobId])
-
-  const referHelper = useCallback(async () => {
-    const url = shareUrl()
-    const text = referHelperShareText(title)
-    try {
-      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-        await navigator.share({ title, text, url })
-        return
-      }
-    } catch {
-      // Dismissed or unavailable; fall through to the copy dialog.
-    }
+  const referHelper = useCallback(() => {
     setDialogOpen(true)
-  }, [shareUrl, title])
+  }, [])
 
   const dialog = (
-    <ReferHelperShareDialog
+    <ReferHelperPickerDialog
       open={dialogOpen}
-      title={title}
-      url={shareUrl()}
-      shareText={referHelperShareText(title)}
+      jobId={jobId}
+      jobTitle={title}
+      jobOwnerId={jobOwnerId || ''}
       onClose={() => setDialogOpen(false)}
     />
   )
@@ -74,15 +62,17 @@ export function ReferHelperHint() {
 export function ReferHelperFooterActions({
   jobId,
   title,
+  jobOwnerId,
 }: {
   jobId: string
   title: string
+  jobOwnerId: string
 }) {
-  const { referHelper, dialog } = useReferHelperShare(jobId, title)
+  const { referHelper, dialog } = useReferHelperShare(jobId, title, jobOwnerId)
   return (
     <>
       <div className="browse-hc-detail-actions browse-hc-detail-actions--refer">
-        <ReferHelperButton onClick={() => void referHelper()} />
+        <ReferHelperButton onClick={() => referHelper()} />
       </div>
       <ReferHelperHint />
       {dialog}

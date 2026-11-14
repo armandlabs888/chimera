@@ -79,7 +79,11 @@ export function BrowseJobDrawer({
   )
   const verified = canMakeOffer(helperVerification)
   const gateKind = offerGateKind(helperVerification)
-  const { referHelper, dialog: referDialog } = useReferHelperShare(request.id, request.title)
+  const { referHelper, dialog: referDialog } = useReferHelperShare(
+    request.id,
+    request.title,
+    request.requesterId,
+  )
   const [offerOpen, setOfferOpen] = useState(false)
   const [offerPrice, setOfferPrice] = useState(() =>
     myOffer ? String(myOffer.price) : request.budget > 0 ? String(Math.round(request.budget)) : '',
