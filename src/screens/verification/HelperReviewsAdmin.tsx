@@ -135,12 +135,14 @@ export function HelperReviewsAdmin() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-white text-[#071330]" data-testid="helper-reviews-admin">
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-[#E3E8EF] px-5">
-        <BeamWordmark markWidth={20} markHeight={20} wordClassName="!text-[20px]" />
-        <h1 className="text-[14px] font-semibold text-[#3D4A5F]">Helper reviews</h1>
+      <header className="shrink-0 border-b border-[#E3E8EF]">
+        <div className="beam-container flex h-14 items-center gap-3">
+          <BeamWordmark markWidth={20} markHeight={20} wordClassName="!text-[20px]" />
+          <h1 className="text-[14px] font-semibold text-[#3D4A5F]">Helper reviews</h1>
+        </div>
       </header>
 
-      <div className="mx-auto grid min-h-0 w-full max-w-[1200px] flex-1 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <div className="beam-container grid min-h-0 flex-1 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="border-b border-[#E3E8EF] lg:border-b-0 lg:border-r">
           <p className="px-4 pb-2 pt-4 text-[12px] font-semibold uppercase tracking-[0.06em] text-[#5B6575]">
             Needs review · {queue.length}

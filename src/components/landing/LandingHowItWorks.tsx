@@ -35,7 +35,7 @@ export function LandingHowItWorks() {
       className="relative overflow-hidden bg-[#F4F8FD] py-12 md:py-14"
       data-testid="how-it-works"
     >
-      <div className="relative mx-auto max-w-[1200px] px-5 md:px-8">
+      <div className="beam-container relative">
         <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#1D5CE5]">
           How it works
         </p>

@@ -191,7 +191,7 @@ export function RequestDetail() {
 
   if (!request || !categoryLabel || !requester) {
     return (
-      <div className="py-10" data-testid="request-not-found">
+      <div className="beam-container py-10" data-testid="request-not-found">
         <div className="rounded-[10px] border border-[#C7D7F0] bg-[#FBFDFF] px-6 py-12 text-center">
           <h1 className="type-h3 text-[#071330]">This request isn&apos;t available</h1>
           <p className="mx-auto mt-2 max-w-sm type-sec text-beam-muted">
@@ -304,7 +304,7 @@ export function RequestDetail() {
 
   return (
     <div
-      className="mx-auto max-w-[1160px] space-y-5 py-2 pb-16 sm:py-4"
+      className="beam-container space-y-5 py-2 pb-16 sm:py-4"
       data-testid="request-detail-root"
     >
       <Link

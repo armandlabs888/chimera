@@ -169,7 +169,7 @@ export function You() {
 
   return (
     <div className="account-hc account-hc-you-page" data-testid="you-page">
-      <div className="beam-container pb-10 pt-6 sm:pt-8">
+      <div className="beam-container pb-10 pt-6 sm:pt-8" data-testid="you-page-shell">
         <HelperProfileHero
           person={currentUser}
           showHelperMeta={isHelper}

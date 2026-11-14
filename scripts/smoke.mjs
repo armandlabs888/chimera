@@ -967,11 +967,15 @@ async function checkLandingBrowser() {
       const g = await page.evaluate((vpWidth) => {
         const html = document.documentElement
         const topnavInner =
+          document.querySelector('[data-testid="app-topnav"] .browse-hc-wrap') ||
+          document.querySelector('[data-testid="landing-nav"] .browse-hc-wrap') ||
           document.querySelector('[data-testid="app-topnav"] .beam-container') ||
           document.querySelector('[data-testid="landing-nav"] .beam-container') ||
-          document.querySelector('main.beam-container') ||
+          document.querySelector('main .browse-hc-wrap') ||
+          document.querySelector('main .beam-container') ||
+          document.querySelector('.browse-hc-wrap') ||
           document.querySelector('.beam-container')
-        // Padding-based gutters: container often spans full viewport; measure content inset.
+        // Shared shell uses margin gutters (24px desktop / 16px mobile). Measure content inset.
         let leftGutter = Infinity
         let rightGutter = Infinity
         if (topnavInner) {
@@ -1006,13 +1010,10 @@ async function checkLandingBrowser() {
       assert.equal(g.overflowX, false, `no x-overflow browse @${width}`)
       assert.equal(g.broken, 0, `no broken images browse @${width}`)
       if (width === 1440) {
+        // Shared Browse shell: 1296px content -> (1440-1296)/2 = 72px side gutters.
         assert.ok(
-          g.leftGutter <= 40,
-          `desktop left gutter <= 40px (got ${g.leftGutter})`,
-        )
-        assert.ok(
-          g.leftGutter >= 16,
-          `desktop left gutter >= 16px (got ${g.leftGutter})`,
+          g.leftGutter >= 70 && g.leftGutter <= 74,
+          `desktop left gutter ~72px for 1296 shell (got ${g.leftGutter})`,
         )
         assert.ok(
           Math.abs(g.leftGutter - g.rightGutter) <= 2,

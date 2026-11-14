@@ -1,6 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
+import { PageContainer } from '@/components/PageContainer'
 import {
   PublicHelperNotFound,
   PublicHelperProfileView,
@@ -29,8 +30,8 @@ export function HelperProfile() {
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
 
   return (
-    <div className="beam-container pb-24 pt-4 sm:pb-10 sm:pt-6 md:pb-10">
+    <PageContainer className="pb-24 pt-4 sm:pb-10 sm:pt-6 md:pb-10">
       <PublicHelperProfileView person={person} reviews={reviews} />
-    </div>
+    </PageContainer>
   )
 }

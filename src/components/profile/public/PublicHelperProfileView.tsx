@@ -664,7 +664,7 @@ export function PublicHelperNotFound() {
   const hidePeerDiscovery = hidesPeerHelperDiscovery(currentUser, isGuest)
   const browseFallbackHref = hidePeerDiscovery ? '/browse' : '/browse?tab=people'
   return (
-    <div className="py-10" data-testid="public-helper-not-found">
+    <div className="beam-container py-10" data-testid="public-helper-not-found">
       <EmptyState
         titleAs="h1"
         title="This profile isn't available"
