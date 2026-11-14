@@ -216,7 +216,8 @@ export interface Offer {
 export interface Message {
   id: string
   threadId: string
-  requestId: string
+  /** Null for direct (jobless) conversations. */
+  requestId: string | null
   senderId: string
   body: string
   createdAt: string
@@ -225,7 +226,8 @@ export interface Message {
 
 export interface MessageThread {
   id: string
-  requestId: string
+  /** Null for direct (jobless) conversations between two neighbors. */
+  requestId: string | null
   participantIds: [string, string]
   lastMessageAt: string
 }

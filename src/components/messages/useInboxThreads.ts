@@ -27,7 +27,7 @@ export function useInboxThreads() {
       .map((thread) => {
         const otherId = thread.participantIds.find((id) => id !== currentUser.id)
         const other = otherId ? getPerson(otherId) : undefined
-        const request = getRequest(thread.requestId)
+        const request = thread.requestId ? getRequest(thread.requestId) : undefined
         const last = state.messages
           .filter((message) => message.threadId === thread.id)
           .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))[0]
@@ -43,7 +43,7 @@ export function useInboxThreads() {
           request,
           last,
           unread,
-          jobTitle: request?.title?.trim() || 'Request',
+          jobTitle: request?.title?.trim() || '',
         }
       })
   }, [

@@ -120,7 +120,7 @@ export function mapOffer(row: OfferRow): Offer {
 export function mapThread(row: ThreadRow): MessageThread {
   return {
     id: row.id,
-    requestId: row.request_id,
+    requestId: row.request_id ?? null,
     participantIds: [row.participant_a, row.participant_b],
     lastMessageAt: row.last_message_at,
   }
@@ -130,7 +130,7 @@ export function mapMessage(row: MessageRow): Message {
   return {
     id: row.id,
     threadId: row.thread_id,
-    requestId: row.request_id,
+    requestId: row.request_id ?? null,
     senderId: row.sender_id,
     body: row.body,
     createdAt: row.created_at,

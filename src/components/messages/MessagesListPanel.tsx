@@ -168,10 +168,15 @@ export function MessagesListPanel() {
                             {when}
                           </span>
                         </span>
-                        <span className="mt-0.5 flex min-w-0 items-center gap-1 text-[12.5px] font-medium text-[#1E3A6E]">
-                          <Briefcase className="h-[13px] w-[13px] shrink-0 text-[#1D5CE5]" strokeWidth={1.9} />
-                          <span className="truncate">{row.jobTitle}</span>
-                        </span>
+                        {row.thread.requestId && row.jobTitle ? (
+                          <span className="mt-0.5 flex min-w-0 items-center gap-1 text-[12.5px] font-medium text-[#1E3A6E]">
+                            <Briefcase
+                              className="h-[13px] w-[13px] shrink-0 text-[#1D5CE5]"
+                              strokeWidth={1.9}
+                            />
+                            <span className="truncate">{row.jobTitle}</span>
+                          </span>
+                        ) : null}
                         <span className="mt-0.5 flex items-center gap-2">
                           <span
                             className={`min-w-0 flex-1 truncate text-[13.5px] ${

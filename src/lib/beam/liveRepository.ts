@@ -489,6 +489,17 @@ export async function ensureLiveThread(
   return data.id
 }
 
+export async function ensureLiveDirectThread(
+  client: Client,
+  otherUserId: string,
+): Promise<string> {
+  const { data, error } = await client.rpc('ensure_direct_thread', {
+    p_other_user_id: otherUserId,
+  })
+  throwOnError(error, 'Ensure direct thread')
+  return data.id
+}
+
 export async function sendLiveMessage(
   client: Client,
   userId: string,
@@ -497,9 +508,15 @@ export async function sendLiveMessage(
 ): Promise<void> {
   const thread = await client.from('message_threads').select('*').eq('id', threadId).single()
   throwOnError(thread.error, 'Load thread')
+  // Explicit null for DMs (never omit / never empty string) so RLS
+  // `is not distinct from` matches thread.request_id.
+  const requestId =
+    thread.data.request_id == null || thread.data.request_id === ''
+      ? null
+      : thread.data.request_id
   const { error } = await client.from('messages').insert({
     thread_id: threadId,
-    request_id: thread.data.request_id,
+    request_id: requestId,
     sender_id: userId,
     body: body.trim(),
   })

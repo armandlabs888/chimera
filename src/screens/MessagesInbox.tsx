@@ -24,7 +24,7 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
       .map((t) => {
         const otherId = t.participantIds.find((id) => id !== currentUser.id)
         const other = otherId ? getPerson(otherId) : undefined
-        const request = getRequest(t.requestId)
+        const request = t.requestId ? getRequest(t.requestId) : undefined
         const last = state.messages
           .filter((m) => m.threadId === t.id)
           .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))[0]
@@ -146,7 +146,7 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
                                   request.category,
                                   request.categoryCustom,
                                 ) || request.title
-                              : 'Request'}
+                              : 'Direct message'}
                           </p>
                         ) : null}
                         <p className="mt-0.5 truncate text-[13px] text-[#64748B]">

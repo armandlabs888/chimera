@@ -66,6 +66,7 @@ function usesBrowseHeader(pathname: string, onboardingEdit: boolean) {
     pathname === '/home' ||
     pathname === '/verify' ||
     pathname.startsWith('/verify/') ||
+    pathname.startsWith('/people/') ||
     pathname.startsWith('/onboarding/helper') ||
     (pathname === '/onboarding' && onboardingEdit)
   )

@@ -21,7 +21,8 @@
     "test:live": "node --env-file=.env.local scripts/live-persistence.mjs",
     "test:browse-v3": "node scripts/browse-v3-qa.mjs",
     "test:cancel-offer": "node scripts/cancel-offer-qa.mjs",
-    "test:helper-verification": "node scripts/helper-verification-qa.mjs"
+    "test:helper-verification": "node scripts/helper-verification-qa.mjs",
+    "test:helper-public-profile": "node scripts/helper-public-profile-qa.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
