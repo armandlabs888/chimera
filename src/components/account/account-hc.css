@@ -815,6 +815,128 @@
   gap: 8px;
 }
 
+/* Optional urgent SMS prefs: match helper-summary card padding + heading. */
+.account-hc-sms-settings {
+  padding: 22px 24px;
+}
+
+.account-hc-sms-settings > h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--hc-navy);
+}
+
+.account-hc-sms-settings > .meta {
+  margin-top: 4px;
+  margin-bottom: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--hc-muted);
+}
+
+.account-hc-sms-settings .account-hc-field:first-of-type {
+  margin-top: 16px;
+}
+
+.account-hc-sms-code-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.account-hc-sms-code-row .account-hc-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 160px;
+  height: 44px;
+}
+
+.account-hc-sms-code-row .account-hc-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  height: 44px;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+.account-hc-sms-opt-in {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 18px;
+  cursor: pointer;
+}
+
+.account-hc-sms-opt-in input[type='checkbox'] {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--hc-blue);
+  flex-shrink: 0;
+}
+
+.account-hc-sms-opt-in .opt-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hc-navy);
+}
+
+.account-hc-sms-opt-in .opt-hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--hc-muted);
+}
+
+.account-hc-sms-prefs-row {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+@media (min-width: 640px) {
+  .account-hc-sms-prefs-row {
+    grid-template-columns: 1.4fr 1fr;
+    align-items: start;
+  }
+}
+
+.account-hc-sms-quiet-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.account-hc-sms-quiet-pair .account-hc-field,
+.account-hc-sms-prefs-row .account-hc-field {
+  margin-top: 0;
+}
+
+.account-hc-sms-settings .sms-msg {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--hc-blue);
+}
+
+.account-hc-sms-settings .sms-error {
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--hc-red);
+}
+
+.account-hc-sms-settings .sms-locked {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--hc-muted);
+}
+
 .account-hc-form-card {
   padding: 28px 32px 32px;
   margin: 22px auto 0;
