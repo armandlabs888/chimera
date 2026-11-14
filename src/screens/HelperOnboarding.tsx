@@ -1,6 +1,6 @@
 'use client'
 
-import { MapPin } from 'lucide-react'
+import { Check, ChevronLeft, MapPin, Phone, Star } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
@@ -11,7 +11,7 @@ import {
 import { Avatar, Button, InlineBanner } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { CategorySelect } from '@/components/CategorySelect'
-import { normalizeOtherCustom, type ServiceCategoryId } from '@/lib/taxonomy'
+import { normalizeOtherCustom, formatCategoryLabel, type ServiceCategoryId } from '@/lib/taxonomy'
 import { uploadBeamMedia } from '@/lib/beam/storageUpload'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -21,8 +21,8 @@ import {
   type UsCity,
 } from '@/lib/usPlaces'
 import type { AvailabilitySlot, RateType } from '@/types'
-import { HelperUrgentSmsSettings } from '@/components/account/HelperUrgentSmsSettings'
 import '@/components/account/account-hc.css'
+import '@/components/account/helper-profile-hc.css'
 
 const SLOTS: { id: AvailabilitySlot; label: string }[] = [
   { id: 'mornings', label: 'Mornings' },
@@ -33,9 +33,17 @@ const SLOTS: { id: AvailabilitySlot; label: string }[] = [
 
 const RADIUS_OPTIONS = [3, 5, 10, 15, 25] as const
 
+const SMS_SETTINGS_HREF = '/you?tab=helper#helper-urgent-sms'
+
 const inputClass = 'account-hc-input'
 
 const labelClass = 'account-hc-label'
+
+const TIPS = [
+  'Add a clear photo of yourself',
+  'List the tasks you do best',
+  'Keep Available now on when you can take same-day jobs',
+] as const
 
 export function HelperOnboarding() {
   const { currentUser, updateProfile, mode, authUser, ready } = useBeam()
@@ -75,6 +83,7 @@ export function HelperOnboarding() {
   const [uploading, setUploading] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+  const [smsTextsOn, setSmsTextsOn] = useState(false)
 
   useEffect(() => {
     if (!ready || hydratedCityRef.current) return
@@ -133,6 +142,33 @@ export function HelperOnboarding() {
     currentUser.stateCode,
     currentUser.locationLabel,
   ])
+
+  useEffect(() => {
+    if (mode !== 'live' || !authUser?.id) {
+      setSmsTextsOn(false)
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      try {
+        const supabase = createClient()
+        const { data } = await supabase
+          .from('helper_urgent_sms_settings')
+          .select('sms_opt_in, phone_e164, phone_confirmed_at')
+          .eq('profile_id', authUser.id)
+          .maybeSingle()
+        if (cancelled) return
+        setSmsTextsOn(
+          Boolean(data?.sms_opt_in && data.phone_e164 && data.phone_confirmed_at),
+        )
+      } catch {
+        if (!cancelled) setSmsTextsOn(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [mode, authUser?.id])
 
   function toggleSkill(id: ServiceCategoryId) {
     setSkills((prev) => {
@@ -306,342 +342,451 @@ export function HelperOnboarding() {
   const editing = Boolean(currentUser.isHelper)
   const photoLabel = avatar ? 'Change photo' : 'Upload photo'
 
-  return (
-    <div className="account-hc" data-testid="helper-onboarding-root">
-      <div className="account-hc-wrap account-hc-page">
-        <div className="account-hc-title-row account-hc-form-narrow">
-          <div>
-            <Link
-              href="/browse"
-              className="account-hc-back-link"
-              data-testid="helper-onboarding-back"
-            >
-              ← Back to browse
-            </Link>
-            <h1 className="account-hc-hero-title">
-              {editing ? 'Edit helper profile' : 'Set up your helper profile'}
-            </h1>
-            <p className="account-hc-hero-sub">
-              Choose the tasks you take, your service area, and your rate.
-            </p>
+  const previewName = name.trim() || currentUser.name || 'You'
+  const previewCity =
+    city?.name ||
+    customLocationLabel.split(',')[0]?.trim() ||
+    currentUser.city ||
+    ''
+  const previewRate =
+    rateType === 'quote'
+      ? 'Contact for quote'
+      : hourlyRate.trim()
+        ? `$${Math.round(Number(hourlyRate)) || hourlyRate}/hr`
+        : ''
+  const showRating = currentUser.rating > 0 && currentUser.reviewCount > 0
+  const previewSkills = skills.map((skill) =>
+    formatCategoryLabel(skill, skill === 'other' ? otherSkillLabel : null),
+  )
+  const previewBio = bio.trim()
+
+  const sidebar = (
+    <>
+      <div
+        className="account-hc-card account-hc-helper-side-card account-hc-helper-preview-card"
+        data-testid="helper-profile-preview"
+      >
+        <h2>How neighbors see you</h2>
+        <div className="account-hc-helper-preview-who">
+          <Avatar src={avatar || undefined} name={previewName} size={52} />
+          <div className="min-w-0">
+            <p className="name truncate">{previewName}</p>
+            {previewCity ? (
+              <p className="loc">
+                <MapPin className="h-3 w-3" strokeWidth={2.25} aria-hidden />
+                {previewCity}
+              </p>
+            ) : null}
           </div>
         </div>
-
-        <form
-          onSubmit={onSubmit}
-          className="account-hc-card account-hc-form-card"
-          data-testid="helper-onboarding-form"
-          noValidate
-        >
-          {error ? (
-            <div className="mb-2">
-              <InlineBanner tone="error">{error}</InlineBanner>
-            </div>
+        <div className="account-hc-helper-preview-meta">
+          {previewRate ? <span className="rate">{previewRate}</span> : null}
+          {previewRate && showRating ? (
+            <span className="dot" aria-hidden>
+              ·
+            </span>
           ) : null}
+          {showRating ? (
+            <>
+              <span className="rating">
+                <Star className="h-3.5 w-3.5" aria-hidden />
+                {currentUser.rating.toFixed(1)}
+              </span>
+              <span className="reviews">
+                ({currentUser.reviewCount}{' '}
+                {currentUser.reviewCount === 1 ? 'review' : 'reviews'})
+              </span>
+            </>
+          ) : null}
+          {availableNow ? (
+            <span className="account-hc-helper-avail-pill">
+              <b aria-hidden /> Available now
+            </span>
+          ) : null}
+        </div>
+        {previewSkills.length ? (
+          <div className="account-hc-helper-preview-skills">
+            {previewSkills.map((label) => (
+              <span key={label}>{label}</span>
+            ))}
+          </div>
+        ) : null}
+        {previewBio ? <p className="account-hc-helper-preview-bio">{previewBio}</p> : null}
+      </div>
 
-          <section aria-labelledby="helper-section-profile">
-            <h2 id="helper-section-profile" className="sr-only">
-              Profile
-            </h2>
+      <div
+        className="account-hc-card account-hc-helper-urgent-card"
+        data-testid="helper-urgent-sms-cta"
+      >
+        <div className="account-hc-helper-urgent-head">
+          <span className="account-hc-helper-urgent-ico" aria-hidden>
+            <Phone className="h-[18px] w-[18px]" strokeWidth={2} />
+          </span>
+          <h2>{smsTextsOn ? 'Texts are on' : 'Get urgent jobs by text'}</h2>
+        </div>
+        <p>
+          {smsTextsOn
+            ? 'You get a text when a neighbor nearby needs help now. Manage preferences anytime.'
+            : 'Optional. Be the first to know when a neighbor nearby needs help now. Off until you turn it on.'}
+        </p>
+        <Link
+          href={SMS_SETTINGS_HREF}
+          className="account-hc-helper-urgent-btn"
+          data-testid="helper-urgent-sms-cta-link"
+        >
+          {smsTextsOn ? 'Manage texts' : 'Turn on texts'}
+        </Link>
+      </div>
 
-            <div className="account-hc-photo-row">
-              <div className="shrink-0 overflow-hidden rounded-full">
-                <Avatar src={avatar || undefined} name={name || currentUser.name || 'You'} size={64} />
+      <div className="account-hc-card account-hc-helper-side-card account-hc-helper-tips-card">
+        <h2>Tips for getting hired</h2>
+        <ul className="account-hc-helper-tips-list">
+          {TIPS.map((tip) => (
+            <li key={tip}>
+              <Check className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+              <span>{tip}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  )
+
+  return (
+    <div className="account-hc" data-testid="helper-onboarding-root">
+      <div className="account-hc-wrap account-hc-page account-hc-helper-edit">
+        <Link
+          href="/browse"
+          className="account-hc-helper-edit-back"
+          data-testid="helper-onboarding-back"
+        >
+          <ChevronLeft className="chev h-4 w-4" strokeWidth={2.25} aria-hidden />
+          Back to browse
+        </Link>
+        <h1 className="account-hc-hero-title">
+          {editing ? 'Edit helper profile' : 'Set up your helper profile'}
+        </h1>
+        <p className="account-hc-hero-sub">
+          Choose the tasks you take, your service area, and your rate.
+        </p>
+
+        <div className="account-hc-helper-edit-layout">
+          <form
+            onSubmit={onSubmit}
+            className="account-hc-card account-hc-form-card account-hc-helper-edit-form"
+            data-testid="helper-onboarding-form"
+            noValidate
+          >
+            {error ? (
+              <div className="mb-2">
+                <InlineBanner tone="error">{error}</InlineBanner>
               </div>
-              <div className="min-w-0 flex-1">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="rounded-[10px] border border-[#E3E8EF] bg-white shadow-none"
-                  loading={uploading}
-                  onClick={() => fileRef.current?.click()}
-                  data-testid="helper-upload-photo"
-                >
-                  {photoLabel}
-                </Button>
-                <p className="hint-line">Clear face photo helps neighbors recognize you.</p>
+            ) : null}
+
+            <section aria-labelledby="helper-section-profile">
+              <h2 id="helper-section-profile" className="sr-only">
+                Profile
+              </h2>
+
+              <div className="account-hc-photo-row">
+                <div className="shrink-0 overflow-hidden rounded-full">
+                  <Avatar
+                    src={avatar || undefined}
+                    name={name || currentUser.name || 'You'}
+                    size={64}
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="rounded-[10px] border border-[#E3E8EF] bg-white shadow-none"
+                    loading={uploading}
+                    onClick={() => fileRef.current?.click()}
+                    data-testid="helper-upload-photo"
+                  >
+                    {photoLabel}
+                  </Button>
+                  <p className="hint-line">Clear face photo helps neighbors recognize you.</p>
+                </div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(e) => void onPickPhoto(e.target.files?.[0] ?? null)}
+                />
               </div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={(e) => void onPickPhoto(e.target.files?.[0] ?? null)}
-              />
-            </div>
 
-            <div className="account-hc-field">
-              <label htmlFor="helper-display-name" className={labelClass}>
-                Display name
-              </label>
-              <input
-                id="helper-display-name"
-                name="displayName"
-                autoComplete="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                maxLength={80}
-                placeholder="Alex Rivera"
-                className={inputClass}
-                data-testid="helper-display-name"
-              />
-            </div>
+              <div className="account-hc-field">
+                <label htmlFor="helper-display-name" className={labelClass}>
+                  Display name
+                </label>
+                <input
+                  id="helper-display-name"
+                  name="displayName"
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  maxLength={80}
+                  placeholder="Alex Rivera"
+                  className={inputClass}
+                  data-testid="helper-display-name"
+                />
+              </div>
 
-            <div className="account-hc-field">
-              <label htmlFor="helper-bio" className={labelClass}>
-                Short bio <span className="account-hc-hint">(optional)</span>
-              </label>
-              <textarea
-                id="helper-bio"
-                name="bio"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                rows={3}
-                maxLength={400}
-                placeholder="Experienced with apartment moves, furniture assembly, and deliveries..."
-                className="account-hc-textarea"
-                data-testid="helper-bio"
-              />
-            </div>
-          </section>
+              <div className="account-hc-field">
+                <label htmlFor="helper-bio" className={labelClass}>
+                  Short bio <span className="account-hc-hint">(optional)</span>
+                </label>
+                <textarea
+                  id="helper-bio"
+                  name="bio"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  rows={3}
+                  maxLength={400}
+                  placeholder="Experienced with apartment moves, furniture assembly, and deliveries..."
+                  className="account-hc-textarea"
+                  data-testid="helper-bio"
+                />
+              </div>
+            </section>
 
-          <hr className="account-hc-divider" />
+            <hr className="account-hc-divider" />
 
-          <section aria-labelledby="helper-section-skills">
-            <h2 id="helper-section-skills" className="account-hc-section-label">
-              What tasks do you take?
-            </h2>
-            <div data-testid="helper-skills-grid">
-              <CategorySelect
-                mode="multi"
-                serviceId={skills[0] ?? null}
-                selectedSkills={skills}
-                onToggleSkill={toggleSkill}
-                customLabel={otherSkillLabel}
-                onServiceChange={() => {}}
-                onCustomChange={(v) => {
-                  setOtherSkillLabel(v)
-                  setOtherError('')
-                }}
-                customError={otherError}
-                testIdPrefix="helper-skill"
-              />
-            </div>
-          </section>
+            <section aria-labelledby="helper-section-skills">
+              <h2 id="helper-section-skills" className="account-hc-section-label">
+                What tasks do you take?
+              </h2>
+              <div data-testid="helper-skills-grid">
+                <CategorySelect
+                  mode="multi"
+                  serviceId={skills[0] ?? null}
+                  selectedSkills={skills}
+                  onToggleSkill={toggleSkill}
+                  customLabel={otherSkillLabel}
+                  onServiceChange={() => {}}
+                  onCustomChange={(v) => {
+                    setOtherSkillLabel(v)
+                    setOtherError('')
+                  }}
+                  customError={otherError}
+                  testIdPrefix="helper-skill"
+                />
+              </div>
+            </section>
 
-          <hr className="account-hc-divider" />
+            <hr className="account-hc-divider" />
 
-          <section aria-labelledby="helper-section-area">
-            <h2 id="helper-section-area" className="sr-only">
-              Service area
-            </h2>
+            <section aria-labelledby="helper-section-area">
+              <h2 id="helper-section-area" className="sr-only">
+                Service area
+              </h2>
 
-            <div>
-              <UsCityCombobox
-                ref={cityRef}
-                value={city}
-                onChange={handleCityChange}
-                error={
-                  error && !city && !customLocationLabel
-                    ? 'Select a city so requesters know your area.'
-                    : undefined
-                }
-              />
-              {!city && customLocationLabel ? (
-                <p
-                  className="mt-2 text-[13px] text-[#48556A]"
-                  data-testid="helper-custom-location"
-                >
-                  Using detected location:{' '}
-                  <span className="font-medium text-[#071330]">{customLocationLabel}</span>
-                  {' · '}
+              <div>
+                <UsCityCombobox
+                  ref={cityRef}
+                  value={city}
+                  onChange={handleCityChange}
+                  error={
+                    error && !city && !customLocationLabel
+                      ? 'Select a city so requesters know your area.'
+                      : undefined
+                  }
+                />
+                {!city && customLocationLabel ? (
+                  <p
+                    className="mt-2 text-[13px] text-[#48556A]"
+                    data-testid="helper-custom-location"
+                  >
+                    Using detected location:{' '}
+                    <span className="font-medium text-[#071330]">{customLocationLabel}</span>
+                    {' · '}
+                    <button
+                      type="button"
+                      className="font-semibold text-[#1D5CE5] hover:underline"
+                      onClick={() => {
+                        setCustomLocationLabel('')
+                        cityRef.current?.focusAndOpen()
+                      }}
+                    >
+                      Choose a city instead
+                    </button>
+                  </p>
+                ) : null}
+                {!city ? (
                   <button
                     type="button"
-                    className="font-semibold text-[#1D5CE5] hover:underline"
-                    onClick={() => {
-                      setCustomLocationLabel('')
-                      cityRef.current?.focusAndOpen()
-                    }}
+                    onClick={() => void detectMyLocation()}
+                    disabled={detecting}
+                    className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD] disabled:opacity-50"
+                    data-testid="helper-use-location"
                   >
-                    Choose a city instead
+                    <MapPin className="h-3.5 w-3.5" aria-hidden />
+                    {detecting ? 'Finding…' : 'Use current location'}
                   </button>
-                </p>
-              ) : null}
-              {!city ? (
-                <button
-                  type="button"
-                  onClick={() => void detectMyLocation()}
-                  disabled={detecting}
-                  className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD] disabled:opacity-50"
-                  data-testid="helper-use-location"
-                >
-                  <MapPin className="h-3.5 w-3.5" aria-hidden />
-                  {detecting ? 'Finding…' : 'Use current location'}
-                </button>
-              ) : null}
-            </div>
-
-            <div className="account-hc-field">
-              <p className={labelClass}>Travel radius</p>
-              <div
-                className="account-hc-choice-row"
-                role="radiogroup"
-                aria-label="Travel radius"
-                data-testid="helper-radius-group"
-              >
-                {RADIUS_OPTIONS.map((miles) => {
-                  const on = serviceRadiusMiles === miles
-                  return (
-                    <button
-                      key={miles}
-                      type="button"
-                      role="radio"
-                      aria-checked={on}
-                      onClick={() => setServiceRadiusMiles(miles)}
-                      className={`account-hc-choice ${on ? 'is-on' : ''}`}
-                    >
-                      {miles} mi
-                    </button>
-                  )
-                })}
+                ) : null}
               </div>
-            </div>
-          </section>
 
-          <hr className="account-hc-divider" />
-
-          <section aria-labelledby="helper-section-rate">
-            <h2 id="helper-section-rate" className="sr-only">
-              Rate and availability
-            </h2>
-
-            <div>
-              <p className={labelClass}>Rate</p>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="account-hc-field">
+                <p className={labelClass}>Travel radius</p>
                 <div
-                  className="account-hc-seg"
+                  className="account-hc-choice-row"
                   role="radiogroup"
-                  aria-label="Rate type"
-                  data-testid="helper-rate-type"
+                  aria-label="Travel radius"
+                  data-testid="helper-radius-group"
                 >
-                  {(
-                    [
-                      ['hourly', 'Hourly rate'],
-                      ['quote', 'Quote per task'],
-                    ] as const
-                  ).map(([id, label]) => {
-                    const on = rateType === id
+                  {RADIUS_OPTIONS.map((miles) => {
+                    const on = serviceRadiusMiles === miles
                     return (
                       <button
-                        key={id}
+                        key={miles}
                         type="button"
                         role="radio"
                         aria-checked={on}
-                        onClick={() => setRateType(id)}
-                        className={on ? 'is-on' : undefined}
+                        onClick={() => setServiceRadiusMiles(miles)}
+                        className={`account-hc-choice ${on ? 'is-on' : ''}`}
                       >
-                        {label}
+                        {miles} mi
                       </button>
                     )
                   })}
                 </div>
+              </div>
+            </section>
 
-                {rateType === 'hourly' ? (
-                  <div className="account-hc-rate-input" data-testid="helper-hourly-rate">
-                    <span className="pre" aria-hidden>
-                      $
-                    </span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      value={hourlyRate}
-                      onChange={(e) =>
-                        setHourlyRate(e.target.value.replace(/[^\d]/g, '').slice(0, 4))
-                      }
-                      aria-label="Hourly rate in USD"
-                    />
-                    <span className="post" aria-hidden>
-                      / hr
-                    </span>
+            <hr className="account-hc-divider" />
+
+            <section aria-labelledby="helper-section-rate">
+              <h2 id="helper-section-rate" className="sr-only">
+                Rate and availability
+              </h2>
+
+              <div>
+                <p className={labelClass}>Rate</p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div
+                    className="account-hc-seg"
+                    role="radiogroup"
+                    aria-label="Rate type"
+                    data-testid="helper-rate-type"
+                  >
+                    {(
+                      [
+                        ['hourly', 'Hourly rate'],
+                        ['quote', 'Quote per task'],
+                      ] as const
+                    ).map(([id, label]) => {
+                      const on = rateType === id
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          role="radio"
+                          aria-checked={on}
+                          onClick={() => setRateType(id)}
+                          className={on ? 'is-on' : undefined}
+                        >
+                          {label}
+                        </button>
+                      )
+                    })}
                   </div>
-                ) : (
-                  <p className="text-[13.5px] leading-[1.45] text-[#48556A] sm:max-w-[240px] sm:text-right">
-                    Neighbors will describe the task and ask for your price.
-                  </p>
-                )}
-              </div>
-            </div>
 
-            <div className="account-hc-toggle-row">
-              <div className="min-w-0">
-                <p className="lbl">Available for same-day tasks</p>
-                <p className="hint-line">Show an Available badge on your profile today</p>
+                  {rateType === 'hourly' ? (
+                    <div className="account-hc-rate-input" data-testid="helper-hourly-rate">
+                      <span className="pre" aria-hidden>
+                        $
+                      </span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={hourlyRate}
+                        onChange={(e) =>
+                          setHourlyRate(e.target.value.replace(/[^\d]/g, '').slice(0, 4))
+                        }
+                        aria-label="Hourly rate in USD"
+                      />
+                      <span className="post" aria-hidden>
+                        / hr
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-[13.5px] leading-[1.45] text-[#48556A] sm:max-w-[240px] sm:text-right">
+                      Neighbors will describe the task and ask for your price.
+                    </p>
+                  )}
+                </div>
               </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={availableNow}
-                onClick={() => setAvailableNow((v) => !v)}
-                data-testid="helper-available-now"
-                className="account-hc-switch"
+
+              <div className="account-hc-toggle-row">
+                <div className="min-w-0">
+                  <p className="lbl">Available for same-day tasks</p>
+                  <p className="hint-line">Show an Available badge on your profile today</p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={availableNow}
+                  onClick={() => setAvailableNow((v) => !v)}
+                  data-testid="helper-available-now"
+                  className="account-hc-switch"
+                >
+                  <span className="knob" />
+                </button>
+              </div>
+
+              <div className="account-hc-field">
+                <p className={labelClass}>
+                  Typical schedule <span className="account-hc-hint">(optional)</span>
+                </p>
+                <div className="account-hc-choice-row" data-testid="helper-availability-slots">
+                  {SLOTS.map((slot) => {
+                    const on = availability.includes(slot.id)
+                    return (
+                      <button
+                        key={slot.id}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => toggleSlot(slot.id)}
+                        className={`account-hc-choice ${on ? 'is-on' : ''}`}
+                      >
+                        {slot.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </section>
+
+            <hr className="account-hc-divider" />
+
+            <div className="account-hc-form-actions">
+              <Button
+                type="submit"
+                size="lg"
+                loading={pending}
+                className="account-hc-helper-edit-save h-12 rounded-[10px] bg-[#1D5CE5] px-7 text-[15px] text-white shadow-none hover:bg-[#1649BD]"
+                data-testid="helper-onboarding-submit"
               >
-                <span className="knob" />
-              </button>
+                {editing ? 'Save helper profile' : 'Publish helper profile'}
+              </Button>
+              <Link
+                href="/browse"
+                className="account-hc-helper-edit-cancel"
+                data-testid="helper-onboarding-cancel"
+              >
+                {editing ? 'Cancel' : 'Skip for now'}
+              </Link>
             </div>
+          </form>
 
-            <div className="account-hc-field">
-              <p className={labelClass}>
-                Typical schedule <span className="account-hc-hint">(optional)</span>
-              </p>
-              <div className="account-hc-choice-row" data-testid="helper-availability-slots">
-                {SLOTS.map((slot) => {
-                  const on = availability.includes(slot.id)
-                  return (
-                    <button
-                      key={slot.id}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => toggleSlot(slot.id)}
-                      className={`account-hc-choice ${on ? 'is-on' : ''}`}
-                    >
-                      {slot.label}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </section>
-
-          <hr className="account-hc-divider" />
-
-          <div className="account-hc-form-actions">
-            <Link
-              href="/browse"
-              className="account-hc-btn account-hc-btn-ghost account-hc-btn-lg"
-              data-testid="helper-onboarding-cancel"
-            >
-              {editing ? 'Cancel' : 'Skip for now'}
-            </Link>
-            <Button
-              type="submit"
-              size="lg"
-              loading={pending}
-              className="account-hc-btn account-hc-btn-lg h-[52px] rounded-[10px] bg-[#1D5CE5] px-7 text-white shadow-none hover:bg-[#1649BD] sm:min-w-[220px]"
-              data-testid="helper-onboarding-submit"
-            >
-              {editing ? 'Save helper profile' : 'Publish helper profile'}
-            </Button>
-          </div>
-        </form>
-
-        {mode === 'live' && authUser ? (
-          <div className="account-hc-form-narrow mt-4">
-            <HelperUrgentSmsSettings userId={authUser.id} />
-          </div>
-        ) : null}
+          <aside className="account-hc-helper-edit-sidebar">{sidebar}</aside>
+        </div>
       </div>
     </div>
   )
