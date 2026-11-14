@@ -281,6 +281,9 @@ export function BrowseJobDrawer({
           jobId={request.id}
           lat={request.lat}
           lng={request.lng}
+          locationLabel={request.locationLabel}
+          neighborhood={request.neighborhood}
+          city={request.city}
           radiusMiles={request.radiusMiles}
           areaLabel={locationLine}
           height={narrow ? 160 : 180}
