@@ -1,4 +1,10 @@
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
+import {
+  forwardRef,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from 'react'
 
 export function Field({
   label,
@@ -6,12 +12,14 @@ export function Field({
   hint,
   error,
   required,
+  errorId,
 }: {
   label: string
   children: ReactNode
   hint?: string
   error?: string
   required?: boolean
+  errorId?: string
 }) {
   return (
     <label className="block space-y-1.5">
@@ -21,7 +29,7 @@ export function Field({
       </span>
       {children}
       {error ? (
-        <span className="block type-sec text-beam-danger" role="alert">
+        <span id={errorId} className="block type-sec text-beam-danger" role="alert">
           {error}
         </span>
       ) : hint ? (
@@ -34,13 +42,17 @@ export function Field({
 const controlClass =
   'w-full rounded-lg border border-[rgba(7,19,48,0.1)] bg-white px-3.5 py-2 text-[15px] text-[#071330] placeholder:text-[#94A3B8] transition hover:border-[rgba(7,19,48,0.18)] focus:border-[#1D5CE5] focus:outline-none aria-[invalid=true]:border-beam-danger'
 
-export function TextInput({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={`touch-target ${controlClass} ${className}`} {...props} />
-}
+export const TextInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
+  function TextInput({ className = '', ...props }, ref) {
+    return <input ref={ref} className={`touch-target ${controlClass} ${className}`} {...props} />
+  },
+)
 
-export function TextArea({ className = '', ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea className={`min-h-24 ${controlClass} ${className}`} {...props} />
-}
+export const TextArea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(
+  function TextArea({ className = '', ...props }, ref) {
+    return <textarea ref={ref} className={`min-h-24 ${controlClass} ${className}`} {...props} />
+  },
+)
 
 export function Select({ className = '', children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (

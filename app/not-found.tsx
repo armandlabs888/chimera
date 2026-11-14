@@ -19,19 +19,19 @@ export default function NotFound() {
           href="/browse"
           className="touch-target inline-flex items-center rounded-lg border border-beam-line bg-white px-5 text-[14px] font-semibold text-beam-cream"
         >
-          Browse
+          Browse jobs
         </Link>
         <Link
           href="/post"
           className="touch-target inline-flex items-center rounded-lg border border-[#1D5CE5]/30 px-5 text-[14px] font-semibold text-[#1D5CE5]"
         >
-          Post a request
+          Post a task
         </Link>
         <Link
           href="/"
           className="touch-target inline-flex items-center px-3 text-[14px] font-medium text-beam-muted hover:underline"
         >
-          Marketing
+          HouseCall home
         </Link>
       </div>
     </div>

@@ -51,6 +51,8 @@ export function HelperOnboarding() {
   const fileRef = useRef<HTMLInputElement>(null)
   const cityRef = useRef<UsCityComboboxHandle>(null)
   const hydratedCityRef = useRef(false)
+  const skillsSectionRef = useRef<HTMLElement>(null)
+  const nameInputRef = useRef<HTMLInputElement>(null)
 
   const [avatar, setAvatar] = useState(currentUser.avatar || '')
   const [name, setName] = useState(currentUser.name || '')
@@ -83,6 +85,7 @@ export function HelperOnboarding() {
   const [uploading, setUploading] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+  const [skillsError, setSkillsError] = useState('')
   const [smsTextsOn, setSmsTextsOn] = useState(false)
 
   useEffect(() => {
@@ -177,6 +180,7 @@ export function HelperOnboarding() {
         setOtherSkillLabel('')
         setOtherError('')
       }
+      if (next.length > 0) setSkillsError('')
       return next
     })
   }
@@ -275,15 +279,37 @@ export function HelperOnboarding() {
     }
   }
 
+  function focusFirstError(target: 'name' | 'skills' | 'city') {
+    requestAnimationFrame(() => {
+      if (target === 'name') {
+        nameInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        nameInputRef.current?.focus()
+        return
+      }
+      if (target === 'skills') {
+        skillsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        const firstChip = skillsSectionRef.current?.querySelector<HTMLElement>('button, [tabindex="0"]')
+        firstChip?.focus()
+        return
+      }
+      cityRef.current?.focusAndOpen()
+    })
+  }
+
   function onSubmit(e: FormEvent) {
     e.preventDefault()
     const trimmedName = name.trim()
     if (!trimmedName) {
+      setSkillsError('')
       setError('Add a display name so neighbors know who you are.')
+      focusFirstError('name')
       return
     }
     if (skills.length < 1) {
-      setError('Pick at least one skill so we can match you to open requests.')
+      const message = 'Pick at least one skill so we can match you to open requests.'
+      setSkillsError(message)
+      setError(message)
+      focusFirstError('skills')
       return
     }
     let otherLabel: string | null = null
@@ -292,6 +318,7 @@ export function HelperOnboarding() {
       if (!normalized.ok) {
         setOtherError(normalized.error)
         setError(normalized.error)
+        focusFirstError('skills')
         return
       }
       otherLabel = normalized.value
@@ -305,19 +332,22 @@ export function HelperOnboarding() {
       : customLocationLabel.trim()
 
     if (!locationLabel) {
+      setSkillsError('')
       setError('Select a city so requesters know your area.')
-      cityRef.current?.focusAndOpen()
+      focusFirstError('city')
       return
     }
 
     const rateNum = Number(hourlyRate)
     if (rateType === 'hourly' && (!Number.isFinite(rateNum) || rateNum < 10)) {
+      setSkillsError('')
       setError('Hourly rate should be at least $10.')
       return
     }
 
     setPending(true)
     setError('')
+    setSkillsError('')
     updateProfile({
       name: trimmedName,
       bio: bio.trim(),
@@ -524,6 +554,7 @@ export function HelperOnboarding() {
                   Display name
                 </label>
                 <input
+                  ref={nameInputRef}
                   id="helper-display-name"
                   name="displayName"
                   autoComplete="name"
@@ -557,7 +588,7 @@ export function HelperOnboarding() {
 
             <hr className="account-hc-divider" />
 
-            <section aria-labelledby="helper-section-skills">
+            <section ref={skillsSectionRef} aria-labelledby="helper-section-skills">
               <h2 id="helper-section-skills" className="account-hc-section-label">
                 What tasks do you take?
               </h2>
@@ -577,6 +608,15 @@ export function HelperOnboarding() {
                   testIdPrefix="helper-skill"
                 />
               </div>
+              {skillsError ? (
+                <p
+                  className="mt-2 text-[13.5px] font-semibold text-[#071330]"
+                  role="alert"
+                  data-testid="helper-skills-error"
+                >
+                  {skillsError}
+                </p>
+              ) : null}
             </section>
 
             <hr className="account-hc-divider" />

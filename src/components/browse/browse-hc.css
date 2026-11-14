@@ -609,7 +609,8 @@
 
 /* ---- Detail panel ----
    Must stay a direct grid child so sticky can travel the full row height.
-   width/justify-self keep even left/right edges inside the column. */
+   width/justify-self keep even left/right edges inside the column.
+   Panel scrolls internally so the action footer stays visible at 1280x800. */
 .browse-hc-detail {
   position: sticky;
   /* 65px stuck header + 16px breathing room (matches approved mock). */
@@ -619,6 +620,9 @@
   margin-inline: 0;
   justify-self: stretch;
   align-self: start;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 96px);
   background: var(--hc-white);
   border: 1px solid var(--hc-line);
   border-radius: 16px;
@@ -628,6 +632,26 @@
 /* When the helper setup banner is stuck with the header, clear it too. */
 [data-testid='browse-hc-header-shell']:has(.browse-hc-helper-banner) ~ main .browse-hc-detail {
   top: 117px;
+  max-height: calc(100dvh - 132px);
+}
+
+.browse-hc-detail-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.browse-hc-detail-footer {
+  flex: none;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--hc-line);
+  background: var(--hc-white);
+}
+
+.browse-hc-detail-footer .browse-hc-detail-actions {
+  margin-top: 0;
 }
 
 .browse-hc-detail-photo {

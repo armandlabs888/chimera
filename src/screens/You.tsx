@@ -22,7 +22,7 @@ import { HelperProfileReviews } from '@/components/profile/HelperProfileReviews'
 import { RequestCard } from '@/components/RequestCard'
 import { Button, ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import { hidesPeerHelperDiscovery, isHelperPerson } from '@/lib/roles'
+import { isHelperPerson } from '@/lib/roles'
 import '@/components/account/account-hc.css'
 
 const ACTIVITY_TABS = ['requests', 'offers', 'saved'] as const
@@ -127,9 +127,6 @@ export function You() {
     [state.reviews, currentUser.id],
   )
 
-  const isGuest = mode === 'live' && !authUser
-  const hidePeerDiscovery = hidesPeerHelperDiscovery(currentUser, isGuest)
-  const helpersBrowseHref = hidePeerDiscovery ? '/browse' : '/browse?tab=people'
   const showGetVerified = isHelper && verificationStatus !== 'approved'
 
   const quickLinks = useMemo((): AccountQuickLink[] => {
@@ -276,7 +273,7 @@ export function You() {
                   </p>
                   <div className="actions">
                     <Link href="/post" className="account-hc-btn">
-                      Post a request
+                      Post a task
                     </Link>
                   </div>
                 </div>
@@ -366,8 +363,8 @@ export function You() {
                   <h3>No saved helpers</h3>
                   <p>Tap the heart on a helper profile to save them for next time.</p>
                   <div className="actions">
-                    <Link href={helpersBrowseHref} className="account-hc-btn">
-                      {hidePeerDiscovery ? 'Browse open jobs' : 'Browse helpers'}
+                    <Link href="/browse?tab=people" className="account-hc-btn">
+                      Meet helpers
                     </Link>
                   </div>
                 </div>

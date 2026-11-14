@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useMemo } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
 import { useBeam } from '@/context/BeamContext'
-import { BROWSE_PARENTS } from '@/lib/taxonomy'
+import { POPULAR_SERVICES } from '@/lib/popularServices'
 import { hidesPeerHelperDiscovery, isHelperPerson } from '@/lib/roles'
 
 const linkClass =
@@ -59,7 +59,7 @@ export function LandingFooter({
 
   const groups = useMemo(() => {
     const explore = [
-      { href: '/browse', label: 'Browse tasks' },
+      { href: '/browse', label: 'Browse jobs' },
       ...(!hidePeerDiscovery
         ? [{ href: '/browse?tab=people', label: 'Meet helpers' as const }]
         : []),
@@ -70,7 +70,7 @@ export function LandingFooter({
     const helperLinkLabel = isHelperPerson(currentUser) ? 'Helper profile' : 'Become a helper'
     const start = signedIn
       ? [
-          { href: '/post', label: 'Post a request' },
+          { href: '/post', label: 'Post a task' },
           {
             href: '/onboarding/helper',
             label: helperLinkLabel,
@@ -79,12 +79,12 @@ export function LandingFooter({
           { href: '/home', label: 'My activity' },
         ]
       : [
-          { href: '/post', label: 'Post a request' },
+          { href: '/post', label: 'Post a task' },
           {
             href: canOnboardHelper
               ? '/onboarding/helper'
               : '/auth?mode=signup&next=%2Fonboarding%2Fhelper',
-            label: 'Find work',
+            label: 'Become a helper',
           },
           { href: '/auth?mode=signup', label: 'Create account' },
           { href: '/auth?mode=signin', label: 'Sign in' },
@@ -95,9 +95,9 @@ export function LandingFooter({
       {
         id: 'footer-services',
         title: 'Services',
-        links: BROWSE_PARENTS.map((p) => ({
-          href: `/browse?category=${p.id}`,
-          label: p.shortLabel,
+        links: POPULAR_SERVICES.map((p) => ({
+          href: p.href,
+          label: p.label,
         })),
       },
       { id: 'footer-start', title: 'Get started', links: start },

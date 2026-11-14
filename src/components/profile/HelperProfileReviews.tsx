@@ -32,7 +32,9 @@ export function HelperProfileReviews({
                     {relativeTime(review.createdAt)}
                   </span>
                 </div>
-                <p className="mt-2 text-[14px] leading-[1.5] text-[#475569]">{review.comment}</p>
+                {review.comment?.trim() ? (
+                  <p className="mt-2 text-[14px] leading-[1.5] text-[#475569]">{review.comment}</p>
+                ) : null}
               </li>
             )
           })}

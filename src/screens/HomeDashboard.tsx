@@ -194,7 +194,7 @@ export function HomeDashboard() {
             <p className="account-hc-hero-sub account-hc-activity-sub">
               {isHelper
                 ? 'Your helper dashboard. Jobs near you that match your skills, plus anything that needs your reply.'
-                : 'Post a request or browse helpers nearby.'}
+                : 'Post a task or browse helpers nearby.'}
             </p>
           </div>
 
@@ -314,10 +314,7 @@ export function HomeDashboard() {
             </div>
             <div className="mt-6 flex flex-wrap gap-2">
               <Link href="/post" className="account-hc-btn">
-                Post a request
-              </Link>
-              <Link href={becomeHelperHref} className="account-hc-btn account-hc-btn-secondary">
-                Become a helper
+                Post a task
               </Link>
             </div>
           </section>

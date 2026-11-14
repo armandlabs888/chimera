@@ -132,7 +132,7 @@ export function BrowseJobDrawer({
         await createOffer({
           requestId: request.id,
           price: priceNum,
-          note: offerNote.trim() || 'Happy to help. Message me to coordinate.',
+          note: offerNote.trim(),
           eta: offerEta,
         })
         await ensureThread(request.id, request.requesterId)
@@ -339,13 +339,6 @@ export function BrowseJobDrawer({
               className="w-full rounded-[10px] border border-[#CDD5E0] px-3 py-2 text-[14px] text-[#071330] outline-none focus:border-[#1D5CE5]"
             />
             {offerError ? <p className="text-[13px] font-medium text-[#DC2626]">{offerError}</p> : null}
-            <button
-              type="submit"
-              disabled={offerPending}
-              className="inline-flex h-11 items-center justify-center rounded-lg bg-[#1D5CE5] px-4 text-[14px] font-semibold text-white hover:bg-[#1649BD] disabled:opacity-60"
-            >
-              {offerPending ? 'Sending…' : myOffer ? 'Update offer' : 'Send offer'}
-            </button>
           </form>
         ) : null}
         {pendingOffer && !offerOpen ? (
@@ -413,7 +406,7 @@ export function BrowseJobDrawer({
         narrow ? 'w-full' : 'shrink-0'
       }`}
     >
-      {offerOpen ? 'Send offer' : 'Make an offer'}
+      {offerOpen ? (offerPending ? 'Sending…' : 'Send offer') : 'Make an offer'}
     </button>
   ) : (
     <Link
