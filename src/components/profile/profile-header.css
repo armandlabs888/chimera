@@ -1,0 +1,35 @@
+/*
+  Wrap-safe middot separators (overflow clip technique):
+  Each item reserves padding-inline-start and paints a · in that gutter via
+  ::before with a matching negative margin. When an item starts a flex line
+  (including the first item), that · hangs fully outside the row and is
+  clipped by overflow:hidden, so no line starts or ends with a middot.
+*/
+.ph-sep-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  overflow: hidden;
+  row-gap: 6px;
+}
+
+.ph-sep-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  /* Gutter must be wide enough that the entire · sits left of the clip edge. */
+  padding-inline-start: 1.15em;
+  box-sizing: border-box;
+}
+
+.ph-sep-item::before {
+  content: '·';
+  color: #b0b8c6;
+  width: 1.15em;
+  margin-inline-start: -1.15em;
+  text-align: center;
+  flex-shrink: 0;
+  pointer-events: none;
+  line-height: 1;
+}

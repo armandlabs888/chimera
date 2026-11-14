@@ -17,6 +17,7 @@ import {
   useId,
   useRef,
   useState,
+  type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from 'react'
 import { Avatar } from '@/components/ui'
@@ -24,6 +25,7 @@ import { formatLocation } from '@/lib/location'
 import { formatPublicRating, hasPublicRating } from '@/lib/ratingDisplay'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import type { Person } from '@/types'
+import './profile-header.css'
 
 export type ProfileHeaderRole = 'helper' | 'neighbor'
 
@@ -32,7 +34,7 @@ export type ProfileHeaderAction = {
   label: string
   icon?: ReactNode
   href?: string
-  onClick?: () => void
+  onClick?: (event: ReactMouseEvent<HTMLElement>) => void
   disabled?: boolean
   testId?: string
   type?: 'button' | 'submit'
@@ -104,10 +106,6 @@ function ActionControl({
     </button>
   )
 }
-
-/** Trailing separator stays with the prior item so wraps never start with a middot. */
-const sepItemClass =
-  "inline-flex max-w-full items-center gap-1.5 after:ml-2 after:text-[#B0B8C6] after:content-['·'] last:after:ml-0 last:after:content-none"
 
 function OverflowMenu({ items }: { items: ProfileHeaderOverflowItem[] }) {
   const [open, setOpen] = useState(false)
@@ -374,11 +372,11 @@ export function ProfileHeader({
 
   const statsRow = stats.length ? (
     <p
-      className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px] font-medium text-[#4A5568] sm:text-[15px]"
+      className="ph-sep-row mt-1.5 text-[14px] font-medium text-[#4A5568] sm:text-[15px]"
       data-testid="profile-header-stats"
     >
       {stats.map((item) => (
-        <span key={item.key} className={sepItemClass}>
+        <span key={item.key} className="ph-sep-item">
           {item.content}
         </span>
       ))}
@@ -387,11 +385,11 @@ export function ProfileHeader({
 
   const metaRow = meta.length ? (
     <p
-      className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] text-[#4A5568] sm:text-[13.5px]"
+      className="ph-sep-row mt-2 text-[13px] text-[#4A5568] sm:text-[13.5px]"
       data-testid="profile-header-meta"
     >
       {meta.map((item) => (
-        <span key={item.key} className={sepItemClass}>
+        <span key={item.key} className="ph-sep-item">
           {item.icon}
           <span>{item.label}</span>
         </span>

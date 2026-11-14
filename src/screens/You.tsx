@@ -239,6 +239,10 @@ export function You() {
             label: 'Edit profile',
             icon: ProfileHeaderIcons.edit,
             href: '#you-profile',
+            onClick: (event) => {
+              event.preventDefault()
+              scrollToId('you-profile')
+            },
             testId: 'you-edit-profile',
           }}
           secondaryActions={[
