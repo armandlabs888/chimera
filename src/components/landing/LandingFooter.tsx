@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
 import { useBeam } from '@/context/BeamContext'
 import { BROWSE_PARENTS } from '@/lib/taxonomy'
-import { hidesPeerHelperDiscovery } from '@/lib/roles'
+import { hidesPeerHelperDiscovery, isHelperPerson } from '@/lib/roles'
 
 const linkClass =
   'rounded-sm text-[14px] font-medium leading-snug text-[#CBD5E1] transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330]'
@@ -67,15 +67,13 @@ export function LandingFooter({
       { href: '/#how-it-works', label: 'How it works' },
     ]
 
+    const helperLinkLabel = isHelperPerson(currentUser) ? 'Helper profile' : 'Become a helper'
     const start = signedIn
       ? [
           { href: '/post', label: 'Post a request' },
           {
             href: '/onboarding/helper',
-            label:
-              currentUser.accountRole === 'helper' || currentUser.isHelper
-                ? 'Helper profile'
-                : 'Find work',
+            label: helperLinkLabel,
           },
           { href: '/you', label: 'Profile & account' },
           { href: '/home', label: 'My activity' },
@@ -115,8 +113,7 @@ export function LandingFooter({
     ]
   }, [
     canOnboardHelper,
-    currentUser.accountRole,
-    currentUser.isHelper,
+    currentUser,
     hidePeerDiscovery,
     signedIn,
   ])

@@ -3,9 +3,18 @@
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import type { ReactNode } from 'react'
+import { useBeam } from '@/context/BeamContext'
+import { isHelperPerson } from '@/lib/roles'
 import './account-hc.css'
 
-export const ACCOUNT_MENU_LINKS = [
+export type AccountMenuLink = {
+  href: string
+  label: string
+  match: (path: string, search: string) => boolean
+}
+
+/** Base account menu entries. Helper/neighbor label is applied in getAccountMenuLinks. */
+export const ACCOUNT_MENU_LINKS: AccountMenuLink[] = [
   { href: '/you', label: 'Profile & account', match: (path: string) => path === '/you' },
   { href: '/home', label: 'My activity', match: (path: string) => path === '/home' },
   {
@@ -19,7 +28,17 @@ export const ACCOUNT_MENU_LINKS = [
     match: (path: string, search: string) =>
       path === '/onboarding' && new URLSearchParams(search).get('edit') === '1',
   },
-] as const
+]
+
+export function getAccountMenuLinks(isHelper: boolean): AccountMenuLink[] {
+  return ACCOUNT_MENU_LINKS.map((item) => {
+    if (item.href !== '/onboarding/helper') return item
+    return {
+      ...item,
+      label: isHelper ? 'Helper profile' : 'Become a helper',
+    }
+  })
+}
 
 export function useAccountMenuCurrent() {
   const pathname = usePathname()
@@ -29,6 +48,11 @@ export function useAccountMenuCurrent() {
     const item = ACCOUNT_MENU_LINKS.find((l) => l.href === href)
     return item ? item.match(pathname, search) : false
   }
+}
+
+function useAccountMenuItems() {
+  const { currentUser } = useBeam()
+  return getAccountMenuLinks(isHelperPerson(currentUser))
 }
 
 export function AccountMenuPanel({
@@ -47,6 +71,7 @@ export function AccountMenuPanel({
   onSignOut: () => void
 }) {
   const isCurrent = useAccountMenuCurrent()
+  const links = useAccountMenuItems()
   if (!open) return null
 
   return (
@@ -61,13 +86,16 @@ export function AccountMenuPanel({
         <p className="loc truncate">{locationText}</p>
       </div>
       <ul className="hc-menu-list">
-        {ACCOUNT_MENU_LINKS.map((item) => (
+        {links.map((item) => (
           <li key={item.href}>
             <Link
               href={item.href}
               role="menuitem"
               className={isCurrent(item.href) ? 'is-current' : undefined}
               onClick={onNavigate}
+              data-testid={
+                item.href === '/onboarding/helper' ? 'account-menu-helper-link' : undefined
+              }
             >
               {item.label}
             </Link>
@@ -108,17 +136,21 @@ export function MobileAccountLinks({
   onSignOut: () => void
 }) {
   const isCurrent = useAccountMenuCurrent()
+  const links = useAccountMenuItems()
 
   return (
     <div className="hc-mobile-account" data-testid="mobile-account-links">
       <p className="name truncate">{name}</p>
       <p className="loc truncate">{locationText}</p>
-      {ACCOUNT_MENU_LINKS.map((item) => (
+      {links.map((item) => (
         <Link
           key={item.href}
           href={item.href}
           className={isCurrent(item.href) ? 'is-current' : undefined}
           onClick={onNavigate}
+          data-testid={
+            item.href === '/onboarding/helper' ? 'account-menu-helper-link' : undefined
+          }
         >
           {item.label}
         </Link>

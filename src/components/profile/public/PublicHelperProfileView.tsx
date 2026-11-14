@@ -656,10 +656,10 @@ export function PublicHelperNotFound() {
   const hidePeerDiscovery = hidesPeerHelperDiscovery(currentUser, isGuest)
   const browseFallbackHref = hidePeerDiscovery ? '/browse' : '/browse?tab=people'
   return (
-    <div className="py-10">
+    <div className="py-10" data-testid="public-helper-not-found">
       <EmptyState
-        title="Person not found"
-        body="They may not be in this demo seed."
+        title="This profile isn't available"
+        body="It may be private, or the link may be incorrect."
         action={
           <ButtonLink href={browseFallbackHref}>
             {hidePeerDiscovery ? 'Browse open jobs' : 'Browse people'}

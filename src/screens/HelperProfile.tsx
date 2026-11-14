@@ -6,6 +6,7 @@ import {
   PublicHelperProfileView,
 } from '@/components/profile/public/PublicHelperProfileView'
 import { useBeam } from '@/context/BeamContext'
+import { isHelperPerson } from '@/lib/roles'
 
 function paramId(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? ''
@@ -18,7 +19,8 @@ export function HelperProfile() {
   const { getPerson, state } = useBeam()
   const person = getPerson(id)
 
-  if (!person) {
+  // Neighbors (and missing ids) never expose a public helper profile, including own id.
+  if (!person || !isHelperPerson(person)) {
     return <PublicHelperNotFound />
   }
 
