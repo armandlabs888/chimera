@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { DM_Sans, Inter } from 'next/font/google'
 import type { ReactNode } from 'react'
+import { DEFAULT_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/seo/site'
 import './globals.css'
 
 /* Uber Move Text role → UI/body. Inter is the licensed geometric stand-in. */
@@ -20,31 +21,31 @@ const dmSans = DM_Sans({
 })
 
 const title = 'HouseCall. Trusted help, right next door'
-const description =
-  'Describe the job, compare priced offers, and choose local help that fits: home, auto, junk removal, pets, and other everyday tasks.'
+const description = DEFAULT_DESCRIPTION
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.yariapp.com'),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: title,
-    template: '%s · HouseCall',
+    template: `%s | ${SITE_NAME}`,
   },
   description,
-  icons: {
-    icon: '/favicon.svg',
+  applicationName: SITE_NAME,
+  alternates: {
+    canonical: '/',
   },
   openGraph: {
     title,
     description,
-    url: 'https://www.yariapp.com',
-    siteName: 'HouseCall',
+    url: SITE_URL,
+    siteName: SITE_NAME,
     locale: 'en_US',
     type: 'website',
     images: [
       {
-        url: '/images/beam-hero-moving-v2.jpg',
-        width: 2880,
-        height: 1926,
+        url: '/images/og-default.jpg',
+        width: 1200,
+        height: 630,
         alt: 'Neighbor carrying a moving box. HouseCall same-day help nearby',
       },
     ],
@@ -53,7 +54,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title,
     description,
-    images: ['/images/beam-hero-moving-v2.jpg'],
+    images: ['/images/og-default.jpg'],
   },
 }
 
