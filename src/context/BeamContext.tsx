@@ -81,6 +81,7 @@ export type PostRequestInput = {
   preferredHelperId?: string | null
   image?: string
   images?: string[]
+  isUrgent?: boolean
 }
 
 interface BeamContextValue {
@@ -612,6 +613,7 @@ export function BeamProvider({
               scheduledFor: input.scheduledFor,
               scheduledEnd: input.scheduledEnd,
               preferredHelperId: input.preferredHelperId,
+              isUrgent: Boolean(input.isUrgent),
             }
             const created = await createLiveRequest(client, authUser.id, payload)
             await refreshLive(authUser.id)
@@ -650,6 +652,9 @@ export function BeamProvider({
           scheduledFor: input.scheduledFor ?? null,
           scheduledEnd: input.scheduledEnd ?? null,
           preferredHelperId: input.preferredHelperId ?? null,
+          isUrgent: Boolean(input.isUrgent),
+          // Demo has no Twilio; show a sample count so poster feedback UI is visible.
+          urgentHelpersNotifiedCount: input.isUrgent ? 3 : 0,
         }
         let next: AppState = { ...prev, requests: [created, ...prev.requests] }
         if (input.preferredHelperId) {
@@ -818,7 +823,26 @@ export function BeamProvider({
           try {
             if (!authUser) throw new Error('Not signed in')
             const client = createClient()
+            const { data: offerRow } = await client
+              .from('offers')
+              .select('request_id, helper_id')
+              .eq('id', offerId)
+              .maybeSingle()
             await acceptLiveOffer(client, offerId)
+            if (offerRow) {
+              try {
+                void fetch('/api/urgent-jobs/taken', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    requestId: offerRow.request_id,
+                    acceptedHelperId: offerRow.helper_id,
+                  }),
+                })
+              } catch {
+                /* best-effort SMS */
+              }
+            }
             await refreshLive(authUser.id)
           } catch (err) {
             reportError(err, 'Accept offer failed')

@@ -2,6 +2,7 @@
 
 import { Clock } from 'lucide-react'
 import type { HelpRequest } from '@/types'
+import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 
 export function BrowseJobRow({
@@ -56,7 +57,12 @@ export function BrowseJobRow({
           </span>
         )}
         <span className="browse-hc-row-main">
-          <span className="browse-hc-row-title">{title}</span>
+          <span className="browse-hc-row-title">
+            {title}
+            {request.isUrgent ? (
+              <NeedsHelpNowLabel className="ml-2 align-middle" />
+            ) : null}
+          </span>
           <span className="browse-hc-row-meta">
             <span className="cat">{categoryLabel}</span>
             {areaLabel ? (

@@ -196,6 +196,10 @@ export interface HelpRequest {
   scheduledEnd?: string | null
   preferredHelperId?: string | null
   publicOfferCount?: number
+  /** Poster opted into I need help now SMS matching. */
+  isUrgent?: boolean
+  /** Helpers successfully texted for this urgent job (count only). */
+  urgentHelpersNotifiedCount?: number
 }
 
 export interface Offer {

@@ -27,6 +27,7 @@ export type Database = {
           id: string
           image: string
           images: string[]
+          is_urgent: boolean
           lat: number | null
           lng: number | null
           location_label: string
@@ -39,6 +40,8 @@ export type Database = {
           status: string
           title: string
           updated_at: string
+          urgent_escalated_at: string | null
+          urgent_helpers_notified_count: number
           when_label: string
           when_option: string
         }
@@ -54,6 +57,7 @@ export type Database = {
           id?: string
           image?: string
           images?: string[]
+          is_urgent?: boolean
           lat?: number | null
           lng?: number | null
           location_label?: string
@@ -66,6 +70,8 @@ export type Database = {
           status?: string
           title: string
           updated_at?: string
+          urgent_escalated_at?: string | null
+          urgent_helpers_notified_count?: number
           when_label: string
           when_option: string
         }
@@ -81,6 +87,7 @@ export type Database = {
           id?: string
           image?: string
           images?: string[]
+          is_urgent?: boolean
           lat?: number | null
           lng?: number | null
           location_label?: string
@@ -93,6 +100,8 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+          urgent_escalated_at?: string | null
+          urgent_helpers_notified_count?: number
           when_label?: string
           when_option?: string
         }
@@ -627,6 +636,142 @@ export type Database = {
         }
         Relationships: []
       }
+      helper_urgent_sms_settings: {
+        Row: {
+          created_at: string
+          daily_text_limit: number
+          phone_confirmed_at: string | null
+          phone_e164: string | null
+          profile_id: string
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          sms_opt_in: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_text_limit?: number
+          phone_confirmed_at?: string | null
+          phone_e164?: string | null
+          profile_id: string
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          sms_opt_in?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_text_limit?: number
+          phone_confirmed_at?: string | null
+          phone_e164?: string | null
+          profile_id?: string
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          sms_opt_in?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "helper_urgent_sms_settings_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      helper_sms_otp_codes: {
+        Row: {
+          attempt_count: number
+          code_hash: string
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          phone_e164: string
+          profile_id: string
+        }
+        Insert: {
+          attempt_count?: number
+          code_hash: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          phone_e164: string
+          profile_id: string
+        }
+        Update: {
+          attempt_count?: number
+          code_hash?: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone_e164?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "helper_sms_otp_codes_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      urgent_job_sms_notifications: {
+        Row: {
+          created_at: string
+          distance_miles: number | null
+          error_message: string | null
+          helper_id: string
+          id: string
+          kind: string
+          request_id: string
+          status: string
+          twilio_sid: string | null
+        }
+        Insert: {
+          created_at?: string
+          distance_miles?: number | null
+          error_message?: string | null
+          helper_id: string
+          id?: string
+          kind: string
+          request_id: string
+          status: string
+          twilio_sid?: string | null
+        }
+        Update: {
+          created_at?: string
+          distance_miles?: number | null
+          error_message?: string | null
+          helper_id?: string
+          id?: string
+          kind?: string
+          request_id?: string
+          status?: string
+          twilio_sid?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "urgent_job_sms_notifications_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "urgent_job_sms_notifications_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "help_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -750,6 +895,18 @@ export type Database = {
       haversine_miles: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
+      }
+      list_urgent_jobs_due_for_escalation: {
+        Args: { p_after_minutes?: number }
+        Returns: { request_id: string }[]
+      }
+      match_urgent_job_helpers: {
+        Args: { p_request_id: string; p_radius_miles?: number }
+        Returns: {
+          distance_miles: number
+          helper_id: string
+          phone_e164: string
+        }[]
       }
       invite_helper: {
         Args: { p_helper_id: string; p_note?: string; p_request_id: string }

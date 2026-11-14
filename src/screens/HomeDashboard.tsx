@@ -417,6 +417,15 @@ function RecommendedJobRow({ request }: { request: HelpRequest }) {
       <div className="account-hc-job-main">
         <div className="account-hc-job-top">
           <span className="account-hc-job-chip">{categoryLabel}</span>
+          {request.isUrgent ? (
+            <span
+              className="account-hc-job-chip"
+              style={{ background: '#EEF4FF', color: '#1D5CE5' }}
+              data-testid="needs-help-now-label"
+            >
+              Needs help now
+            </span>
+          ) : null}
           <Link href={detailHref} className="account-hc-job-title">
             {request.title}
           </Link>

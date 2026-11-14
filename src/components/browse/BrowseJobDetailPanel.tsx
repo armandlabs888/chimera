@@ -15,6 +15,7 @@ import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 import type { HelpRequest } from '@/types'
+import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 
 const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexible'] as const
@@ -252,6 +253,11 @@ export function BrowseJobDetailPanel({
           <h2 id={titleId} className="browse-hc-detail-title">
             {request.title}
           </h2>
+          {request.isUrgent ? (
+            <div className="mb-2">
+              <NeedsHelpNowLabel />
+            </div>
+          ) : null}
           <div className="browse-hc-detail-price-block">{priceBlock}</div>
         </div>
 
