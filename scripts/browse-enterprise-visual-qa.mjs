@@ -79,7 +79,7 @@ async function main() {
         }
       })
       assert.equal(m.layout, 'helper-jobs')
-      assert.equal(m.hasTabs, false)
+      assert.equal(m.hasTabs, true)
       assert.equal(m.hasTrending, false)
       assert.equal(m.has3col, false)
       assert.equal(m.nestedScroll, false)
