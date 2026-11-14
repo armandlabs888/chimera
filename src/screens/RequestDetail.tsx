@@ -12,6 +12,11 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
+import {
+  ReferHelperButton,
+  ReferHelperHint,
+  useReferHelperShare,
+} from '@/components/browse/ReferHelperActions'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { Avatar, Button, ButtonLink, ConfirmDialog, TextArea } from '@/components/ui'
 import { pluralNoun, pluralize } from '@/lib/pluralize'
@@ -22,6 +27,7 @@ import {
 } from '@/components/verification/OfferGateFooter'
 import { useBeam } from '@/context/BeamContext'
 import { CATEGORY_ICONS } from '@/lib/categoryIcons'
+import { JobTitleText } from '@/lib/displayTitle'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
 import {
   formatCategoryLabel,
@@ -35,6 +41,7 @@ import {
   rankHelpersForRequest,
   relativeTime,
 } from '@/lib/matching'
+import { isHelperPerson } from '@/lib/roles'
 import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 
 const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexible'] as const
@@ -72,6 +79,7 @@ export function RequestDetail() {
     state,
     currentUser,
     authUser,
+    mode,
     getRequest,
     getPerson,
     createOffer,
@@ -86,6 +94,7 @@ export function RequestDetail() {
   } = useBeam()
 
   const request = getRequest(id)
+  const isGuest = mode === 'live' && !authUser
 
   // After an urgent post, refresh so "We texted n helpers" can update.
   useEffect(() => {
@@ -107,8 +116,14 @@ export function RequestDetail() {
       : null
 
   const isOwner = request?.requesterId === currentUser.id
+  const isNeighborViewer =
+    Boolean(request) && !isGuest && !isOwner && !isHelperPerson(currentUser)
   const isAcceptedHelper = Boolean(request?.helperId && request.helperId === currentUser.id)
   const canSeeExactAddress = Boolean(isOwner || isAcceptedHelper)
+  const { referHelper, dialog: referDialog } = useReferHelperShare(
+    request?.id ?? id,
+    request?.title ?? '',
+  )
 
   const offers = useMemo(
     () =>
@@ -354,8 +369,8 @@ export function RequestDetail() {
                 )
               ) : null}
 
-              <h1 className="font-display text-[26px] font-bold leading-[1.15] tracking-[-0.025em] text-[#071330] sm:text-[32px]">
-                {request.title}
+              <h1 className="font-display text-[26px] font-bold leading-[1.15] tracking-[-0.025em] text-[#071330] [text-wrap:balance] sm:text-[32px]">
+                <JobTitleText title={request.title} />
               </h1>
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[14px] text-[#475569]">
@@ -654,8 +669,19 @@ export function RequestDetail() {
             </section>
           ) : null}
 
+          {/* Neighbor open — refer a helper (no offer chrome) */}
+          {isNeighborViewer && request.status === 'open' ? (
+            <section className="space-y-3" data-testid="request-refer-panel">
+              <div className={`${cardClass} p-5`}>
+                <ReferHelperButton onClick={() => void referHelper()} />
+                <ReferHelperHint />
+              </div>
+              {referDialog}
+            </section>
+          ) : null}
+
           {/* Helper open — send offer (gated until address verification is approved) */}
-          {!isOwner && request.status === 'open' ? (
+          {!isOwner && !isNeighborViewer && request.status === 'open' ? (
             <section className="space-y-3" data-testid="request-offer-panel">
               {myInvite ? (
                 <div className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[14px] font-semibold text-[#071330]">

@@ -18,12 +18,19 @@ import {
   OfferGatePrimaryButton,
 } from '@/components/verification/OfferGateFooter'
 import { useBeam } from '@/context/BeamContext'
+import { JobTitleText } from '@/lib/displayTitle'
 import { formatBudget, relativeTime } from '@/lib/matching'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
+import { isHelperPerson } from '@/lib/roles'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 import type { HelpRequest } from '@/types'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
+import {
+  ReferHelperButton,
+  ReferHelperHint,
+  useReferHelperShare,
+} from './ReferHelperActions'
 import { useFocusTrap } from './useFocusTrap'
 
 const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexible'] as const
@@ -65,11 +72,13 @@ export function BrowseJobDrawer({
 
   const requester = state.people.find((p) => p.id === request.requesterId)
   const isOwner = request.requesterId === currentUser.id
+  const isNeighborViewer = !isGuest && !isOwner && !isHelperPerson(currentUser)
   const myOffer = state.offers.find(
     (o) => o.requestId === request.id && o.helperId === currentUser.id && o.status !== 'withdrawn',
   )
   const verified = canMakeOffer(helperVerification)
   const gateKind = offerGateKind(helperVerification)
+  const { referHelper, dialog: referDialog } = useReferHelperShare(request.id, request.title)
   const [offerOpen, setOfferOpen] = useState(false)
   const [offerPrice, setOfferPrice] = useState(() =>
     myOffer ? String(myOffer.price) : request.budget > 0 ? String(Math.round(request.budget)) : '',
@@ -226,11 +235,11 @@ export function BrowseJobDrawer({
         </span>
         <h2
           id={titleId}
-          className={`mt-3 font-bold leading-[1.18] tracking-[-0.028em] text-[#071330] ${
+          className={`mt-3 font-bold leading-[1.18] tracking-[-0.028em] text-[#071330] [text-wrap:balance] ${
             narrow ? 'text-[22px]' : 'text-[24px]'
           }`}
         >
-          {request.title}
+          <JobTitleText title={request.title} />
         </h2>
         <p className="mt-2 text-[14px] text-[#273449]">
           Posted {posted} by {firstName} · {place}
@@ -284,7 +293,7 @@ export function BrowseJobDrawer({
           </div>
         </section>
 
-        {offerOpen && canOffer && verified ? (
+        {offerOpen && canOffer && !isNeighborViewer && verified ? (
           <form
             className="mt-6 space-y-3 rounded-[10px] border border-[#E3E8EF] p-4"
             data-testid="browse-drawer-offer"
@@ -355,7 +364,9 @@ export function BrowseJobDrawer({
     </div>
   )
 
-  const askButton = canOffer ? (
+  const showHelperOfferChrome = canOffer && !isNeighborViewer
+
+  const askButton = showHelperOfferChrome ? (
     <button
       type="button"
       data-testid="browse-ask-question"
@@ -384,9 +395,9 @@ export function BrowseJobDrawer({
     >
       {cancelPending ? 'Canceling…' : 'Cancel offer'}
     </button>
-  ) : canOffer && !isGuest && !verified && gateKind !== 'approved' ? (
+  ) : showHelperOfferChrome && !isGuest && !verified && gateKind !== 'approved' ? (
     <OfferGatePrimaryButton kind={gateKind} narrow={narrow} />
-  ) : canOffer ? (
+  ) : showHelperOfferChrome ? (
     <button
       type="button"
       data-testid="browse-make-offer"
@@ -420,9 +431,16 @@ export function BrowseJobDrawer({
   )
 
   const gateNotice =
-    canOffer && !isGuest && !verified ? (
+    showHelperOfferChrome && !isGuest && !verified ? (
       <OfferGateNotice verification={helperVerification} narrow={narrow} />
     ) : null
+
+  const referActions = (
+    <div className="flex w-full flex-col gap-2">
+      <ReferHelperButton onClick={() => void referHelper()} />
+      <ReferHelperHint />
+    </div>
+  )
 
   const actions = narrow ? (
     <div className="flex shrink-0 flex-col gap-2 border-t border-[#E3E8EF] bg-white px-4 pb-4 pt-2.5">
@@ -431,7 +449,9 @@ export function BrowseJobDrawer({
         <b className="text-[18px] font-bold tracking-[-0.03em] text-[#071330]">{budgetLabel}</b>
         <span className="text-[13px] font-medium text-[#3D4A5F]">Customer budget</span>
       </div>
-      {canOffer ? (
+      {canOffer && isNeighborViewer ? (
+        referActions
+      ) : showHelperOfferChrome ? (
         <div className="grid grid-cols-2 gap-2">
           {askButton}
           {primaryButton}
@@ -439,23 +459,31 @@ export function BrowseJobDrawer({
       ) : (
         primaryButton
       )}
+      {referDialog}
     </div>
   ) : (
     <div className="flex shrink-0 flex-col gap-0 border-t border-[#E3E8EF] bg-white">
       {gateNotice ? <div className="px-5 pt-3 pl-6">{gateNotice}</div> : null}
-      <div className="flex items-center gap-2.5 px-5 py-3.5 pl-6">
-        <div className="min-w-0 shrink leading-tight">
-          <b className="block truncate text-[18px] font-bold tracking-[-0.03em] text-[#071330]">
-            {budgetLabel}
-          </b>
-          <span className="block whitespace-nowrap text-[12px] font-medium text-[#3D4A5F]">
-            Customer budget
-          </span>
+      {canOffer && isNeighborViewer ? (
+        <div className="px-5 py-3.5 pl-6">
+          {referActions}
+          {referDialog}
         </div>
-        <div className="min-w-2 flex-1" />
-        {askButton}
-        {primaryButton}
-      </div>
+      ) : (
+        <div className="flex items-center gap-2.5 px-5 py-3.5 pl-6">
+          <div className="min-w-0 shrink leading-tight">
+            <b className="block truncate text-[18px] font-bold tracking-[-0.03em] text-[#071330]">
+              {budgetLabel}
+            </b>
+            <span className="block whitespace-nowrap text-[12px] font-medium text-[#3D4A5F]">
+              Customer budget
+            </span>
+          </div>
+          <div className="min-w-2 flex-1" />
+          {askButton}
+          {primaryButton}
+        </div>
+      )}
     </div>
   )
 
