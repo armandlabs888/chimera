@@ -737,6 +737,14 @@
   letter-spacing: -0.03em;
   line-height: 1.2;
   color: var(--hc-navy);
+  text-wrap: balance;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+.job-title-nobreak {
+  white-space: nowrap;
 }
 
 .browse-hc-detail-price-block {
@@ -824,6 +832,10 @@
   margin-top: 12px;
 }
 
+.browse-hc-detail-actions--refer {
+  flex-direction: column;
+}
+
 .browse-hc-btn-ask {
   flex: 1;
   height: 44px;
@@ -856,6 +868,65 @@
 
 .browse-hc-btn-offer:hover {
   background: var(--hc-blue-hover);
+}
+
+/* Same footprint as browse-hc-btn-offer / Get verified. */
+.browse-hc-btn-refer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  min-height: 44px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 12px;
+  background: var(--hc-blue, #1d5ce5);
+  color: #fff;
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  flex: none;
+  flex-shrink: 0;
+}
+
+.browse-hc-btn-refer.is-full {
+  width: 100%;
+}
+
+.browse-hc-btn-refer:hover {
+  background: var(--hc-blue-hover, #1649bd);
+}
+
+.browse-hc-refer-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--hc-muted-2, #6b7384);
+  text-align: center;
+}
+
+.refer-helper-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 90;
+  transform: translateX(-50%);
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--hc-navy);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  box-shadow: 0 10px 28px -12px rgba(7, 19, 48, 0.45);
+  pointer-events: none;
 }
 
 .browse-hc-btn-cancel {

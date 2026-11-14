@@ -10,13 +10,16 @@ import {
   OfferGatePrimaryButton,
 } from '@/components/verification/OfferGateFooter'
 import { useBeam } from '@/context/BeamContext'
+import { JobTitleText } from '@/lib/displayTitle'
 import { formatBudget, relativeTime } from '@/lib/matching'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
+import { isHelperPerson } from '@/lib/roles'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 import type { HelpRequest } from '@/types'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
+import { ReferHelperFooterActions } from './ReferHelperActions'
 
 const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexible'] as const
 
@@ -47,6 +50,7 @@ export function BrowseJobDetailPanel({
   const titleId = useId()
 
   const isOwner = request.requesterId === currentUser.id
+  const isNeighborViewer = !isGuest && !isOwner && !isHelperPerson(currentUser)
   const myOffer = state.offers.find(
     (o) => o.requestId === request.id && o.helperId === currentUser.id && o.status !== 'withdrawn',
   )
@@ -178,6 +182,8 @@ export function BrowseJobDetailPanel({
     }
   }
 
+  const showHelperOfferChrome = canOffer && !isNeighborViewer
+
   const primaryButton =
     pendingOffer && !offerOpen && verified ? (
       <button
@@ -190,9 +196,9 @@ export function BrowseJobDetailPanel({
       >
         {cancelPending ? 'Canceling…' : 'Cancel offer'}
       </button>
-    ) : canOffer && !isGuest && !verified && gateKind !== 'approved' ? (
+    ) : showHelperOfferChrome && !isGuest && !verified && gateKind !== 'approved' ? (
       <OfferGatePrimaryButton kind={gateKind} narrow={false} className="browse-hc-btn-offer !flex-[1.15]" />
-    ) : canOffer ? (
+    ) : showHelperOfferChrome ? (
       <button
         type="button"
         data-testid="browse-make-offer"
@@ -259,7 +265,7 @@ export function BrowseJobDetailPanel({
         <div className="browse-hc-detail-body">
           <div className="browse-hc-detail-head">
             <h2 id={titleId} className="browse-hc-detail-title">
-              {request.title}
+              <JobTitleText title={request.title} />
             </h2>
             {request.isUrgent ? (
               <div className="mb-2">
@@ -295,7 +301,7 @@ export function BrowseJobDetailPanel({
             <p>{request.details}</p>
           </div>
 
-          {offerOpen && canOffer && verified ? (
+          {offerOpen && showHelperOfferChrome && verified ? (
             <form
               ref={offerFormRef}
               className="mt-4 space-y-3 rounded-[12px] border border-[#E3E8EF] p-4"
@@ -365,7 +371,7 @@ export function BrowseJobDetailPanel({
             </p>
           ) : null}
 
-          {canOffer && !isGuest && !verified ? (
+          {showHelperOfferChrome && !isGuest && !verified ? (
             <div className="mt-3">
               <OfferGateNotice verification={helperVerification} narrow={false} />
             </div>
@@ -374,7 +380,9 @@ export function BrowseJobDetailPanel({
       </div>
 
       <div className="browse-hc-detail-footer">
-        {canOffer ? (
+        {canOffer && isNeighborViewer ? (
+          <ReferHelperFooterActions jobId={request.id} title={request.title} />
+        ) : showHelperOfferChrome ? (
           <div className="browse-hc-detail-actions">
             <button
               type="button"
