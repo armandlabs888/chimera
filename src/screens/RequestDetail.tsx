@@ -17,6 +17,7 @@ import {
   ReferHelperHint,
   useReferHelperShare,
 } from '@/components/browse/ReferHelperActions'
+import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { Avatar, Button, ButtonLink, ConfirmDialog, TextArea } from '@/components/ui'
 import { pluralNoun, pluralize } from '@/lib/pluralize'
@@ -316,7 +317,7 @@ export function RequestDetail() {
         className="lg:grid lg:grid-cols-[minmax(0,1.45fr)_minmax(360px,420px)] lg:items-start lg:gap-8 xl:gap-10"
         data-testid="request-detail-grid"
       >
-        {/* Left column — task overview */}
+        {/* Left column - task overview */}
         <div className="space-y-5" data-testid="request-detail-left">
           <article className={`overflow-hidden ${cardClass}`}>
             <div className="space-y-4 p-5 sm:p-6">
@@ -388,16 +389,11 @@ export function RequestDetail() {
 
               {listingImages.length > 0 ? (
                 <div className="mt-1 space-y-2" data-testid="request-detail-photos">
-                  <div className="relative aspect-[16/10] max-h-[380px] w-full overflow-hidden rounded-lg bg-[#F4F8FD]">
-                    <Image
-                      src={coverImage ?? listingImages[0]}
-                      alt=""
-                      fill
-                      sizes="(min-width:1024px) 640px, 100vw"
-                      className="object-cover"
-                      priority
-                    />
-                  </div>
+                  <JobDetailPhoto
+                    src={coverImage ?? listingImages[0]}
+                    className="rounded-lg"
+                    testId="request-detail-cover"
+                  />
                   {listingImages.length > 1 ? (
                     <ul className="grid grid-cols-4 gap-2 sm:grid-cols-5">
                       {listingImages.map((src, i) => (
@@ -453,7 +449,7 @@ export function RequestDetail() {
             </div>
           </article>
 
-          {/* Nearby matches for owner — left column */}
+          {/* Nearby matches for owner - left column */}
           {isOwner && request.status === 'open' ? (
             <section className={`${cardClass} p-5 sm:p-6`} data-testid="request-nearby-matches">
               <h2 className="text-[18px] font-bold text-[#071330]">Instant Nearby Matches</h2>
@@ -540,7 +536,7 @@ export function RequestDetail() {
           ) : null}
         </div>
 
-        {/* Right column — sticky action rail */}
+        {/* Right column - sticky action rail */}
         <aside
           className="mt-5 space-y-4 lg:sticky lg:top-24 lg:mt-0"
           data-testid="request-detail-right"
@@ -572,7 +568,7 @@ export function RequestDetail() {
             </div>
           ) : null}
 
-          {/* Owner open — incoming offers */}
+          {/* Owner open - incoming offers */}
           {isOwner && request.status === 'open' ? (
             <section className={`${cardClass} p-5`} data-testid="request-incoming-offers">
               <div className="flex items-center justify-between gap-2">
@@ -680,7 +676,7 @@ export function RequestDetail() {
             </section>
           ) : null}
 
-          {/* Helper open — send offer (gated until address verification is approved) */}
+          {/* Helper open - send offer (gated until address verification is approved) */}
           {!isOwner && !isNeighborViewer && request.status === 'open' ? (
             <section className="space-y-3" data-testid="request-offer-panel">
               {myInvite ? (
@@ -827,7 +823,7 @@ export function RequestDetail() {
             </section>
           ) : null}
 
-          {/* Accepted — booked summary */}
+          {/* Accepted - booked summary */}
           {request.status === 'accepted' && (isOwner || isAcceptedHelper) ? (
             <section className={`${cardClass} p-5`} data-testid="request-booked-panel">
               <p className="text-[13.5px] font-semibold text-[#071330]">You’re booked</p>
@@ -903,7 +899,7 @@ export function RequestDetail() {
             </section>
           ) : null}
 
-          {/* Completed — mutual review */}
+          {/* Completed - mutual review */}
           {request.status === 'completed' ? (
             <section className={`${cardClass} p-5`} data-testid="request-review-panel">
               <h2 className="text-[18px] font-bold text-[#071330]">Mutual review</h2>

@@ -18,6 +18,7 @@ import { formatCategoryLabel } from '@/lib/taxonomy'
 import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 import type { HelpRequest } from '@/types'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
+import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 import { ReferHelperFooterActions } from './ReferHelperActions'
 
@@ -231,19 +232,18 @@ export function BrowseJobDetailPanel({
       aria-labelledby={titleId}
     >
       <div className="browse-hc-detail-scroll" ref={scrollRef}>
-        <div className="browse-hc-detail-photo">
-          {cover ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={cover} alt="" />
-          ) : (
-            <div className="browse-hc-detail-fallback">
-              <BrowseCategoryThumb
-                categoryId={request.category}
-                size="hero"
-                className="!aspect-auto h-full w-full !rounded-none"
-              />
-            </div>
-          )}
+        <JobDetailPhoto
+          src={cover}
+          showBottomScrim
+          className="browse-hc-detail-photo"
+          fallback={
+            <BrowseCategoryThumb
+              categoryId={request.category}
+              size="hero"
+              className="!aspect-auto h-full w-full !rounded-none"
+            />
+          }
+        >
           <div className="browse-hc-photo-caption">
             {categoryLabel} · Posted {posted}
           </div>
@@ -260,7 +260,7 @@ export function BrowseJobDetailPanel({
             />
             {saved ? 'Saved' : 'Save'}
           </button>
-        </div>
+        </JobDetailPhoto>
 
         <div className="browse-hc-detail-body">
           <div className="browse-hc-detail-head">
