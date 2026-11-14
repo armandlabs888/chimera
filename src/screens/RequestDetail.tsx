@@ -18,8 +18,10 @@ import {
   useReferHelperShare,
 } from '@/components/browse/ReferHelperActions'
 import { SuggestedHelpersSection } from '@/components/refer/SuggestedHelpersSection'
+import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
+import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { Avatar, Button, ButtonLink, ConfirmDialog, TextArea } from '@/components/ui'
 import { pluralNoun, pluralize } from '@/lib/pluralize'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
@@ -322,7 +324,7 @@ export function RequestDetail() {
         {/* Left column - task overview */}
         <div className="space-y-5" data-testid="request-detail-left">
           <article className={`overflow-hidden ${cardClass}`}>
-            <div className="space-y-4 p-5 sm:p-6">
+            <div className="flex flex-col gap-6 p-5 sm:gap-7 sm:p-6">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-[#F4F8FD] px-3 py-1.5 text-[12.5px] font-semibold text-[#071330]">
                   {CategoryIcon ? (
@@ -417,14 +419,23 @@ export function RequestDetail() {
                 </div>
               ) : null}
 
-              <div className="border-t border-[#E2E8F0] pt-5">
+              <JobAreaMap
+                jobId={request.id}
+                lat={request.lat}
+                lng={request.lng}
+                radiusMiles={request.radiusMiles}
+                areaLabel={locationLabel}
+                height={180}
+              />
+
+              <div className="border-t border-[#E2E8F0] pt-6 sm:pt-7">
                 <h2 className="text-[13.5px] font-semibold text-[#071330]">About this task</h2>
-                <p className="mt-2 whitespace-pre-wrap text-[15px] leading-[1.6] text-[#475569]">
-                  {request.details}
+                <p className="mt-2.5 whitespace-pre-wrap text-[15px] leading-[1.65] text-[#475569]">
+                  {formatJobDetailsDisplay(request.details)}
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 border-t border-[#E2E8F0] pt-5">
+              <div className="flex items-center gap-3 border-t border-[#E2E8F0] pt-6 sm:pt-7">
                 <Avatar src={requester.avatar} name={requester.name} size={44} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[15px] font-semibold text-[#071330]">

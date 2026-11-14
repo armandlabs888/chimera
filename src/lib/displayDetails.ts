@@ -1,0 +1,13 @@
+/**
+ * Display-only formatting for job details.
+ * Sample markers stay in stored text so ops can find and remove sample jobs;
+ * they must not appear in any user-facing UI.
+ */
+
+const SAMPLE_MARKER_RE = /\n*\[(?:HouseCall|Beam) sample[^\]]*\]\s*$/i
+
+/** Strip a trailing HouseCall/Beam sample marker line from details for display. */
+export function formatJobDetailsDisplay(details: string): string {
+  if (!details) return ''
+  return details.replace(SAMPLE_MARKER_RE, '').trimEnd()
+}

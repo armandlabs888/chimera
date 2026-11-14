@@ -25,7 +25,9 @@ import { isHelperPerson } from '@/lib/roles'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 import type { HelpRequest } from '@/types'
+import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
+import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 import {
   ReferHelperButton,
@@ -227,23 +229,31 @@ export function BrowseJobDrawer({
         }
       />
 
-      <div className={narrow ? 'px-[18px] pb-6 pt-3.5' : 'px-6 pb-7 pt-[18px]'}>
-        <span className="inline-flex h-6 items-center rounded-md border border-[#D6E2F5] bg-[#F4F8FD] px-2.5 text-[12px] font-semibold tracking-[-0.01em] text-[#123E9E]">
-          {categoryLabel}
-        </span>
-        <h2
-          id={titleId}
-          className={`mt-3 font-bold leading-[1.18] tracking-[-0.028em] text-[#071330] [text-wrap:balance] ${
-            narrow ? 'text-[22px]' : 'text-[24px]'
-          }`}
-        >
-          <JobTitleText title={request.title} />
-        </h2>
-        <p className="mt-2 text-[14px] text-[#273449]">
-          Posted {posted} by {firstName} · {place}
-        </p>
+      <div
+        className={
+          narrow
+            ? 'flex flex-col gap-[22px] px-[18px] pb-6 pt-3.5'
+            : 'flex flex-col gap-7 px-6 pb-7 pt-[18px]'
+        }
+      >
+        <div>
+          <span className="inline-flex h-6 items-center rounded-md border border-[#D6E2F5] bg-[#F4F8FD] px-2.5 text-[12px] font-semibold tracking-[-0.01em] text-[#123E9E]">
+            {categoryLabel}
+          </span>
+          <h2
+            id={titleId}
+            className={`mt-3 font-bold leading-[1.18] tracking-[-0.028em] text-[#071330] [text-wrap:balance] ${
+              narrow ? 'text-[22px]' : 'text-[24px]'
+            }`}
+          >
+            <JobTitleText title={request.title} />
+          </h2>
+          <p className="mt-2 text-[14px] text-[#273449]">
+            Posted {posted} by {firstName} · {place}
+          </p>
+        </div>
 
-        <dl className={`mt-5 border-y border-[#E3E8EF] ${narrow ? '' : ''}`}>
+        <dl className="border-y border-[#E3E8EF]">
           {facts.map((fact) => (
             <div
               key={fact.label}
@@ -267,14 +277,23 @@ export function BrowseJobDrawer({
           ))}
         </dl>
 
-        <section className="mt-[22px]">
+        <JobAreaMap
+          jobId={request.id}
+          lat={request.lat}
+          lng={request.lng}
+          radiusMiles={request.radiusMiles}
+          areaLabel={locationLine}
+          height={narrow ? 160 : 180}
+        />
+
+        <section>
           <h3 className="text-[15px] font-bold tracking-[-0.015em] text-[#071330]">About this job</h3>
-          <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed text-[#273449]">
-            {request.details}
+          <p className="mt-2.5 whitespace-pre-wrap text-[15px] leading-[1.65] text-[#273449]">
+            {formatJobDetailsDisplay(request.details)}
           </p>
         </section>
 
-        <section className="mt-[22px]">
+        <section>
           <h3 className="text-[15px] font-bold tracking-[-0.015em] text-[#071330]">Location</h3>
           <div className="mt-2.5 flex items-start gap-3">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#F4F8FD] text-[#1D5CE5]">
@@ -293,7 +312,7 @@ export function BrowseJobDrawer({
 
         {offerOpen && canOffer && !isNeighborViewer && verified ? (
           <form
-            className="mt-6 space-y-3 rounded-[10px] border border-[#E3E8EF] p-4"
+            className="space-y-3 rounded-[10px] border border-[#E3E8EF] p-4"
             data-testid="browse-drawer-offer"
             onSubmit={(e) => {
               e.preventDefault()
@@ -349,12 +368,12 @@ export function BrowseJobDrawer({
           </form>
         ) : null}
         {pendingOffer && !offerOpen ? (
-          <p className="mt-4 text-[14px] font-semibold text-[#071330]" data-testid="browse-offer-sent">
+          <p className="text-[14px] font-semibold text-[#071330]" data-testid="browse-offer-sent">
             Offer sent. You can keep coordinating from Messages.
           </p>
         ) : null}
         {offerError && !offerOpen ? (
-          <p className="mt-3 text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[#071330]" role="alert" data-testid="browse-offer-error">
+          <p className="text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[#071330]" role="alert" data-testid="browse-offer-error">
             {offerError}
           </p>
         ) : null}
