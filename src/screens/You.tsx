@@ -18,6 +18,7 @@ import { formatLocationLabel } from '@/lib/location'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import { formatRate, relativeTime } from '@/lib/matching'
 import { hidesPeerHelperDiscovery } from '@/lib/roles'
+import { HelperUrgentSmsSettings } from '@/components/account/HelperUrgentSmsSettings'
 import '@/components/account/account-hc.css'
 
 const TABS = ['requests', 'offers', 'saved', 'notifications', 'helper'] as const
@@ -313,47 +314,55 @@ export function You() {
           ) : null}
 
           {tab === 'helper' ? (
-            <div className="account-hc-card account-hc-helper-summary">
+            <div className="space-y-4">
+              <div className="account-hc-card account-hc-helper-summary">
+                {isHelper ? (
+                  <>
+                    <h2>Helper profile</h2>
+                    <p className="meta">
+                      {currentUser.availableNow ? 'Available now · ' : ''}
+                      {formatRate(currentUser)} · Within {currentUser.serviceRadiusMiles ?? 5} mi
+                    </p>
+                    {currentUser.bio ? (
+                      <p className="mt-3 text-[15px] leading-[1.5] text-[#48556A]">{currentUser.bio}</p>
+                    ) : null}
+                    <div className="account-hc-skill-pills">
+                      {currentUser.skills.map((s) => (
+                        <span key={s}>
+                          {formatCategoryLabel(
+                            s,
+                            s === 'other' ? currentUser.otherSkillLabel : null,
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="actions">
+                      <Link href="/onboarding/helper" className="account-hc-btn">
+                        Edit helper profile
+                      </Link>
+                      <Link href={`/people/${currentUser.id}`} className="account-hc-btn account-hc-btn-secondary">
+                        View public profile
+                      </Link>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center sm:text-left">
+                    <h2>Become a helper</h2>
+                    <p className="meta mt-2">
+                      Set your skills, service area, and rate. Then start browsing open requests nearby.
+                    </p>
+                    <div className="actions justify-center sm:justify-start">
+                      <HelperCta />
+                    </div>
+                  </div>
+                )}
+              </div>
               {isHelper ? (
-                <>
-                  <h2>Helper profile</h2>
-                  <p className="meta">
-                    {currentUser.availableNow ? 'Available now · ' : ''}
-                    {formatRate(currentUser)} · Within {currentUser.serviceRadiusMiles ?? 5} mi
-                  </p>
-                  {currentUser.bio ? (
-                    <p className="mt-3 text-[15px] leading-[1.5] text-[#48556A]">{currentUser.bio}</p>
-                  ) : null}
-                  <div className="account-hc-skill-pills">
-                    {currentUser.skills.map((s) => (
-                      <span key={s}>
-                        {formatCategoryLabel(
-                          s,
-                          s === 'other' ? currentUser.otherSkillLabel : null,
-                        )}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="actions">
-                    <Link href="/onboarding/helper" className="account-hc-btn">
-                      Edit helper profile
-                    </Link>
-                    <Link href={`/people/${currentUser.id}`} className="account-hc-btn account-hc-btn-secondary">
-                      View public profile
-                    </Link>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center sm:text-left">
-                  <h2>Become a helper</h2>
-                  <p className="meta mt-2">
-                    Set your skills, service area, and rate. Then start browsing open requests nearby.
-                  </p>
-                  <div className="actions justify-center sm:justify-start">
-                    <HelperCta />
-                  </div>
-                </div>
-              )}
+                <HelperUrgentSmsSettings
+                  userId={authUser?.id || currentUser.id}
+                  localOnly={mode !== 'live'}
+                />
+              ) : null}
             </div>
           ) : null}
         </div>

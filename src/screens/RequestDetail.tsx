@@ -10,8 +10,9 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
+import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { Avatar, Button, ButtonLink, EmptyState, TextArea } from '@/components/ui'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import {
@@ -80,9 +81,21 @@ export function RequestDetail() {
     inviteHelper,
     toggleSavedHelper,
     helperVerification,
+    refresh,
   } = useBeam()
 
   const request = getRequest(id)
+
+  // After an urgent post, refresh so "We texted n helpers" can update.
+  useEffect(() => {
+    if (!justPosted || !request?.isUrgent) return
+    const timers = [1500, 4000, 8000].map((ms) =>
+      window.setTimeout(() => {
+        void refresh()
+      }, ms),
+    )
+    return () => timers.forEach((t) => window.clearTimeout(t))
+  }, [justPosted, request?.isUrgent, request?.id, refresh])
   const requester = request ? getPerson(request.requesterId) : undefined
   const categoryLabel = request
     ? formatCategoryLabel(request.category, request.categoryCustom)
@@ -260,6 +273,7 @@ export function RequestDetail() {
                   ) : null}
                   {categoryLabel}
                 </span>
+                {request.isUrgent ? <NeedsHelpNowLabel /> : null}
                 <span
                   className={`inline-flex items-center rounded-md px-2.5 py-1 text-[12px] font-semibold capitalize ${
                     request.status === 'open'
@@ -277,6 +291,24 @@ export function RequestDetail() {
                   Posted {relativeTime(request.createdAt)}
                 </span>
               </div>
+
+              {isOwner && request.isUrgent ? (
+                (request.urgentHelpersNotifiedCount ?? 0) > 0 ? (
+                  <p
+                    className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
+                    data-testid="urgent-texted-helpers"
+                  >
+                    We texted {request.urgentHelpersNotifiedCount} helpers nearby
+                  </p>
+                ) : (
+                  <p
+                    className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
+                    data-testid="urgent-texted-helpers-pending"
+                  >
+                    We&apos;ll text helpers nearby as they become available
+                  </p>
+                )
+              ) : null}
 
               <h1 className="font-display text-[26px] font-bold leading-[1.15] tracking-[-0.025em] text-[#071330] sm:text-[32px]">
                 {request.title}

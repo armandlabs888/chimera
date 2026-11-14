@@ -21,6 +21,7 @@ import {
   type UsCity,
 } from '@/lib/usPlaces'
 import type { AvailabilitySlot, RateType } from '@/types'
+import { HelperUrgentSmsSettings } from '@/components/account/HelperUrgentSmsSettings'
 import '@/components/account/account-hc.css'
 
 const SLOTS: { id: AvailabilitySlot; label: string }[] = [
@@ -635,6 +636,12 @@ export function HelperOnboarding() {
             </Button>
           </div>
         </form>
+
+        {mode === 'live' && authUser ? (
+          <div className="account-hc-form-narrow mt-4">
+            <HelperUrgentSmsSettings userId={authUser.id} />
+          </div>
+        ) : null}
       </div>
     </div>
   )

@@ -154,6 +154,8 @@ export function PostRequest() {
 
   const [budgetType, setBudgetType] = useState<BudgetType>('fixed')
   const [budget, setBudget] = useState(60)
+  /** Optional SMS urgency flag; regular ASAP/scheduled posts stay unchanged when false. */
+  const [needsHelpNow, setNeedsHelpNow] = useState(false)
 
   const [error, setError] = useState('')
   const [pending, setPending] = useState(false)
@@ -219,6 +221,7 @@ export function PostRequest() {
       scheduledEnd,
       preferredHelperId: preferredHelper?.id ?? null,
       publicOfferCount: 0,
+      isUrgent: needsHelpNow,
     }),
     [
       title,
@@ -238,6 +241,7 @@ export function PostRequest() {
       scheduledFor,
       scheduledEnd,
       preferredHelper?.id,
+      needsHelpNow,
     ],
   )
 
@@ -515,6 +519,7 @@ export function PostRequest() {
         preferredHelperId: preferredHelper?.id ?? null,
         images: photoUrls,
         image: listingCoverImage(photoUrls) || undefined,
+        isUrgent: needsHelpNow,
       })
       router.push(`/requests/${request.id}?justPosted=1`)
     } catch (err) {
@@ -872,6 +877,28 @@ export function PostRequest() {
                   )
                 })}
               </div>
+
+              <label
+                className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-[#E2E8F0] bg-[#F5F9FF] px-4 py-3.5"
+                data-testid="post-needs-help-now"
+              >
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 accent-[#1D5CE5]"
+                  checked={needsHelpNow}
+                  onChange={(e) => setNeedsHelpNow(e.target.checked)}
+                  data-testid="post-needs-help-now-checkbox"
+                />
+                <span>
+                  <span className="block text-[15px] font-semibold text-[#071330]">
+                    I need help now
+                  </span>
+                  <span className="mt-0.5 block text-[13px] leading-snug text-[#64748B]">
+                    Text verified helpers nearby who turned on optional urgent alerts. Regular
+                    posts stay the same when this is off.
+                  </span>
+                </span>
+              </label>
 
               {when === 'asap' ? (
                 <p

@@ -99,6 +99,8 @@ export function mapRequest(
     scheduledEnd: row.scheduled_end ?? null,
     preferredHelperId: row.preferred_helper_id,
     publicOfferCount: row.offer_count,
+    isUrgent: Boolean(row.is_urgent),
+    urgentHelpersNotifiedCount: Number(row.urgent_helpers_notified_count ?? 0),
   }
 }
 
@@ -239,6 +241,8 @@ export function mapPublicRequest(row: Record<string, unknown>): HelpRequest {
     scheduledFor: (row.scheduled_for as string | null) ?? null,
     scheduledEnd: (row.scheduled_end as string | null) ?? null,
     publicOfferCount: Number(row.offer_count ?? 0),
+    isUrgent: Boolean(row.is_urgent),
+    urgentHelpersNotifiedCount: Number(row.urgent_helpers_notified_count ?? 0),
   }
 }
 

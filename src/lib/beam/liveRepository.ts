@@ -280,6 +280,7 @@ export type CreateRequestInput = {
   scheduledFor?: string | null
   scheduledEnd?: string | null
   preferredHelperId?: string | null
+  isUrgent?: boolean
 }
 
 export async function createLiveRequest(
@@ -326,6 +327,7 @@ export async function createLiveRequest(
       scheduled_for: input.scheduledFor ?? null,
       scheduled_end: input.scheduledEnd ?? null,
       preferred_helper_id: input.preferredHelperId ?? null,
+      is_urgent: Boolean(input.isUrgent),
     })
     .select('*')
     .single()
@@ -345,6 +347,19 @@ export async function createLiveRequest(
       await inviteLiveHelper(client, data.id, input.preferredHelperId, '')
     } catch {
       // Invite is best-effort after request creation.
+    }
+  }
+
+  // Urgent SMS matching is best-effort; never block posting if Twilio/env is unset.
+  if (input.isUrgent) {
+    try {
+      void fetch('/api/urgent-jobs/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId: data.id }),
+      })
+    } catch {
+      /* ignore */
     }
   }
 
