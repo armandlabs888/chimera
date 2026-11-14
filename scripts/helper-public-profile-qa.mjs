@@ -112,6 +112,20 @@ async function assertPublicProfile(page) {
   await page.getByTestId('public-helper-share').waitFor({ state: 'visible' })
   await page.getByTestId('public-helper-message').waitFor({ state: 'visible' })
 
+  // Same browse-header shell as /you (not the older AppShell topnav).
+  await page.getByTestId('browse-hc-header-shell').waitFor({ state: 'visible' })
+  const viewport = page.viewportSize()
+  const desktop = Boolean(viewport && viewport.width >= 960)
+  if (desktop) {
+    const navText = await page.locator('.browse-hc-nav').innerText()
+    assert.ok(/Browse jobs/i.test(navText), 'public profile should use Browse jobs nav')
+    assert.ok(/Saved/i.test(navText), 'public profile should show Saved')
+    assert.ok(/My offers/i.test(navText), 'public profile should show My offers')
+  } else {
+    // Mobile keeps the same shell; primary links live in the hamburger sheet.
+    await page.getByRole('button', { name: /menu/i }).first().waitFor({ state: 'visible' })
+  }
+
   const body = await page.getByTestId('public-helper-profile').innerText()
   assert.ok(!/Typically replies within/i.test(body), 'must omit reply-time claim')
   assert.ok(!/\bVerified\b/i.test(body), 'must omit Verified badge copy')
@@ -130,6 +144,17 @@ async function assertPublicProfile(page) {
   const selected = await page.getByTestId('public-helper-day-select').inputValue()
   const chipValue = await chips.nth(2).getAttribute('data-testid')
   assert.ok(chipValue?.includes(selected), 'day chip should sync estimator day')
+
+  // Mobile: page padding must clear the fixed bottom tab above Request to book.
+  const bookBtn = page.getByTestId('public-helper-request-book')
+  const padBottom = await page.locator('.public-helper-profile .php-layout').evaluate((el) => {
+    return parseFloat(getComputedStyle(el).paddingBottom || '0')
+  })
+  if (!desktop) {
+    assert.ok(padBottom >= 72, `mobile layout padding-bottom ${padBottom} should clear tab bar`)
+  }
+  await bookBtn.scrollIntoViewIfNeeded()
+  assert.ok(await bookBtn.isVisible(), 'Request to book must remain visible')
 }
 
 async function main() {

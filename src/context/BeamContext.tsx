@@ -1160,10 +1160,11 @@ export function BeamProvider({
       withState(setState, (prev) => {
         const thread = prev.threads.find((t) => t.id === threadId)
         if (!thread) return prev
+        const requestId = thread.requestId ?? null
         const msg = {
           id: uid('msg'),
           threadId,
-          requestId: thread.requestId,
+          requestId,
           senderId: prev.currentUserId,
           body: trimmed,
           createdAt: new Date().toISOString(),
@@ -1177,7 +1178,7 @@ export function BeamProvider({
               title: 'New message',
               body: trimmed.slice(0, 100),
               href: `/messages/${threadId}`,
-              requestId: thread.requestId,
+              requestId,
               readAt: null,
               createdAt: msg.createdAt,
             }
@@ -1202,7 +1203,7 @@ export function BeamProvider({
             const reply = {
               id: uid('msg'),
               threadId,
-              requestId: thread.requestId,
+              requestId: thread.requestId ?? null,
               senderId: otherId,
               body: HELPER_REPLIES[Math.floor(Math.random() * HELPER_REPLIES.length)],
               createdAt: new Date().toISOString(),

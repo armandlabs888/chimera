@@ -146,7 +146,7 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
                                   request.category,
                                   request.categoryCustom,
                                 ) || request.title
-                              : 'Request'}
+                              : 'Direct message'}
                           </p>
                         ) : null}
                         <p className="mt-0.5 truncate text-[13px] text-[#64748B]">

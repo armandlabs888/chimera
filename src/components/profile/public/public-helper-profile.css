@@ -53,13 +53,13 @@
   margin: 12px 0 18px;
 }
 
-.public-helper-profile .php-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 400px;
-  gap: 40px;
-  align-items: start;
-  padding-bottom: 48px;
-}
+    .public-helper-profile .php-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 400px;
+      gap: 40px;
+      align-items: start;
+      padding-bottom: 24px;
+    }
 
 .public-helper-profile .php-sticky {
   position: sticky;
@@ -527,7 +527,8 @@
   .public-helper-profile .php-layout {
     grid-template-columns: 1fr;
     gap: 8px;
-    padding-bottom: 32px;
+    /* Clear fixed bottom tab bar so Request to book stays tappable. */
+    padding-bottom: 88px;
   }
 
   .public-helper-profile .php-sticky {

@@ -43,7 +43,7 @@ export function useInboxThreads() {
           request,
           last,
           unread,
-          jobTitle: request?.title?.trim() || (thread.requestId ? 'Request' : 'Direct message'),
+          jobTitle: request?.title?.trim() || '',
         }
       })
   }, [

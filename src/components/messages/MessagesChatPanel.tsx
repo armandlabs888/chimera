@@ -290,8 +290,9 @@ export function MessagesChatPanel({
             <Avatar src={other.avatar} name={other.name} size={44} />
             <p className="mt-3 text-[14px] font-semibold text-[#071330]">{other.name}</p>
             <p className="mt-1 max-w-[36ch] text-[13px] leading-relaxed text-[#64748B]">
-              Ask about timing, parking, stairs, or tools — open the request anytime for offers
-              and details.
+              {isDirect
+                ? `Ask ${firstName} about timing, parking, stairs, or tools before you book.`
+                : 'Ask about timing, parking, stairs, or tools. Open the request anytime for offers and details.'}
             </p>
           </div>
         ) : (
