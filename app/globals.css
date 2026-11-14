@@ -24,16 +24,18 @@
   --color-beam-amber: #1d5ce5;
   --color-beam-amber-deep: #1649bd;
   --color-beam-amber-soft: rgba(29, 92, 229, 0.1);
-  --color-beam-success: #059669;
-  --color-beam-success-soft: rgba(5, 150, 105, 0.1);
+  /* Success / warning map to blue palette (no green/amber decorative colors). */
+  --color-beam-success: #1d5ce5;
+  --color-beam-success-soft: rgba(29, 92, 229, 0.1);
+  /* Danger red reserved for Sign out and delete-account actions only. */
   --color-beam-danger: #dc2626;
   --color-beam-danger-soft: rgba(220, 38, 38, 0.1);
-  --color-beam-warning: #d97706;
-  --color-beam-warning-soft: rgba(217, 119, 6, 0.12);
+  --color-beam-warning: #071330;
+  --color-beam-warning-soft: #f5f9ff;
   --color-beam-royal: #1d5ce5;
   --color-beam-royal-hover: #1649bd;
-  --color-beam-butter: #fff8d6;
-  --color-beam-butter-deep: #fef0a8;
+  --color-beam-butter: #f5f9ff;
+  --color-beam-butter-deep: #e3e8ef;
   --color-beam-sky: #f4f8fd;
   /* Uber Move (display) → DM Sans stand-in. Uber Move Text (UI) → Inter stand-in. */
   --font-display: 'UberMove', 'Uber Move', var(--font-dm-sans), system-ui, -apple-system,
@@ -68,9 +70,9 @@
   --gold-2: #1649bd;
   --gold-text: #1d5ce5;
   --focus: #1d5ce5;
-  --teal-accent: #0d9488;
-  --surface-tint: #f0f7ff;
-  --surface-tint-border: #c7d7f0;
+  --teal-accent: #1d5ce5;
+  --surface-tint: #f5f9ff;
+  --surface-tint-border: #d7e0ec;
 }
 
 @layer base {
@@ -209,15 +211,8 @@
   }
 
   .btn-compact {
-    min-height: 36px;
-    min-width: 36px;
-  }
-
-  @media (pointer: coarse) {
-    .btn-compact {
-      min-height: 44px;
-      min-width: 44px;
-    }
+    min-height: 44px;
+    min-width: 44px;
   }
 
   .hide-scrollbar {
@@ -493,55 +488,23 @@
     border-color: rgba(29, 92, 229, 0.45);
   }
 
-  /* Sky hero atmosphere */
+  /* Retired decorative sky / butter bands (flat blue-palette surfaces only). */
   .hero-sky {
-    background: linear-gradient(
-      180deg,
-      #1952ce 0%,
-      #3e8ff0 46%,
-      #8bd5fc 78%,
-      #e6f5fe 94%,
-      #ffffff 100%
-    );
+    background: #f4f8fd;
   }
 
   .hero-clouds {
-    pointer-events: none;
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 42% 28% at 12% 72%, rgba(255, 255, 255, 0.55), transparent 70%),
-      radial-gradient(ellipse 36% 24% at 88% 68%, rgba(255, 255, 255, 0.48), transparent 70%),
-      radial-gradient(ellipse 50% 30% at 50% 88%, rgba(255, 255, 255, 0.7), transparent 72%),
-      radial-gradient(ellipse 28% 18% at 28% 40%, rgba(255, 255, 255, 0.22), transparent 70%),
-      radial-gradient(ellipse 24% 16% at 74% 34%, rgba(255, 255, 255, 0.2), transparent 70%);
+    display: none;
   }
 
   .scallop-band {
     position: relative;
-    background: #fef0a8;
+    background: #f5f9ff;
   }
 
   .scallop-band::before,
   .scallop-band::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 18px;
-    background-repeat: repeat-x;
-    background-size: 36px 18px;
-    pointer-events: none;
-  }
-
-  .scallop-band::before {
-    top: -17px;
-    background-image: radial-gradient(circle at 18px 18px, #fef0a8 18px, transparent 18.5px);
-  }
-
-  .scallop-band::after {
-    bottom: -17px;
-    background-image: radial-gradient(circle at 18px 0, #fef0a8 18px, transparent 18.5px);
+    content: none;
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -166,11 +166,11 @@ export function CategorySelect({
             className="h-10 w-full rounded-lg border border-[#E2E8F0] bg-white px-3 text-[14px] text-[#071330] outline-none transition placeholder:text-[#94A3B8] focus-visible:border-[#1D5CE5] focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/15"
             aria-invalid={Boolean(customError) || undefined}
           />
-          <p className="mt-1 text-[12px] text-[#94A3B8]">
+          <p className="mt-1 text-[12px] text-[#64748B]">
             {customLabel.trim().length}/{OTHER_CUSTOM_MAX}
           </p>
           {customError ? (
-            <p className="mt-1 text-[13px] font-medium text-red-600" role="alert">
+            <p className="mt-1 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] font-medium text-[#071330]" role="alert">
               {customError}
             </p>
           ) : null}
@@ -178,7 +178,7 @@ export function CategorySelect({
       ) : null}
 
       {error ? (
-        <p className="text-[13px] font-medium text-red-600" role="alert">
+        <p className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] font-medium text-[#071330]" role="alert">
           {error}
         </p>
       ) : null}

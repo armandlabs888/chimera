@@ -122,7 +122,11 @@ export function BrowseFloatHeader({
 
       <header className="browse-hc-header" data-testid={guest ? 'landing-nav' : 'app-topnav'} data-nav-style="flat">
         <div className="browse-hc-wrap browse-hc-header-inner">
-          <Link href="/browse" className="browse-hc-brand focus-visible:outline-none" aria-label="HouseCall home">
+          <Link
+            href="/browse"
+            className="browse-hc-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]"
+            aria-label="HouseCall home"
+          >
             <BeamWordmark
               markWidth={18}
               markHeight={18}

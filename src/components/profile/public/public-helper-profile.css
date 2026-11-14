@@ -423,7 +423,8 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 44px;
+  min-height: 52px;
+  height: auto;
   padding: 4px;
   border: 1px solid var(--php-line);
   border-radius: 14px;
@@ -432,8 +433,8 @@
 }
 
 .public-helper-profile .php-stepper button {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 10px;
   font-size: 20px;
   font-weight: 500;

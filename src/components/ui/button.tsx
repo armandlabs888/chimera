@@ -18,7 +18,7 @@ const variantStyles: Record<ButtonVariant, string> = {
 }
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'btn-compact rounded-lg px-3.5 py-1.5 text-[13px] font-semibold',
+  sm: 'inline-flex min-h-[44px] items-center rounded-lg px-3.5 py-2 text-[13px] font-semibold',
   md: 'touch-target rounded-lg px-4 py-2 text-[14px] font-semibold',
   lg: 'touch-target rounded-lg px-5 py-2.5 text-[15px] font-semibold',
 }

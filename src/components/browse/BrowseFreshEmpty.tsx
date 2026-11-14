@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 /**
- * Fresh-marketplace empty hero — vivid blue→turquoise energy on an otherwise quiet canvas.
+ * Fresh-marketplace empty hero. Flat blue panel on an otherwise quiet canvas.
  * Artwork: everyday-help character (cleaning kit). No map / radar / scanning motifs.
  * Mobile: compact copy + reduced (not removed) illustration so next-step cards appear sooner.
  *
@@ -35,19 +35,11 @@ export function BrowseFreshEmpty({
       <div
         className="absolute inset-0"
         style={{
-          background:
-            'linear-gradient(135deg, #0A2FA8 0%, #1D5CE5 42%, #0EA5E9 72%, #2DD4BF 100%)',
+          background: '#1D5CE5',
         }}
         aria-hidden
       />
-      <div
-        className="pointer-events-none absolute inset-0 opacity-40"
-        style={{
-          background:
-            'radial-gradient(ellipse 70% 80% at 15% 20%, rgba(255,255,255,0.28), transparent 55%)',
-        }}
-        aria-hidden
-      />
+
 
       {/*
         Mobile: copy + compact art side-by-side (reduced illustration, not hidden).

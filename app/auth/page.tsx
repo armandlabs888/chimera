@@ -51,7 +51,9 @@ export default function AuthPage() {
 
   return (
     <>
-      <LandingPage />
+      <div inert aria-hidden="true">
+        <LandingPage />
+      </div>
       <AuthExperience
         key={`${initialMode}:${initialError ?? ''}:${safeNext}`}
         initialMode={initialMode}

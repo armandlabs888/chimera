@@ -208,7 +208,7 @@ export function AuthExperience({
           onClick={handleClose}
           aria-label="Close"
           data-testid="auth-modal-close"
-          className="absolute right-2.5 top-2.5 z-[3] inline-flex h-9 w-9 items-center justify-center rounded-full text-[#64748B] transition hover:bg-[rgba(7,19,48,0.06)] hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/focus-visible:ring-offset-2 md:right-3.5 md:top-3.5"
+          className="absolute right-2.5 top-2.5 z-[3] inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-[#64748B] transition hover:bg-[rgba(7,19,48,0.06)] hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5] focus-visible:ring-offset-2 md:right-3.5 md:top-3.5"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden>
             <path d="M4 4l8 8M12 4l-8 8" />
@@ -396,7 +396,7 @@ function FormColumn(props: {
         <h1 id={titleId} className="mt-4 font-display text-[28px] font-extrabold leading-[1.15] tracking-[-0.035em] text-[#071330]">
           Check your inbox
         </h1>
-        <div className="mt-5 rounded-lg border border-[#FDE68A] bg-[#FFF8D6] px-4 py-3 text-[14px] text-[#92400E]">
+        <div className="mt-5 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[14px] text-[#071330]">
           We sent a confirmation link to <strong className="text-[#071330]">{email}</strong>.
         </div>
         {info ? <p className="mt-3 text-[14px] text-[#64748B]">{info}</p> : null}
@@ -449,7 +449,7 @@ function FormColumn(props: {
 
       <div className="my-[18px] flex items-center gap-3" aria-hidden>
         <span className="h-px flex-1 bg-[#E3E8EF]" />
-        <span className="text-[13px] text-[#94A3B8]">or</span>
+        <span className="text-[13px] text-[#64748B]">or</span>
         <span className="h-px flex-1 bg-[#E3E8EF]" />
       </div>
 
@@ -464,7 +464,7 @@ function FormColumn(props: {
             className={`pb-2.5 text-[14px] font-semibold transition ${
               tab === t
                 ? 'border-b-2 border-[#1D5CE5] text-[#1D5CE5]'
-                : 'border-b-2 border-transparent text-[#94A3B8] hover:text-[#475569]'
+                : 'border-b-2 border-transparent text-[#64748B] hover:text-[#475569]'
             }`}
           >
             {t === 'signin' ? 'Sign in' : 'Create account'}
@@ -522,7 +522,7 @@ function FormColumn(props: {
 
         {alertError ? <ErrorBanner message={alertError} /> : null}
         {info ? (
-          <div className="rounded-lg border border-emerald-500/25 bg-emerald-50 px-4 py-3 text-[14px] text-emerald-700">
+          <div className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[14px] text-[#071330]">
             {info}
           </div>
         ) : null}
@@ -569,7 +569,7 @@ function ErrorBanner({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="rounded-lg border border-red-500/25 bg-red-50 px-4 py-3 text-[14px] text-red-700"
+      className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[14px] text-[#071330]"
     >
       {message}
     </div>

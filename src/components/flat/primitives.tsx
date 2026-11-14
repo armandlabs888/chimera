@@ -194,7 +194,7 @@ export function AppWindow({
   return (
     <div className={`elevated overflow-hidden ${className}`}>
       <div className="flex items-center justify-between gap-3 border-b border-[rgba(7,19,48,0.08)] bg-[#F4F8FD] px-3.5 py-2.5">
-        <p className="truncate type-meta text-[#94A3B8]">{url}</p>
+        <p className="truncate type-meta text-[#64748B]">{url}</p>
         {toolbar}
       </div>
       {children}

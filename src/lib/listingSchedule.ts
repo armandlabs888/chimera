@@ -94,7 +94,7 @@ export function buildWhenLabel(opts: {
 
   if (!start) return datePart
   const timePart = end
-    ? `${formatClockLabel(start)}–${formatClockLabel(end)}`
+    ? `${formatClockLabel(start)} to ${formatClockLabel(end)}`
     : formatClockLabel(start)
   return `${datePart} · ${timePart}`
 }

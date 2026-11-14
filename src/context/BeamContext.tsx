@@ -188,7 +188,7 @@ interface BeamContextValue {
 const BeamContext = createContext<BeamContextValue | null>(null)
 
 const HELPER_REPLIES = [
-  'Sounds good — I can make that work.',
+  'Sounds good. I can make that work.',
   'Got it. I’ll confirm once I’m headed over.',
   'Perfect. Any parking tips near you?',
   'Thanks for the details. See you then!',
@@ -1311,7 +1311,7 @@ export function BeamProvider({
                 threadId,
                 requestId,
                 senderId: helperId,
-                body: 'Thanks for the invite — I’ll take a look and send an offer shortly!',
+                body: 'Thanks for the invite. I’ll take a look and send an offer shortly!',
                 createdAt: new Date().toISOString(),
                 isSimulated: true,
               },

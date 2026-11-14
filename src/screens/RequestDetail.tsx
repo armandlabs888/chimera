@@ -291,7 +291,7 @@ export function RequestDetail() {
     >
       <Link
         href="/browse"
-        className="inline-flex items-center text-[13.5px] font-medium text-[#64748B] transition hover:text-[#071330]"
+        className="inline-flex min-h-[44px] items-center py-2 text-[13.5px] font-medium text-[#64748B] transition hover:text-[#071330]"
         data-testid="request-detail-back"
       >
         ← Back to browse
@@ -320,7 +320,7 @@ export function RequestDetail() {
                 <span
                   className={`inline-flex items-center rounded-md px-2.5 py-1 text-[12px] font-semibold capitalize ${
                     request.status === 'open'
-                      ? 'bg-emerald-50 text-emerald-700'
+                      ? 'bg-[#EEF4FF] text-[#1D5CE5]'
                       : request.status === 'accepted'
                         ? 'bg-[#EEF4FF] text-[#1D5CE5]'
                         : request.status === 'completed'
@@ -330,7 +330,7 @@ export function RequestDetail() {
                 >
                   {statusLabel(request.status)}
                 </span>
-                <span className="text-[12.5px] text-[#94A3B8]">
+                <span className="text-[12.5px] text-[#64748B]">
                   Posted {relativeTime(request.createdAt)}
                 </span>
               </div>
@@ -430,7 +430,7 @@ export function RequestDetail() {
                 </div>
                 <Link
                   href={`/people/${requester.id}`}
-                  className="shrink-0 text-[13px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
+                  className="inline-flex min-h-[44px] shrink-0 items-center text-[13px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD]"
                 >
                   View profile →
                 </Link>
@@ -480,7 +480,7 @@ export function RequestDetail() {
                                   : 'New'}
                               </p>
                               {match.reasons.length ? (
-                                <p className="mt-1 line-clamp-1 text-[12px] text-[#94A3B8]">
+                                <p className="mt-1 line-clamp-1 text-[12px] text-[#64748B]">
                                   {match.reasons.slice(0, 3).join(' · ')}
                                 </p>
                               ) : null}
@@ -547,7 +547,7 @@ export function RequestDetail() {
 
           {justPosted && isOwner && request.status === 'open' ? (
             <div
-              className="rounded-lg border border-[rgba(217,119,6,0.2)] bg-[#FFF8D6] px-4 py-3.5 text-[14px] leading-relaxed text-[#92400E]"
+              className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3.5 text-[14px] leading-relaxed text-[#071330]"
               role="status"
             >
               <p className="font-semibold text-[#071330]">Your request is live nearby.</p>
@@ -578,7 +578,7 @@ export function RequestDetail() {
                 <div className="mt-5 rounded-lg bg-[#F8FAFC] px-4 py-8 text-center">
                   <p className="text-[15px] font-semibold text-[#071330]">No offers yet</p>
                   <p className="mt-1 text-[13px] text-[#64748B]">
-                    Invite nearby matches — they’ll show up here when they name a price.
+                    Invite nearby matches. They’ll show up here when they name a price.
                   </p>
                 </div>
               ) : (
@@ -658,7 +658,7 @@ export function RequestDetail() {
           {!isOwner && request.status === 'open' ? (
             <section className="space-y-3" data-testid="request-offer-panel">
               {myInvite ? (
-                <div className="rounded-lg border border-[rgba(217,119,6,0.2)] bg-[#FFF8D6] px-4 py-3 text-[14px] font-semibold text-[#071330]">
+                <div className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[14px] font-semibold text-[#071330]">
                   You were invited to offer on this task
                 </div>
               ) : null}
@@ -746,7 +746,7 @@ export function RequestDetail() {
                       </div>
 
                       {offerError ? (
-                        <p className="text-[14px] text-[#DC2626]" role="alert">
+                        <p className="flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[14px] text-[#071330]" role="alert">
                           {offerError}
                         </p>
                       ) : null}
@@ -819,14 +819,14 @@ export function RequestDetail() {
                         <span className="font-semibold text-[#071330]">{acceptedHelper.name}</span>
                       </>
                     ) : (
-                      <span className="text-[#64748B]">—</span>
+                      <span className="text-[#64748B]">Not set</span>
                     )}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-[13px] font-semibold text-[#64748B]">Agreed price</dt>
                   <dd className="mt-1.5 font-display text-[24px] font-bold tabular-nums text-[#071330]">
-                    {acceptedOffer ? formatMoney(acceptedOffer.price) : '—'}
+                    {acceptedOffer ? formatMoney(acceptedOffer.price) : 'Not set'}
                   </dd>
                 </div>
                 <div>
@@ -847,7 +847,7 @@ export function RequestDetail() {
                 ) : null}
               </dl>
 
-              <div className="mt-5 rounded-lg border border-[rgba(217,119,6,0.2)] bg-[#FFF8D6] px-4 py-3 text-[13.5px] leading-relaxed text-[#92400E]">
+              <div className="mt-5 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[13.5px] leading-relaxed text-[#071330]">
                 Pay your helper peer-to-peer (Venmo, cash, Zelle, etc.). HouseCall doesn’t process
                 payments yet. Agree on the method in chat before you start.
               </div>
@@ -887,13 +887,13 @@ export function RequestDetail() {
 
               {existingReview ? (
                 <div className="mt-5 rounded-lg bg-[#F8FAFC] px-4 py-4">
-                  <div className="flex items-center gap-1 text-[#1D5CE5]">
+                  <div className="flex items-center gap-1 text-[#071330]">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
                         key={i}
                         className={`h-5 w-5 ${
                           i < existingReview.rating
-                            ? 'fill-[#1D5CE5] text-[#1D5CE5]'
+                            ? 'fill-[#071330] text-[#071330]'
                             : 'text-[#CBD5E1]'
                         }`}
                       />
@@ -915,8 +915,8 @@ export function RequestDetail() {
                         onClick={() => setReviewRating(n)}
                         className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border transition ${
                           reviewRating >= n
-                            ? 'border-[#1D5CE5] bg-[#EEF4FF] text-[#1D5CE5]'
-                            : 'border-[rgba(7,19,48,0.12)] bg-white text-[#94A3B8]'
+                            ? 'border-[#071330] bg-[#F5F9FF] text-[#071330]'
+                            : 'border-[rgba(7,19,48,0.12)] bg-white text-[#64748B]'
                         }`}
                         aria-label={`${n} stars`}
                       >
