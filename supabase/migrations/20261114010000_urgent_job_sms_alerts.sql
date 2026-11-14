@@ -187,29 +187,13 @@ create index if not exists urgent_job_sms_notifications_helper_day_idx
 
 alter table public.urgent_job_sms_notifications enable row level security;
 revoke all on table public.urgent_job_sms_notifications from anon, authenticated;
--- Server-only log. Poster-facing count lives on help_requests.urgent_helpers_notified_count.
--- Allow poster to read aggregate count only via the help_requests column (already readable).
-
--- Poster may read their own jobs' notification counts without seeing helper phones.
--- Optional: let poster SELECT count rows for their requests (no phone columns here).
-grant select on table public.urgent_job_sms_notifications to authenticated;
-
+-- Server-only log (helper_id + distance). No authenticated SELECT policies.
+-- Poster-facing count lives only on help_requests.urgent_helpers_notified_count.
 drop policy if exists urgent_job_sms_notifications_select_poster
   on public.urgent_job_sms_notifications;
-create policy urgent_job_sms_notifications_select_poster
-  on public.urgent_job_sms_notifications for select
-  to authenticated
-  using (
-    exists (
-      select 1
-      from public.help_requests r
-      where r.id = request_id
-        and r.requester_id = (select auth.uid())
-    )
-  );
 
 -- ---------------------------------------------------------------------------
--- Quiet-hours helper (America/Chicago local clock for HouseCall launch market)
+-- Quiet-hours helper (America/Los_Angeles; HouseCall market is San Jose, CA)
 -- ---------------------------------------------------------------------------
 create or replace function private.in_quiet_hours(
   p_start time,
@@ -226,7 +210,7 @@ as $$
     when p_start = p_end then false
     else (
       with local_t as (
-        select (p_now at time zone 'America/Chicago')::time as t
+        select (p_now at time zone 'America/Los_Angeles')::time as t
       )
       select case
         when p_start < p_end then t >= p_start and t < p_end
@@ -304,8 +288,8 @@ begin
       where n.helper_id = p.id
         and n.status = 'sent'
         and n.kind in ('urgent_match', 'urgent_escalation')
-        and n.created_at >= (timezone('America/Chicago', now()))::date
-          at time zone 'America/Chicago'
+        and n.created_at >= (timezone('America/Los_Angeles', now()))::date
+          at time zone 'America/Los_Angeles'
     ) < coalesce(s.daily_text_limit, 5)
   order by distance_miles asc;
 end;

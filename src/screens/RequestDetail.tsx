@@ -293,12 +293,21 @@ export function RequestDetail() {
               </div>
 
               {isOwner && request.isUrgent ? (
-                <p
-                  className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
-                  data-testid="urgent-texted-helpers"
-                >
-                  We texted {request.urgentHelpersNotifiedCount ?? 0} helpers nearby
-                </p>
+                (request.urgentHelpersNotifiedCount ?? 0) > 0 ? (
+                  <p
+                    className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
+                    data-testid="urgent-texted-helpers"
+                  >
+                    We texted {request.urgentHelpersNotifiedCount} helpers nearby
+                  </p>
+                ) : (
+                  <p
+                    className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
+                    data-testid="urgent-texted-helpers-pending"
+                  >
+                    We&apos;ll text helpers nearby as they become available
+                  </p>
+                )
               ) : null}
 
               <h1 className="font-display text-[26px] font-bold leading-[1.15] tracking-[-0.025em] text-[#071330] sm:text-[32px]">

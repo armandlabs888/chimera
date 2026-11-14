@@ -374,7 +374,7 @@ export function HelperUrgentSmsSettings({
           data-testid="helper-sms-daily-limit"
         />
         <p className="account-hc-hint" style={{ marginTop: 6 }}>
-          Default 5. Uses America/Chicago for quiet hours and the daily cap.
+          Default 5. Uses America/Los_Angeles for quiet hours and the daily cap.
         </p>
       </div>
 

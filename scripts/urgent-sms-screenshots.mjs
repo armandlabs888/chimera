@@ -25,7 +25,7 @@ async function capture(context, suffix) {
   await page.getByTestId('post-needs-help-now-checkbox').check()
   await shot(page, `urgent-post-option-${suffix}.png`)
 
-  // Fill minimal post and submit to see "We texted n helpers".
+  // Fill minimal post and submit (demo simulates texted count > 0).
   await page.getByTestId('post-title').fill('Urgent sofa move help')
   await page
     .getByTestId('post-details')
@@ -36,7 +36,10 @@ async function capture(context, suffix) {
   await submit.scrollIntoViewIfNeeded()
   await submit.click()
   await page.waitForURL(/\/requests\//, { timeout: 20000 })
-  await page.getByTestId('urgent-texted-helpers').waitFor({ state: 'visible', timeout: 15000 })
+  await page
+    .getByTestId('urgent-texted-helpers')
+    .or(page.getByTestId('urgent-texted-helpers-pending'))
+    .waitFor({ state: 'visible', timeout: 15000 })
   await shot(page, `urgent-texted-helpers-${suffix}.png`)
 
   // Helper SMS settings on Profile helper tab (seed user is a helper in demo).
