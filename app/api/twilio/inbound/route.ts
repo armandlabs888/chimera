@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { toE164 } from '@/lib/urgent/twilio'
+import {
+  TWILIO_INBOUND_PUBLIC_URL,
+  toE164,
+  validateTwilioRequestSignature,
+} from '@/lib/urgent/twilio'
 
 export const runtime = 'nodejs'
 
@@ -22,29 +26,43 @@ function escapeXml(value: string): string {
     .replace(/"/g, '&quot;')
 }
 
+function forbidden(): NextResponse {
+  return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+}
+
 /**
  * Twilio inbound SMS webhook for STOP / START / HELP.
- * Configure in Twilio console:
+ * Requires a valid X-Twilio-Signature. Configure in Twilio console:
  *   https://www.yariapp.com/api/twilio/inbound
  */
 export async function POST(request: Request) {
   try {
     const contentType = request.headers.get('content-type') || ''
-    let from = ''
-    let body = ''
+    const params: Record<string, string> = {}
+
     if (contentType.includes('application/x-www-form-urlencoded')) {
       const form = await request.formData()
-      from = String(form.get('From') || '')
-      body = String(form.get('Body') || '')
-    } else {
-      const json = (await request.json().catch(() => ({}))) as {
-        From?: string
-        Body?: string
+      for (const [key, value] of form.entries()) {
+        if (typeof value === 'string') params[key] = value
       }
-      from = json.From || ''
-      body = json.Body || ''
+    } else {
+      // Twilio webhooks are form-urlencoded; reject other bodies without mutating state.
+      return forbidden()
     }
 
+    const signature = request.headers.get('x-twilio-signature')
+    const valid = validateTwilioRequestSignature({
+      signatureHeader: signature,
+      publicUrl: TWILIO_INBOUND_PUBLIC_URL,
+      params,
+    })
+    if (!valid) {
+      console.warn('[twilio/inbound] Invalid or missing X-Twilio-Signature')
+      return forbidden()
+    }
+
+    const from = params.From || ''
+    const body = params.Body || ''
     const phone = toE164(from)
     const keyword = body.trim().split(/\s+/)[0]?.toUpperCase() || ''
 
@@ -64,7 +82,14 @@ export async function POST(request: Request) {
       )
     }
 
-    if (keyword === 'STOP' || keyword === 'STOPALL' || keyword === 'UNSUBSCRIBE' || keyword === 'CANCEL' || keyword === 'END' || keyword === 'QUIT') {
+    if (
+      keyword === 'STOP' ||
+      keyword === 'STOPALL' ||
+      keyword === 'UNSUBSCRIBE' ||
+      keyword === 'CANCEL' ||
+      keyword === 'END' ||
+      keyword === 'QUIT'
+    ) {
       const { data: rows } = await admin
         .from('helper_urgent_sms_settings')
         .select('profile_id')

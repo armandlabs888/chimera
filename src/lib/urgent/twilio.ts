@@ -1,13 +1,48 @@
+import { createHmac, timingSafeEqual } from 'node:crypto'
+
 type TwilioSendResult =
   | { ok: true; sid: string; skipped?: false }
   | { ok: true; sid: null; skipped: true; reason: string }
   | { ok: false; error: string }
+
+/** Canonical public webhook URL used for X-Twilio-Signature validation. */
+export const TWILIO_INBOUND_PUBLIC_URL = 'https://www.yariapp.com/api/twilio/inbound'
 
 function twilioAuthHeader(): string | null {
   const sid = process.env.TWILIO_ACCOUNT_SID?.trim()
   const token = process.env.TWILIO_AUTH_TOKEN?.trim()
   if (!sid || !token) return null
   return `Basic ${Buffer.from(`${sid}:${token}`).toString('base64')}`
+}
+
+/**
+ * Validate Twilio's X-Twilio-Signature (HMAC-SHA1 of full URL + sorted POST params).
+ * Returns false when the auth token is missing or the signature does not match.
+ */
+export function validateTwilioRequestSignature(input: {
+  signatureHeader: string | null
+  publicUrl: string
+  params: Record<string, string>
+}): boolean {
+  const authToken = process.env.TWILIO_AUTH_TOKEN?.trim()
+  const signature = input.signatureHeader?.trim()
+  if (!authToken || !signature) return false
+
+  const sortedKeys = Object.keys(input.params).sort()
+  let data = input.publicUrl
+  for (const key of sortedKeys) {
+    data += key + (input.params[key] ?? '')
+  }
+
+  const expected = createHmac('sha1', authToken).update(data, 'utf8').digest('base64')
+  try {
+    const a = Buffer.from(expected)
+    const b = Buffer.from(signature)
+    if (a.length !== b.length) return false
+    return timingSafeEqual(a, b)
+  } catch {
+    return false
+  }
 }
 
 export function twilioConfigured(): boolean {

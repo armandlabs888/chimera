@@ -27,7 +27,6 @@ const DEFAULTS: Settings = {
 
 function timeInputValue(raw: string | null): string {
   if (!raw) return ''
-  // Postgres time may arrive as HH:MM:SS
   return raw.slice(0, 5)
 }
 
@@ -88,7 +87,6 @@ export function HelperUrgentSmsSettings({
         })
         setPhoneInput(data.phone_e164 || '')
       } else {
-        // Create empty prefs row with sms_opt_in false (optional).
         await supabase.from('helper_urgent_sms_settings').insert({
           profile_id: userId,
           sms_opt_in: false,
@@ -152,7 +150,6 @@ export function HelperUrgentSmsSettings({
       const data = (await res.json()) as {
         error?: string
         skipped?: boolean
-        reason?: string
         debugCode?: string
       }
       if (!res.ok) throw new Error(data.error || 'Could not send code')
@@ -215,22 +212,23 @@ export function HelperUrgentSmsSettings({
 
   if (loading) {
     return (
-      <div className="account-hc-card" data-testid="helper-sms-settings-loading">
-        <p className="account-hc-lede">Loading SMS settings…</p>
+      <div
+        className="account-hc-card account-hc-sms-settings"
+        data-testid="helper-sms-settings-loading"
+      >
+        <p className="meta">Loading SMS settings…</p>
       </div>
     )
   }
 
   return (
     <section
-      className="account-hc-card"
+      className="account-hc-card account-hc-sms-settings"
       data-testid="helper-sms-settings"
       aria-labelledby="helper-sms-heading"
     >
-      <h2 id="helper-sms-heading" className="account-hc-section-label" style={{ marginBottom: 6 }}>
-        Urgent job texts
-      </h2>
-      <p className="account-hc-lede" style={{ marginTop: 0, marginBottom: 16 }}>
+      <h2 id="helper-sms-heading">Urgent job texts</h2>
+      <p className="meta">
         Optional. HouseCall can text you when a nearby job needs help now. Off by default. Never
         required to help or get verified.
       </p>
@@ -245,7 +243,7 @@ export function HelperUrgentSmsSettings({
           type="tel"
           inputMode="tel"
           autoComplete="tel"
-          placeholder="+1 512 555 0100"
+          placeholder="+1 408 555 0100"
           value={phoneInput}
           onChange={(e) => setPhoneInput(e.target.value)}
           data-testid="helper-sms-phone"
@@ -261,7 +259,7 @@ export function HelperUrgentSmsSettings({
         )}
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="account-hc-sms-code-row">
         <button
           type="button"
           className="account-hc-btn account-hc-btn-secondary"
@@ -273,13 +271,13 @@ export function HelperUrgentSmsSettings({
         </button>
         <input
           className="account-hc-input"
-          style={{ maxWidth: 140 }}
           inputMode="numeric"
           autoComplete="one-time-code"
           placeholder="6-digit code"
           value={codeInput}
           onChange={(e) => setCodeInput(e.target.value)}
           data-testid="helper-sms-code"
+          aria-label="Verification code"
         />
         <button
           type="button"
@@ -292,99 +290,96 @@ export function HelperUrgentSmsSettings({
         </button>
       </div>
 
-      <label
-        className="mt-5 flex cursor-pointer items-start gap-3"
-        data-testid="helper-sms-opt-in-row"
-      >
+      <label className="account-hc-sms-opt-in" data-testid="helper-sms-opt-in-row">
         <input
           type="checkbox"
-          className="mt-1 h-4 w-4 accent-[#1D5CE5]"
           checked={settings.sms_opt_in}
           disabled={!canOptIn || saving}
           onChange={(e) => void savePrefs({ sms_opt_in: e.target.checked })}
           data-testid="helper-sms-opt-in"
         />
         <span>
-          <span className="block text-[14px] font-semibold text-[#071330]">
-            {URGENT_SMS_OPT_IN_LABEL}
-          </span>
-          <span className="mt-0.5 block text-[13px] leading-snug text-[#64748B]">
-            {URGENT_SMS_OPT_IN_HINT}
-          </span>
+          <span className="opt-title">{URGENT_SMS_OPT_IN_LABEL}</span>
+          <span className="opt-hint">{URGENT_SMS_OPT_IN_HINT}</span>
         </span>
       </label>
 
       {!canOptIn ? (
-        <p className="mt-2 text-[13px] text-[#64748B]" data-testid="helper-sms-opt-in-locked">
+        <p className="sms-locked" data-testid="helper-sms-opt-in-locked">
           Confirm your phone first. Opt-in stays off until you check the box.
         </p>
       ) : null}
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <div className="account-hc-field">
-          <label className="account-hc-label" htmlFor="helper-sms-quiet-start">
-            Quiet hours start
-          </label>
-          <input
-            id="helper-sms-quiet-start"
-            className="account-hc-input"
-            type="time"
-            value={timeInputValue(settings.quiet_hours_start)}
-            disabled={saving}
-            onChange={(e) =>
-              void savePrefs({ quiet_hours_start: toTimeOrNull(e.target.value) })
-            }
-            data-testid="helper-sms-quiet-start"
-          />
+      <div className="account-hc-sms-prefs-row">
+        <div>
+          <div className="account-hc-sms-quiet-pair">
+            <div className="account-hc-field">
+              <label className="account-hc-label" htmlFor="helper-sms-quiet-start">
+                Quiet hours start
+              </label>
+              <input
+                id="helper-sms-quiet-start"
+                className="account-hc-input"
+                type="time"
+                value={timeInputValue(settings.quiet_hours_start)}
+                disabled={saving}
+                onChange={(e) =>
+                  void savePrefs({ quiet_hours_start: toTimeOrNull(e.target.value) })
+                }
+                data-testid="helper-sms-quiet-start"
+              />
+            </div>
+            <div className="account-hc-field">
+              <label className="account-hc-label" htmlFor="helper-sms-quiet-end">
+                Quiet hours end
+              </label>
+              <input
+                id="helper-sms-quiet-end"
+                className="account-hc-input"
+                type="time"
+                value={timeInputValue(settings.quiet_hours_end)}
+                disabled={saving}
+                onChange={(e) =>
+                  void savePrefs({ quiet_hours_end: toTimeOrNull(e.target.value) })
+                }
+                data-testid="helper-sms-quiet-end"
+              />
+            </div>
+          </div>
         </div>
         <div className="account-hc-field">
-          <label className="account-hc-label" htmlFor="helper-sms-quiet-end">
-            Quiet hours end
+          <label className="account-hc-label" htmlFor="helper-sms-daily-limit">
+            Daily text limit
           </label>
           <input
-            id="helper-sms-quiet-end"
+            id="helper-sms-daily-limit"
             className="account-hc-input"
-            type="time"
-            value={timeInputValue(settings.quiet_hours_end)}
+            type="number"
+            min={0}
+            max={50}
+            value={settings.daily_text_limit}
             disabled={saving}
-            onChange={(e) =>
-              void savePrefs({ quiet_hours_end: toTimeOrNull(e.target.value) })
-            }
-            data-testid="helper-sms-quiet-end"
+            onChange={(e) => {
+              const n = Number(e.target.value)
+              if (Number.isFinite(n)) {
+                void savePrefs({ daily_text_limit: Math.min(50, Math.max(0, n)) })
+              }
+            }}
+            data-testid="helper-sms-daily-limit"
           />
+          <p className="account-hc-hint" style={{ marginTop: 6 }}>
+            Default 5 texts a day.
+          </p>
         </div>
-      </div>
-
-      <div className="account-hc-field mt-3">
-        <label className="account-hc-label" htmlFor="helper-sms-daily-limit">
-          Daily text limit
-        </label>
-        <input
-          id="helper-sms-daily-limit"
-          className="account-hc-input"
-          type="number"
-          min={0}
-          max={50}
-          value={settings.daily_text_limit}
-          disabled={saving}
-          onChange={(e) => {
-            const n = Number(e.target.value)
-            if (Number.isFinite(n)) void savePrefs({ daily_text_limit: Math.min(50, Math.max(0, n)) })
-          }}
-          data-testid="helper-sms-daily-limit"
-        />
-        <p className="account-hc-hint" style={{ marginTop: 6 }}>
-          Default 5. Uses America/Los_Angeles for quiet hours and the daily cap.
-        </p>
       </div>
 
       {error ? (
-        <p className="mt-3 text-[13px] font-medium text-red-600" role="alert">
+        <p className="sms-error" role="alert">
           {error}
         </p>
       ) : null}
       {message ? (
-        <p className="mt-3 text-[13px] text-[#1D5CE5]" data-testid="helper-sms-message">
+        <p className="sms-msg" data-testid="helper-sms-message">
           {message}
         </p>
       ) : null}
