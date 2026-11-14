@@ -7,6 +7,7 @@ import {
   latLngToWorldPixel,
   metersToPixels,
 } from '@/lib/jobAreaPrivacy'
+import { formatJobAreaCaption } from '@/lib/location'
 import './job-area-map.css'
 
 const TILE_ZOOM = 14
@@ -24,8 +25,11 @@ type Props = {
   neighborhood?: string | null
   city?: string | null
   radiusMiles?: number | null
-  /** Neighborhood label, e.g. "Cambrian, San Jose". */
-  areaLabel: string
+  /**
+   * Optional display override. Prefer job locationLabel/neighborhood/city;
+   * do not pass the viewer browse area here.
+   */
+  areaLabel?: string
   className?: string
   /** Map frame height in px (160 to 200). */
   height?: number
@@ -68,13 +72,30 @@ export function JobAreaMap({
     const point = resolveAreaCentroid({
       lat,
       lng,
-      locationLabel: locationLabel ?? areaLabel,
+      locationLabel,
       neighborhood,
       city,
     })
     if (!point) return null
     return fuzzJobCoordinates(jobId, point.lat, point.lng, radiusMiles)
-  }, [jobId, lat, lng, locationLabel, neighborhood, city, areaLabel, radiusMiles])
+  }, [jobId, lat, lng, locationLabel, neighborhood, city, radiusMiles])
+
+  const caption = useMemo(() => {
+    const fromJob = formatJobAreaCaption({
+      locationLabel,
+      neighborhood,
+      city,
+    })
+    if (fromJob && fromJob !== 'Nearby') return fromJob
+    const override = areaLabel?.trim() || ''
+    // Reject viewer browse placeholders that must never appear on a job map.
+    if (!override) return 'Nearby'
+    const lower = override.toLowerCase()
+    if (lower === 'you' || lower === 'your area' || lower.endsWith(', you')) {
+      return 'Nearby'
+    }
+    return override
+  }, [locationLabel, neighborhood, city, areaLabel])
 
   useEffect(() => {
     const frame = frameRef.current
@@ -165,7 +186,7 @@ export function JobAreaMap({
 
   if (!fuzzed || !mosaic) return null
 
-  const label = areaLabel.trim() || 'Nearby'
+  const label = caption
 
   return (
     <section

@@ -79,6 +79,50 @@ export function formatLocation(entity: {
   return 'Local area'
 }
 
+/** Drop a trailing US state token from a location label. */
+export function stripTrailingState(label: string): string {
+  return label
+    .trim()
+    .replace(/,?\s*\b(ca|california|tx|texas)\b\.?\s*$/i, '')
+    .replace(/,+\s*$/g, '')
+    .trim()
+}
+
+/**
+ * Job-only area caption for maps and location rows.
+ * Never mixes in the viewer browse area (e.g. guest "you" / "your area").
+ * Example: "Cambrian, San Jose, CA" -> "Cambrian, San Jose".
+ */
+export function formatJobAreaCaption(entity: {
+  locationLabel?: string | null
+  neighborhood?: string | null
+  city?: string | null
+}): string {
+  const label = (entity.locationLabel ?? '').trim()
+  if (label) {
+    const stripped = stripTrailingState(label)
+    return stripped || label
+  }
+
+  const slug = (entity.neighborhood ?? '').trim()
+  const neighborhoodName =
+    slug && LEGACY_SLUGS.has(slug as NeighborhoodId)
+      ? getNeighborhood(slug as NeighborhoodId)?.shortName || slug
+      : slug
+  const city = (entity.city ?? '').trim()
+
+  if (
+    neighborhoodName &&
+    city &&
+    neighborhoodName.toLowerCase() !== city.toLowerCase()
+  ) {
+    return `${neighborhoodName}, ${city}`
+  }
+  if (neighborhoodName) return neighborhoodName
+  if (city) return city
+  return 'Nearby'
+}
+
 export function distanceBetween(
   a: { lat?: number | null; lng?: number | null; neighborhood?: string },
   b: { lat?: number | null; lng?: number | null; neighborhood?: string },

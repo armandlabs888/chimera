@@ -22,6 +22,7 @@ import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
+import { formatJobAreaCaption } from '@/lib/location'
 import { Avatar, Button, ButtonLink, ConfirmDialog, TextArea } from '@/components/ui'
 import { pluralNoun, pluralize } from '@/lib/pluralize'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
@@ -427,7 +428,7 @@ export function RequestDetail() {
                 neighborhood={request.neighborhood}
                 city={request.city}
                 radiusMiles={request.radiusMiles}
-                areaLabel={locationLabel}
+                areaLabel={formatJobAreaCaption(request)}
                 height={180}
               />
 
