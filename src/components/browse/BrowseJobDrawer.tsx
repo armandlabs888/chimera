@@ -25,6 +25,7 @@ import { isHelperPerson } from '@/lib/roles'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 import type { HelpRequest } from '@/types'
+import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 import {
   ReferHelperButton,
@@ -211,23 +212,16 @@ export function BrowseJobDrawer({
 
   const body = (
     <div className="min-h-0 flex-1 overflow-y-auto">
-      {cover ? (
-        // Listing photos may be arbitrary HTTPS hosts — plain img matches Browse rows.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={cover}
-          alt=""
-          className={`w-full object-cover ${narrow ? 'h-[148px]' : 'h-[210px]'}`}
-        />
-      ) : (
-        <div className={narrow ? 'h-[148px]' : 'h-[210px]'}>
+      <JobDetailPhoto
+        src={cover}
+        fallback={
           <BrowseCategoryThumb
             categoryId={request.category}
             size="hero"
             className="!aspect-auto h-full w-full !rounded-none"
           />
-        </div>
-      )}
+        }
+      />
 
       <div className={narrow ? 'px-[18px] pb-6 pt-3.5' : 'px-6 pb-7 pt-[18px]'}>
         <span className="inline-flex h-6 items-center rounded-md border border-[#D6E2F5] bg-[#F4F8FD] px-2.5 text-[12px] font-semibold tracking-[-0.01em] text-[#123E9E]">

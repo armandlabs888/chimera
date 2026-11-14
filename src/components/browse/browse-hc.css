@@ -1,4 +1,4 @@
-/* HouseCall Browse — styles locked to approved mock (index.html). */
+/* HouseCall Browse: styles locked to approved mock (index.html). */
 .browse-hc {
   --hc-navy: #071330;
   --hc-ink: #10172a;
@@ -659,34 +659,16 @@
   margin-top: 0;
 }
 
-.browse-hc-detail-photo {
-  position: relative;
-  height: 248px;
-  background: #0e1a33;
-}
-
-.browse-hc-detail-photo img,
-.browse-hc-detail-photo .browse-hc-detail-fallback {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 28%;
-}
-
-.browse-hc-detail-photo::after {
-  content: '';
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 88px;
-  background: linear-gradient(to top, rgba(7, 19, 48, 0.55), transparent);
-  pointer-events: none;
+/* Cover frame lives on .job-detail-photo; keep overlay anchors here. */
+.browse-hc-detail-photo.job-detail-photo {
+  border-radius: 0;
 }
 
 .browse-hc-photo-caption {
   position: absolute;
   left: 16px;
   bottom: 14px;
-  z-index: 1;
+  z-index: 3;
   color: #fff;
   font-size: 13px;
   font-weight: 500;
@@ -697,7 +679,7 @@
   position: absolute;
   right: 14px;
   bottom: 12px;
-  z-index: 1;
+  z-index: 3;
   display: inline-flex;
   align-items: center;
   gap: 6px;
