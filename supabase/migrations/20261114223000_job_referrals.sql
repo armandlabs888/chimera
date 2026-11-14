@@ -1,5 +1,4 @@
 -- Neighbor job referrals: suggest helpers you know for someone else's open job.
--- Apply manually after review. This file is not applied by the agent.
 --
 -- Creates public.job_referrals, extends notifications.kind with job_referral,
 -- RLS for referrer / helper / job owner, and refer_helpers_to_job RPC.
@@ -77,7 +76,9 @@ revoke all on function private.profile_is_helper(uuid) from public, anon, authen
 -- ---------------------------------------------------------------------------
 alter table public.job_referrals enable row level security;
 revoke all on table public.job_referrals from anon;
-grant select, insert, update on table public.job_referrals to authenticated;
+revoke all on table public.job_referrals from authenticated;
+grant select on table public.job_referrals to authenticated;
+-- Writes go only through the security definer RPCs below.
 
 drop policy if exists job_referrals_select_involved on public.job_referrals;
 create policy job_referrals_select_involved
@@ -91,53 +92,6 @@ create policy job_referrals_select_involved
       from public.help_requests r
       where r.id = job_id
         and r.requester_id = (select auth.uid())
-    )
-  );
-
-drop policy if exists job_referrals_insert_referrer on public.job_referrals;
-create policy job_referrals_insert_referrer
-  on public.job_referrals for insert
-  to authenticated
-  with check (
-    referrer_id = (select auth.uid())
-    and helper_id <> (select auth.uid())
-    and private.profile_is_helper(helper_id)
-    and exists (
-      select 1
-      from public.help_requests r
-      where r.id = job_id
-        and r.status = 'open'
-        and r.requester_id <> (select auth.uid())
-    )
-  );
-
--- Helper may mark viewed; job owner may dismiss. Referrer cannot update.
-drop policy if exists job_referrals_update_helper_or_owner on public.job_referrals;
-create policy job_referrals_update_helper_or_owner
-  on public.job_referrals for update
-  to authenticated
-  using (
-    helper_id = (select auth.uid())
-    or exists (
-      select 1
-      from public.help_requests r
-      where r.id = job_id
-        and r.requester_id = (select auth.uid())
-    )
-  )
-  with check (
-    (
-      helper_id = (select auth.uid())
-      and status in ('pending', 'viewed')
-    )
-    or (
-      exists (
-        select 1
-        from public.help_requests r
-        where r.id = job_id
-          and r.requester_id = (select auth.uid())
-      )
-      and status in ('pending', 'viewed', 'dismissed')
     )
   );
 
