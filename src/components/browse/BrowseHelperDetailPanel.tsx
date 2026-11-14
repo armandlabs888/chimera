@@ -130,10 +130,18 @@ export function BrowseHelperDetailPanel({
         ) : null}
 
         <div className="browse-hc-detail-actions browse-hc-helper-preview-actions">
-          <Link href={profileHref} className="browse-hc-btn-ask" data-testid="browse-helper-detail-profile">
+          <Link
+            href={profileHref}
+            className="browse-hc-helper-action browse-hc-helper-action--outline"
+            data-testid="browse-helper-detail-profile"
+          >
             View profile
           </Link>
-          <Link href={bookHref} className="browse-hc-btn-offer inline-flex items-center justify-center" data-testid="browse-helper-request-book">
+          <Link
+            href={bookHref}
+            className="browse-hc-helper-action browse-hc-helper-action--primary"
+            data-testid="browse-helper-request-book"
+          >
             Request to book
           </Link>
         </div>

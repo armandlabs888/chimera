@@ -62,43 +62,57 @@ export function BrowseHelperRow({
       >
         <BrowseHelperPhoto src={person.avatar} name={person.name} size={88} />
         <span className="browse-hc-helper-main">
-          <span className="browse-hc-helper-name">{person.name}</span>
-          <span className="browse-hc-helper-skill">{skillLabel}</span>
-          <span className="browse-hc-helper-meta">
-            {milesLabel ? <span className="nowrap">{milesLabel}</span> : null}
-            {hasRating ? (
-              <>
-                <span className="browse-hc-helper-stars">★ {ratingLabel}</span>
-                <span>
-                  {reviewCount} {reviewNoun}
-                </span>
-                {jobsCompleted > 0 ? (
-                  <span>
-                    {jobsCompleted} {jobsNoun}
+          <span className="browse-hc-helper-copy">
+            <span className="browse-hc-helper-name">{person.name}</span>
+            <span className="browse-hc-helper-skill">{skillLabel}</span>
+            <span className="browse-hc-helper-meta">
+              <span className="browse-hc-helper-meta-primary">
+                {milesLabel ? <span className="nowrap">{milesLabel}</span> : null}
+                {hasRating ? (
+                  <>
+                    <span className="browse-hc-helper-stars">★ {ratingLabel}</span>
+                    <span>
+                      {reviewCount} {reviewNoun}
+                    </span>
+                  </>
+                ) : (
+                  <span className="browse-hc-badge-new">New</span>
+                )}
+                {!hasRating && person.availableNow ? (
+                  <span className="browse-hc-avail">
+                    <span className="dot" aria-hidden />
+                    Available now
                   </span>
                 ) : null}
-              </>
-            ) : (
-              <span className="browse-hc-badge-new">New</span>
-            )}
-            {person.availableNow ? (
-              <span className="browse-hc-avail">
-                <span className="dot" aria-hidden />
-                Available now
               </span>
-            ) : null}
+              {hasRating && (jobsCompleted > 0 || person.availableNow) ? (
+                <span className="browse-hc-helper-meta-secondary">
+                  {jobsCompleted > 0 ? (
+                    <span>
+                      {jobsCompleted} {jobsNoun}
+                    </span>
+                  ) : null}
+                  {person.availableNow ? (
+                    <span className="browse-hc-avail">
+                      <span className="dot" aria-hidden />
+                      Available now
+                    </span>
+                  ) : null}
+                </span>
+              ) : null}
+            </span>
           </span>
-        </span>
-        <span className="browse-hc-helper-side">
-          <span className="browse-hc-helper-rate">{rateLabel}</span>
-          <Link
-            href={profileHref}
-            data-testid="browse-helper-view-profile"
-            className="browse-hc-btn-secondary"
-            onClick={(e) => e.stopPropagation()}
-          >
-            View profile
-          </Link>
+          <span className="browse-hc-helper-side">
+            <span className="browse-hc-helper-rate">{rateLabel}</span>
+            <Link
+              href={profileHref}
+              data-testid="browse-helper-view-profile"
+              className="browse-hc-btn-secondary"
+              onClick={(e) => e.stopPropagation()}
+            >
+              View profile
+            </Link>
+          </span>
         </span>
       </div>
     </li>

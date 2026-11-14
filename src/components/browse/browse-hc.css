@@ -852,7 +852,7 @@
 
 .browse-hc-helper-row {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr) auto;
+  grid-template-columns: 88px minmax(0, 1fr);
   gap: 16px;
   align-items: start;
   width: 100%;
@@ -909,6 +909,14 @@
 }
 
 .browse-hc-helper-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  min-width: 0;
+}
+
+.browse-hc-helper-copy {
   display: block;
   min-width: 0;
 }
@@ -937,6 +945,11 @@
   gap: 8px;
   font-size: 13.5px;
   color: var(--hc-muted);
+}
+
+.browse-hc-helper-meta-primary,
+.browse-hc-helper-meta-secondary {
+  display: contents;
 }
 
 .browse-hc-helper-meta .nowrap {
@@ -1122,10 +1135,56 @@
   color: var(--hc-navy);
 }
 
-.browse-hc-helper-preview-actions .browse-hc-btn-ask,
-.browse-hc-helper-preview-actions .browse-hc-btn-offer {
-  flex: 1;
+.browse-hc-helper-preview-actions {
+  margin-top: 16px;
+}
+
+.browse-hc-helper-action {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  padding: 0 16px;
+  margin: 0;
+  border-radius: 12px;
+  border-style: solid;
+  border-width: 1px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
   text-decoration: none;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.browse-hc-helper-action--outline {
+  border-color: #d7e0ec;
+  background: var(--hc-white);
+  color: #071330;
+}
+
+.browse-hc-helper-action--outline:hover {
+  background: var(--hc-tint-2);
+}
+
+.browse-hc-helper-action--primary {
+  border-color: var(--hc-blue);
+  background: var(--hc-blue);
+  color: #fff;
+}
+
+.browse-hc-helper-action--primary:hover {
+  background: var(--hc-blue-hover);
+  border-color: var(--hc-blue-hover);
 }
 
 .browse-hc-mobile-panel {
@@ -1194,7 +1253,8 @@
   }
 
   .browse-hc-page {
-    padding: 20px 0 48px;
+    /* Clear the fixed bottom tab bar so the last list row stays reachable. */
+    padding: 20px 0 112px;
   }
 
   .browse-hc-section-tabs {
@@ -1258,16 +1318,36 @@
     --hc-helper-photo-size: 72px;
   }
 
+  .browse-hc-helper-main {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
   .browse-hc-helper-name {
     font-size: 16px;
   }
 
+  .browse-hc-helper-meta {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .browse-hc-helper-meta-primary,
+  .browse-hc-helper-meta-secondary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
   .browse-hc-helper-side {
-    grid-column: 1 / -1;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    padding-top: 10px;
+    width: 100%;
+    padding-top: 0;
   }
 
   .browse-hc-helper-rate {
