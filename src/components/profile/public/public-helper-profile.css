@@ -146,7 +146,7 @@
   justify-content: center;
   gap: 8px;
   height: 48px;
-  border-radius: 14px;
+  border-radius: 8px;
   border: 1px solid var(--php-line-2);
   background: #fff;
   font-size: 14.5px;
@@ -170,7 +170,7 @@
   margin-top: 12px;
   width: 100%;
   height: 52px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--php-blue);
   color: #fff;
   font-size: 16px;
@@ -225,7 +225,7 @@
 .public-helper-profile .php-day {
   text-align: left;
   padding: 14px 16px;
-  border-radius: 14px;
+  border-radius: 8px;
   border: 1px solid var(--php-line);
   background: #fff;
   cursor: pointer;
@@ -258,7 +258,7 @@
   margin-top: 14px;
   background: #fff;
   border: 1px solid var(--php-line);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 20px 20px 8px;
 }
 
@@ -320,7 +320,7 @@
 .public-helper-profile .php-review-card {
   background: #fff;
   border: 1px solid var(--php-line);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 16px 18px;
 }
 
@@ -328,7 +328,7 @@
   margin-top: 0;
   background: #fff;
   border: 1px solid var(--php-line);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 16px 16px 14px;
   box-shadow: 0 10px 28px -16px rgba(12, 42, 102, 0.12);
 }
@@ -377,7 +377,7 @@
   height: 44px;
   padding: 0 14px;
   border: 1px solid var(--php-line);
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--php-tint-2);
   font-size: 14.5px;
   color: var(--php-navy);
@@ -427,7 +427,7 @@
   height: auto;
   padding: 4px;
   border: 1px solid var(--php-line);
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--php-tint-2);
   flex: none;
 }
@@ -435,7 +435,7 @@
 .public-helper-profile .php-stepper button {
   width: 44px;
   height: 44px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 20px;
   font-weight: 500;
   color: var(--php-navy);
@@ -481,7 +481,7 @@
   margin-top: 12px;
   width: 100%;
   height: 48px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--php-blue);
   color: #fff;
   font-size: 16px;

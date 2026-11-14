@@ -114,7 +114,7 @@ export function LandingHero() {
             className="relative z-40 mx-auto mt-9 w-full max-w-[740px] text-left"
             data-testid="hero-search-pill"
           >
-            <div className="flex flex-col gap-2 rounded-[10px] border border-white/80 bg-white p-1.5 shadow-[0_16px_40px_rgba(12,42,102,0.14)] sm:flex-row sm:items-center sm:gap-0 sm:p-2">
+            <div className="flex flex-col gap-2 rounded-lg border border-[#E3E8EF] bg-white p-1.5 shadow-none sm:flex-row sm:items-center sm:gap-0 sm:p-2">
               <label className="flex min-w-0 flex-1 items-center gap-2.5 rounded-[8px] px-3 py-2.5">
                 <Search className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
                 <span className="sr-only">What help do you need?</span>
@@ -293,7 +293,7 @@ export function LandingHero() {
 
               <button
                 type="submit"
-                className="inline-flex h-11 min-h-11 shrink-0 items-center justify-center rounded-[10px] bg-[#1D5CE5] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/45 focus-visible:ring-offset-2 sm:ml-1"
+                className="inline-flex h-11 min-h-11 shrink-0 items-center justify-center rounded-lg bg-[#1D5CE5] px-[26px] text-[15px] font-bold text-white shadow-none transition-colors hover:bg-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/45 focus-visible:ring-offset-2 sm:ml-1"
               >
                 Find help
               </button>

@@ -43,7 +43,7 @@ export function LandingHowItWorks() {
           From to-do to done.
         </h2>
         <div
-          className="mt-6 grid items-stretch gap-0 overflow-hidden rounded-[12px] border border-[#D7E0EC] bg-white shadow-sm md:grid-cols-3"
+          className="mt-6 grid items-stretch gap-0 overflow-hidden rounded-lg border border-[#D7E0EC] bg-white shadow-none md:grid-cols-3"
           data-testid="how-it-works-steps"
         >
           {STEPS.map((step, i) => (

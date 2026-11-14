@@ -72,8 +72,8 @@ export function LandingNav({
   const ctaClass = isFloat
     ? 'inline-flex h-11 min-h-[44px] items-center justify-center rounded-full bg-[#071330] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D5CE5]'
     : light
-      ? 'hidden min-h-[44px] items-center justify-center rounded-[10px] bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD] sm:inline-flex'
-      : 'hidden min-h-[44px] items-center justify-center rounded-[10px] bg-white px-4 text-[13.5px] font-semibold text-[#1D5CE5] transition hover:bg-blue-50 sm:inline-flex'
+      ? 'hidden min-h-[44px] items-center justify-center rounded-lg bg-[#1D5CE5] px-5 text-[14px] font-bold text-white shadow-none transition hover:bg-[#1649BD] sm:inline-flex'
+      : 'hidden min-h-[44px] items-center justify-center rounded-lg border border-[#E3E8EF] bg-white px-5 text-[14px] font-bold text-[#071330] transition hover:bg-[#F4F8FD] sm:inline-flex'
 
   const primaryHref = onboardingDone ? '/browse' : '/onboarding'
   const primaryLabel = onboardingDone ? 'Browse' : 'Continue setup'

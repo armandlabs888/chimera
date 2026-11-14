@@ -40,7 +40,7 @@ export function LandingCategories() {
               href={service.href}
               data-testid={service.testId}
               aria-label={service.label}
-              className="group relative isolate aspect-[3/4] overflow-hidden rounded-[14px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/45"
+              className="group relative isolate aspect-[3/4] overflow-hidden rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/45"
             >
               <Image
                 src={service.src}
