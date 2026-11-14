@@ -5,7 +5,10 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { useInboxThreads } from '@/components/messages/useInboxThreads'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
+import { ReferralInboxCard } from '@/components/refer/ReferralInboxCard'
 import { Avatar } from '@/components/ui'
+import { useBeam } from '@/context/BeamContext'
+import { inboundReferralsForHelper } from '@/lib/jobReferrals'
 import { relativeTime } from '@/lib/matching'
 
 type Filter = 'all' | 'unread'
@@ -13,8 +16,21 @@ type Filter = 'all' | 'unread'
 export function MessagesListPanel() {
   const { rows, unreadThreadCount } = useInboxThreads()
   const { threadId, openThread, closeAll } = useMessagesDrawer()
+  const { state, currentUser } = useBeam()
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
+
+  const referralCards = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return inboundReferralsForHelper(state.jobReferrals, currentUser.id).filter((ref) => {
+      if (filter === 'unread' && ref.status !== 'pending') return false
+      if (!q) return true
+      const job = state.requests.find((r) => r.id === ref.jobId)
+      const referrer = state.people.find((p) => p.id === ref.referrerId)
+      const hay = `${referrer?.name ?? ''} ${job?.title ?? ''} ${ref.note}`.toLowerCase()
+      return hay.includes(q)
+    })
+  }, [state.jobReferrals, state.requests, state.people, currentUser.id, query, filter])
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -27,7 +43,7 @@ export function MessagesListPanel() {
     })
   }, [rows, query, filter])
 
-  const emptyInbox = rows.length === 0
+  const emptyInbox = rows.length === 0 && referralCards.length === 0
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-white">
@@ -114,7 +130,7 @@ export function MessagesListPanel() {
             </div>
           </div>
 
-          {visible.length === 0 ? (
+          {visible.length === 0 && referralCards.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
               <h3 className="font-body text-[16px] font-bold text-[#071330]">
                 {filter === 'unread' ? 'No unread conversations' : 'No matching conversations'}
@@ -127,6 +143,18 @@ export function MessagesListPanel() {
             </div>
           ) : (
             <ul className="min-h-0 flex-1 overflow-y-auto px-2 py-1.5" data-testid="messages-thread-list">
+              {referralCards.length > 0 ? (
+                <li className="px-1 pb-2 pt-1" data-testid="messages-referral-section">
+                  <p className="mb-2 px-2 text-[12.5px] font-bold uppercase tracking-[0.04em] text-[#6B7384]">
+                    Job suggestions
+                  </p>
+                  <div className="space-y-2.5">
+                    {referralCards.map((ref) => (
+                      <ReferralInboxCard key={ref.id} referral={ref} />
+                    ))}
+                  </div>
+                </li>
+              ) : null}
               {visible.map((row) => {
                 const selected = threadId === row.thread.id
                 const name = row.other?.name ?? 'Neighbor'

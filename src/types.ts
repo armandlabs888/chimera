@@ -36,6 +36,19 @@ export type NotificationKind =
   | 'verification_submitted'
   | 'verification_approved'
   | 'verification_needs_resubmission'
+  | 'job_referral'
+
+export type JobReferralStatus = 'pending' | 'viewed' | 'dismissed'
+
+export interface JobReferral {
+  id: string
+  jobId: string
+  referrerId: string
+  helperId: string
+  note: string
+  status: JobReferralStatus
+  createdAt: string
+}
 
 /** Helper offer gate: no row = not started (unverified). */
 export type HelperVerificationStatus =
@@ -276,6 +289,8 @@ export interface AppState {
   invites: RequestInvite[]
   savedHelperIds: string[]
   notifications: BeamNotification[]
+  /** Neighbor referrals of helpers onto open jobs (demo + live). */
+  jobReferrals?: JobReferral[]
   /** Current user's verification record (null = not started). */
   helperVerification?: HelperVerification | null
   /** All verification rows visible to staff (demo + live staff load). */

@@ -32,6 +32,9 @@ import {
   markLiveNotificationRead,
   confirmLiveHelperHomeLocation,
   reviewLiveHelperVerification,
+  referLiveHelpersToJob,
+  dismissLiveJobReferral,
+  markLiveJobReferralViewed,
   sendLiveMessage,
   submitLiveReview,
   toggleLiveSavedHelper,
@@ -54,6 +57,7 @@ import type {
   CategoryId,
   HelperVerification,
   HelpRequest,
+  JobReferral,
   NeighborhoodId,
   Offer,
   Person,
@@ -61,6 +65,7 @@ import type {
   Review,
   WhenOption,
 } from '@/types'
+import { isHelperPerson } from '@/lib/roles'
 
 export type PostRequestInput = {
   title: string
@@ -148,6 +153,14 @@ interface BeamContextValue {
     helperId: string,
     note?: string,
   ) => Promise<{ invite: RequestInvite; threadId: string }>
+  /** Neighbor refers helpers to someone else's open job. */
+  referHelpers: (input: {
+    jobId: string
+    helperIds: string[]
+    note?: string
+  }) => Promise<JobReferral[]>
+  dismissJobReferral: (referralId: string) => Promise<void>
+  markJobReferralViewed: (referralId: string) => Promise<void>
   toggleSavedHelper: (helperId: string) => void | Promise<void>
   markNotificationRead: (notificationId: string) => void | Promise<void>
   /** Mark several notifications read in one pass (one demo state update, one live refresh). */
@@ -215,6 +228,7 @@ function emptyLiveState(userId: string): AppState {
     invites: [],
     savedHelperIds: [],
     notifications: [],
+    jobReferrals: [],
     helperVerification: null,
     helperVerifications: [],
     isBeamStaff: false,
@@ -1345,6 +1359,141 @@ export function BeamProvider({
     [authUser, mode, refreshLive, reportError],
   )
 
+  const referHelpers = useCallback(
+    async (input: { jobId: string; helperIds: string[]; note?: string }) => {
+      const helperIds = [...new Set(input.helperIds.filter(Boolean))]
+      const note = (input.note ?? '').trim().slice(0, 280)
+      if (!helperIds.length) return []
+
+      if (mode === 'live') {
+        try {
+          if (!authUser) throw new Error('Not signed in')
+          const client = createClient()
+          const rows = await referLiveHelpersToJob(client, {
+            jobId: input.jobId,
+            helperIds,
+            note,
+          })
+          await refreshLive(authUser.id)
+          return rows
+        } catch (err) {
+          reportError(err, 'Refer helpers failed')
+          throw err
+        }
+      }
+
+      const createdAt = new Date().toISOString()
+      const created: JobReferral[] = []
+      withState(setState, (prev) => {
+        const req = prev.requests.find((r) => r.id === input.jobId)
+        if (!req || req.status !== 'open') return prev
+        if (req.requesterId === prev.currentUserId) return prev
+
+        const me = prev.people.find((p) => p.id === prev.currentUserId)
+        const existing = new Set(
+          (prev.jobReferrals ?? [])
+            .filter((r) => r.jobId === input.jobId)
+            .map((r) => r.helperId),
+        )
+        const nextReferrals = [...(prev.jobReferrals ?? [])]
+        const nextNotifs = [...prev.notifications]
+
+        for (const helperId of helperIds) {
+          if (helperId === prev.currentUserId || helperId === req.requesterId) continue
+          if (existing.has(helperId)) continue
+          const helper = prev.people.find((p) => p.id === helperId)
+          if (!isHelperPerson(helper)) continue
+
+          const row: JobReferral = {
+            id: uid('ref'),
+            jobId: input.jobId,
+            referrerId: prev.currentUserId,
+            helperId,
+            note,
+            status: 'pending',
+            createdAt,
+          }
+          created.push(row)
+          existing.add(helperId)
+          nextReferrals.unshift(row)
+          nextNotifs.unshift({
+            id: uid('notif'),
+            userId: helperId,
+            kind: 'job_referral',
+            title: `${me?.name ?? 'A neighbor'} suggested you for ${req.title}`,
+            body: note || req.details || req.title,
+            href: `/requests/${req.id}`,
+            requestId: req.id,
+            readAt: null,
+            createdAt,
+          })
+        }
+
+        if (!created.length) return prev
+        return {
+          ...prev,
+          jobReferrals: nextReferrals,
+          notifications: nextNotifs,
+        }
+      })
+      return created
+    },
+    [authUser, mode, refreshLive, reportError],
+  )
+
+  const dismissJobReferral = useCallback(
+    async (referralId: string) => {
+      if (mode === 'live') {
+        try {
+          if (!authUser) throw new Error('Not signed in')
+          const client = createClient()
+          await dismissLiveJobReferral(client, referralId)
+          await refreshLive(authUser.id)
+        } catch (err) {
+          reportError(err, 'Dismiss referral failed')
+          throw err
+        }
+        return
+      }
+      withState(setState, (prev) => ({
+        ...prev,
+        jobReferrals: (prev.jobReferrals ?? []).map((r) =>
+          r.id === referralId &&
+          prev.requests.find((req) => req.id === r.jobId)?.requesterId === prev.currentUserId
+            ? { ...r, status: 'dismissed' as const }
+            : r,
+        ),
+      }))
+    },
+    [authUser, mode, refreshLive, reportError],
+  )
+
+  const markJobReferralViewed = useCallback(
+    async (referralId: string) => {
+      if (mode === 'live') {
+        try {
+          if (!authUser) throw new Error('Not signed in')
+          const client = createClient()
+          await markLiveJobReferralViewed(client, referralId)
+          await refreshLive(authUser.id)
+        } catch (err) {
+          reportError(err, 'Mark referral viewed failed')
+          throw err
+        }
+        return
+      }
+      withState(setState, (prev) => ({
+        ...prev,
+        jobReferrals: (prev.jobReferrals ?? []).map((r) =>
+          r.id === referralId && r.helperId === prev.currentUserId && r.status === 'pending'
+            ? { ...r, status: 'viewed' as const }
+            : r,
+        ),
+      }))
+    },
+    [authUser, mode, refreshLive, reportError],
+  )
+
   const toggleSavedHelper = useCallback(
     (helperId: string) => {
       if (mode === 'live') {
@@ -1805,6 +1954,9 @@ export function BeamProvider({
     ensureDirectThread,
     sendMessage,
     inviteHelper,
+    referHelpers,
+    dismissJobReferral,
+    markJobReferralViewed,
     toggleSavedHelper,
     markNotificationRead,
     markNotificationsRead,

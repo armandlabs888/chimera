@@ -20,6 +20,7 @@ import type { HelpRequest } from '@/types'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
+import { SuggestedHelpersSection } from '@/components/refer/SuggestedHelpersSection'
 import { ReferHelperFooterActions } from './ReferHelperActions'
 
 const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexible'] as const
@@ -301,6 +302,10 @@ export function BrowseJobDetailPanel({
             <p>{request.details}</p>
           </div>
 
+          {isOwner && request.status === 'open' ? (
+            <SuggestedHelpersSection jobId={request.id} compact />
+          ) : null}
+
           {offerOpen && showHelperOfferChrome && verified ? (
             <form
               ref={offerFormRef}
@@ -381,7 +386,11 @@ export function BrowseJobDetailPanel({
 
       <div className="browse-hc-detail-footer">
         {canOffer && isNeighborViewer ? (
-          <ReferHelperFooterActions jobId={request.id} title={request.title} />
+          <ReferHelperFooterActions
+            jobId={request.id}
+            title={request.title}
+            jobOwnerId={request.requesterId}
+          />
         ) : showHelperOfferChrome ? (
           <div className="browse-hc-detail-actions">
             <button
