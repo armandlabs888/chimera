@@ -423,6 +423,9 @@ export function RequestDetail() {
                 jobId={request.id}
                 lat={request.lat}
                 lng={request.lng}
+                locationLabel={request.locationLabel}
+                neighborhood={request.neighborhood}
+                city={request.city}
                 radiusMiles={request.radiusMiles}
                 areaLabel={locationLabel}
                 height={180}

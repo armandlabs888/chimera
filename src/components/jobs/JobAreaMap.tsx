@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { resolveAreaCentroid } from '@/lib/areaCentroids'
 import {
   fuzzJobCoordinates,
   latLngToWorldPixel,
@@ -18,6 +19,10 @@ type Props = {
   jobId: string
   lat?: number | null
   lng?: number | null
+  /** Used when lat/lng are missing: match neighborhood or location_label. */
+  locationLabel?: string | null
+  neighborhood?: string | null
+  city?: string | null
   radiusMiles?: number | null
   /** Neighborhood label, e.g. "Cambrian, San Jose". */
   areaLabel: string
@@ -37,12 +42,16 @@ function wrapTileIndex(n: number, z: number): number {
 
 /**
  * Lazy, non-interactive neighborhood area map.
- * Hides itself when lat/lng are missing. Coordinates are fuzzed for privacy.
+ * Uses lat/lng when present; otherwise a static area centroid from the label.
+ * Hides itself when neither resolves. Coordinates are fuzzed for privacy.
  */
 export function JobAreaMap({
   jobId,
   lat,
   lng,
+  locationLabel,
+  neighborhood,
+  city,
   radiusMiles,
   areaLabel,
   className = '',
@@ -56,9 +65,16 @@ export function JobAreaMap({
   const [frameSize, setFrameSize] = useState({ width: 0, height })
 
   const fuzzed = useMemo(() => {
-    if (typeof lat !== 'number' || typeof lng !== 'number') return null
-    return fuzzJobCoordinates(jobId, lat, lng, radiusMiles)
-  }, [jobId, lat, lng, radiusMiles])
+    const point = resolveAreaCentroid({
+      lat,
+      lng,
+      locationLabel: locationLabel ?? areaLabel,
+      neighborhood,
+      city,
+    })
+    if (!point) return null
+    return fuzzJobCoordinates(jobId, point.lat, point.lng, radiusMiles)
+  }, [jobId, lat, lng, locationLabel, neighborhood, city, areaLabel, radiusMiles])
 
   useEffect(() => {
     const frame = frameRef.current

@@ -303,6 +303,9 @@ export function BrowseJobDetailPanel({
             jobId={request.id}
             lat={request.lat}
             lng={request.lng}
+            locationLabel={request.locationLabel}
+            neighborhood={request.neighborhood}
+            city={request.city}
             radiusMiles={request.radiusMiles}
             areaLabel={
               cityName && place !== cityName ? `${place}, ${cityName}` : place

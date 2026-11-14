@@ -15,6 +15,7 @@ import {
 import type { Session, User } from '@supabase/supabase-js'
 import { getCategory, whenLabel } from '@/data/categories'
 import { loadState, resetState, saveState, uid } from '@/data/storage'
+import { resolveAreaCentroid } from '@/lib/areaCentroids'
 import { resolveBeamMode, type BeamMode } from '@/lib/config'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import {
@@ -605,6 +606,24 @@ export function BeamProvider({
         .slice(0, 5)
       const image = images[0] || input.image || getCategory(input.category).image || ''
       const label = input.whenLabel ?? whenLabel(input.when)
+      const snap = stateRef.current
+      const poster = snap?.people.find((p) => p.id === snap.currentUserId)
+      const resolvedCoords =
+        resolveAreaCentroid({
+          lat: input.lat,
+          lng: input.lng,
+          locationLabel: input.locationLabel,
+          neighborhood: input.neighborhood,
+        }) ??
+        resolveAreaCentroid({
+          lat: poster?.lat,
+          lng: poster?.lng,
+          locationLabel: poster?.locationLabel,
+          neighborhood: poster?.neighborhood,
+          city: poster?.city,
+        })
+      const resolvedLat = resolvedCoords?.lat ?? null
+      const resolvedLng = resolvedCoords?.lng ?? null
 
       if (mode === 'live') {
         return (async () => {
@@ -623,8 +642,8 @@ export function BeamProvider({
               image,
               images,
               locationLabel: input.locationLabel,
-              lat: input.lat,
-              lng: input.lng,
+              lat: resolvedLat,
+              lng: resolvedLng,
               radiusMiles: input.radiusMiles,
               exactAddress: input.exactAddress,
               budgetType,
@@ -664,8 +683,8 @@ export function BeamProvider({
           createdAt: new Date().toISOString(),
           locationLabel: input.locationLabel?.trim() || '',
           exactAddress: input.exactAddress?.trim() || undefined,
-          lat: input.lat ?? null,
-          lng: input.lng ?? null,
+          lat: resolvedLat,
+          lng: resolvedLng,
           radiusMiles: input.radiusMiles ?? 5,
           scheduledFor: input.scheduledFor ?? null,
           scheduledEnd: input.scheduledEnd ?? null,
