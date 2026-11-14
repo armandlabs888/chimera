@@ -114,7 +114,7 @@ export function LandingHero() {
             className="relative z-40 mx-auto mt-9 w-full max-w-[740px] text-left"
             data-testid="hero-search-pill"
           >
-            <div className="flex flex-col gap-2 rounded-[10px] border border-white/80 bg-white p-1.5 shadow-[0_16px_40px_rgba(12,42,102,0.14)] sm:flex-row sm:items-center sm:gap-0 sm:p-2">
+            <div className="flex flex-col gap-2 rounded-lg border border-[#E3E8EF] bg-white p-1.5 shadow-none sm:flex-row sm:items-center sm:gap-0 sm:p-2">
               <label className="flex min-w-0 flex-1 items-center gap-2.5 rounded-[8px] px-3 py-2.5">
                 <Search className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
                 <span className="sr-only">What help do you need?</span>
@@ -123,7 +123,7 @@ export function LandingHero() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="What help do you need?"
-                  className="min-w-0 flex-1 bg-transparent text-[15px] text-[#071330] outline-none placeholder:text-[#94A3B8]"
+                  className="min-w-0 flex-1 bg-transparent text-[15px] text-[#071330] outline-none placeholder:text-[#5B6576]"
                 />
               </label>
 
@@ -144,13 +144,13 @@ export function LandingHero() {
                       <CategoryIcon className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
                       <span
                         className={`min-w-0 flex-1 truncate text-[15px] ${
-                          category === 'all' ? 'text-[#64748B]' : 'text-[#071330]'
+                          category === 'all' ? 'text-[#4A5568]' : 'text-[#071330]'
                         }`}
                       >
                         {categoryLabel}
                       </span>
                       <ChevronDown
-                        className={`h-3.5 w-3.5 shrink-0 text-[#94A3B8] transition-transform ${
+                        className={`h-3.5 w-3.5 shrink-0 text-[#4A5568] transition-transform ${
                           locOpen ? 'rotate-180' : ''
                         }`}
                       />
@@ -167,7 +167,7 @@ export function LandingHero() {
                             type="button"
                             role="option"
                             aria-selected={category === 'all'}
-                            className={`flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                            className={`flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-white ${
                               category === 'all'
                                 ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
                                 : 'text-[#071330]'
@@ -191,10 +191,10 @@ export function LandingHero() {
                                 type="button"
                                 role="option"
                                 aria-selected={category === p.id}
-                                className={`flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                                className={`flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-white ${
                                   category === p.id
                                     ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
-                                    : 'text-[#475569]'
+                                    : 'text-[#4A5568]'
                                 }`}
                                 onClick={() => {
                                   setCategory(p.id)
@@ -229,13 +229,13 @@ export function LandingHero() {
                       <MapPin className="h-[18px] w-[18px] shrink-0 text-[#1D5CE5]" aria-hidden />
                       <span
                         className={`min-w-0 flex-1 truncate text-[15px] ${
-                          neighborhood === 'all' ? 'text-[#64748B]' : 'text-[#071330]'
+                          neighborhood === 'all' ? 'text-[#4A5568]' : 'text-[#071330]'
                         }`}
                       >
                         {neighborhoodLabel}
                       </span>
                       <ChevronDown
-                        className={`h-3.5 w-3.5 shrink-0 text-[#94A3B8] transition-transform ${
+                        className={`h-3.5 w-3.5 shrink-0 text-[#4A5568] transition-transform ${
                           locOpen ? 'rotate-180' : ''
                         }`}
                       />
@@ -252,7 +252,7 @@ export function LandingHero() {
                             type="button"
                             role="option"
                             aria-selected={neighborhood === 'all'}
-                            className={`min-h-11 w-full px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                            className={`min-h-11 w-full px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-white ${
                               neighborhood === 'all'
                                 ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
                                 : 'text-[#071330]'
@@ -271,10 +271,10 @@ export function LandingHero() {
                               type="button"
                               role="option"
                               aria-selected={neighborhood === n.id}
-                              className={`min-h-11 w-full px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F4F8FD] ${
+                              className={`min-h-11 w-full px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-white ${
                                 neighborhood === n.id
                                   ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
-                                  : 'text-[#475569]'
+                                  : 'text-[#4A5568]'
                               }`}
                               onClick={() => {
                                 setNeighborhood(n.id)
@@ -293,7 +293,7 @@ export function LandingHero() {
 
               <button
                 type="submit"
-                className="inline-flex h-11 min-h-11 shrink-0 items-center justify-center rounded-[10px] bg-[#1D5CE5] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/45 focus-visible:ring-offset-2 sm:ml-1"
+                className="inline-flex h-11 min-h-11 shrink-0 items-center justify-center rounded-full bg-[#1D5CE5] px-[26px] text-[15px] font-semibold text-white shadow-none transition-colors hover:bg-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/45 focus-visible:ring-offset-2 sm:ml-1"
               >
                 Find help
               </button>

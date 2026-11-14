@@ -237,7 +237,7 @@ export function PublicHelperProfileView({
               />
             ) : (
               <div
-                className="php-photo inline-flex items-center justify-center text-[28px] font-bold text-[#64748B]"
+                className="php-photo inline-flex items-center justify-center text-[28px] font-bold text-[#4A5568]"
                 aria-hidden
               >
                 {person.name
@@ -415,15 +415,15 @@ export function PublicHelperProfileView({
                           aria-hidden
                         />
                         <span className="font-semibold text-[#071330]">{review.rating}/5</span>
-                        <span className="text-[#64748B]">
+                        <span className="text-[#4A5568]">
                           from {from?.name ?? 'Neighbor'}
                         </span>
-                        <span className="ml-auto text-[12px] text-[#64748B]">
+                        <span className="ml-auto text-[13px] text-[#4A5568]">
                           {relativeTime(review.createdAt)}
                         </span>
                       </div>
                       {review.comment?.trim() ? (
-                        <p className="mt-2 text-[14px] leading-[1.5] text-[#475569]">
+                        <p className="mt-2 text-[15px] leading-[1.55] text-[#071330]">
                           {review.comment}
                         </p>
                       ) : null}

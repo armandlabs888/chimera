@@ -4,14 +4,14 @@
   --hc-ink: #10172a;
   --hc-blue: #1d5ce5;
   --hc-blue-hover: #1649bd;
-  --hc-tint: #f5f9ff;
-  --hc-tint-2: #f4f8fd;
+  --hc-tint: #eef2f7;
+  --hc-tint-2: #eef2f7;
   --hc-line: #e3e8ef;
   --hc-line-2: #d7e0ec;
-  --hc-muted: #48556a;
-  --hc-muted-2: #6b7384;
-  --hc-sub: #878b95;
-  --hc-page: #f5f9ff;
+  --hc-muted: #4a5568;
+  --hc-muted-2: #4a5568;
+  --hc-sub: #4a5568;
+  --hc-page: #ffffff;
   --hc-white: #ffffff;
   --hc-red: #dc2626;
   --hc-red-hover: #fef2f2;
@@ -194,7 +194,7 @@
 .account-hc-job-thumb {
   width: 64px;
   height: 64px;
-  border-radius: 10px;
+  border-radius: 8px;
   object-fit: cover;
   background: var(--hc-tint-2);
   flex: none;
@@ -395,7 +395,7 @@
 .account-hc-card {
   background: var(--hc-white);
   border: 1px solid var(--hc-line);
-  border-radius: 16px;
+  border-radius: 8px;
 }
 
 .account-hc-identity {
@@ -432,7 +432,7 @@
   font-weight: 600;
   color: var(--hc-red);
   padding: 8px 10px;
-  border-radius: 10px;
+  border-radius: 8px;
   background: none;
   border: 0;
   cursor: pointer;
@@ -446,7 +446,7 @@
 .account-hc-tabs-wrap {
   margin-top: 24px;
   padding: 4px;
-  border-radius: 16px;
+  border-radius: 8px;
   background: var(--hc-tabbar);
 }
 
@@ -459,7 +459,7 @@
   flex: none;
   height: 36px;
   padding: 0 16px;
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   color: var(--hc-ink);
@@ -520,7 +520,7 @@
   gap: 8px;
   height: 40px;
   padding: 0 16px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   background: var(--hc-blue);
@@ -756,7 +756,7 @@
   height: 24px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 1px 2px rgba(7, 19, 48, 0.16);
+  box-shadow: none;
   transition: left 0.15s ease;
   pointer-events: none;
 }
@@ -929,7 +929,7 @@
   height: 22px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 1px 2px rgba(7, 19, 48, 0.16);
+  box-shadow: none;
   pointer-events: none;
 }
 
@@ -1031,7 +1031,7 @@
   height: 44px;
   padding: 0 14px;
   border: 1px solid var(--hc-line);
-  border-radius: 10px;
+  border-radius: 8px;
   background: #fff;
   font-size: 15px;
   color: var(--hc-navy);
@@ -1051,7 +1051,7 @@
 .account-hc-sms-select {
   appearance: none;
   padding-right: 36px;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7384' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234A5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 16px;
@@ -1083,7 +1083,7 @@
   height: 48px;
   padding: 0;
   border: 1px solid var(--hc-line);
-  border-radius: 10px;
+  border-radius: 8px;
   background: #fff;
   font-size: 20px;
   font-weight: 600;
@@ -1134,7 +1134,7 @@
   padding: 10px 14px 10px 12px;
   background: var(--hc-tint);
   border: 1px solid var(--hc-line);
-  border-radius: 12px;
+  border-radius: 8px;
 }
 
 .account-hc-sms-confirmed-check {
@@ -1230,7 +1230,7 @@
   display: inline-flex;
   padding: 4px;
   border: 1px solid var(--hc-line);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--hc-tint-2);
 }
 
@@ -1255,7 +1255,7 @@
 .account-hc-sms-seg button.is-on {
   background: var(--hc-white);
   color: var(--hc-navy);
-  box-shadow: 0 1px 2px rgba(7, 19, 48, 0.08);
+  box-shadow: none;
 }
 
 .account-hc-sms-seg button:disabled {
@@ -1334,7 +1334,7 @@
   height: 48px;
   padding: 0 14px;
   border: 1px solid var(--hc-line);
-  border-radius: 10px;
+  border-radius: 8px;
   background: #fff;
   font-size: 15px;
   color: var(--hc-navy);
@@ -1411,7 +1411,7 @@
   display: inline-flex;
   padding: 4px;
   border: 1px solid var(--hc-line);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--hc-tint-2);
 }
 
@@ -1441,7 +1441,7 @@
   width: 156px;
   flex: none;
   border: 1px solid var(--hc-line);
-  border-radius: 10px;
+  border-radius: 8px;
   background: #fff;
   padding: 0 12px;
   white-space: nowrap;
@@ -1574,7 +1574,7 @@
   align-items: flex-start;
   gap: 12px;
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1.5px solid var(--hc-line);
   background: #fff;
   text-align: left;
@@ -1697,7 +1697,7 @@
 .account-hc-verify-box {
   margin-top: 22px;
   padding: 18px;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid var(--hc-line-2);
   background: #fff;
 }
@@ -1747,7 +1747,7 @@
 .account-hc-rules-callout {
   margin-top: 24px;
   padding: 20px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--hc-tint-2);
   border: 1px solid var(--hc-line);
 }
@@ -1829,8 +1829,8 @@
   width: min(280px, calc(100vw - 1.5rem));
   background: var(--hc-white, #fff);
   border: 1px solid var(--hc-line, #e3e8ef);
-  border-radius: 16px;
-  box-shadow: 0 8px 24px -12px rgba(7, 19, 48, 0.18);
+  border-radius: 8px;
+  box-shadow: none;
   overflow: hidden;
   z-index: 50;
 }
@@ -1870,7 +1870,7 @@
   width: 100%;
   height: 44px;
   padding: 0 10px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 550;
   color: var(--hc-navy, #071330);
@@ -1884,11 +1884,11 @@
 
 .hc-menu-list a:hover,
 .hc-menu-list button.hc-menu-item:hover {
-  background: var(--hc-tint-2, #f4f8fd);
+  background: var(--hc-tint-2, #eef2f7);
 }
 
 .hc-menu-list a.is-current {
-  background: var(--hc-tint, #f5f9ff);
+  background: var(--hc-tint, #eef2f7);
   font-weight: 650;
 }
 
@@ -1927,11 +1927,11 @@
 
 .hc-account-btn:hover,
 .hc-account-btn[aria-expanded='true'] {
-  background: var(--hc-tint-2, #f4f8fd);
+  background: var(--hc-tint-2, #eef2f7);
 }
 
 .hc-account-btn .chev {
-  color: var(--hc-muted-2, #6b7384);
+  color: var(--hc-muted-2, #4A5568);
 }
 
 .hc-mobile-account {
@@ -1958,7 +1958,7 @@
   align-items: center;
   height: 44px;
   padding: 0 10px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 15px;
   font-weight: 550;
   color: var(--hc-navy, #071330);
@@ -1972,7 +1972,7 @@
 }
 
 .hc-mobile-account a.is-current {
-  background: var(--hc-tint, #f5f9ff);
+  background: var(--hc-tint, #eef2f7);
   font-weight: 650;
 }
 
@@ -2142,7 +2142,7 @@
 }
 
 .account-hc-account-type-neighbor {
-  background: #f4f8fd;
+  background: #ffffff;
   color: #1649bd;
   border: 1px solid #d7e0ec;
 }
@@ -2197,7 +2197,7 @@
   gap: 8px;
   height: 44px;
   padding: 0 12px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   color: var(--hc-navy);
@@ -2230,7 +2230,7 @@
   align-items: center;
   justify-content: center;
   height: 44px;
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   color: var(--hc-red);
@@ -2252,7 +2252,7 @@
   gap: 6px;
   margin: 0 auto;
   padding: 8px 10px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--hc-muted);
@@ -2322,7 +2322,7 @@
   margin-top: 20px;
   height: 44px;
   padding: 0 18px;
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--hc-red);
   color: #fff;
   font-size: 14px;
@@ -2364,7 +2364,7 @@
   overflow: auto;
   background: var(--hc-white);
   border: 1px solid var(--hc-line);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 24px 24px 20px;
 }
 
@@ -2393,7 +2393,7 @@
   margin-top: 14px;
   padding: 12px 14px;
   background: var(--hc-red-hover);
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 700;
   line-height: 1.45;

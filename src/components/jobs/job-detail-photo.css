@@ -7,7 +7,7 @@
   /* Tall enough for true 4:3 on the desktop Browse panel (~500px wide). */
   max-height: min(400px, 50vh);
   overflow: hidden;
-  background: #f5f9ff;
+  background: #ffffff;
   flex: none;
 }
 

@@ -56,7 +56,7 @@ export function MessagesListPanel() {
         </h2>
         {unreadThreadCount > 0 ? (
           <span
-            className="inline-flex h-[22px] items-center rounded-md border border-[#D6E2F5] bg-[#F4F8FD] px-2 text-[12px] font-semibold text-[#123E9E]"
+            className="inline-flex h-[22px] items-center rounded-md border border-[#E3E8EF] bg-white px-2 text-[12px] font-semibold text-[#123E9E]"
             data-testid="messages-count"
           >
             {unreadThreadCount} unread
@@ -65,7 +65,7 @@ export function MessagesListPanel() {
         <span className="flex-1" />
         <button
           type="button"
-          className="grid h-11 w-11 min-h-[44px] min-w-[44px] place-items-center rounded-[9px] text-[#071330] hover:bg-[#F4F8FD]"
+          className="grid h-11 w-11 min-h-[44px] min-w-[44px] place-items-center rounded-[9px] text-[#071330] hover:bg-white"
           aria-label="Close messages"
           data-testid="messages-close"
           onClick={closeAll}
@@ -79,7 +79,7 @@ export function MessagesListPanel() {
           className="flex flex-1 flex-col items-center justify-center px-9 pb-16 text-center"
           data-testid="messages-empty"
         >
-          <div className="mb-4 grid h-14 w-14 place-items-center rounded-[14px] border border-[#D6E2F5] bg-[#F4F8FD] text-[#1D5CE5]">
+          <div className="mb-4 grid h-14 w-14 place-items-center rounded-[14px] border border-[#E3E8EF] bg-white text-[#1D5CE5]">
             <MessageCircle className="h-6 w-6" strokeWidth={1.9} />
           </div>
           <h3 className="font-body text-[18px] font-bold tracking-[-0.015em] text-[#071330]">
@@ -109,7 +109,7 @@ export function MessagesListPanel() {
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search people or jobs"
                 data-testid="messages-search"
-                className="h-11 min-h-[44px] w-full rounded-[10px] border border-[#CDD5E0] bg-white pl-9 pr-3 text-[14px] text-[#071330] outline-none placeholder:text-[#55627A] focus:border-[#1D5CE5] focus:shadow-[0_0_0_3px_rgba(29,92,229,0.14)]"
+                className="h-11 min-h-[44px] w-full rounded-[10px] border border-[#D7E0EC] bg-white pl-9 pr-3 text-[14px] text-[#071330] outline-none placeholder:text-[#5B6576] focus:border-[#1D5CE5] focus:shadow-[0_0_0_3px_rgba(29,92,229,0.14)]"
               />
             </label>
             <div className="flex gap-1" role="tablist" aria-label="Message filters">
@@ -145,7 +145,7 @@ export function MessagesListPanel() {
             <ul className="min-h-0 flex-1 overflow-y-auto px-2 py-1.5" data-testid="messages-thread-list">
               {referralCards.length > 0 ? (
                 <li className="px-1 pb-2 pt-1" data-testid="messages-referral-section">
-                  <p className="mb-2 px-2 text-[12.5px] font-bold uppercase tracking-[0.04em] text-[#6B7384]">
+                  <p className="mb-2 px-2 text-[12.5px] font-bold uppercase tracking-[0.04em] text-[#4A5568]">
                     Job suggestions
                   </p>
                   <div className="space-y-2.5">
@@ -169,7 +169,7 @@ export function MessagesListPanel() {
                       aria-current={selected ? 'true' : undefined}
                       onClick={() => openThread(row.thread.id)}
                       className={`relative grid w-full grid-cols-[44px_minmax(0,1fr)] gap-3 rounded-[10px] px-3 py-3 text-left ${
-                        selected ? 'bg-[#F4F8FD]' : 'hover:bg-[#F7FAFE]'
+                        selected ? 'bg-white' : 'hover:bg-[#EEF2F7]'
                       } ${row.unread ? 'messages-thread-unread' : ''}`}
                     >
                       {selected ? (
@@ -262,7 +262,7 @@ function FilterTab({
       data-testid={testId}
       onClick={onClick}
       className={`inline-flex h-11 min-h-[44px] items-center gap-1.5 rounded-lg px-2.5 text-[13.5px] font-semibold ${
-        selected ? 'bg-[#071330] text-white' : 'text-[#273449] hover:bg-[#F4F8FD]'
+        selected ? 'bg-[#071330] text-white' : 'text-[#273449] hover:bg-white'
       }`}
     >
       {label}

@@ -57,14 +57,14 @@
   width: 36px;
   height: 36px;
   border-radius: 9px;
-  color: #6b7384;
+  color: #4A5568;
   background: transparent;
   border: 0;
   cursor: pointer;
 }
 
 .rh-picker-close:hover {
-  background: #f4f8fd;
+  background: #ffffff;
   color: #071330;
 }
 
@@ -103,7 +103,7 @@
 }
 
 .rh-picker-search input::placeholder {
-  color: #6b7384;
+  color: #4A5568;
 }
 
 .rh-picker-search input:focus {
@@ -126,7 +126,7 @@
   padding: 0 8px 0 10px;
   border-radius: 999px;
   border: 1px solid #d7e0ec;
-  background: #f5f9ff;
+  background: #ffffff;
   font-size: 13px;
   font-weight: 600;
   color: #071330;
@@ -190,7 +190,7 @@
 }
 
 .rh-picker-row.is-selected {
-  background: #f5f9ff;
+  background: #ffffff;
 }
 
 .rh-picker-row-photo {
@@ -292,7 +292,7 @@
 }
 
 .rh-picker-note textarea::placeholder {
-  color: #6b7384;
+  color: #4A5568;
 }
 
 .rh-picker-note textarea:focus {
@@ -329,7 +329,7 @@
 
 .rh-picker-send:disabled {
   background: #d7e0ec;
-  color: #6b7384;
+  color: #4A5568;
   cursor: not-allowed;
 }
 
@@ -365,7 +365,7 @@
   height: 52px;
   margin-bottom: 14px;
   border-radius: 14px;
-  background: #f5f9ff;
+  background: #ffffff;
   border: 1px solid #d7e0ec;
   color: #1d5ce5;
   font-size: 22px;
@@ -493,7 +493,7 @@
   margin: 0;
   padding: 10px 12px;
   border-radius: 10px;
-  background: #f5f9ff;
+  background: #ffffff;
   border: 1px solid #e3e8ef;
   font-size: 13px;
   line-height: 1.45;
@@ -528,7 +528,7 @@
 }
 
 .rh-suggested-btn:hover {
-  background: #f4f8fd;
+  background: #ffffff;
 }
 
 .rh-suggested-btn-primary {
@@ -548,7 +548,7 @@
   background: transparent;
   font-size: 13px;
   font-weight: 600;
-  color: #6b7384;
+  color: #4A5568;
   cursor: pointer;
   padding: 6px 4px;
 }
@@ -598,7 +598,7 @@
   margin: 0 16px 12px;
   padding: 10px 12px;
   border-radius: 10px;
-  background: #f5f9ff;
+  background: #ffffff;
   border: 1px solid #e3e8ef;
   font-size: 13.5px;
   line-height: 1.45;
@@ -613,7 +613,7 @@
   padding: 10px;
   border-radius: 12px;
   border: 1px solid #e3e8ef;
-  background: #f4f8fd;
+  background: #ffffff;
 }
 
 .rh-inbox-job img {
@@ -664,7 +664,7 @@
   padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid #d7e0ec;
-  background: #f5f9ff;
+  background: #ffffff;
   font-size: 13px;
   font-weight: 600;
   color: #071330;

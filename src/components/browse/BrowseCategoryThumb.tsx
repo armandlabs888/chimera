@@ -21,7 +21,7 @@ export function BrowseCategoryThumb({
 
   return (
     <span
-      className={`grid place-items-center border border-[#D6E2F5] bg-[#F4F8FD] text-[#1D5CE5] ${box} ${className}`}
+      className={`grid place-items-center border border-[#E3E8EF] bg-white text-[#1D5CE5] ${box} ${className}`}
       aria-hidden
       data-testid="browse-category-thumb"
     >

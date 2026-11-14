@@ -25,7 +25,7 @@ export function AccountDeletedNotice() {
 
   return (
     <div
-      className="border-b border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-center text-[14px] font-medium text-[#071330]"
+      className="border-b border-[#D7E0EC] bg-white px-4 py-3 text-center text-[14px] font-medium text-[#071330]"
       role="status"
       data-testid="account-deleted-notice"
     >

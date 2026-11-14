@@ -62,7 +62,7 @@ export function Safety() {
       <h1 className="font-display text-[clamp(2.5rem,5vw,3.5rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
         Safety on HouseCall
       </h1>
-      <p className="mt-4 max-w-[48ch] text-[18px] leading-[1.55] text-[#64748B]">
+      <p className="mt-4 max-w-[48ch] text-[18px] leading-[1.55] text-[#4A5568]">
         HouseCall is a coordination layer, not escrow and not a staffing agency. Clear rules keep
         same-day help practical.
       </p>
@@ -71,7 +71,7 @@ export function Safety() {
         {COMMITMENTS.map((c) => (
           <div key={c.title}>
             <dt className="text-[18px] font-bold text-[#071330]">{c.title}</dt>
-            <dd className="mt-2 text-[16px] leading-[1.55] text-[#64748B]">{c.body}</dd>
+            <dd className="mt-2 text-[16px] leading-[1.55] text-[#4A5568]">{c.body}</dd>
           </div>
         ))}
       </dl>
@@ -92,7 +92,7 @@ export function Safety() {
             ))}
           </ul>
         </div>
-        <div className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] p-6">
+        <div className="rounded-lg border border-[#D7E0EC] bg-white p-6">
           <h2 className="text-[15px] font-bold uppercase tracking-[0.08em] text-[#071330]">
             Not on HouseCall
           </h2>
@@ -113,12 +113,12 @@ export function Safety() {
         {FAQ.map((item) => (
           <div key={item.q}>
             <h2 className="text-[18px] font-bold text-[#071330]">{item.q}</h2>
-            <p className="mt-2 text-[16px] leading-[1.55] text-[#64748B]">{item.a}</p>
+            <p className="mt-2 text-[16px] leading-[1.55] text-[#4A5568]">{item.a}</p>
           </div>
         ))}
       </div>
 
-      <p className="mt-12 text-[15px] text-[#64748B]">
+      <p className="mt-12 text-[15px] text-[#4A5568]">
         Ready to help or need a hand?{' '}
         <Link href="/browse" className="font-semibold text-[#1D5CE5] hover:text-[#1649BD]">
           Browse open requests →

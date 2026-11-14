@@ -32,7 +32,7 @@ export function EmptyState({
   titleAs?: 'h1' | 'h2' | 'h3'
 }) {
   return (
-    <div className="rounded-[10px] border border-[#C7D7F0] bg-[#FBFDFF] px-6 py-12 text-center">
+    <div className="rounded-[10px] border border-[#E3E8EF] bg-white px-6 py-12 text-center">
       <TitleTag className="type-h3 text-[#071330]">{title}</TitleTag>
       <p className="mx-auto mt-2 max-w-sm type-sec text-beam-muted">{body}</p>
       {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
@@ -53,12 +53,12 @@ export function Badge({
       : tone === 'live' || tone === 'success'
         ? 'bg-[#EEF4FF] text-[#1D5CE5]'
         : tone === 'warning'
-          ? 'bg-[#F5F9FF] text-[#071330]'
+          ? 'bg-white text-[#071330]'
           : tone === 'danger'
-            ? 'bg-[#F5F9FF] text-[#071330]'
+            ? 'bg-white text-[#071330]'
             : tone === 'outline'
-              ? 'border border-[rgba(7,19,48,0.12)] bg-transparent text-[#64748B]'
-              : 'bg-[#F4F8FD] text-[#475569]'
+              ? 'border border-[rgba(7,19,48,0.12)] bg-transparent text-[#4A5568]'
+              : 'bg-white text-[#4A5568]'
   return (
     <span className={`inline-flex items-center gap-1 rounded-md px-2.5 py-0.5 type-meta ${toneClass}`}>
       {children}
@@ -101,7 +101,7 @@ export function Card({
 }) {
   return (
     <Tag
-      className={`rounded-lg border border-[#E2E8F0] bg-white p-5 ${hover ? 'elevated-hover' : ''} ${className}`}
+      className={`rounded-lg border border-[#E3E8EF] bg-white p-5 ${hover ? 'elevated-hover' : ''} ${className}`}
     >
       {children}
     </Tag>
@@ -121,12 +121,12 @@ export function InlineBanner({
 }) {
   const styles =
     tone === 'error'
-      ? 'border border-[#D7E0EC] bg-[#F5F9FF] text-[#071330]'
+      ? 'border border-[#D7E0EC] bg-white text-[#071330]'
       : tone === 'success'
-        ? 'border border-[#D7E0EC] bg-[#F5F9FF] text-[#071330]'
+        ? 'border border-[#D7E0EC] bg-white text-[#071330]'
         : tone === 'warning'
-          ? 'border border-[#D7E0EC] bg-[#F5F9FF] text-[#071330]'
-          : 'bg-[#F4F8FD] text-[#475569] shadow-[0_0_0_1px_rgba(7,19,48,0.06)]'
+          ? 'border border-[#D7E0EC] bg-white text-[#071330]'
+          : 'bg-white text-[#4A5568] shadow-[0_0_0_1px_rgba(7,19,48,0.06)]'
   return (
     <div className={`rounded-lg px-3.5 py-2.5 type-sec ${styles}`} role="status" aria-live="polite">
       {children}
@@ -163,7 +163,7 @@ export function Avatar({
   }
   return (
     <span
-      className="inline-flex items-center justify-center rounded-full bg-[#E8EEF7] type-meta font-semibold text-[#475569] ring-2 ring-white"
+      className="inline-flex items-center justify-center rounded-full bg-[#E8EEF7] type-meta font-semibold text-[#4A5568] ring-2 ring-white"
       style={{ width: size, height: size }}
       aria-hidden
     >

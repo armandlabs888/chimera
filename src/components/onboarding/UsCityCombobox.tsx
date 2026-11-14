@@ -258,12 +258,12 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
 
         {value ? (
           <div
-            className="flex items-center gap-3 rounded-lg border border-[#E2E8F0] bg-white px-4 py-3.5"
+            className="flex items-center gap-3 rounded-lg border border-[#E3E8EF] bg-white px-4 py-3.5"
             data-testid="onboarding-city-verified"
           >
             <div className="min-w-0 flex-1">
               <p className="truncate text-[15px] font-semibold text-[#071330]">{value.label}</p>
-              <p className="mt-0.5 text-[13px] text-[#64748B]">{stateDisplayName(value.stateCode)}</p>
+              <p className="mt-0.5 text-[13px] text-[#4A5568]">{stateDisplayName(value.stateCode)}</p>
             </div>
             <button
               type="button"
@@ -278,7 +278,7 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
         ) : (
           <div className="relative">
             <Search
-              className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#94A3B8]"
+              className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#5B6576]"
               aria-hidden
             />
             <input
@@ -307,10 +307,10 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
               onBlur={onBlur}
               onKeyDown={onKeyDown}
               data-testid="onboarding-city-input"
-              className={`h-[52px] w-full rounded-lg border bg-white py-3 pl-11 pr-11 text-[15px] text-[#071330] outline-none transition placeholder:text-[#94A3B8] focus-visible:ring-4 disabled:opacity-60 ${
+              className={`h-[52px] w-full rounded-lg border bg-white py-3 pl-11 pr-11 text-[15px] text-[#071330] outline-none transition placeholder:text-[#5B6576] focus-visible:ring-4 disabled:opacity-60 ${
                 inputInvalid
                   ? 'border-[#1D5CE5] focus-visible:border-[#1D5CE5] focus-visible:ring-[#1D5CE5]/15'
-                  : 'border-[#E2E8F0] focus-visible:border-[#1D5CE5] focus-visible:ring-[#1D5CE5]/15'
+                  : 'border-[#E3E8EF] focus-visible:border-[#1D5CE5] focus-visible:ring-[#1D5CE5]/15'
               }`}
             />
             {query ? (
@@ -322,7 +322,7 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
                   setOpen(true)
                   inputRef.current?.focus()
                 }}
-                className="absolute right-3 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-[#94A3B8] transition hover:bg-[#F4F8FD] hover:text-[#071330]"
+                className="absolute right-3 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-[#5B6576] transition hover:bg-white hover:text-[#071330]"
                 aria-label="Clear city search"
               >
                 <X className="h-4 w-4" aria-hidden />
@@ -336,11 +336,11 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
             id={listboxId}
             role="listbox"
             aria-label="US cities"
-            className="absolute z-50 mt-2 max-h-[280px] w-full overflow-auto overscroll-contain rounded-lg border border-[#E2E8F0] bg-white p-1.5 shadow-[0_16px_40px_-18px_rgba(12,42,102,0.28)]"
+            className="absolute z-50 mt-2 max-h-[280px] w-full overflow-auto overscroll-contain rounded-lg border border-[#E3E8EF] bg-white p-1.5 shadow-[0_16px_40px_-18px_rgba(12,42,102,0.28)]"
             data-testid="onboarding-city-listbox"
           >
             {options.length === 0 ? (
-              <p className="px-3 py-4 text-[14px] text-[#64748B]">No matching US cities.</p>
+              <p className="px-3 py-4 text-[14px] text-[#4A5568]">No matching US cities.</p>
             ) : (
               options.map((city, index) => {
                 const active = index === activeIndex
@@ -355,19 +355,19 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => selectCity(city)}
                     className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 ${
-                      active ? 'bg-[#EEF4FF]' : 'hover:bg-[#F4F8FD]'
+                      active ? 'bg-[#EEF4FF]' : 'hover:bg-white'
                     }`}
                   >
                     <span className="min-w-0">
                       <span className="block text-[14.5px] font-semibold text-[#071330]">
                         {highlightMatch(city.label, query)}
                       </span>
-                      <span className="mt-0.5 block text-[12.5px] text-[#64748B]">
+                      <span className="mt-0.5 block text-[12.5px] text-[#4A5568]">
                         {stateDisplayName(city.stateCode)}
                       </span>
                     </span>
                     {active ? (
-                      <CornerDownLeft className="h-3.5 w-3.5 shrink-0 text-[#94A3B8]" aria-hidden />
+                      <CornerDownLeft className="h-3.5 w-3.5 shrink-0 text-[#5B6576]" aria-hidden />
                     ) : null}
                   </button>
                 )
@@ -377,15 +377,15 @@ export const UsCityCombobox = forwardRef<UsCityComboboxHandle, Props>(
         ) : null}
 
         {loadError || geoError ? (
-          <p className="mt-2 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] text-[#071330]" role="alert">
+          <p className="mt-2 rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[13px] text-[#071330]" role="alert">
             {loadError || geoError}
           </p>
         ) : error ? (
-          <p className="mt-2 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] font-medium text-[#071330]" role="alert" data-testid="onboarding-city-error">
+          <p className="mt-2 rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[13px] font-medium text-[#071330]" role="alert" data-testid="onboarding-city-error">
             {error}
           </p>
         ) : needsSelectionHint ? (
-          <p className="mt-2 text-[12.5px] font-medium text-[#64748B]">
+          <p className="mt-2 text-[12.5px] font-medium text-[#4A5568]">
             Select your city from the suggestions to continue.
           </p>
         ) : null}

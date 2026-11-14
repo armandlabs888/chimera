@@ -608,7 +608,7 @@ async function main() {
             .map((x) => Number(x).toString(16).padStart(2, '0'))
             .join('')
         : null
-      return { border: fg, canvas: '#F4F8FD' }
+      return { border: fg, canvas: '#FFFFFF' }
     })
     if (borderUi?.border) {
       const ratio = Number(contrastRatio(borderUi.border, borderUi.canvas).toFixed(2))

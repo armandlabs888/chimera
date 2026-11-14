@@ -340,7 +340,7 @@ export function BrowseJobDetailPanel({
               <label className="block text-[13px] font-semibold text-[#071330]" htmlFor="browse-panel-offer-price">
                 Price
               </label>
-              <div className="flex h-11 items-center rounded-[10px] border border-[#CDD5E0] px-3 focus-within:border-[#1D5CE5]">
+              <div className="flex h-11 items-center rounded-[10px] border border-[#D7E0EC] px-3 focus-within:border-[#1D5CE5]">
                 <span className="text-[15px] font-semibold text-[#3D4A5F]" aria-hidden>
                   $
                 </span>
@@ -362,7 +362,7 @@ export function BrowseJobDetailPanel({
                     className={`h-9 rounded-[9px] px-3 text-[13px] font-semibold ${
                       offerEta === chip
                         ? 'bg-[#071330] text-white'
-                        : 'border border-[#CDD5E0] text-[#071330]'
+                        : 'border border-[#D7E0EC] text-[#071330]'
                     }`}
                   >
                     {chip}
@@ -377,9 +377,9 @@ export function BrowseJobDetailPanel({
                 value={offerNote}
                 onChange={(e) => setOfferNote(e.target.value)}
                 rows={3}
-                className="w-full rounded-[10px] border border-[#CDD5E0] px-3 py-2 text-[14px] text-[#071330] outline-none focus:border-[#1D5CE5]"
+                className="w-full rounded-[10px] border border-[#D7E0EC] px-3 py-2 text-[14px] text-[#071330] outline-none focus:border-[#1D5CE5]"
               />
-              {offerError ? <p className="text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[#071330]">{offerError}</p> : null}
+              {offerError ? <p className="text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[#071330]">{offerError}</p> : null}
             </form>
           ) : null}
 
@@ -389,7 +389,7 @@ export function BrowseJobDetailPanel({
             </p>
           ) : null}
           {offerError && !offerOpen ? (
-            <p className="text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[#071330]" role="alert" data-testid="browse-offer-error">
+            <p className="text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[#071330]" role="alert" data-testid="browse-offer-error">
               {offerError}
             </p>
           ) : null}

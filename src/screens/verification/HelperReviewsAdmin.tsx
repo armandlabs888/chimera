@@ -167,7 +167,7 @@ export function HelperReviewsAdmin() {
                       }}
                       data-testid={`helper-review-row-${row.profileId}`}
                       className={`relative w-full px-4 py-3.5 text-left ${
-                        active ? 'bg-[#F5F9FF]' : 'hover:bg-[#F8FAFC]'
+                        active ? 'bg-white' : 'hover:bg-white'
                       }`}
                     >
                       {active ? (
@@ -270,7 +270,7 @@ function Detail({
       </div>
 
       {error ? (
-        <p className="mt-4 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[14px] font-medium text-[#071330]" role="alert">
+        <p className="mt-4 rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[14px] font-medium text-[#071330]" role="alert">
           {error}
         </p>
       ) : null}
@@ -305,7 +305,7 @@ function Detail({
           onClick={onRequestRetry}
           disabled={busy}
           data-testid="helper-review-request-new"
-          className="mt-3 inline-flex h-11 items-center justify-center rounded-lg border border-[#E3E8EF] bg-white px-5 text-[14px] font-semibold text-[#071330] hover:bg-[#F8FAFC] disabled:opacity-60"
+          className="mt-3 inline-flex h-11 items-center justify-center rounded-lg border border-[#E3E8EF] bg-white px-5 text-[14px] font-semibold text-[#071330] hover:bg-white disabled:opacity-60"
         >
           Send retry note
         </button>

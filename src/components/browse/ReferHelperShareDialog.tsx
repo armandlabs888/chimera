@@ -9,12 +9,12 @@ const HC_VARS = {
   ['--hc-ink' as string]: '#10172a',
   ['--hc-blue' as string]: '#1d5ce5',
   ['--hc-blue-hover' as string]: '#1649bd',
-  ['--hc-tint' as string]: '#f5f9ff',
-  ['--hc-tint-2' as string]: '#f4f8fd',
+  ['--hc-tint' as string]: '#eef2f7',
+  ['--hc-tint-2' as string]: '#eef2f7',
   ['--hc-line' as string]: '#e3e8ef',
   ['--hc-line-2' as string]: '#d7e0ec',
   ['--hc-muted' as string]: '#48556a',
-  ['--hc-muted-2' as string]: '#6b7384',
+  ['--hc-muted-2' as string]: '#4A5568',
   ['--hc-white' as string]: '#ffffff',
 } as const
 

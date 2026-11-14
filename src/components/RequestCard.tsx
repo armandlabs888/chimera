@@ -64,7 +64,7 @@ export function RequestCard({
             className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
         ) : (
-          <div className="absolute inset-0 bg-[#F5F9FF]" aria-hidden />
+          <div className="absolute inset-0 bg-white" aria-hidden />
         )}
         <span className="absolute left-2.5 top-2.5 inline-flex max-w-[70%] truncate items-center rounded-md border border-[#E3E8EF] bg-white px-2 py-0.5 text-[11.5px] font-bold text-[#071330]">
           {categoryLabel}
@@ -72,7 +72,7 @@ export function RequestCard({
         <span
           className={`absolute right-2.5 top-2.5 inline-flex items-center rounded-md px-2 py-0.5 text-[11.5px] font-bold ${
             isAsap
-              ? 'border border-[#D7E0EC] bg-[#F5F9FF] text-[#1D5CE5]'
+              ? 'border border-[#D7E0EC] bg-white text-[#1D5CE5]'
               : 'border border-[#071330] bg-[#071330] text-white'
           }`}
         >
@@ -85,7 +85,7 @@ export function RequestCard({
           {request.title}
         </h3>
         {!compact ? (
-          <p className="mt-1.5 line-clamp-2 text-[13px] leading-[1.45] text-[#334155]">
+          <p className="mt-1.5 line-clamp-2 text-[13px] leading-[1.45] text-[#4A5568]">
             {formatJobDetailsDisplay(request.details)}
           </p>
         ) : null}
@@ -98,7 +98,7 @@ export function RequestCard({
           </span>
           <span className="shrink-0 text-[#48556A]">{relativeTime(request.createdAt)}</span>
           {offerCount > 0 ? (
-            <span className="ml-auto inline-flex shrink-0 items-center rounded-md bg-[#F5F9FF] px-1.5 py-0.5 text-[11.5px] font-bold text-[#1D5CE5]">
+            <span className="ml-auto inline-flex shrink-0 items-center rounded-md bg-white px-1.5 py-0.5 text-[11.5px] font-bold text-[#1D5CE5]">
               {offerCount} offer{offerCount === 1 ? '' : 's'}
             </span>
           ) : null}
@@ -119,14 +119,14 @@ export function RequestCard({
                 ★ {ratingLabel}
               </span>
             ) : (
-              <span className="shrink-0 rounded-md bg-[#F5F9FF] px-1.5 py-0.5 text-[11px] font-bold text-[#1D5CE5]">
+              <span className="shrink-0 rounded-md bg-white px-1.5 py-0.5 text-[11px] font-bold text-[#1D5CE5]">
                 New
               </span>
             )}
           </div>
           <div className="shrink-0">
             {isOpenBudget ? (
-              <span className="inline-flex rounded-md border border-[#D7E0EC] bg-[#F5F9FF] px-2 py-0.5 text-[12px] font-bold text-[#1D5CE5]">
+              <span className="inline-flex rounded-md border border-[#D7E0EC] bg-white px-2 py-0.5 text-[12px] font-bold text-[#1D5CE5]">
                 Open to offers
               </span>
             ) : (

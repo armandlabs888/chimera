@@ -305,7 +305,7 @@ export function Onboarding() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[#F5F9FF]">
+      <div className="flex min-h-dvh items-center justify-center bg-white">
         <p className="text-[22px] font-semibold tracking-tight text-[#071330]">HouseCall</p>
       </div>
     )
@@ -428,7 +428,7 @@ export function Onboarding() {
 
               {step1Error && !role ? (
                 <p
-                  className="mt-3 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] font-medium text-[#071330]"
+                  className="mt-3 rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[13px] font-medium text-[#071330]"
                   role="alert"
                   data-testid="onboarding-step1-error"
                 >
@@ -446,7 +446,7 @@ export function Onboarding() {
                   className={`account-hc-btn account-hc-btn-lg w-full shadow-none !transition-[background-color] disabled:opacity-100 ${
                     canNext
                       ? 'bg-[#1D5CE5] text-white hover:bg-[#1649BD]'
-                      : 'bg-[#E3E8EF] text-[#6B7384] hover:bg-[#D7E0EC]'
+                      : 'bg-[#E3E8EF] text-[#4A5568] hover:bg-[#D7E0EC]'
                   }`}
                 >
                   Continue
@@ -511,7 +511,7 @@ export function Onboarding() {
               {error ? (
                 <div
                   role="alert"
-                  className="mt-6 rounded-[10px] border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[14px] text-[#071330]"
+                  className="mt-6 rounded-[10px] border border-[#D7E0EC] bg-white px-4 py-3 text-[14px] text-[#071330]"
                   data-testid="onboarding-error"
                 >
                   {error}

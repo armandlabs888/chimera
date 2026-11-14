@@ -111,7 +111,7 @@ export function BrowseFloatHeader({
             <Link
               href="/onboarding/helper"
               data-testid="helper-setup-banner-cta"
-              className="inline-flex h-6 w-fit shrink-0 items-center gap-1 rounded-md bg-white px-2.5 text-[12px] font-semibold text-[#071330] transition hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+              className="inline-flex h-6 w-fit shrink-0 items-center gap-1 rounded-md bg-white px-2.5 text-[12px] font-semibold text-[#071330] transition hover:bg-[#EEF2F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
             >
               Add skills &amp; rate
               <ArrowRight className="h-3 w-3" strokeWidth={2.25} aria-hidden />

@@ -51,8 +51,7 @@ import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 
 const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexible'] as const
 
-const cardClass =
-  'rounded-lg border border-[rgba(7,19,48,0.08)] bg-white shadow-[0_8px_24px_-14px_rgba(12,42,102,0.1)]'
+const cardClass = 'hc-rail-card'
 
 function paramId(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? ''
@@ -195,7 +194,7 @@ export function RequestDetail() {
   if (!request || !categoryLabel || !requester) {
     return (
       <div className="beam-container py-10" data-testid="request-not-found">
-        <div className="rounded-[10px] border border-[#C7D7F0] bg-[#FBFDFF] px-6 py-12 text-center">
+        <div className="rounded-[10px] border border-[#E3E8EF] bg-white px-6 py-12 text-center">
           <h1 className="type-h3 text-[#071330]">This request isn&apos;t available</h1>
           <p className="mx-auto mt-2 max-w-sm type-sec text-beam-muted">
             It may have been filled or removed.
@@ -312,7 +311,7 @@ export function RequestDetail() {
     >
       <Link
         href="/browse"
-        className="inline-flex min-h-[44px] items-center py-2 text-[13.5px] font-medium text-[#64748B] transition hover:text-[#071330]"
+        className="inline-flex min-h-[44px] items-center py-2 text-[13.5px] font-medium text-[#4A5568] transition hover:text-[#071330]"
         data-testid="request-detail-back"
       >
         ← Back to browse
@@ -327,7 +326,7 @@ export function RequestDetail() {
           <article className={`overflow-hidden ${cardClass}`}>
             <div className="flex flex-col gap-6 p-5 sm:gap-7 sm:p-6">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-[#F4F8FD] px-3 py-1.5 text-[12.5px] font-semibold text-[#071330]">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-[#EEF2F7] px-3 py-1.5 text-[13px] font-semibold text-[#071330]">
                   {CategoryIcon ? (
                     <CategoryIcon
                       className="h-3.5 w-3.5 text-[#1D5CE5]"
@@ -345,13 +344,13 @@ export function RequestDetail() {
                       : request.status === 'accepted'
                         ? 'bg-[#EEF4FF] text-[#1D5CE5]'
                         : request.status === 'completed'
-                          ? 'bg-[#F4F8FD] text-[#475569]'
-                          : 'bg-[#F4F8FD] text-[#64748B]'
+                          ? 'bg-white text-[#4A5568]'
+                          : 'bg-white text-[#4A5568]'
                   }`}
                 >
                   {statusLabel(request.status)}
                 </span>
-                <span className="text-[12.5px] text-[#64748B]">
+                <span className="text-[12.5px] text-[#4A5568]">
                   Posted {relativeTime(request.createdAt)}
                 </span>
               </div>
@@ -359,7 +358,7 @@ export function RequestDetail() {
               {isOwner && request.isUrgent ? (
                 (request.urgentHelpersNotifiedCount ?? 0) > 0 ? (
                   <p
-                    className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
+                    className="rounded-lg border border-[#D7E0EC] bg-white px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
                     data-testid="urgent-texted-helpers"
                   >
                     We texted{' '}
@@ -367,7 +366,7 @@ export function RequestDetail() {
                   </p>
                 ) : (
                   <p
-                    className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
+                    className="rounded-lg border border-[#D7E0EC] bg-white px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
                     data-testid="urgent-texted-helpers-pending"
                   >
                     We&apos;ll text helpers nearby as they become available
@@ -375,11 +374,11 @@ export function RequestDetail() {
                 )
               ) : null}
 
-              <h1 className="font-display text-[26px] font-bold leading-[1.15] tracking-[-0.025em] text-[#071330] [text-wrap:balance] sm:text-[32px]">
+              <h1 className="font-display text-[22px] font-bold leading-[1.25] tracking-[-0.015em] text-[#071330] [text-wrap:balance] sm:text-[24px]">
                 <JobTitleText title={request.title} />
               </h1>
 
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[14px] text-[#475569]">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[14px] font-medium text-[#4A5568]">
                 <span className="inline-flex items-center gap-1.5 font-medium text-[#071330]">
                   {request.whenLabel}
                 </span>
@@ -387,7 +386,7 @@ export function RequestDetail() {
                   ·
                 </span>
                 <span className="inline-flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5 shrink-0 text-[#94A3B8]" aria-hidden />
+                  <MapPin className="h-3.5 w-3.5 shrink-0 text-[#4A5568]" aria-hidden />
                   {locationLabel}
                 </span>
               </div>
@@ -404,7 +403,7 @@ export function RequestDetail() {
                       {listingImages.map((src, i) => (
                         <li
                           key={`${src}-${i}`}
-                          className="relative aspect-square overflow-hidden rounded-md bg-[#F4F8FD]"
+                          className="relative aspect-square overflow-hidden rounded-md bg-white"
                         >
                           <Image
                             src={src}
@@ -432,21 +431,21 @@ export function RequestDetail() {
                 height={180}
               />
 
-              <div className="border-t border-[#E2E8F0] pt-6 sm:pt-7">
-                <h2 className="text-[13.5px] font-semibold text-[#071330]">About this task</h2>
-                <p className="mt-2.5 whitespace-pre-wrap text-[15px] leading-[1.65] text-[#475569]">
+              <div className="border-t border-[#E3E8EF] pt-6 sm:pt-7">
+                <h2 className="text-[20px] font-bold text-[#071330]">About this task</h2>
+                <p className="mt-2.5 whitespace-pre-wrap text-[15px] leading-[1.55] text-[#071330]">
                   {formatJobDetailsDisplay(request.details)}
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 border-t border-[#E2E8F0] pt-6 sm:pt-7">
+              <div className="flex items-center gap-3 border-t border-[#E3E8EF] pt-6 sm:pt-7">
                 <Avatar src={requester.avatar} name={requester.name} size={44} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[15px] font-semibold text-[#071330]">
                     {requester.name}
                     {isOwner ? ' (you)' : ''}
                   </p>
-                  <p className="truncate text-[13px] text-[#64748B]">
+                  <p className="truncate text-[13px] text-[#4A5568]">
                     {formatLocation(requester)}
                     {' · '}
                     {requester.rating > 0 && requester.reviewCount > 0
@@ -479,14 +478,14 @@ export function RequestDetail() {
           {isOwner && request.status === 'open' ? (
             <section className={`${cardClass} p-5 sm:p-6`} data-testid="request-nearby-matches">
               <h2 className="text-[18px] font-bold text-[#071330]">Instant Nearby Matches</h2>
-              <p className="mt-1 text-[14px] text-[#64748B]">
+              <p className="mt-1 text-[14px] text-[#4A5568]">
                 Ranked by skill, distance, and availability for this task.
               </p>
 
               {matches.length === 0 ? (
-                <div className="mt-5 rounded-lg bg-[#F8FAFC] px-4 py-8 text-center">
+                <div className="mt-5 rounded-lg bg-white px-4 py-8 text-center">
                   <p className="text-[15px] font-semibold text-[#071330]">No matches in range</p>
-                  <p className="mt-1 text-[13px] text-[#64748B]">
+                  <p className="mt-1 text-[13px] text-[#4A5568]">
                     Helpers will appear as they come online nearby.
                   </p>
                 </div>
@@ -508,7 +507,7 @@ export function RequestDetail() {
                             <Avatar src={person.avatar} name={person.name} size={44} />
                             <div className="min-w-0">
                               <p className="truncate font-semibold text-[#071330]">{person.name}</p>
-                              <p className="text-[12.5px] text-[#64748B]">
+                              <p className="text-[12.5px] text-[#4A5568]">
                                 {authUser ? `${match.distanceMiles.toFixed(1)} mi · ` : ''}
                                 {formatRate(person)}
                                 {' · '}
@@ -517,7 +516,7 @@ export function RequestDetail() {
                                   : 'New'}
                               </p>
                               {match.reasons.length ? (
-                                <p className="mt-1 line-clamp-1 text-[12px] text-[#64748B]">
+                                <p className="mt-1 line-clamp-1 text-[12px] text-[#4A5568]">
                                   {match.reasons.slice(0, 3).join(' · ')}
                                 </p>
                               ) : null}
@@ -577,14 +576,14 @@ export function RequestDetail() {
             >
               {budgetLabel}
             </p>
-            <p className="mt-2 text-[13px] leading-[1.45] text-[#64748B]">
+            <p className="mt-2 text-[13px] leading-[1.45] text-[#4A5568]">
               No lead fees · Agree in chat
             </p>
           </div>
 
           {justPosted && isOwner && request.status === 'open' ? (
             <div
-              className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3.5 text-[14px] leading-relaxed text-[#071330]"
+              className="rounded-lg border border-[#E3E8EF] bg-white px-4 py-3.5 text-[15px] leading-[1.55] text-[#071330]"
               role="status"
             >
               <p className="font-semibold text-[#071330]">Your request is live nearby.</p>
@@ -607,14 +606,14 @@ export function RequestDetail() {
                   </span>
                 ) : null}
               </div>
-              <p className="mt-1 text-[14px] text-[#64748B]">
+              <p className="mt-1 text-[14px] text-[#4A5568]">
                 Accept when the price and timing feel right.
               </p>
 
               {offers.length === 0 ? (
-                <div className="mt-5 rounded-lg bg-[#F8FAFC] px-4 py-8 text-center">
+                <div className="mt-5 rounded-lg bg-white px-4 py-8 text-center">
                   <p className="text-[15px] font-semibold text-[#071330]">No offers yet</p>
-                  <p className="mt-1 text-[13px] text-[#64748B]">
+                  <p className="mt-1 text-[13px] text-[#4A5568]">
                     Invite nearby matches. They’ll show up here when they name a price.
                   </p>
                 </div>
@@ -636,7 +635,7 @@ export function RequestDetail() {
                             <Avatar src={helper.avatar} name={helper.name} size={40} />
                             <div className="min-w-0">
                               <p className="truncate font-semibold text-[#071330]">{helper.name}</p>
-                              <p className="text-[12.5px] text-[#64748B]">
+                              <p className="text-[12.5px] text-[#4A5568]">
                                 {helper.rating > 0 && helper.reviewCount > 0
                                   ? `★ ${helper.rating.toFixed(1)}`
                                   : 'New'}{' '}
@@ -648,13 +647,13 @@ export function RequestDetail() {
                             <p className="font-display text-[20px] font-bold tabular-nums text-[#071330]">
                               {formatMoney(offer.price)}
                             </p>
-                            <p className="text-[12px] font-semibold capitalize text-[#64748B]">
+                            <p className="text-[12px] font-semibold capitalize text-[#4A5568]">
                               {offer.status}
                             </p>
                           </div>
                         </div>
                         {offer.note ? (
-                          <p className="mt-3 text-[14px] leading-relaxed text-[#475569]">
+                          <p className="mt-3 text-[15px] leading-[1.55] text-[#071330]">
                             {offer.note}
                           </p>
                         ) : null}
@@ -683,7 +682,7 @@ export function RequestDetail() {
                 </ul>
               )}
 
-              <div className="mt-5 border-t border-[#E2E8F0] pt-4">
+              <div className="mt-5 border-t border-[#E3E8EF] pt-4">
                 <ButtonLink href="/post" variant="secondary" className="w-full">
                   Post another task
                 </ButtonLink>
@@ -706,7 +705,7 @@ export function RequestDetail() {
           {!isOwner && !isNeighborViewer && request.status === 'open' ? (
             <section className="space-y-3" data-testid="request-offer-panel">
               {myInvite ? (
-                <div className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[14px] font-semibold text-[#071330]">
+                <div className="rounded-lg border border-[#D7E0EC] bg-white px-4 py-3 text-[14px] font-semibold text-[#071330]">
                   You were invited to offer on this task
                 </div>
               ) : null}
@@ -717,7 +716,7 @@ export function RequestDetail() {
                     <h2 className="text-[18px] font-bold text-[#071330]">
                       {myOffer ? 'Update your offer' : 'Send an offer'}
                     </h2>
-                    <p className="mt-1 text-[14px] text-[#64748B]">
+                    <p className="mt-1 text-[14px] text-[#4A5568]">
                       Name a price and ETA before you show up.
                     </p>
 
@@ -729,8 +728,8 @@ export function RequestDetail() {
                         >
                           Your offer
                         </label>
-                        <div className="relative flex h-12 items-center rounded-lg border border-[#E2E8F0] bg-white focus-within:border-[#1D5CE5] focus-within:ring-4 focus-within:ring-[#1D5CE5]/15">
-                          <span className="pl-3.5 text-[15px] font-semibold text-[#64748B]" aria-hidden>
+                        <div className="relative flex h-12 items-center rounded-lg border border-[#E3E8EF] bg-white focus-within:border-[#1D5CE5] focus-within:ring-4 focus-within:ring-[#1D5CE5]/15">
+                          <span className="pl-3.5 text-[15px] font-semibold text-[#4A5568]" aria-hidden>
                             $
                           </span>
                           <input
@@ -745,7 +744,7 @@ export function RequestDetail() {
                             placeholder="60"
                             required
                             data-testid="offer-price-input"
-                            className="h-full w-full min-w-0 bg-transparent px-2 pr-3.5 text-[15px] font-semibold tabular-nums text-[#071330] outline-none placeholder:font-normal placeholder:text-[#94A3B8]"
+                            className="h-full w-full min-w-0 bg-transparent px-2 pr-3.5 text-[15px] font-semibold tabular-nums text-[#071330] outline-none placeholder:font-normal placeholder:text-[#5B6576]"
                           />
                         </div>
                       </div>
@@ -765,7 +764,7 @@ export function RequestDetail() {
                                 className={`rounded-lg px-3 py-2.5 text-[13px] font-semibold transition ${
                                   selected
                                     ? 'border border-[#1D5CE5] bg-[#EEF4FF] text-[#1D5CE5]'
-                                    : 'border border-[#E2E8F0] bg-white text-[#071330] hover:bg-[#F8FAFC]'
+                                    : 'border border-[#E3E8EF] bg-white text-[#071330] hover:bg-white'
                                 }`}
                               >
                                 {chip}
@@ -781,7 +780,7 @@ export function RequestDetail() {
                           className="mb-2 block text-[13.5px] font-semibold text-[#071330]"
                         >
                           Message to requester{' '}
-                          <span className="font-normal text-[#64748B]">(optional)</span>
+                          <span className="font-normal text-[#4A5568]">(optional)</span>
                         </label>
                         <TextArea
                           id="offer-note"
@@ -794,7 +793,7 @@ export function RequestDetail() {
                       </div>
 
                       {offerError ? (
-                        <p className="flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[14px] text-[#071330]" role="alert">
+                        <p className="flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[14px] text-[#071330]" role="alert">
                           {offerError}
                         </p>
                       ) : null}
@@ -823,7 +822,7 @@ export function RequestDetail() {
                 ) : (
                   <>
                     <h2 className="text-[18px] font-bold text-[#071330]">Verification required</h2>
-                    <p className="mt-1 text-[14px] text-[#64748B]">
+                    <p className="mt-1 text-[14px] text-[#4A5568]">
                       Offering unlocks after HouseCall confirms you&apos;re at your home address.
                     </p>
                     <OfferGateNotice verification={helperVerification} />
@@ -853,13 +852,13 @@ export function RequestDetail() {
           {request.status === 'accepted' && (isOwner || isAcceptedHelper) ? (
             <section className={`${cardClass} p-5`} data-testid="request-booked-panel">
               <p className="text-[13.5px] font-semibold text-[#071330]">You’re booked</p>
-              <p className="mt-1 text-[14px] text-[#64748B]">
+              <p className="mt-1 text-[14px] text-[#4A5568]">
                 Coordinate in chat and agree how you’ll pay peer-to-peer.
               </p>
 
               <dl className="mt-5 space-y-4">
                 <div>
-                  <dt className="text-[13px] font-semibold text-[#64748B]">Confirmed helper</dt>
+                  <dt className="text-[13px] font-semibold text-[#4A5568]">Confirmed helper</dt>
                   <dd className="mt-1.5 flex items-center gap-2.5">
                     {acceptedHelper ? (
                       <>
@@ -867,35 +866,35 @@ export function RequestDetail() {
                         <span className="font-semibold text-[#071330]">{acceptedHelper.name}</span>
                       </>
                     ) : (
-                      <span className="text-[#64748B]">Not set</span>
+                      <span className="text-[#4A5568]">Not set</span>
                     )}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[13px] font-semibold text-[#64748B]">Agreed price</dt>
+                  <dt className="text-[13px] font-semibold text-[#4A5568]">Agreed price</dt>
                   <dd className="mt-1.5 font-display text-[24px] font-bold tabular-nums text-[#071330]">
                     {acceptedOffer ? formatMoney(acceptedOffer.price) : 'Not set'}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[13px] font-semibold text-[#64748B]">ETA</dt>
+                  <dt className="text-[13px] font-semibold text-[#4A5568]">ETA</dt>
                   <dd className="mt-1.5 font-semibold text-[#071330]">
                     {acceptedOffer?.eta ?? request.whenLabel}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[13px] font-semibold text-[#64748B]">Location</dt>
+                  <dt className="text-[13px] font-semibold text-[#4A5568]">Location</dt>
                   <dd className="mt-1.5 font-semibold text-[#071330]">{locationLabel}</dd>
                 </div>
                 {canSeeExactAddress && request.exactAddress ? (
                   <div>
-                    <dt className="text-[13px] font-semibold text-[#64748B]">Exact address</dt>
+                    <dt className="text-[13px] font-semibold text-[#4A5568]">Exact address</dt>
                     <dd className="mt-1.5 font-semibold text-[#071330]">{request.exactAddress}</dd>
                   </div>
                 ) : null}
               </dl>
 
-              <div className="mt-5 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-4 py-3 text-[13.5px] leading-relaxed text-[#071330]">
+              <div className="mt-5 rounded-lg border border-[#D7E0EC] bg-white px-4 py-3 text-[13.5px] leading-relaxed text-[#071330]">
                 Pay your helper peer-to-peer (Venmo, cash, Zelle, etc.). HouseCall doesn’t process
                 payments yet. Agree on the method in chat before you start.
               </div>
@@ -929,12 +928,12 @@ export function RequestDetail() {
           {request.status === 'completed' ? (
             <section className={`${cardClass} p-5`} data-testid="request-review-panel">
               <h2 className="text-[18px] font-bold text-[#071330]">Mutual review</h2>
-              <p className="mt-1 text-[14px] text-[#64748B]">
+              <p className="mt-1 text-[14px] text-[#4A5568]">
                 Rate your experience so neighbors know who to trust next time.
               </p>
 
               {existingReview ? (
-                <div className="mt-5 rounded-lg bg-[#F8FAFC] px-4 py-4">
+                <div className="mt-5 rounded-lg bg-white px-4 py-4">
                   <div className="flex items-center gap-1 text-[#071330]">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
@@ -948,7 +947,7 @@ export function RequestDetail() {
                     ))}
                   </div>
                   {existingReview.comment.trim() ? (
-                    <p className="mt-2 text-[14px] text-[#475569]" data-testid="review-comment-text">
+                    <p className="mt-2 text-[15px] leading-[1.55] text-[#071330]" data-testid="review-comment-text">
                       “{existingReview.comment}”
                     </p>
                   ) : null}
@@ -963,8 +962,8 @@ export function RequestDetail() {
                         onClick={() => setReviewRating(n)}
                         className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border transition ${
                           reviewRating >= n
-                            ? 'border-[#071330] bg-[#F5F9FF] text-[#071330]'
-                            : 'border-[rgba(7,19,48,0.12)] bg-white text-[#64748B]'
+                            ? 'border-[#071330] bg-white text-[#071330]'
+                            : 'border-[rgba(7,19,48,0.12)] bg-white text-[#4A5568]'
                         }`}
                         aria-label={`${n} stars`}
                       >
@@ -977,7 +976,7 @@ export function RequestDetail() {
                       htmlFor="review-comment"
                       className="mb-2 block text-[13.5px] font-semibold text-[#071330]"
                     >
-                      Comment <span className="font-normal text-[#64748B]">(optional)</span>
+                      Comment <span className="font-normal text-[#4A5568]">(optional)</span>
                     </label>
                     <TextArea
                       id="review-comment"
@@ -992,13 +991,13 @@ export function RequestDetail() {
                   </Button>
                 </form>
               ) : (
-                <p className="mt-4 text-[14px] text-[#64748B]">
+                <p className="mt-4 text-[14px] text-[#4A5568]">
                   Only the people on this job can review.
                 </p>
               )}
 
               {isOwner && acceptedHelper ? (
-                <div className="mt-6 flex flex-col gap-2 border-t border-[#E2E8F0] pt-5">
+                <div className="mt-6 flex flex-col gap-2 border-t border-[#E3E8EF] pt-5">
                   <Button
                     type="button"
                     variant="secondary"

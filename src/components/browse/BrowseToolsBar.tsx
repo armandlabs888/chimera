@@ -93,7 +93,7 @@ export function BrowseToolsBar({
             type="button"
             aria-label="Clear search"
             onClick={onClearSearch}
-            className="grid h-11 w-11 min-h-[44px] min-w-[44px] place-items-center rounded-full text-[#6B7384] hover:bg-[#F4F8FD]"
+            className="grid h-11 w-11 min-h-[44px] min-w-[44px] place-items-center rounded-full text-[#4A5568] hover:bg-white"
           >
             <X className="h-3.5 w-3.5" strokeWidth={2} />
           </button>

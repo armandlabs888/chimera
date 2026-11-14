@@ -5,7 +5,7 @@ import './job-detail-photo.css'
 
 /**
  * Job detail cover photo: ~4:3 frame, full image via object-fit contain,
- * soft blurred fill (or #F5F9FF) so portrait / wide shots are not cropped.
+ * soft blurred fill (or #EEF2F7) so portrait / wide shots are not cropped.
  * Used by Browse panel, Browse sheet/drawer, and /requests/[id].
  */
 export function JobDetailPhoto({

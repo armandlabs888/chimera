@@ -30,7 +30,7 @@
 .job-area-map-placeholder {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #f5f9ff 0%, #e3e8ef 100%);
+  background: linear-gradient(135deg, #eef2f7 0%, #e3e8ef 100%);
 }
 
 .job-area-map-circle {
@@ -81,7 +81,7 @@
   margin: 0;
   font-size: 12.5px;
   font-weight: 500;
-  color: #6b7384;
+  color: #4A5568;
   white-space: nowrap;
 }
 
@@ -90,11 +90,11 @@
   font-size: 11px;
   line-height: 1.35;
   font-weight: 500;
-  color: #878b95;
+  color: #4A5568;
 }
 
 .job-area-map-attr a {
-  color: #6b7384;
+  color: #4A5568;
   text-decoration: underline;
   text-underline-offset: 2px;
 }

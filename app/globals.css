@@ -8,17 +8,17 @@
   --color-beam-base: #ffffff;
   --color-beam-canvas: #ffffff;
   --color-beam-surface-1: #ffffff;
-  --color-beam-surface-2: #f4f8fd;
+  --color-beam-surface-2: #ffffff;
   --color-beam-surface-3: #e8eef7;
   --color-beam-ink: #071330;
   --color-beam-raised: #ffffff;
   --color-beam-panel: #ffffff;
   --color-beam-line: rgba(7, 19, 48, 0.12);
   --color-beam-line-strong: rgba(7, 19, 48, 0.18);
-  /* Secondary body copy — dark enough for normal-text WCAG on white (was #64748b). */
-  --color-beam-muted: #334155;
+  /* Secondary / meta: Yelp-mapped mid gray → darker blue-gray (≥7:1 on white). */
+  --color-beam-muted: #4a5568;
   --color-beam-cream: #071330;
-  --color-beam-cream-dim: #334155;
+  --color-beam-cream-dim: #4a5568;
   --color-beam-charcoal: #071330;
   --color-beam-on-ink: #ffffff;
   --color-beam-amber: #1d5ce5;
@@ -31,13 +31,13 @@
   --color-beam-danger: #dc2626;
   --color-beam-danger-soft: rgba(220, 38, 38, 0.1);
   --color-beam-warning: #071330;
-  --color-beam-warning-soft: #f5f9ff;
+  --color-beam-warning-soft: #eef2f7;
   --color-beam-royal: #1d5ce5;
   --color-beam-royal-hover: #1649bd;
-  --color-beam-butter: #f5f9ff;
+  --color-beam-butter: #eef2f7;
   --color-beam-butter-deep: #e3e8ef;
-  --color-beam-sky: #f4f8fd;
-  /* Uber Move (display) → DM Sans stand-in. Uber Move Text (UI) → Inter stand-in. */
+  --color-beam-sky: #ffffff;
+  /* Keep HouseCall fonts (Uber Move stand-ins). Readability via contrast + size, not a font swap. */
   --font-display: 'UberMove', 'Uber Move', var(--font-dm-sans), system-ui, -apple-system,
     BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-sans: 'UberMoveText', 'Uber Move Text', var(--font-inter), system-ui, -apple-system,
@@ -48,34 +48,38 @@
   --font-serif: 'UberMove', 'Uber Move', var(--font-dm-sans), system-ui, -apple-system,
     BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --beam-nav-offset: 6rem;
-  --beam-radius-sm: 6px;
+  --beam-radius-sm: 8px;
   --beam-radius-md: 8px;
   --beam-radius-lg: 8px;
-  --beam-shadow-hairline: 0 0 0 1px rgba(7, 19, 48, 0.08);
-  --beam-shadow-sm: 0 1px 2px rgba(15, 41, 92, 0.06);
-  --beam-shadow-md: 0 16px 40px -12px rgba(15, 41, 92, 0.1);
-  --beam-shadow-lg: 0 24px 60px -18px rgba(15, 41, 92, 0.14);
+  --beam-shadow-hairline: 0 0 0 1px #e3e8ef;
+  /* Yelp readability: hairlines over shadows. */
+  --beam-shadow-sm: none;
+  --beam-shadow-md: none;
+  --beam-shadow-lg: none;
   /* Shared shell: same width + gutters as Browse header/body (browse-hc-wrap). */
   --beam-content: 1296px;
   --beam-shell-gutter: 24px;
   --beam-shell-gutter-mobile: 16px;
   --canvas: #ffffff;
   --surface-1: #ffffff;
-  --surface-2: #f4f8fd;
-  --hairline: rgba(7, 19, 48, 0.12);
-  --hairline-strong: rgba(7, 19, 48, 0.18);
+  --surface-2: #ffffff;
+  --hairline: #e3e8ef;
+  --hairline-strong: #d7e0ec;
   --ink: #071330;
-  /* Secondary readable ink (meta, help, descriptions). Reserve pale slate for disabled only. */
-  --ink-2: #334155;
-  --ink-3: #475569;
+  /* Meta / secondary: ≥7:1 on white. Placeholders use --ink-placeholder (≥4.5:1). */
+  --ink-2: #4a5568;
+  --ink-3: #4a5568;
+  --ink-placeholder: #5b6576;
   --ink-disabled: #94a3b8;
   --gold-1: #1d5ce5;
   --gold-2: #1649bd;
   --gold-text: #1d5ce5;
+  --link: #1649bd;
   --focus: #1d5ce5;
   --teal-accent: #1d5ce5;
-  --surface-tint: #f5f9ff;
+  --surface-tint: #eef2f7;
   --surface-tint-border: #d7e0ec;
+  --btn-secondary-fill: #eef2f7;
 }
 
 @layer base {
@@ -95,11 +99,11 @@
     min-height: 100dvh;
     font-family: var(--font-body);
     font-size: 15px;
-    line-height: 1.5;
+    line-height: 1.55;
     font-weight: 400;
     letter-spacing: normal;
-    background: var(--canvas);
-    color: var(--ink);
+    background: #ffffff;
+    color: #071330;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -108,9 +112,20 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    line-height: 1.15;
-    letter-spacing: -0.02em;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    font-weight: 700;
+    color: #071330;
     text-wrap: balance;
+  }
+
+  a {
+    color: var(--link);
+  }
+
+  ::placeholder {
+    color: var(--ink-placeholder);
+    opacity: 1;
   }
 
   button,
@@ -154,54 +169,62 @@
     font-size: 13px;
     line-height: 1.4;
     font-weight: 500;
-    letter-spacing: 0.01em;
+    letter-spacing: 0;
+    color: var(--ink-2);
   }
 
   .type-sec {
     font-size: 14px;
     line-height: 1.5;
+    color: var(--ink-2);
   }
 
   .type-body {
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1.55;
+    color: #071330;
   }
 
   .type-intro {
-    font-size: 18px;
-    line-height: 1.5;
+    font-size: 16px;
+    line-height: 1.55;
+    color: #071330;
   }
 
   .type-h3 {
-    font-size: 26px;
-    line-height: 1.28;
+    font-size: 20px;
+    line-height: 1.25;
     font-weight: 700;
     letter-spacing: -0.01em;
     font-family: var(--font-display);
+    color: #071330;
   }
 
   .type-h2 {
-    font-size: clamp(2rem, 3.6vw, 3.25rem);
-    line-height: 1.18;
+    font-size: 22px;
+    line-height: 1.25;
     font-weight: 700;
     letter-spacing: -0.015em;
     font-family: var(--font-display);
+    color: #071330;
   }
 
   .type-h1 {
-    font-size: clamp(2.25rem, 4vw, 3.5rem);
+    font-size: clamp(1.75rem, 2.5vw, 2rem);
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-family: var(--font-display);
+    color: #071330;
+  }
+
+  .type-hero {
+    font-size: clamp(2rem, 4vw, 2.75rem);
     line-height: 1.15;
     font-weight: 700;
     letter-spacing: -0.02em;
     font-family: var(--font-display);
-  }
-
-  .type-hero {
-    font-size: clamp(2.5rem, 5vw, 3.5rem);
-    line-height: 1.12;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    font-family: var(--font-display);
+    color: #071330;
   }
 
   .safe-bottom {
@@ -305,12 +328,12 @@
 
 @layer components {
   .flat-meta {
-    letter-spacing: 0.14em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    font-size: 12px;
-    line-height: 1;
+    font-size: 13px;
+    line-height: 1.2;
     font-weight: 600;
-    color: var(--gold-text);
+    color: var(--ink-2);
   }
 
   .elevated,
@@ -320,33 +343,32 @@
     border-radius: var(--beam-radius-lg);
     background: var(--surface-1);
     border: 1px solid var(--hairline);
-    box-shadow: var(--beam-shadow-sm);
+    box-shadow: none;
   }
 
   .elevated-md {
     border-radius: 8px;
     background: #ffffff;
     border: 1px solid var(--hairline);
-    box-shadow: var(--beam-shadow-md);
+    box-shadow: none;
   }
 
   .elevated-lg {
     border-radius: 8px;
     background: #ffffff;
     border: 1px solid var(--hairline);
-    box-shadow: var(--beam-shadow-lg);
+    box-shadow: var(--beam-shadow-md);
   }
 
   .elevated-hover {
     transition:
       border-color 150ms ease,
-      box-shadow 150ms ease,
-      transform 150ms ease;
+      background-color 150ms ease;
   }
 
   .elevated-hover:hover {
-    border-color: rgba(29, 92, 229, 0.22);
-    box-shadow: var(--beam-shadow-md);
+    border-color: var(--hairline-strong);
+    background: #ffffff;
   }
 
   .flat-row {
@@ -376,11 +398,11 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
-    color: var(--gold-text);
+    color: var(--ink-2);
   }
 
   .section {
@@ -426,7 +448,7 @@
 
   .landing-headline {
     font-family: var(--font-display);
-    font-size: clamp(2.5rem, 5vw, 4.25rem);
+    font-size: clamp(2.25rem, 4.5vw, 3.5rem);
     line-height: 1.12;
     letter-spacing: -0.02em;
     font-weight: 700;
@@ -440,14 +462,14 @@
 
   .skeleton-block {
     border-radius: var(--beam-radius-sm);
-    background: linear-gradient(90deg, #e8eef7 0%, #f4f8fd 50%, #e8eef7 100%);
+    background: linear-gradient(90deg, #e8eef7 0%, #eef2f7 50%, #e8eef7 100%);
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.4s ease-in-out infinite;
   }
 
   .app-shell {
     min-height: 100dvh;
-    background: #f4f8fd;
+    background: #ffffff;
   }
 
   .bottom-dock {
@@ -471,19 +493,25 @@
     align-items: center;
     justify-content: center;
     gap: 0.65rem;
-    height: 48px;
-    padding-inline: 28px;
+    height: 44px;
+    min-height: 44px;
+    padding-inline: 26px;
     border-radius: 8px;
-    font-size: 15.5px;
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
     color: #ffffff;
     background: #1d5ce5;
-    box-shadow: 0 12px 28px -10px rgba(29, 92, 229, 0.45);
-    transition: background-color 150ms ease, transform 150ms ease;
+    box-shadow: none;
+    transition: background-color 150ms ease, transform 120ms ease;
   }
 
   .cta-primary:hover {
     background: #1649bd;
+  }
+
+  .cta-primary:active {
+    transform: scale(0.98);
   }
 
   .cta-ghost {
@@ -491,25 +519,88 @@
     align-items: center;
     justify-content: center;
     gap: 0.625rem;
-    height: 48px;
-    padding-inline: 24px;
-    border-radius: 8px;
-    font-size: 15.5px;
+    height: 44px;
+    min-height: 44px;
+    padding-inline: 20px;
+    border-radius: 9999px;
+    font-family: var(--font-body);
+    font-size: 14px;
     font-weight: 600;
-    color: #1d5ce5;
-    background: #ffffff;
-    border: 1px solid rgba(29, 92, 229, 0.28);
-    transition: background-color 150ms ease, border-color 150ms ease;
+    color: #071330;
+    background: #eef2f7;
+    border: 0;
+    transition: background-color 150ms ease;
   }
 
   .cta-ghost:hover {
-    background: #f4f8fd;
-    border-color: rgba(29, 92, 229, 0.45);
+    background: #e3e8ef;
+  }
+
+  .cta-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 40px;
+    min-height: 40px;
+    padding-inline: 18px;
+    border-radius: 9999px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #071330;
+    background: #ffffff;
+    border: 1px solid #d7e0ec;
+  }
+
+  .cta-outline:hover {
+    background: #ffffff;
+  }
+
+  /* Yelp-mapped chip / rating helpers (HouseCall blue palette). */
+  .hc-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 9999px;
+    border: 0;
+    background: #eef2f7;
+    color: #071330;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .hc-chip.is-active {
+    background: #1d5ce5;
+    border-color: #1d5ce5;
+    color: #ffffff;
+  }
+
+  .hc-rail-card {
+    background: #ffffff;
+    border: 1px solid #e3e8ef;
+    border-radius: 8px;
+    box-shadow: none;
+  }
+
+  .hc-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #071330;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .hc-rating-count {
+    font-size: 13px;
+    font-weight: 600;
+    color: #48556a;
   }
 
   /* Retired decorative sky / butter bands (flat blue-palette surfaces only). */
   .hero-sky {
-    background: #f4f8fd;
+    background: #ffffff;
   }
 
   .hero-clouds {
@@ -518,7 +609,7 @@
 
   .scallop-band {
     position: relative;
-    background: #f5f9ff;
+    background: #ffffff;
   }
 
   .scallop-band::before,

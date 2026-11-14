@@ -3,13 +3,13 @@
   --php-ink: #10172a;
   --php-blue: #1d5ce5;
   --php-blue-hover: #1649bd;
-  --php-tint: #f5f9ff;
-  --php-tint-2: #f4f8fd;
+  --php-tint: #eef2f7;
+  --php-tint-2: #eef2f7;
   --php-line: #e3e8ef;
   --php-line-2: #d7e0ec;
-  --php-muted: #48556a;
-  --php-muted-2: #6b7384;
-  --php-sub: #878b95;
+  --php-muted: #4a5568;
+  --php-muted-2: #4a5568;
+  --php-sub: #4a5568;
   color: var(--php-navy);
 }
 
@@ -23,7 +23,7 @@
 }
 
 .public-helper-profile .php-crumb a:hover {
-  color: var(--php-blue);
+  color: #1649bd;
 }
 
 .public-helper-profile .php-crumb .php-here {
@@ -85,7 +85,7 @@
 }
 
 .public-helper-profile .php-cat-link {
-  color: var(--php-blue);
+  color: #1649bd;
   font-weight: 650;
 }
 
@@ -119,7 +119,7 @@
 }
 
 .public-helper-profile .php-facts .php-now {
-  color: var(--php-blue);
+  color: #1649bd;
   font-weight: 650;
 }
 
@@ -146,7 +146,7 @@
   justify-content: center;
   gap: 8px;
   height: 48px;
-  border-radius: 14px;
+  border-radius: 8px;
   border: 1px solid var(--php-line-2);
   background: #fff;
   font-size: 14.5px;
@@ -160,8 +160,8 @@
 }
 
 .public-helper-profile .php-icon-btn.is-on {
-  border-color: var(--php-blue);
-  color: var(--php-blue);
+  border-color: #1649bd;
+  color: #1649bd;
   background: var(--php-tint);
 }
 
@@ -170,7 +170,7 @@
   margin-top: 12px;
   width: 100%;
   height: 52px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--php-blue);
   color: #fff;
   font-size: 16px;
@@ -225,7 +225,7 @@
 .public-helper-profile .php-day {
   text-align: left;
   padding: 14px 16px;
-  border-radius: 14px;
+  border-radius: 8px;
   border: 1px solid var(--php-line);
   background: #fff;
   cursor: pointer;
@@ -258,7 +258,7 @@
   margin-top: 14px;
   background: #fff;
   border: 1px solid var(--php-line);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 20px 20px 8px;
 }
 
@@ -299,7 +299,7 @@
   margin: 16px 0 12px;
   font-size: 14.5px;
   font-weight: 650;
-  color: var(--php-blue);
+  color: #1649bd;
   background: none;
   border: 0;
   cursor: pointer;
@@ -320,7 +320,7 @@
 .public-helper-profile .php-review-card {
   background: #fff;
   border: 1px solid var(--php-line);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 16px 18px;
 }
 
@@ -328,9 +328,9 @@
   margin-top: 0;
   background: #fff;
   border: 1px solid var(--php-line);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 16px 16px 14px;
-  box-shadow: 0 10px 28px -16px rgba(12, 42, 102, 0.12);
+  box-shadow: none;
 }
 
 .public-helper-profile .php-fee-note {
@@ -365,7 +365,7 @@
 .public-helper-profile .php-hint {
   display: block;
   margin-top: 6px;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--php-muted);
   line-height: 1.4;
 }
@@ -377,7 +377,7 @@
   height: 44px;
   padding: 0 14px;
   border: 1px solid var(--php-line);
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--php-tint-2);
   font-size: 14.5px;
   color: var(--php-navy);
@@ -387,7 +387,7 @@
 }
 
 .public-helper-profile .php-select {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%236B7384' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 8 4 4 4-4'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%234A5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 8 4 4 4-4'/></svg>");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 40px;
@@ -396,7 +396,7 @@
 .public-helper-profile .php-select:focus,
 .public-helper-profile .php-text:focus,
 .public-helper-profile .php-area:focus {
-  border-color: var(--php-blue);
+  border-color: #1649bd;
   background-color: #fff;
 }
 
@@ -427,7 +427,7 @@
   height: auto;
   padding: 4px;
   border: 1px solid var(--php-line);
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--php-tint-2);
   flex: none;
 }
@@ -435,7 +435,7 @@
 .public-helper-profile .php-stepper button {
   width: 44px;
   height: 44px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 20px;
   font-weight: 500;
   color: var(--php-navy);
@@ -481,7 +481,7 @@
   margin-top: 12px;
   width: 100%;
   height: 48px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--php-blue);
   color: #fff;
   font-size: 16px;
@@ -498,7 +498,7 @@
   margin-top: 8px;
   margin-bottom: 2px;
   text-align: center;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--php-muted);
   line-height: 1.4;
 }
@@ -515,7 +515,7 @@
   font-weight: 600;
   padding: 10px 16px;
   border-radius: 9999px;
-  box-shadow: 0 10px 24px -12px rgba(7, 19, 48, 0.45);
+  box-shadow: none;
 }
 
 @media (min-width: 961px) {

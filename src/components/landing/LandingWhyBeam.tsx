@@ -37,7 +37,7 @@ export function LandingWhyBeam() {
             <h2 className="mt-1.5 text-[26px] font-bold tracking-[-0.02em] text-[#071330] md:text-[30px]">
               Know what you’re choosing.
             </h2>
-            <p className="mt-2 max-w-md text-[14px] leading-6 text-[#475569]">
+            <p className="mt-2 max-w-md text-[15px] leading-[1.55] text-[#4A5568]">
               Clear steps and in-app messaging, so you can compare offers and agree on the details
               before anyone starts.
             </p>
@@ -54,7 +54,7 @@ export function LandingWhyBeam() {
                 <span className="mt-0.5 text-[13px] font-bold text-[#1D5CE5]">{pillar.step}</span>
                 <div>
                   <h3 className="text-[15px] font-semibold text-[#071330]">{pillar.title}</h3>
-                  <p className="mt-0.5 text-[13px] leading-5 text-[#475569]">{pillar.body}</p>
+                  <p className="mt-0.5 text-[13px] leading-5 text-[#4A5568]">{pillar.body}</p>
                 </div>
               </li>
             ))}

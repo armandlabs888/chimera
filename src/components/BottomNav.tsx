@@ -44,7 +44,7 @@ export function BottomNav() {
                 href={isMessages && isGuest ? '/auth?next=%2Fmessages' : href}
                 onClick={onClick}
                 className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg text-[11px] font-semibold transition ${
-                  isActive ? 'text-[#1D5CE5]' : 'text-[#64748B] hover:text-[#071330]'
+                  isActive ? 'text-[#1D5CE5]' : 'text-[#4A5568] hover:text-[#071330]'
                 }`}
               >
                 <Icon className="h-5 w-5" strokeWidth={1.75} />

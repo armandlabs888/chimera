@@ -84,7 +84,7 @@ export function BrowseLocationDialogHost() {
 export function BrowseLocationTrigger({
   className,
   label,
-  pinClassName = 'text-[#64748B]',
+  pinClassName = 'text-[#4A5568]',
   chevron = false,
   children,
 }: {
@@ -225,16 +225,16 @@ function BrowseLocationDialog({
         aria-labelledby={titleId}
         aria-describedby={descId}
         data-testid="browse-location-dialog"
-        className="flex max-h-[92dvh] w-full max-w-[28rem] flex-col overflow-hidden rounded-t-xl border border-[#E2E8F0] bg-white shadow-[0_16px_48px_rgba(7,19,48,0.18)] sm:rounded-lg"
+        className="flex max-h-[92dvh] w-full max-w-[28rem] flex-col overflow-hidden rounded-t-xl border border-[#E3E8EF] bg-white shadow-[0_16px_48px_rgba(7,19,48,0.18)] sm:rounded-lg"
       >
-        <div className="flex items-start justify-between gap-3 border-b border-[#E2E8F0] px-5 py-4">
+        <div className="flex items-start justify-between gap-3 border-b border-[#E3E8EF] px-5 py-4">
           <div className="min-w-0">
             <h2 id={titleId} className="text-[17px] font-bold tracking-[-0.02em] text-[#071330]">
               Change browse location
             </h2>
-            <p id={descId} className="mt-1 text-[13px] leading-snug text-[#64748B]">
+            <p id={descId} className="mt-1 text-[13px] leading-snug text-[#4A5568]">
               Updates nearby jobs and helpers here. Your profile city stays{' '}
-              <span className="font-semibold text-[#475569]">{homeLabel}</span>.
+              <span className="font-semibold text-[#4A5568]">{homeLabel}</span>.
             </p>
           </div>
           <button
@@ -242,7 +242,7 @@ function BrowseLocationDialog({
             onClick={onClose}
             aria-label="Close"
             data-testid="browse-location-close"
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#64748B] transition hover:bg-[#F8FAFC] hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#4A5568] transition hover:bg-white hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35"
           >
             <X className="h-4 w-4" strokeWidth={2} aria-hidden />
           </button>
@@ -250,7 +250,7 @@ function BrowseLocationDialog({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           {hydrating ? (
-            <p className="text-[13.5px] text-[#64748B]" role="status">
+            <p className="text-[13.5px] text-[#4A5568]" role="status">
               Loading cities…
             </p>
           ) : (
@@ -267,7 +267,7 @@ function BrowseLocationDialog({
 
           {error ? (
             <p
-              className="mt-2 rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[13px] font-medium text-[#071330]"
+              className="mt-2 rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[13px] font-medium text-[#071330]"
               role="alert"
               data-testid="browse-location-error"
             >
@@ -288,8 +288,8 @@ function BrowseLocationDialog({
                   onClick={() => onRadiusChange(opt.id)}
                   className={`inline-flex h-9 items-center rounded-full border px-3.5 text-[13px] font-semibold transition ${
                     radius === opt.id
-                      ? 'border-[#1D5CE5] bg-[#F5F9FF] text-[#1D5CE5]'
-                      : 'border-[#E3E8EF] bg-white text-[#071330] hover:bg-[#F4F8FD]'
+                      ? 'border-[#1D5CE5] bg-white text-[#1D5CE5]'
+                      : 'border-[#E3E8EF] bg-white text-[#071330] hover:bg-white'
                   }`}
                 >
                   {opt.label}
@@ -310,12 +310,12 @@ function BrowseLocationDialog({
           ) : null}
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-[#E2E8F0] bg-[#F8FAFC] px-5 py-3">
+        <div className="flex items-center justify-end gap-2 border-t border-[#E3E8EF] bg-white px-5 py-3">
           <button
             type="button"
             onClick={onClose}
             data-testid="browse-location-cancel"
-            className="inline-flex h-9 items-center justify-center rounded-lg px-3.5 text-[13.5px] font-semibold text-[#475569] transition hover:bg-white hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35"
+            className="inline-flex h-9 items-center justify-center rounded-lg px-3.5 text-[13.5px] font-semibold text-[#4A5568] transition hover:bg-white hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35"
           >
             Cancel
           </button>

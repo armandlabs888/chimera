@@ -60,7 +60,7 @@ export function LandingNav({
   const linkClass = isFloat
     ? 'text-[14px] font-medium text-[#071330] transition-colors hover:text-[#1D5CE5]'
     : light
-      ? 'text-[15px] font-medium text-[#475569] transition hover:text-[#071330]'
+      ? 'text-[15px] font-medium text-[#4A5568] transition hover:text-[#071330]'
       : 'text-[15px] font-medium text-white/90 transition hover:text-white'
 
   const loginClass = isFloat
@@ -72,8 +72,8 @@ export function LandingNav({
   const ctaClass = isFloat
     ? 'inline-flex h-11 min-h-[44px] items-center justify-center rounded-full bg-[#071330] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D5CE5]'
     : light
-      ? 'hidden min-h-[44px] items-center justify-center rounded-[10px] bg-[#1D5CE5] px-4 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD] sm:inline-flex'
-      : 'hidden min-h-[44px] items-center justify-center rounded-[10px] bg-white px-4 text-[13.5px] font-semibold text-[#1D5CE5] transition hover:bg-blue-50 sm:inline-flex'
+      ? 'hidden min-h-[44px] items-center justify-center rounded-full bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white shadow-none transition hover:bg-[#1649BD] sm:inline-flex'
+      : 'hidden min-h-[44px] items-center justify-center rounded-full bg-white px-5 text-[14px] font-semibold text-[#071330] transition hover:bg-[#EEF2F7] sm:inline-flex'
 
   const primaryHref = onboardingDone ? '/browse' : '/onboarding'
   const primaryLabel = onboardingDone ? 'Browse' : 'Continue setup'
@@ -126,7 +126,7 @@ export function LandingNav({
               isFloat
                 ? 'border border-[#E3E8EF] bg-white/70 text-[#071330] hover:bg-white'
                 : light
-                  ? 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#071330]'
+                  ? 'text-[#4A5568] hover:bg-white hover:text-[#071330]'
                   : 'text-white/90 hover:bg-white/10 hover:text-white'
             }`}
           />
@@ -166,7 +166,7 @@ export function LandingNav({
               ? 'inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-[#E3E8EF] bg-white text-[#071330] md:hidden'
               : `inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-[10px] border lg:hidden ${
                   light
-                    ? 'border-[#E2E8F0] text-[#071330]'
+                    ? 'border-[#E3E8EF] text-[#071330]'
                     : 'border-white/30 text-white'
                 }`
           }
@@ -281,8 +281,8 @@ export function LandingNav({
       className={`relative z-50 w-full transition-colors ${
         light
           ? variant === 'hero'
-            ? 'sticky top-0 border-b border-[#E2E8F0] bg-white'
-            : 'border-b border-[#E2E8F0] bg-white'
+            ? 'sticky top-0 border-b border-[#E3E8EF] bg-white'
+            : 'border-b border-[#E3E8EF] bg-white'
           : ''
       }`}
       data-testid="landing-nav"
