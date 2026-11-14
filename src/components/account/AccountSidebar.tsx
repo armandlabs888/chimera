@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronRight, RotateCcw } from 'lucide-react'
+import { ChevronRight, Home, RotateCcw, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { Avatar } from '@/components/ui'
@@ -24,7 +24,21 @@ export function AccountSummaryCard() {
         <Avatar src={currentUser.avatar} name={currentUser.name} size={52} />
         <div className="min-w-0">
           <p className="name truncate">{currentUser.name}</p>
-          <p className="role">{isHelper ? 'Helper' : 'Neighbor'}</p>
+          <span
+            className={
+              isHelper
+                ? 'account-hc-account-type account-hc-account-type-helper'
+                : 'account-hc-account-type account-hc-account-type-neighbor'
+            }
+            data-testid="account-type-badge"
+          >
+            {isHelper ? (
+              <Wrench className="account-hc-account-type-icon" strokeWidth={2.25} aria-hidden />
+            ) : (
+              <Home className="account-hc-account-type-icon" strokeWidth={2.25} aria-hidden />
+            )}
+            {isHelper ? 'Helper account' : 'Neighbor account'}
+          </span>
         </div>
       </div>
       <p className="account-hc-summary-meta">

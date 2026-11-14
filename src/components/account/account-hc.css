@@ -2078,11 +2078,35 @@
   letter-spacing: -0.02em;
 }
 
-.account-hc-summary-who .role {
-  margin-top: 2px;
-  font-size: 13px;
+.account-hc-account-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--hc-blue);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.account-hc-account-type-icon {
+  width: 12px;
+  height: 12px;
+  flex: none;
+}
+
+.account-hc-account-type-helper {
+  background: #1d5ce5;
+  color: #ffffff;
+}
+
+.account-hc-account-type-neighbor {
+  background: #f4f8fd;
+  color: #1649bd;
+  border: 1px solid #d7e0ec;
 }
 
 .account-hc-summary-meta {
