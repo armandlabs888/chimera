@@ -1969,6 +1969,30 @@
   font-weight: 600;
 }
 
+/* /you — single-column public-profile layout (beam-container width) */
+.account-hc.account-hc-you-page {
+  background: transparent;
+  min-height: 0;
+}
+
+.account-hc-you-page .account-hc-form-card {
+  max-width: none;
+  margin: 0;
+  padding: 22px 24px 24px;
+}
+
+.account-hc-you-page .account-hc-sms-settings {
+  margin-top: 0;
+}
+
+.account-hc-you-page .account-hc-signout-card {
+  margin-top: 0;
+}
+
+.account-hc-you-page .account-hc-links-card {
+  margin: 0;
+}
+
 /* Profile & account / Settings two-column layout */
 .account-hc-profile-page {
   padding-top: 20px;

@@ -42,7 +42,7 @@ async function main() {
     await shot(deskPage, 'you-desk-requests.png')
 
     await deskPage.goto(`${base}/you?tab=helper`, { waitUntil: 'networkidle' })
-    await deskPage.getByTestId('you-tab-helper').waitFor({ state: 'visible' })
+    await deskPage.getByTestId('you-helper-section').waitFor({ state: 'visible' })
     await setDemoVerification(deskPage, 'unverified')
     await shot(deskPage, 'you-desk-helper.png')
 

@@ -78,7 +78,7 @@ export function AccountQuickLinksCard({
 
   return (
     <div className="account-hc-card account-hc-links-card" data-testid="account-quick-links">
-      <h2>{title}</h2>
+      {title ? <h2>{title}</h2> : null}
       {links.map((link) => {
         if (link.kind === 'messages') {
           return (
