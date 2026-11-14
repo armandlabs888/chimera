@@ -10,6 +10,7 @@ export function BrowseToolsBar({
   qDraft,
   onQDraft,
   onClearSearch,
+  whenNoun = 'When',
   whenLabel,
   whenValue,
   whenOptions,
@@ -22,10 +23,12 @@ export function BrowseToolsBar({
   sortValue,
   sortOptions,
   onSort,
+  hidePay = false,
 }: {
   qDraft: string
   onQDraft: (value: string) => void
   onClearSearch: () => void
+  whenNoun?: string
   whenLabel: string
   whenValue: string
   whenOptions: FilterOption[]
@@ -38,6 +41,7 @@ export function BrowseToolsBar({
   sortValue: string
   sortOptions: FilterOption[]
   onSort: (id: string) => void
+  hidePay?: boolean
 }) {
   const [panel, setPanel] = useState<Panel>(null)
   const barRef = useRef<HTMLDivElement>(null)
@@ -98,7 +102,7 @@ export function BrowseToolsBar({
 
       <div className="browse-hc-tools-filters">
         <FilterSelect
-          noun="When"
+          noun={whenNoun}
           label={whenLabel}
           open={panel === 'when'}
           onToggle={() => toggle('when')}
@@ -108,21 +112,26 @@ export function BrowseToolsBar({
             onWhen(id)
             setPanel(null)
           }}
-          testId="browse-when-trigger"
+          testId={whenNoun === 'Availability' ? 'browse-availability-trigger' : 'browse-when-trigger'}
+          listTestId={
+            whenNoun === 'Availability' ? 'browse-availability-listbox' : undefined
+          }
         />
-        <FilterSelect
-          noun="Pay"
-          label={payLabel}
-          open={panel === 'pay'}
-          onToggle={() => toggle('pay')}
-          options={payOptions}
-          value={payValue}
-          onSelect={(id) => {
-            onPay(id)
-            setPanel(null)
-          }}
-          testId="browse-pay-trigger"
-        />
+        {hidePay ? null : (
+          <FilterSelect
+            noun="Pay"
+            label={payLabel}
+            open={panel === 'pay'}
+            onToggle={() => toggle('pay')}
+            options={payOptions}
+            value={payValue}
+            onSelect={(id) => {
+              onPay(id)
+              setPanel(null)
+            }}
+            testId="browse-pay-trigger"
+          />
+        )}
         <FilterSelect
           noun="Sort"
           label={sortLabel}
@@ -135,6 +144,7 @@ export function BrowseToolsBar({
             setPanel(null)
           }}
           testId="browse-sort-trigger"
+          listTestId="browse-sort-listbox"
         />
       </div>
     </div>
@@ -150,6 +160,7 @@ function FilterSelect({
   value,
   onSelect,
   testId,
+  listTestId,
 }: {
   noun: string
   label: string
@@ -159,6 +170,7 @@ function FilterSelect({
   value: string
   onSelect: (id: string) => void
   testId: string
+  listTestId?: string
 }) {
   const listId = useId()
   return (
@@ -176,7 +188,13 @@ function FilterSelect({
         <ChevronDown className="chev h-4 w-4" strokeWidth={2} aria-hidden />
       </button>
       {open ? (
-        <div className="browse-hc-filter-menu" role="listbox" id={listId} aria-label={noun}>
+        <div
+          className="browse-hc-filter-menu"
+          role="listbox"
+          id={listId}
+          aria-label={noun}
+          data-testid={listTestId}
+        >
           {options.map((opt) => (
             <button
               key={opt.id}

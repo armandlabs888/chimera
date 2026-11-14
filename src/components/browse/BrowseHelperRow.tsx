@@ -1,62 +1,120 @@
 'use client'
 
 import Link from 'next/link'
-import { Avatar } from '@/components/ui'
+import { useRouter } from 'next/navigation'
+import { BrowseHelperPhoto } from './BrowseHelperPhoto'
 import type { Person } from '@/types'
 
 export function BrowseHelperRow({
   person,
   skillLabel,
   milesLabel,
-  availabilityLabel,
   rateLabel,
   ratingLabel,
+  reviewCount,
+  jobsCompleted,
+  selected,
+  navigateOnActivate,
+  onSelect,
 }: {
   person: Person
   skillLabel: string
   milesLabel: string | null
-  availabilityLabel: string
   rateLabel: string
   ratingLabel: string | null
+  reviewCount: number
+  jobsCompleted: number
+  selected: boolean
+  /** Mobile: activating the row goes to the profile. Desktop: selects for preview. */
+  navigateOnActivate: boolean
+  onSelect: (id: string) => void
 }) {
+  const router = useRouter()
+  const profileHref = `/people/${person.id}`
+  const hasRating = Boolean(ratingLabel)
+  const reviewNoun = reviewCount === 1 ? 'review' : 'reviews'
+  const jobsNoun = jobsCompleted === 1 ? 'job completed' : 'jobs completed'
+
+  function activate() {
+    if (navigateOnActivate) {
+      router.push(profileHref)
+      return
+    }
+    onSelect(person.id)
+  }
+
   return (
-    <li>
-      <Link
-        href={`/people/${person.id}`}
+    <li data-selected={selected ? 'true' : 'false'}>
+      <div
+        role="button"
+        tabIndex={0}
         data-testid="browse-helper-row"
-        className="grid w-[calc(100%+20px)] -mx-2.5 grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3.5 rounded-xl px-2.5 py-3.5 transition-colors hover:bg-[#F4F8FD] sm:-mx-3 sm:w-[calc(100%+24px)] sm:grid-cols-[76px_minmax(0,1fr)_auto] sm:px-3 sm:py-4"
+        data-helper-id={person.id}
+        aria-pressed={selected}
+        className={`browse-hc-helper-row ${selected ? 'is-selected' : ''}`}
+        onClick={activate}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            activate()
+          }
+        }}
       >
-        <Avatar src={person.avatar} name={person.name} size={64} />
-        <span className="min-w-0">
-          <span className="block truncate text-[15.5px] font-semibold tracking-[-0.012em] text-[#071330] sm:text-[16.5px]">
-            {person.name}
+        <BrowseHelperPhoto src={person.avatar} name={person.name} size={88} />
+        <span className="browse-hc-helper-main">
+          <span className="browse-hc-helper-copy">
+            <span className="browse-hc-helper-name">{person.name}</span>
+            <span className="browse-hc-helper-skill">{skillLabel}</span>
+            <span className="browse-hc-helper-meta">
+              <span className="browse-hc-helper-meta-primary">
+                {milesLabel ? <span className="nowrap">{milesLabel}</span> : null}
+                {hasRating ? (
+                  <>
+                    <span className="browse-hc-helper-stars">★ {ratingLabel}</span>
+                    <span>
+                      {reviewCount} {reviewNoun}
+                    </span>
+                  </>
+                ) : (
+                  <span className="browse-hc-badge-new">New</span>
+                )}
+                {!hasRating && person.availableNow ? (
+                  <span className="browse-hc-avail">
+                    <span className="dot" aria-hidden />
+                    Available now
+                  </span>
+                ) : null}
+              </span>
+              {hasRating && (jobsCompleted > 0 || person.availableNow) ? (
+                <span className="browse-hc-helper-meta-secondary">
+                  {jobsCompleted > 0 ? (
+                    <span>
+                      {jobsCompleted} {jobsNoun}
+                    </span>
+                  ) : null}
+                  {person.availableNow ? (
+                    <span className="browse-hc-avail">
+                      <span className="dot" aria-hidden />
+                      Available now
+                    </span>
+                  ) : null}
+                </span>
+              ) : null}
+            </span>
           </span>
-          <span className="mt-1 flex flex-wrap items-center gap-x-2 text-[13.5px] text-[#273449] sm:text-[14px]">
-            <span className="truncate">{skillLabel}</span>
-            {milesLabel ? (
-              <>
-                <span className="h-[3px] w-[3px] rounded-full bg-[#7C889C]" aria-hidden />
-                <span>{milesLabel}</span>
-              </>
-            ) : null}
-            {availabilityLabel ? (
-              <>
-                <span className="h-[3px] w-[3px] rounded-full bg-[#7C889C]" aria-hidden />
-                <span>{availabilityLabel}</span>
-              </>
-            ) : null}
+          <span className="browse-hc-helper-side">
+            <span className="browse-hc-helper-rate">{rateLabel}</span>
+            <Link
+              href={profileHref}
+              data-testid="browse-helper-view-profile"
+              className="browse-hc-btn-secondary"
+              onClick={(e) => e.stopPropagation()}
+            >
+              View profile
+            </Link>
           </span>
-          {ratingLabel ? (
-            <span className="mt-1 hidden text-[14px] text-[#3D4A5F] sm:block">★ {ratingLabel}</span>
-          ) : null}
         </span>
-        <span className="text-right">
-          <span className="block text-[15.5px] font-bold tabular-nums text-[#071330] sm:text-[17px]">
-            {rateLabel}
-          </span>
-          <span className="hidden text-[12.5px] font-medium text-[#3D4A5F] sm:block">Rate</span>
-        </span>
-      </Link>
+      </div>
     </li>
   )
 }
