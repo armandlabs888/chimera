@@ -13,8 +13,10 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import {
+  Fragment,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
@@ -104,6 +106,78 @@ function ActionControl({
     >
       {content}
     </button>
+  )
+}
+
+/**
+ * Renders items with middot separators, then hides any separator that is not
+ * between two items on the same visual line (so wraps never start/end with ·).
+ */
+function SepList({
+  items,
+  className,
+  testId,
+}: {
+  items: Array<{ key: string; node: ReactNode }>
+  className: string
+  testId: string
+}) {
+  const rootRef = useRef<HTMLParagraphElement>(null)
+
+  const itemSignature = items.map((item) => item.key).join('|')
+
+  useLayoutEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+
+    function syncSeparators() {
+      if (!root) return
+      const children = Array.from(root.children) as HTMLElement[]
+      for (let i = 0; i < children.length; i++) {
+        const el = children[i]
+        if (!el.classList.contains('ph-sep-dot')) continue
+        const prev = children[i - 1]
+        const next = children[i + 1]
+        if (!prev || !next) {
+          el.hidden = true
+          continue
+        }
+        const prevBox = prev.getBoundingClientRect()
+        const nextBox = next.getBoundingClientRect()
+        const threshold = Math.max(8, Math.min(prevBox.height, nextBox.height) * 0.45)
+        const sameLine = Math.abs(prevBox.top - nextBox.top) <= threshold
+        el.hidden = !sameLine
+      }
+    }
+
+    syncSeparators()
+    // Second pass after fonts/layout settle.
+    const raf = window.requestAnimationFrame(syncSeparators)
+    const ro = new ResizeObserver(() => syncSeparators())
+    ro.observe(root)
+    window.addEventListener('resize', syncSeparators)
+    return () => {
+      window.cancelAnimationFrame(raf)
+      ro.disconnect()
+      window.removeEventListener('resize', syncSeparators)
+    }
+  }, [itemSignature])
+
+  if (!items.length) return null
+
+  return (
+    <p ref={rootRef} className={`ph-sep-row ${className}`} data-testid={testId}>
+      {items.map((item, index) => (
+        <Fragment key={item.key}>
+          <span className="ph-sep-item">{item.node}</span>
+          {index < items.length - 1 ? (
+            <span className="ph-sep-dot" aria-hidden="true">
+              ·
+            </span>
+          ) : null}
+        </Fragment>
+      ))}
+    </p>
   )
 }
 
@@ -370,31 +444,31 @@ export function ProfileHeader({
     </div>
   )
 
-  const statsRow = stats.length ? (
-    <p
-      className="ph-sep-row mt-1.5 text-[14px] font-medium text-[#4A5568] sm:text-[15px]"
-      data-testid="profile-header-stats"
-    >
-      {stats.map((item) => (
-        <span key={item.key} className="ph-sep-item">
-          {item.content}
-        </span>
-      ))}
-    </p>
+  const statsItems = stats.map((item) => ({ key: item.key, node: item.content }))
+  const metaItems = meta.map((item) => ({
+    key: item.key,
+    node: (
+      <>
+        {item.icon}
+        <span>{item.label}</span>
+      </>
+    ),
+  }))
+
+  const statsRow = statsItems.length ? (
+    <SepList
+      items={statsItems}
+      className="mt-1.5 text-[14px] font-medium text-[#4A5568] sm:text-[15px]"
+      testId="profile-header-stats"
+    />
   ) : null
 
-  const metaRow = meta.length ? (
-    <p
-      className="ph-sep-row mt-2 text-[13px] text-[#4A5568] sm:text-[13.5px]"
-      data-testid="profile-header-meta"
-    >
-      {meta.map((item) => (
-        <span key={item.key} className="ph-sep-item">
-          {item.icon}
-          <span>{item.label}</span>
-        </span>
-      ))}
-    </p>
+  const metaRow = metaItems.length ? (
+    <SepList
+      items={metaItems}
+      className={`${statsRow ? 'mt-2' : 'mt-1.5'} text-[13px] text-[#4A5568] sm:text-[13.5px]`}
+      testId="profile-header-meta"
+    />
   ) : null
 
   return (
@@ -409,19 +483,20 @@ export function ProfileHeader({
             {/*
               Mobile order: name → stats → meta → actions.
               Desktop: name + actions on one row, then stats, meta.
+              Auto grid rows so an empty stats list does not leave a blank band.
             */}
-            <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-3">
+            <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-x-3">
               <h1
                 id={titleId}
-                className="min-w-0 font-display text-[32px] font-bold leading-[1.15] tracking-[-0.03em] text-[#071330] sm:col-start-1 sm:row-start-1 sm:text-[34px]"
+                className="min-w-0 font-display text-[32px] font-bold leading-[1.15] tracking-[-0.03em] text-[#071330] sm:col-start-1 sm:text-[34px]"
               >
                 {person.name}
               </h1>
-              <div className="sm:col-start-1 sm:row-start-2">{statsRow}</div>
-              <div className="sm:col-start-1 sm:row-start-3">{metaRow}</div>
-              <div className="mt-3 sm:col-start-2 sm:row-start-1 sm:mt-0 sm:justify-self-end">
+              <div className="mt-3 sm:col-start-2 sm:row-start-1 sm:mt-0 sm:justify-self-end sm:self-center">
                 {actions}
               </div>
+              {statsRow ? <div className="sm:col-start-1">{statsRow}</div> : null}
+              {metaRow ? <div className="sm:col-start-1">{metaRow}</div> : null}
             </div>
             {belowActions ? <div className="mt-3 sm:mt-4">{belowActions}</div> : null}
           </div>
