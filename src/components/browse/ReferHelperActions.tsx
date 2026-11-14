@@ -2,38 +2,21 @@
 
 import { UserPlus } from 'lucide-react'
 import { useCallback, useState } from 'react'
-import { referHelperShareText } from '@/lib/displayTitle'
+import { ReferHelperPickerDialog } from '@/components/refer/ReferHelperPickerDialog'
 import './browse-hc.css'
-import { ReferHelperShareDialog } from './ReferHelperShareDialog'
 
 export function useReferHelperShare(jobId: string, title: string) {
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  const shareUrl = useCallback(() => {
-    if (typeof window === 'undefined') return ''
-    return `${window.location.origin}/requests/${jobId}`
-  }, [jobId])
-
   const referHelper = useCallback(async () => {
-    const url = shareUrl()
-    const text = referHelperShareText(title)
-    try {
-      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-        await navigator.share({ title, text, url })
-        return
-      }
-    } catch {
-      // Dismissed or unavailable; fall through to the copy dialog.
-    }
     setDialogOpen(true)
-  }, [shareUrl, title])
+  }, [])
 
   const dialog = (
-    <ReferHelperShareDialog
+    <ReferHelperPickerDialog
       open={dialogOpen}
-      title={title}
-      url={shareUrl()}
-      shareText={referHelperShareText(title)}
+      jobTitle={title}
+      jobId={jobId}
       onClose={() => setDialogOpen(false)}
     />
   )

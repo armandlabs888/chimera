@@ -20,6 +20,7 @@ import type { HelpRequest } from '@/types'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
+import { SuggestedHelpersSection } from '@/components/refer/SuggestedHelpersSection'
 import { ReferHelperFooterActions } from './ReferHelperActions'
 
 const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexible'] as const
@@ -300,6 +301,10 @@ export function BrowseJobDetailPanel({
             <h3>About this job</h3>
             <p>{request.details}</p>
           </div>
+
+          {isOwner && request.status === 'open' ? (
+            <SuggestedHelpersSection compact onMessage={() => undefined} />
+          ) : null}
 
           {offerOpen && showHelperOfferChrome && verified ? (
             <form
