@@ -106,7 +106,11 @@ export function LandingFooter({
       {
         id: 'footer-trust',
         title: 'Trust',
-        links: [{ href: '/safety', label: 'Safety & guidelines' }],
+        links: [
+          { href: '/safety', label: 'Safety & guidelines' },
+          { href: '/terms', label: 'Terms of Service' },
+          { href: '/privacy', label: 'Privacy Policy' },
+        ],
       },
     ]
   }, [

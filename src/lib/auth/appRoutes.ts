@@ -9,6 +9,7 @@ const PUBLIC_APP_PREFIXES = ['/browse', '/safety', '/people/', '/requests/']
  */
 export function isPublicAppPath(pathname: string): boolean {
   if (pathname === '/onboarding') return true
+  if (pathname === '/terms' || pathname === '/privacy') return true
   return PUBLIC_APP_PREFIXES.some(
     (p) => pathname === p.replace(/\/$/, '') || pathname.startsWith(p),
   )
@@ -16,7 +17,8 @@ export function isPublicAppPath(pathname: string): boolean {
 
 /** Live-guest write / account routes that must never show inline auth chrome. */
 export function isProtectedAppPath(pathname: string): boolean {
-  if (pathname === '/home' || pathname === '/post' || pathname === '/you') return true
+  if (pathname === '/home' || pathname === '/post' || pathname === '/you' || pathname === '/settings')
+    return true
   if (pathname === '/messages' || pathname.startsWith('/messages/')) return true
   if (pathname === '/onboarding/helper' || pathname.startsWith('/onboarding/helper/')) return true
   if (pathname === '/verify' || pathname.startsWith('/verify/')) return true
