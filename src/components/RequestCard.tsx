@@ -8,6 +8,7 @@ import { Avatar } from './ui'
 import { useBeam } from '@/context/BeamContext'
 import { formatLocation, relativeTime } from '../lib/matching'
 import { formatPublicRating } from '@/lib/ratingDisplay'
+import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import type { HelpRequest } from '../types'
@@ -85,7 +86,7 @@ export function RequestCard({
         </h3>
         {!compact ? (
           <p className="mt-1.5 line-clamp-2 text-[13px] leading-[1.45] text-[#334155]">
-            {request.details}
+            {formatJobDetailsDisplay(request.details)}
           </p>
         ) : null}
 

@@ -16,6 +16,7 @@ import type { Session, User } from '@supabase/supabase-js'
 import { getCategory, whenLabel } from '@/data/categories'
 import { loadState, resetState, saveState, uid } from '@/data/storage'
 import { resolveBeamMode, type BeamMode } from '@/lib/config'
+import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import {
   acceptLiveOffer,
   completeLiveRequest,
@@ -1421,7 +1422,7 @@ export function BeamProvider({
             userId: helperId,
             kind: 'job_referral',
             title: `${me?.name ?? 'A neighbor'} suggested you for ${req.title}`,
-            body: note || req.details || req.title,
+            body: note || formatJobDetailsDisplay(req.details) || req.title,
             href: `/requests/${req.id}`,
             requestId: req.id,
             readAt: null,

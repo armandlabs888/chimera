@@ -8,6 +8,7 @@ import { useBeam } from '@/context/BeamContext'
 import { formatDistance } from '@/data/neighborhoods'
 import { distanceBetween, formatLocation } from '@/lib/location'
 import { formatBudget, relativeTime, rankHelpersForRequest } from '@/lib/matching'
+import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
 import { BROWSE_PARENTS, formatCategoryLabel } from '@/lib/taxonomy'
 import { formatPublicRating } from '@/lib/ratingDisplay'
@@ -373,6 +374,7 @@ function RecommendedJobRow({ request }: { request: HelpRequest }) {
   const isNewPoster = requester ? !formatPublicRating(requester) : true
   const detailHref = `/requests/${request.id}`
   const ctaLabel = myOffer ? 'Offer sent' : 'Send offer'
+  const detailsDisplay = formatJobDetailsDisplay(request.details)
 
   const metaParts: { key: string; node: ReactNode; asap?: boolean }[] = [
     { key: 'loc', node: neighborhood },
@@ -429,9 +431,7 @@ function RecommendedJobRow({ request }: { request: HelpRequest }) {
             {request.title}
           </Link>
         </div>
-        {request.details ? (
-          <p className="account-hc-job-desc">{request.details}</p>
-        ) : null}
+        {detailsDisplay ? <p className="account-hc-job-desc">{detailsDisplay}</p> : null}
         <p className="account-hc-job-meta">
           {metaParts.map((part, i) => (
             <span key={part.key} className="account-hc-job-meta-item">

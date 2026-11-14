@@ -18,7 +18,9 @@ import { formatCategoryLabel } from '@/lib/taxonomy'
 import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 import type { HelpRequest } from '@/types'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
+import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
+import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 import { SuggestedHelpersSection } from '@/components/refer/SuggestedHelpersSection'
 import { ReferHelperFooterActions } from './ReferHelperActions'
@@ -297,9 +299,19 @@ export function BrowseJobDetailPanel({
             </div>
           </div>
 
+          <JobAreaMap
+            jobId={request.id}
+            lat={request.lat}
+            lng={request.lng}
+            radiusMiles={request.radiusMiles}
+            areaLabel={
+              cityName && place !== cityName ? `${place}, ${cityName}` : place
+            }
+          />
+
           <div className="browse-hc-about">
             <h3>About this job</h3>
-            <p>{request.details}</p>
+            <p>{formatJobDetailsDisplay(request.details)}</p>
           </div>
 
           {isOwner && request.status === 'open' ? (
@@ -309,7 +321,7 @@ export function BrowseJobDetailPanel({
           {offerOpen && showHelperOfferChrome && verified ? (
             <form
               ref={offerFormRef}
-              className="mt-4 space-y-3 rounded-[12px] border border-[#E3E8EF] p-4"
+              className="space-y-3 rounded-[12px] border border-[#E3E8EF] p-4"
               data-testid="browse-drawer-offer"
               onSubmit={(e) => {
                 e.preventDefault()
@@ -366,18 +378,18 @@ export function BrowseJobDetailPanel({
           ) : null}
 
           {pendingOffer && !offerOpen ? (
-            <p className="mt-3 text-[14px] font-semibold text-[#071330]" data-testid="browse-offer-sent">
+            <p className="text-[14px] font-semibold text-[#071330]" data-testid="browse-offer-sent">
               Offer sent. You can keep coordinating from Messages.
             </p>
           ) : null}
           {offerError && !offerOpen ? (
-            <p className="mt-3 text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[#071330]" role="alert" data-testid="browse-offer-error">
+            <p className="text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3 py-2 text-[#071330]" role="alert" data-testid="browse-offer-error">
               {offerError}
             </p>
           ) : null}
 
           {showHelperOfferChrome && !isGuest && !verified ? (
-            <div className="mt-3">
+            <div>
               <OfferGateNotice verification={helperVerification} narrow={false} />
             </div>
           ) : null}

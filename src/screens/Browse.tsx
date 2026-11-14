@@ -20,6 +20,7 @@ import { useBrowseLocation } from '@/hooks/useBrowseLocation'
 import { helperProfileProgress } from '@/lib/helperProfileProgress'
 import { readJobAlertsPreference, writeJobAlertsPreference } from '@/lib/jobAlerts'
 import { distanceBetween, formatLocation } from '@/lib/location'
+import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { formatBudget, formatRate, relativeTime } from '@/lib/matching'
 import { formatPublicRating } from '@/lib/ratingDisplay'
 import { hidesPeerHelperDiscovery, stripHelperDiscoveryParams } from '@/lib/roles'
@@ -130,7 +131,7 @@ function formatMiles(miles: number | null): string | null {
 }
 
 function oneLine(value: string): string {
-  return value.replace(/\s+/g, ' ').trim()
+  return formatJobDetailsDisplay(value).replace(/\s+/g, ' ').trim()
 }
 
 /** Neighborhood or city only — never a street address. */

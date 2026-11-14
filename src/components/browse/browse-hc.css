@@ -701,7 +701,21 @@
 }
 
 .browse-hc-detail-body {
-  padding: 16px 20px 16px;
+  /* Vertical rhythm between detail sections (title, info, map, about, ...). */
+  --hc-detail-section-gap: 28px;
+  --hc-detail-heading-gap: 10px;
+  padding: 20px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--hc-detail-section-gap);
+}
+
+@media (max-width: 860px) {
+  .browse-hc-detail-body {
+    --hc-detail-section-gap: 22px;
+    --hc-detail-heading-gap: 8px;
+    padding: 18px 18px 18px;
+  }
 }
 
 .browse-hc-detail-head {
@@ -753,8 +767,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px 24px;
-  margin-top: 14px;
-  padding: 10px 14px;
+  margin-top: 0;
+  padding: 12px 14px;
   border-radius: 14px;
   background: var(--hc-tint-2);
   border: 1px solid var(--hc-line);
@@ -790,19 +804,20 @@
 }
 
 .browse-hc-about {
-  margin-top: 12px;
+  margin-top: 0;
 }
 
 .browse-hc-about h3 {
   font-family: var(--font-display);
   font-size: 14px;
   font-weight: 700;
-  margin-bottom: 6px;
+  margin: 0 0 var(--hc-detail-heading-gap, 10px);
 }
 
 .browse-hc-about p {
+  margin: 0;
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 1.65;
   color: var(--hc-navy);
   white-space: pre-wrap;
 }
@@ -810,7 +825,7 @@
 .browse-hc-detail-actions {
   display: flex;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 0;
 }
 
 .browse-hc-detail-actions--refer {

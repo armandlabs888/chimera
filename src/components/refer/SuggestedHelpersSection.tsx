@@ -57,7 +57,7 @@ export function SuggestedHelpersSection({
     <section
       className="rh-suggested"
       data-testid="suggested-helpers"
-      style={compact ? { marginTop: 12 } : undefined}
+      style={compact ? { marginTop: 0 } : undefined}
     >
       <div className="rh-suggested-head">
         <h3>Suggested helpers ({referrals.length})</h3>
