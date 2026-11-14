@@ -24,12 +24,9 @@ type NavItem =
 export function BrowseFloatHeader({
   guest,
   showHelperBanner,
-  showPostCta = true,
 }: {
   guest: boolean
   showHelperBanner: boolean
-  /** Hide on helper profile edit/setup so the page stays focused on the form. */
-  showPostCta?: boolean
 }) {
   const { currentUser, ready, authUser, signOut, mode } = useBeam()
   const { toggle, open: messagesOpen, isGuest } = useMessagesDrawer()
@@ -164,11 +161,9 @@ export function BrowseFloatHeader({
           </nav>
 
           <div className="browse-hc-header-right">
-            {showPostCta ? (
-              <Link href={postHref} className="browse-hc-post" data-testid="topnav-post-cta">
-                Post a task
-              </Link>
-            ) : null}
+            <Link href={postHref} className="browse-hc-post" data-testid="topnav-post-cta">
+              Post a task
+            </Link>
 
             {guest ? null : (
               <div className="hc-account-desktop relative" ref={accountRef}>

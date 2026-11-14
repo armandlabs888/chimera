@@ -1671,10 +1671,9 @@ async function checkMarketplaceFlows() {
     } else {
       await page.waitForSelector('[data-testid="helper-onboarding-root"]', { timeout: 15000 })
       assert.ok(await page.getByTestId('helper-onboarding-root').count() >= 1)
-      assert.equal(
-        await page.locator('[data-testid="topnav-post-cta"]').count(),
-        0,
-        'topnav-post-cta hidden on /onboarding/helper',
+      assert.ok(
+        (await page.locator('[data-testid="topnav-post-cta"]').count()) >= 1,
+        'topnav-post-cta present on /onboarding/helper',
       )
       assert.equal(
         await page.locator('legend').count(),

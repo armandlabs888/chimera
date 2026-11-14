@@ -1090,11 +1090,13 @@
   display: inline-flex;
   align-items: center;
   height: 48px;
-  width: 148px;
+  width: 156px;
+  flex: none;
   border: 1px solid var(--hc-line);
   border-radius: 10px;
   background: #fff;
   padding: 0 12px;
+  white-space: nowrap;
 }
 
 .account-hc-rate-input:focus-within {
@@ -1103,13 +1105,16 @@
 
 .account-hc-rate-input .pre,
 .account-hc-rate-input .post {
+  flex: none;
   font-size: 14px;
   font-weight: 600;
   color: var(--hc-muted);
 }
 
 .account-hc-rate-input input {
-  width: 100%;
+  width: 48px;
+  flex: 1 1 auto;
+  min-width: 0;
   border: 0;
   outline: none;
   background: transparent;

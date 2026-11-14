@@ -132,11 +132,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   if (browseHeader) {
     return (
       <div className="app-shell relative flex min-h-dvh flex-col bg-[#F5F9FF] text-[#071330]">
-        <BrowseFloatHeader
-          guest={isLiveGuest}
-          showHelperBanner={showHelperSetupBanner && !isLiveGuest}
-          showPostCta={showPostCta}
-        />
+        <BrowseFloatHeader guest={isLiveGuest} showHelperBanner={showHelperSetupBanner && !isLiveGuest} />
         <main className="relative flex-1">{children}</main>
         <LandingFooter dockPadding={!isLiveGuest} />
         <BrowseLocationDialogHost />
