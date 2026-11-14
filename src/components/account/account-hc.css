@@ -536,6 +536,12 @@
   background: var(--hc-blue-hover);
 }
 
+.account-hc-btn:disabled {
+  background: var(--hc-line-2);
+  color: var(--hc-muted-2);
+  cursor: not-allowed;
+}
+
 .account-hc-btn-secondary {
   background: var(--hc-white);
   color: var(--hc-navy);
@@ -815,46 +821,231 @@
   gap: 8px;
 }
 
-/* Optional urgent SMS prefs: match helper-summary card padding + heading. */
+/* Optional urgent SMS prefs: match HouseCall mock (blue palette only). */
 .account-hc-sms-settings {
-  padding: 22px 24px;
+  padding: 22px 24px 20px;
+  margin-top: 16px;
 }
 
-.account-hc-sms-settings > h2 {
+.account-hc-sms-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.account-hc-sms-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.account-hc-sms-copy h2 {
   font-family: var(--font-display);
   font-size: 22px;
   font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
   margin: 0;
   color: var(--hc-navy);
 }
 
-.account-hc-sms-settings > .meta {
+.account-hc-sms-copy p {
   margin-top: 4px;
-  margin-bottom: 0;
+  max-width: 42rem;
   font-size: 14px;
+  line-height: 1.5;
+  color: var(--hc-muted);
+}
+
+.account-hc-sms-controls {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.account-hc-sms-switch-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.account-hc-sms-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border: 1px solid var(--hc-line-2);
+  background: var(--hc-white);
+  color: var(--hc-muted-2);
+}
+
+.account-hc-sms-status-pill.is-on {
+  background: var(--hc-tint);
+  color: var(--hc-blue);
+  border-color: #c9d7f5;
+}
+
+.account-hc-sms-switch {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  border-radius: 9999px;
+  background: var(--hc-line-2);
+  flex: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.account-hc-sms-switch[aria-checked='true'] {
+  background: var(--hc-blue);
+}
+
+.account-hc-sms-switch i {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(7, 19, 48, 0.16);
+  pointer-events: none;
+}
+
+.account-hc-sms-switch[aria-checked='true'] i {
+  left: 20px;
+}
+
+.account-hc-sms-switch.is-disabled,
+.account-hc-sms-switch:disabled {
+  background: var(--hc-line);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.account-hc-sms-switch-hint {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--hc-muted);
+  text-align: right;
+  max-width: 16rem;
+  line-height: 1.35;
+}
+
+.account-hc-sms-body {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--hc-line);
+}
+
+.account-hc-sms-step {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 12px;
+}
+
+.account-hc-sms-step + .account-hc-sms-step {
+  margin-top: 18px;
+}
+
+.account-hc-sms-step-num {
+  width: 24px;
+  height: 24px;
+  margin-top: 1px;
+  border-radius: 50%;
+  border: 1.5px solid var(--hc-line-2);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--hc-muted);
+  background: var(--hc-white);
+}
+
+.account-hc-sms-step.is-active .account-hc-sms-step-num {
+  background: var(--hc-blue);
+  border-color: var(--hc-blue);
+  color: #fff;
+}
+
+.account-hc-sms-step.is-done .account-hc-sms-step-num {
+  background: var(--hc-tint);
+  border-color: var(--hc-blue);
+  color: var(--hc-blue);
+}
+
+.account-hc-sms-step-label {
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--hc-navy);
+}
+
+.account-hc-sms-step-hint {
+  margin-top: 8px;
+  font-size: 13px;
   line-height: 1.45;
   color: var(--hc-muted);
 }
 
-.account-hc-sms-settings .account-hc-field:first-of-type {
-  margin-top: 16px;
+.account-hc-sms-sent-number {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--hc-navy);
+  line-height: 1.4;
 }
 
-.account-hc-sms-code-row {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
+.account-hc-sms-phone-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
-  margin-top: 12px;
+  align-items: center;
 }
 
-.account-hc-sms-code-row .account-hc-input {
-  flex: 1 1 auto;
-  min-width: 0;
-  max-width: 160px;
+.account-hc-sms-input,
+.account-hc-sms-select {
+  width: 100%;
   height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--hc-line);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 15px;
+  color: var(--hc-navy);
+  outline: none;
+  font-family: inherit;
 }
 
+.account-hc-sms-input::placeholder {
+  color: var(--hc-sub);
+}
+
+.account-hc-sms-input:focus,
+.account-hc-sms-select:focus {
+  border-color: var(--hc-blue);
+}
+
+.account-hc-sms-select {
+  appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7384' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+.account-hc-sms-phone-row .account-hc-btn,
 .account-hc-sms-code-row .account-hc-btn {
   flex: 0 0 auto;
   white-space: nowrap;
@@ -863,78 +1054,223 @@
   padding-right: 14px;
 }
 
-.account-hc-sms-opt-in {
+.account-hc-sms-code-row {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-top: 18px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.account-hc-sms-code-boxes {
+  display: flex;
+  gap: 8px;
+}
+
+.account-hc-sms-code-boxes input {
+  width: 44px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--hc-line);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--hc-navy);
+  outline: none;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+}
+
+.account-hc-sms-code-boxes input:focus {
+  border-color: var(--hc-blue);
+}
+
+.account-hc-sms-step-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 10px;
+}
+
+.account-hc-sms-text-link {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--hc-blue);
+  background: none;
+  border: 0;
+  padding: 0;
   cursor: pointer;
+  font-family: inherit;
 }
 
-.account-hc-sms-opt-in input[type='checkbox'] {
-  margin-top: 3px;
-  width: 16px;
-  height: 16px;
-  accent-color: var(--hc-blue);
-  flex-shrink: 0;
+.account-hc-sms-text-link:hover {
+  color: var(--hc-blue-hover);
 }
 
-.account-hc-sms-opt-in .opt-title {
-  display: block;
-  font-size: 14px;
+.account-hc-sms-text-link:disabled {
+  color: var(--hc-sub);
+  cursor: not-allowed;
+}
+
+.account-hc-sms-confirmed-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 14px 10px 12px;
+  background: var(--hc-tint);
+  border: 1px solid var(--hc-line);
+  border-radius: 12px;
+}
+
+.account-hc-sms-confirmed-check {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--hc-blue);
+  color: #fff;
+  display: grid;
+  place-items: center;
+}
+
+.account-hc-sms-confirmed-copy {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+
+.account-hc-sms-confirmed-copy .num {
+  margin: 0;
+  font-size: 15px;
   font-weight: 600;
   color: var(--hc-navy);
 }
 
-.account-hc-sms-opt-in .opt-hint {
+.account-hc-sms-confirmed-copy .ok {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 9999px;
+  border: 1px solid #c9d7f5;
+  background: var(--hc-white);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--hc-blue);
+}
+
+.account-hc-sms-confirmed-row .change {
+  flex: none;
+  margin-left: auto;
+}
+
+.account-hc-sms-prefs {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 20px 32px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--hc-line);
+}
+
+.account-hc-sms-pref-label {
   display: block;
-  margin-top: 2px;
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--hc-navy);
+}
+
+.account-hc-sms-pref-hint {
+  margin-top: 8px;
+  margin-bottom: 0;
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 1.45;
   color: var(--hc-muted);
 }
 
-.account-hc-sms-prefs-row {
-  display: grid;
-  gap: 14px;
+.account-hc-sms-hours-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.account-hc-sms-hours-row .word {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--hc-muted);
+}
+
+.account-hc-sms-hours-row .account-hc-sms-select {
+  width: 148px;
+  flex: none;
+}
+
+.account-hc-sms-seg {
+  display: inline-flex;
+  padding: 4px;
+  border: 1px solid var(--hc-line);
+  border-radius: 10px;
+  background: var(--hc-tint-2);
+}
+
+.account-hc-sms-seg button {
+  min-width: 52px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--hc-muted);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.account-hc-sms-seg button:hover {
+  color: var(--hc-navy);
+}
+
+.account-hc-sms-seg button.is-on {
+  background: var(--hc-white);
+  color: var(--hc-navy);
+  box-shadow: 0 1px 2px rgba(7, 19, 48, 0.08);
+}
+
+.account-hc-sms-seg button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.account-hc-sms-fine-print {
   margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hc-line);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--hc-sub);
 }
 
-@media (min-width: 640px) {
-  .account-hc-sms-prefs-row {
-    grid-template-columns: 1.4fr 1fr;
-    align-items: start;
-  }
-}
-
-.account-hc-sms-quiet-pair {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.account-hc-sms-quiet-pair .account-hc-field,
-.account-hc-sms-prefs-row .account-hc-field {
-  margin-top: 0;
-}
-
-.account-hc-sms-settings .sms-msg {
+.account-hc-sms-msg {
   margin-top: 12px;
   font-size: 13px;
   color: var(--hc-blue);
 }
 
-.account-hc-sms-settings .sms-error {
+.account-hc-sms-error {
   margin-top: 12px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--hc-red);
-}
-
-.account-hc-sms-settings .sms-locked {
-  margin-top: 8px;
-  font-size: 13px;
-  color: var(--hc-muted);
+  color: var(--hc-navy);
 }
 
 .account-hc-form-card {
@@ -1764,8 +2100,60 @@
   .account-hc-wizard-form,
   .account-hc-benefits,
   .account-hc-rules,
-  .account-hc-helper-summary {
+  .account-hc-helper-summary,
+  .account-hc-sms-settings {
     padding: 20px 16px;
+  }
+
+  .account-hc-sms-head {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .account-hc-sms-controls {
+    align-items: flex-start;
+  }
+
+  .account-hc-sms-switch-hint {
+    text-align: left;
+  }
+
+  .account-hc-sms-phone-row {
+    grid-template-columns: 1fr;
+  }
+
+  .account-hc-sms-phone-row .account-hc-btn {
+    width: 100%;
+  }
+
+  .account-hc-sms-code-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .account-hc-sms-code-row .account-hc-btn {
+    width: 100%;
+  }
+
+  .account-hc-sms-code-boxes {
+    justify-content: space-between;
+  }
+
+  .account-hc-sms-code-boxes input {
+    width: 44px;
+    flex: 1 1 0;
+    max-width: 48px;
+  }
+
+  .account-hc-sms-prefs {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .account-hc-sms-hours-row .account-hc-sms-select {
+    width: auto;
+    min-width: 0;
+    flex: 1 1 0;
   }
 
   .account-hc-form-card {
