@@ -188,10 +188,14 @@ export function PostRequest() {
   const [needsHelpNow, setNeedsHelpNow] = useState(false)
 
   const [error, setError] = useState('')
+  const [titleError, setTitleError] = useState('')
+  const [detailsError, setDetailsError] = useState('')
   const [pending, setPending] = useState(false)
 
   const fileRef = useRef<HTMLInputElement>(null)
   const locationWrapRef = useRef<HTMLDivElement>(null)
+  const titleInputRef = useRef<HTMLInputElement>(null)
+  const detailsInputRef = useRef<HTMLTextAreaElement>(null)
 
   const cat = useMemo(() => getCategory(category), [category])
   const todayISO = localDateISO(new Date(nowTick))
@@ -490,8 +494,17 @@ export function PostRequest() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!title.trim() || !details.trim()) {
+    const nextTitleError = title.trim() ? '' : 'Add a title so helpers know what you need.'
+    const nextDetailsError = details.trim()
+      ? ''
+      : 'Add a few details so helpers know what to expect.'
+    setTitleError(nextTitleError)
+    setDetailsError(nextDetailsError)
+    if (nextTitleError || nextDetailsError) {
       setError('Add a title and a few details so helpers know what to expect.')
+      const first = nextTitleError ? titleInputRef.current : detailsInputRef.current
+      first?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      first?.focus()
       return
     }
     let customValue: string | null = null
@@ -527,6 +540,8 @@ export function PostRequest() {
     }
     setPending(true)
     setError('')
+    setTitleError('')
+    setDetailsError('')
     setCustomError('')
     setPhotoError('')
     try {
@@ -564,7 +579,7 @@ export function PostRequest() {
       <div className="mx-auto max-w-[1080px]">
         <header className="mb-6">
           <h1 className="text-[28px] font-bold tracking-tight sm:text-[32px]" style={{ color: INK }}>
-            Post a request
+            Post a task
           </h1>
           <p className="mt-1 text-[15px]" style={{ color: MUTED }}>
             Describe the job once — helpers nearby can offer a price.
@@ -589,7 +604,12 @@ export function PostRequest() {
         ) : null}
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
-          <form className="space-y-4" onSubmit={onSubmit} data-testid="post-request-form">
+          <form
+            className="space-y-4"
+            onSubmit={onSubmit}
+            data-testid="post-request-form"
+            noValidate
+          >
             {/* Smart draft */}
             <section className={cardClass()} style={{ backgroundColor: BUTTER }}>
               <h2 className="mb-1 text-[16px] font-semibold" style={{ color: INK }}>
@@ -723,13 +743,25 @@ export function PostRequest() {
                 Title &amp; Details
               </h2>
 
-              <Field label="Title" required hint={`${title.length}/${TITLE_MAX}`}>
+              <Field
+                label="Title"
+                required
+                hint={titleError ? undefined : `${title.length}/${TITLE_MAX}`}
+                error={titleError || undefined}
+                errorId="post-title-error"
+              >
                 <TextInput
+                  ref={titleInputRef}
+                  id="post-title"
                   value={title}
                   maxLength={TITLE_MAX}
-                  onChange={(e) => setTitle(e.target.value.slice(0, TITLE_MAX))}
+                  onChange={(e) => {
+                    setTitle(e.target.value.slice(0, TITLE_MAX))
+                    if (titleError) setTitleError('')
+                  }}
                   placeholder="What do you need done?"
-                  required
+                  aria-invalid={titleError ? true : undefined}
+                  aria-describedby={titleError ? 'post-title-error' : undefined}
                   data-testid="post-title"
                 />
               </Field>
@@ -738,15 +770,27 @@ export function PostRequest() {
                 <Field
                   label="Details"
                   required
-                  hint={`${details.length}/${DETAILS_MAX} · Be specific about access, timing, and tools.`}
+                  hint={
+                    detailsError
+                      ? undefined
+                      : `${details.length}/${DETAILS_MAX} · Be specific about access, timing, and tools.`
+                  }
+                  error={detailsError || undefined}
+                  errorId="post-details-error"
                 >
                   <TextArea
+                    ref={detailsInputRef}
+                    id="post-details"
                     value={details}
                     maxLength={DETAILS_MAX}
-                    onChange={(e) => setDetails(e.target.value.slice(0, DETAILS_MAX))}
+                    onChange={(e) => {
+                      setDetails(e.target.value.slice(0, DETAILS_MAX))
+                      if (detailsError) setDetailsError('')
+                    }}
                     placeholder="A few sentences helpers can trust…"
                     rows={5}
-                    required
+                    aria-invalid={detailsError ? true : undefined}
+                    aria-describedby={detailsError ? 'post-details-error' : undefined}
                     data-testid="post-details"
                   />
                 </Field>
@@ -1076,7 +1120,7 @@ export function PostRequest() {
             ) : null}
 
             <Button type="submit" variant="brand" size="lg" className="w-full" loading={pending}>
-              Post request
+              Post a task
             </Button>
           </form>
 

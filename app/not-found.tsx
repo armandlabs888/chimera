@@ -10,7 +10,8 @@ export default function NotFound() {
           <p className="font-display text-[22px] font-bold tracking-tight text-[#071330]">HouseCall</p>
           <h1 className="mt-4 type-h2 text-[#071330]">Page not found</h1>
           <p className="mt-2 max-w-md type-sec text-beam-muted">
-            That route is not part of HouseCall. Try Browse, Post a task, or the HouseCall home page.
+            That route is not part of HouseCall. Try Browse jobs, Post a task, or the HouseCall home
+            page.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
             <Link

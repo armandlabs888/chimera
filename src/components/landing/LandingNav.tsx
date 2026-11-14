@@ -33,7 +33,7 @@ export function LandingNav({
         href: canOnboardHelper
           ? '/onboarding/helper'
           : '/auth?mode=signup&next=%2Fonboarding%2Fhelper',
-        label: 'Find work',
+        label: 'Become a helper',
       },
     ],
     [canOnboardHelper],

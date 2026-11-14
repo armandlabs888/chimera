@@ -156,7 +156,15 @@ export function PublicHelperProfileView({
 
   async function onSave() {
     if (!requireAuth()) return
-    await toggleSavedHelper(person.id)
+    const wasSaved = isSaved
+    try {
+      await toggleSavedHelper(person.id)
+      setToast(wasSaved ? 'Removed from your helpers' : 'Saved to your helpers')
+      window.setTimeout(() => setToast(''), 1600)
+    } catch {
+      setToast('Could not update saved helpers')
+      window.setTimeout(() => setToast(''), 1600)
+    }
   }
 
   async function onMessage() {
@@ -309,7 +317,7 @@ export function PublicHelperProfileView({
                   strokeWidth={1.8}
                   aria-hidden
                 />
-                Save
+                {isSaved ? 'Saved' : 'Save'}
               </button>
               <button
                 type="button"

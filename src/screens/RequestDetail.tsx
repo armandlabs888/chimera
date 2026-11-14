@@ -13,7 +13,8 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
-import { Avatar, Button, ButtonLink, EmptyState, TextArea } from '@/components/ui'
+import { Avatar, Button, ButtonLink, ConfirmDialog, TextArea } from '@/components/ui'
+import { pluralNoun, pluralize } from '@/lib/pluralize'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import {
   OfferGateNotice,
@@ -166,15 +167,22 @@ export function RequestDetail() {
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewComment, setReviewComment] = useState('')
   const [reviewPending, setReviewPending] = useState(false)
+  const [confirmAcceptOfferId, setConfirmAcceptOfferId] = useState<string | null>(null)
+  const [confirmComplete, setConfirmComplete] = useState(false)
+  const [actionPending, setActionPending] = useState(false)
 
   if (!request || !categoryLabel || !requester) {
     return (
-      <div className="py-10">
-        <EmptyState
-          title="Request not found"
-          body="It may have been cleared with demo reset."
-          action={<ButtonLink href="/browse">Back to browse</ButtonLink>}
-        />
+      <div className="py-10" data-testid="request-not-found">
+        <div className="rounded-[10px] border border-[#C7D7F0] bg-[#FBFDFF] px-6 py-12 text-center">
+          <h1 className="type-h3 text-[#071330]">This request isn&apos;t available</h1>
+          <p className="mx-auto mt-2 max-w-sm type-sec text-beam-muted">
+            It may have been filled or removed.
+          </p>
+          <div className="mt-4 flex justify-center">
+            <ButtonLink href="/browse">Back to browse</ButtonLink>
+          </div>
+        </div>
       </div>
     )
   }
@@ -185,6 +193,15 @@ export function RequestDetail() {
   const listingImages = normalizeListingImages(request.images, request.image)
   const coverImage = listingCoverImage(listingImages, request.image)
   const isOpenBudget = request.budgetType === 'open' || request.budget === 0
+  const pendingAcceptOffer = confirmAcceptOfferId
+    ? offers.find((o) => o.id === confirmAcceptOfferId)
+    : undefined
+  const pendingAcceptHelper = pendingAcceptOffer
+    ? getPerson(pendingAcceptOffer.helperId)
+    : undefined
+  const hireFirstName =
+    pendingAcceptHelper?.name?.split(' ')[0] || pendingAcceptHelper?.name || 'this helper'
+  const hirePriceLabel = pendingAcceptOffer ? formatMoney(pendingAcceptOffer.price) : ''
 
   async function openThreadWith(otherId: string) {
     const threadId = await ensureThread(activeRequest.id, otherId)
@@ -204,7 +221,7 @@ export function RequestDetail() {
       await createOffer({
         requestId: activeRequest.id,
         price: priceNum,
-        note: offerNote.trim() || 'Happy to help — message me to coordinate.',
+        note: offerNote.trim(),
         eta: offerEta,
       })
       await ensureThread(activeRequest.id, activeRequest.requesterId)
@@ -225,10 +242,36 @@ export function RequestDetail() {
         requestId: activeRequest.id,
         toId,
         rating: reviewRating,
-        comment: reviewComment.trim() || 'Great experience on HouseCall.',
+        comment: reviewComment.trim(),
       })
     } finally {
       setReviewPending(false)
+    }
+  }
+
+  async function confirmAccept() {
+    if (!confirmAcceptOfferId || actionPending) return
+    setActionPending(true)
+    try {
+      await acceptOffer(confirmAcceptOfferId)
+      setConfirmAcceptOfferId(null)
+    } catch {
+      // backendError toast surfaces live failures
+    } finally {
+      setActionPending(false)
+    }
+  }
+
+  async function confirmMarkComplete() {
+    if (actionPending) return
+    setActionPending(true)
+    try {
+      await markComplete(activeRequest.id)
+      setConfirmComplete(false)
+    } catch {
+      // backendError toast surfaces live failures
+    } finally {
+      setActionPending(false)
     }
   }
 
@@ -298,7 +341,8 @@ export function RequestDetail() {
                     className="rounded-lg border border-[#D7E0EC] bg-[#F5F9FF] px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
                     data-testid="urgent-texted-helpers"
                   >
-                    We texted {request.urgentHelpersNotifiedCount} helpers nearby
+                    We texted{' '}
+                    {pluralize(request.urgentHelpersNotifiedCount ?? 0, 'helper')} nearby
                   </p>
                 ) : (
                   <p
@@ -517,7 +561,9 @@ export function RequestDetail() {
           {isOwner && request.status === 'open' ? (
             <section className={`${cardClass} p-5`} data-testid="request-incoming-offers">
               <div className="flex items-center justify-between gap-2">
-                <h2 className="text-[18px] font-bold text-[#071330]">Incoming offers</h2>
+                <h2 className="text-[18px] font-bold text-[#071330]">
+                  Incoming {pluralNoun(offers.length === 1 ? 1 : 2, 'offer')}
+                </h2>
                 {offers.length > 0 ? (
                   <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-[#EEF4FF] px-2 text-[12px] font-bold text-[#1D5CE5]">
                     {offers.length}
@@ -577,7 +623,11 @@ export function RequestDetail() {
                         ) : null}
                         <div className="mt-4 flex flex-wrap gap-2">
                           {offer.status === 'pending' ? (
-                            <Button type="button" onClick={() => void acceptOffer(offer.id)}>
+                            <Button
+                              type="button"
+                              data-testid="accept-offer-button"
+                              onClick={() => setConfirmAcceptOfferId(offer.id)}
+                            >
                               Accept offer
                             </Button>
                           ) : null}
@@ -598,7 +648,7 @@ export function RequestDetail() {
 
               <div className="mt-5 border-t border-[#E2E8F0] pt-4">
                 <ButtonLink href="/post" variant="secondary" className="w-full">
-                  Post another request
+                  Post another task
                 </ButtonLink>
               </div>
             </section>
@@ -817,7 +867,8 @@ export function RequestDetail() {
                 <Button
                   type="button"
                   className="w-full"
-                  onClick={() => void markComplete(request.id)}
+                  data-testid="mark-complete-button"
+                  onClick={() => setConfirmComplete(true)}
                 >
                   <CheckCircle2 className="h-4 w-4" />
                   Mark job complete
@@ -848,7 +899,11 @@ export function RequestDetail() {
                       />
                     ))}
                   </div>
-                  <p className="mt-2 text-[14px] text-[#475569]">“{existingReview.comment}”</p>
+                  {existingReview.comment.trim() ? (
+                    <p className="mt-2 text-[14px] text-[#475569]" data-testid="review-comment-text">
+                      “{existingReview.comment}”
+                    </p>
+                  ) : null}
                 </div>
               ) : isOwner || isAcceptedHelper ? (
                 <form className="mt-5 space-y-4" onSubmit={(e) => void submitReview(e)}>
@@ -919,6 +974,32 @@ export function RequestDetail() {
           ) : null}
         </aside>
       </div>
+
+      <ConfirmDialog
+        open={Boolean(confirmAcceptOfferId && pendingAcceptOffer)}
+        title={`Hire ${hireFirstName} for ${hirePriceLabel}?`}
+        body="Other offers will be declined."
+        confirmLabel="Hire"
+        pending={actionPending}
+        onConfirm={() => void confirmAccept()}
+        onClose={() => {
+          if (!actionPending) setConfirmAcceptOfferId(null)
+        }}
+        testId="accept-offer-confirm"
+      />
+
+      <ConfirmDialog
+        open={confirmComplete}
+        title="Mark this job complete?"
+        body="You'll both be asked for a review."
+        confirmLabel="Mark complete"
+        pending={actionPending}
+        onConfirm={() => void confirmMarkComplete()}
+        onClose={() => {
+          if (!actionPending) setConfirmComplete(false)
+        }}
+        testId="mark-complete-confirm"
+      />
     </div>
   )
 }

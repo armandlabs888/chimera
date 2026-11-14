@@ -33,10 +33,12 @@ export async function rewriteIfMissingPublicDetail(
 
   const kind = match[1] as 'people' | 'requests'
   const id = match[2]
-  if (!isUuid(id)) return rewriteMissing(request)
 
-  // Demo keeps soft client not-found for seed ids; only format errors hard-404 above.
+  // Demo keeps soft client not-found for Austin seed ids (req-1, user-you, …).
+  // Live still hard-404s non-UUID paths below.
   if (process.env.NEXT_PUBLIC_BEAM_DEMO_MODE === '1') return null
+
+  if (!isUuid(id)) return rewriteMissing(request)
 
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
   const url = getSupabaseUrl()

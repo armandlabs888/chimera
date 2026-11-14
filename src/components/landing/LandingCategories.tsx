@@ -2,50 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { LIFESTYLE } from '@/data/media'
-
-const SERVICES = [
-  {
-    id: 'cleaning',
-    label: 'House cleaning',
-    href: '/browse?category=home',
-    src: LIFESTYLE.cleaningCrew,
-    alt: 'Cleaning crew with equipment in a living room',
-    testId: 'categories-tile-cleaning',
-  },
-  {
-    id: 'auto',
-    label: 'Auto detailing',
-    href: '/browse?category=auto',
-    src: '/images/landing/avail-auto-detailing.jpg',
-    alt: 'Person washing a car with soap suds',
-    testId: 'categories-tile-auto',
-  },
-  {
-    id: 'moving',
-    label: 'Moving',
-    href: '/browse?category=moving',
-    src: '/images/landing/avail-moving.jpg',
-    alt: 'Neighbors carrying a sofa outdoors',
-    testId: 'categories-tile-moving',
-  },
-  {
-    id: 'junk',
-    label: 'Junk removal',
-    href: '/browse?category=junk-removal',
-    src: '/images/landing/avail-junk-garage.jpg',
-    alt: 'Neighbors hauling junk from a garage into a pickup',
-    testId: 'categories-tile-junk',
-  },
-  {
-    id: 'pets',
-    label: 'Pet care',
-    href: '/browse?category=pets',
-    src: '/images/landing/avail-pet-sitting.jpg',
-    alt: 'Person walking dogs on a path',
-    testId: 'categories-tile-pets',
-  },
-] as const
+import { POPULAR_SERVICES } from '@/lib/popularServices'
 
 /**
  * Popular services: five equal photo tiles (House cleaning, Auto detailing,
@@ -77,7 +34,7 @@ export function LandingCategories() {
           aria-label="Popular services"
           className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-5"
         >
-          {SERVICES.map((service) => (
+          {POPULAR_SERVICES.map((service) => (
             <Link
               key={service.id}
               href={service.href}

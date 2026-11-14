@@ -1,9 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { LandingNav } from '@/components/landing/LandingNav'
-import { LandingFooter } from '@/components/landing/LandingFooter'
-import { useBeam } from '@/context/BeamContext'
 
 const COMMITMENTS = [
   {
@@ -59,11 +56,8 @@ const FAQ = [
 ]
 
 export function Safety() {
-  const { mode, authUser } = useBeam()
-  const publicChrome = mode === 'live' && !authUser
-
-  const body = (
-    <div className={publicChrome ? 'beam-container py-16' : 'py-2 sm:py-4'}>
+  return (
+    <div className="beam-container py-8 sm:py-12" data-testid="safety-page">
       <h1 className="font-display text-[clamp(2.5rem,5vw,3.5rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
         Safety on HouseCall
       </h1>
@@ -127,16 +121,4 @@ export function Safety() {
       </p>
     </div>
   )
-
-  if (publicChrome) {
-    return (
-      <div className="min-h-dvh bg-white text-[#071330]">
-        <LandingNav variant="light" />
-        {body}
-        <LandingFooter />
-      </div>
-    )
-  }
-
-  return body
 }

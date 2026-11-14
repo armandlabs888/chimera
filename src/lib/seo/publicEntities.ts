@@ -117,8 +117,9 @@ function toRequestSeo(row: RequestSeoRow): RequestSeoData {
  * Demo / unconfigured / RLS-blocked reads return `unknown` so the client gate still runs.
  */
 export async function lookupPublicHelper(id: string): Promise<LookupResult<HelperSeoData>> {
-  if (!isUuid(id)) return { status: 'missing' }
+  // Demo / unconfigured: leave the client gate in charge (seed ids are not UUIDs).
   if (resolveBeamMode() !== 'live') return { status: 'unknown' }
+  if (!isUuid(id)) return { status: 'missing' }
 
   const selectCols =
     'id, name, skills, other_skill_label, city, location_label, neighborhood, is_helper, account_role'
@@ -193,8 +194,9 @@ async function findRequestInPublicMarketplace(
  * get_public_marketplace). Other existing rows return `private` (generic noindex).
  */
 export async function lookupPublicRequest(id: string): Promise<LookupResult<RequestSeoData>> {
-  if (!isUuid(id)) return { status: 'missing' }
+  // Demo / unconfigured: leave the client gate in charge (seed ids are not UUIDs).
   if (resolveBeamMode() !== 'live') return { status: 'unknown' }
+  if (!isUuid(id)) return { status: 'missing' }
 
   const selectCols = 'id, title, location_label, neighborhood, status'
 

@@ -103,7 +103,9 @@ export function HelperProfileHero({
                       <Star className="h-4 w-4 fill-[#071330] text-[#071330]" aria-hidden />
                       {person.rating.toFixed(1)}
                     </span>
-                    <span className="text-[#94A3B8]">({person.reviewCount} reviews)</span>
+                    <span className="text-[#94A3B8]">
+                      ({person.reviewCount} {person.reviewCount === 1 ? 'review' : 'reviews'})
+                    </span>
                   </>
                 ) : (
                   <span className="rounded bg-[#F4F8FD] px-1.5 py-0.5 text-[12px] font-medium text-[#64748B]">

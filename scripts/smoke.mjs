@@ -139,7 +139,7 @@ async function checkLandingMarkup() {
   assert.match(text, /href="\/auth\?mode=signin"/, 'landing Log in')
   assert.match(text, /href="\/auth\?mode=signup/, 'landing Sign up')
   assert.match(text, /How it works/, 'nav How it works')
-  assert.match(text, /Find work/, 'nav Find work')
+  assert.match(text, /Become a helper/, 'nav Become a helper')
   assert.match(text, /Safety/, 'Safety link present')
   assert.match(text, /id="how-it-works"/, 'how-it-works section')
   assert.match(text, /From to-do to done/, 'how-it-works heading')
