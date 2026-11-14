@@ -60,6 +60,9 @@ function usesBrowseHeader(pathname: string, onboardingEdit: boolean) {
   return (
     pathname === '/browse' ||
     pathname === '/you' ||
+    pathname === '/settings' ||
+    pathname === '/terms' ||
+    pathname === '/privacy' ||
     pathname === '/home' ||
     pathname === '/verify' ||
     pathname.startsWith('/verify/') ||

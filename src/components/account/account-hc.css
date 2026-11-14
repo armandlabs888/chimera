@@ -1969,6 +1969,412 @@
   font-weight: 600;
 }
 
+/* Profile & account / Settings two-column layout */
+.account-hc-profile-page {
+  padding-top: 20px;
+}
+
+.account-hc-page-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--hc-blue);
+  text-decoration: none;
+}
+
+.account-hc-page-back:hover {
+  color: var(--hc-blue-hover);
+}
+
+.account-hc-page-back .chev {
+  flex: none;
+}
+
+.account-hc-profile-sub {
+  margin-top: 6px;
+  max-width: 52rem;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--hc-muted);
+}
+
+.account-hc-profile-layout {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.account-hc-profile-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.account-hc-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 81px;
+}
+
+.account-hc-tabs-wrap-flush {
+  margin-top: 0;
+}
+
+.account-hc-panel-flush {
+  margin-top: 0;
+}
+
+.account-hc-helper-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.account-hc-helper-stack .account-hc-sms-settings {
+  margin-top: 0;
+}
+
+.account-hc-helper-bio {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--hc-muted);
+}
+
+.account-hc-helper-summary .actions {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.account-hc-btn-block {
+  width: 100%;
+}
+
+.account-hc-summary-card {
+  padding: 20px 20px 18px;
+}
+
+.account-hc-summary-who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.account-hc-summary-who .name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--hc-navy);
+  letter-spacing: -0.02em;
+}
+
+.account-hc-summary-who .role {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--hc-blue);
+}
+
+.account-hc-summary-meta {
+  margin-top: 14px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--hc-muted);
+  line-height: 1.5;
+}
+
+.account-hc-summary-meta .dot {
+  margin: 0 6px;
+  color: var(--hc-line-2);
+}
+
+.account-hc-summary-actions {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.account-hc-links-card,
+.account-hc-section-card {
+  padding: 8px;
+}
+
+.account-hc-links-card h2,
+.account-hc-section-card h2 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  padding: 10px 12px 6px;
+  margin: 0;
+}
+
+.account-hc-section-note {
+  padding: 0 12px 10px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--hc-muted);
+}
+
+.account-hc-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hc-navy);
+  text-decoration: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+  text-align: left;
+}
+
+.account-hc-link-row-tall {
+  min-height: 52px;
+  height: auto;
+  padding: 10px 12px;
+}
+
+.account-hc-link-row:hover {
+  background: var(--hc-tint-2);
+}
+
+.account-hc-link-row .chev {
+  color: var(--hc-sub);
+  flex: none;
+}
+
+.account-hc-signout-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hc-red);
+  background: var(--hc-white);
+  border: 1px solid var(--hc-line);
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+}
+
+.account-hc-signout-card:hover {
+  background: var(--hc-red-hover);
+}
+
+.account-hc-demo-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0 auto;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--hc-muted);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.account-hc-demo-reset:hover {
+  color: var(--hc-navy);
+  background: var(--hc-tint-2);
+}
+
+.account-hc-danger-card {
+  padding: 20px 24px 20px;
+}
+
+.account-hc-danger-card h2 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--hc-navy);
+  margin: 0;
+}
+
+.account-hc-danger-card > p {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--hc-muted);
+}
+
+.account-hc-danger-list {
+  margin: 12px 0 0 18px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--hc-navy);
+}
+
+.account-hc-danger-list li {
+  margin-top: 4px;
+}
+
+.account-hc-danger-warn {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--hc-red);
+}
+
+.account-hc-btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 10px;
+  background: var(--hc-red);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.account-hc-btn-danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.account-hc-btn-danger:disabled {
+  background: var(--hc-line);
+  color: var(--hc-muted-2);
+  cursor: not-allowed;
+}
+
+.account-hc-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(7, 19, 48, 0.52);
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.account-hc-modal-overlay.is-open {
+  display: flex;
+}
+
+.account-hc-modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  background: var(--hc-white);
+  border: 1px solid var(--hc-line);
+  border-radius: 16px;
+  padding: 24px 24px 20px;
+}
+
+.account-hc-modal h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--hc-navy);
+  margin: 0;
+}
+
+.account-hc-modal .lead {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--hc-muted);
+}
+
+.account-hc-modal-erase {
+  margin-top: 14px;
+}
+
+.account-hc-modal-warn {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--hc-red-hover);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--hc-red);
+}
+
+.account-hc-modal-field {
+  margin-top: 18px;
+}
+
+.account-hc-modal-error {
+  margin-top: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--hc-red);
+}
+
+.account-hc-modal-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.account-hc-modal-actions .account-hc-btn,
+.account-hc-modal-actions .account-hc-btn-danger {
+  margin-top: 0;
+  height: 44px;
+}
+
+.account-hc-policy-page {
+  max-width: 720px;
+}
+
+.account-hc-policy-card {
+  margin-top: 20px;
+  padding: 24px;
+}
+
+.account-hc-policy-card p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--hc-muted);
+}
+
+.account-hc-policy-link-wrap {
+  margin-top: 16px !important;
+}
+
 @media (max-width: 860px) {
   .hc-account-desktop {
     display: none !important;
@@ -1984,6 +2390,57 @@
 
   .account-hc-page {
     padding: 20px 0 80px;
+  }
+
+  .account-hc-profile-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 18px;
+  }
+
+  .account-hc-sidebar {
+    display: contents;
+  }
+
+  .account-hc-profile-main {
+    order: 2;
+  }
+
+  .account-hc-summary-card {
+    order: 1;
+  }
+
+  .account-hc-links-card {
+    order: 3;
+  }
+
+  .account-hc-signout-card {
+    order: 4;
+  }
+
+  .account-hc-demo-reset {
+    order: 5;
+  }
+
+  .account-hc-danger-card {
+    padding: 20px 16px;
+  }
+
+  .account-hc-btn-danger {
+    width: 100%;
+  }
+
+  .account-hc-modal {
+    padding: 20px 16px;
+  }
+
+  .account-hc-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .account-hc-modal-actions .account-hc-btn,
+  .account-hc-modal-actions .account-hc-btn-danger {
+    width: 100%;
   }
 
   .account-hc-title-row {

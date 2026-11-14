@@ -142,7 +142,7 @@ export function HomeDashboard() {
         title: `${n} unread notification${n === 1 ? '' : 's'}`,
         body: 'Catch up on updates about your jobs and offers.',
         action: 'View',
-        href: '/you?tab=notifications',
+        href: '/browse?messages=1',
         icon: 'bell',
       })
     }
