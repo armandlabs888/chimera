@@ -22,6 +22,7 @@ import {
   createLiveOffer,
   withdrawLiveOffer,
   createLiveRequest,
+  ensureLiveDirectThread,
   ensureLiveThread,
   ensureProfile,
   inviteLiveHelper,
@@ -135,6 +136,8 @@ interface BeamContextValue {
     comment: string
   }) => Review | Promise<Review>
   ensureThread: (requestId: string, otherUserId: string) => string | Promise<string>
+  /** Open or reopen a direct (jobless) DM with another user. */
+  ensureDirectThread: (otherUserId: string) => string | Promise<string>
   sendMessage: (
     threadId: string,
     body: string,
@@ -1083,6 +1086,59 @@ export function BeamProvider({
     [authUser, mode, refreshLive, reportError],
   )
 
+  const ensureDirectThread = useCallback(
+    (otherUserId: string) => {
+      if (mode === 'live') {
+        return (async () => {
+          try {
+            if (!authUser) throw new Error('Not signed in')
+            const client = createClient()
+            const id = await ensureLiveDirectThread(client, otherUserId)
+            await refreshLive(authUser.id)
+            return id
+          } catch (err) {
+            reportError(err, 'Open direct thread failed')
+            throw err
+          }
+        })()
+      }
+
+      const prev = stateRef.current
+      if (!prev) return uid('th')
+      const existing = prev.threads.find(
+        (t) =>
+          t.requestId == null &&
+          t.participantIds.includes(prev.currentUserId) &&
+          t.participantIds.includes(otherUserId),
+      )
+      if (existing) return existing.id
+      const id = uid('th')
+      withState(setState, (current) => {
+        const live = current.threads.find(
+          (t) =>
+            t.requestId == null &&
+            t.participantIds.includes(current.currentUserId) &&
+            t.participantIds.includes(otherUserId),
+        )
+        if (live) return current
+        return {
+          ...current,
+          threads: [
+            {
+              id,
+              requestId: null,
+              participantIds: [current.currentUserId, otherUserId] as [string, string],
+              lastMessageAt: new Date().toISOString(),
+            },
+            ...current.threads,
+          ],
+        }
+      })
+      return id
+    },
+    [authUser, mode, refreshLive, reportError],
+  )
+
   const sendMessage = useCallback(
     (threadId: string, body: string, opts?: { simulateReply?: boolean }) => {
       const trimmed = body.trim()
@@ -1745,6 +1801,7 @@ export function BeamProvider({
     markComplete,
     addReview,
     ensureThread,
+    ensureDirectThread,
     sendMessage,
     inviteHelper,
     toggleSavedHelper,

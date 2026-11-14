@@ -143,7 +143,7 @@ export type Database = {
           last_message_at: string
           participant_a: string
           participant_b: string
-          request_id: string
+          request_id: string | null
         }
         Insert: {
           created_at?: string
@@ -151,7 +151,7 @@ export type Database = {
           last_message_at?: string
           participant_a: string
           participant_b: string
-          request_id: string
+          request_id?: string | null
         }
         Update: {
           created_at?: string
@@ -159,7 +159,7 @@ export type Database = {
           last_message_at?: string
           participant_a?: string
           participant_b?: string
-          request_id?: string
+          request_id?: string | null
         }
         Relationships: [
           {
@@ -190,7 +190,7 @@ export type Database = {
           body: string
           created_at: string
           id: string
-          request_id: string
+          request_id: string | null
           sender_id: string
           thread_id: string
         }
@@ -198,7 +198,7 @@ export type Database = {
           body: string
           created_at?: string
           id?: string
-          request_id: string
+          request_id?: string | null
           sender_id: string
           thread_id: string
         }
@@ -206,7 +206,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
-          request_id?: string
+          request_id?: string | null
           sender_id?: string
           thread_id?: string
         }
@@ -874,6 +874,23 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      ensure_direct_thread: {
+        Args: { p_other_user_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          last_message_at: string
+          participant_a: string
+          participant_b: string
+          request_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "message_threads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       ensure_thread: {
         Args: { p_other_user_id: string; p_request_id: string }
         Returns: {
@@ -882,7 +899,7 @@ export type Database = {
           last_message_at: string
           participant_a: string
           participant_b: string
-          request_id: string
+          request_id: string | null
         }
         SetofOptions: {
           from: "*"

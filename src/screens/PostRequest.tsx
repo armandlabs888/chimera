@@ -121,12 +121,27 @@ export function PostRequest() {
     : isBrowseParentId(categoryParam)
       ? defaultServiceForParent(categoryParam)
       : 'house-cleaning'
+  const dateParam = (params.get('date') || params.get('scheduledDate') || '').trim()
+  const timeParam = (params.get('time') || params.get('start') || '').trim()
+  const locationParam = (params.get('location') || params.get('city') || '').trim()
+  const detailsParam = (params.get('details') || '').trim()
+  const budgetParamRaw = (params.get('budget') || '').trim()
+  const budgetParam = Number(budgetParamRaw)
+  const budgetTypeParam = params.get('budgetType')
+  const whenParam = params.get('when')
+  const prefillsFromHelperBook =
+    Boolean(helperId) &&
+    (Boolean(dateParam) ||
+      Boolean(timeParam) ||
+      Boolean(locationParam) ||
+      Boolean(detailsParam) ||
+      Number.isFinite(budgetParam))
 
   const [category, setCategory] = useState<ServiceCategoryId>(initialCategory)
   const [categoryCustom, setCategoryCustom] = useState('')
   const [customError, setCustomError] = useState('')
   const [title, setTitle] = useState('')
-  const [details, setDetails] = useState('')
+  const [details, setDetails] = useState(() => detailsParam.slice(0, DETAILS_MAX))
   const [aiPrompt, setAiPrompt] = useState('')
   const [aiBlocked, setAiBlocked] = useState('')
   const [aiPending, setAiPending] = useState(false)
@@ -135,7 +150,7 @@ export function PostRequest() {
   const [photoError, setPhotoError] = useState('')
 
   const [locationLabel, setLocationLabel] = useState(
-    () => currentUser.locationLabel?.trim() || '',
+    () => locationParam || currentUser.locationLabel?.trim() || '',
   )
   const [lat, setLat] = useState<number | null>(currentUser.lat ?? null)
   const [lng, setLng] = useState<number | null>(currentUser.lng ?? null)
@@ -146,14 +161,29 @@ export function PostRequest() {
   const [showSuggestions, setShowSuggestions] = useState(false)
 
   const [nowTick, setNowTick] = useState(() => Date.now())
-  // Default ASAP: urgency without inventing a concrete appointment.
-  const [when, setWhen] = useState<WhenOption>('asap')
-  const [scheduledDate, setScheduledDate] = useState('')
-  const [startTime, setStartTime] = useState(formatTimeInput(DEFAULT_START))
+  // Prefill scheduled mode when request-to-book sent a date; otherwise ASAP.
+  const [when, setWhen] = useState<WhenOption>(() => {
+    if (whenParam === 'scheduled' || dateParam) return 'scheduled'
+    if (whenParam === 'asap') return 'asap'
+    return prefillsFromHelperBook && dateParam ? 'scheduled' : 'asap'
+  })
+  const [scheduledDate, setScheduledDate] = useState(() => dateParam)
+  const [startTime, setStartTime] = useState(() => {
+    if (timeParam && parseTimeInput(timeParam)) return timeParam
+    return formatTimeInput(DEFAULT_START)
+  })
   const [endTime, setEndTime] = useState('')
 
-  const [budgetType, setBudgetType] = useState<BudgetType>('fixed')
-  const [budget, setBudget] = useState(60)
+  const [budgetType, setBudgetType] = useState<BudgetType>(() => {
+    if (budgetTypeParam === 'open') return 'open'
+    if (budgetTypeParam === 'fixed') return 'fixed'
+    if (Number.isFinite(budgetParam) && budgetParam > 0) return 'fixed'
+    return 'fixed'
+  })
+  const [budget, setBudget] = useState(() => {
+    if (Number.isFinite(budgetParam) && budgetParam >= 10) return Math.round(budgetParam)
+    return 60
+  })
   /** Optional SMS urgency flag; regular ASAP/scheduled posts stay unchanged when false. */
   const [needsHelpNow, setNeedsHelpNow] = useState(false)
 

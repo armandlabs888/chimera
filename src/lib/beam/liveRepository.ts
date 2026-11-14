@@ -489,6 +489,17 @@ export async function ensureLiveThread(
   return data.id
 }
 
+export async function ensureLiveDirectThread(
+  client: Client,
+  otherUserId: string,
+): Promise<string> {
+  const { data, error } = await client.rpc('ensure_direct_thread', {
+    p_other_user_id: otherUserId,
+  })
+  throwOnError(error, 'Ensure direct thread')
+  return data.id
+}
+
 export async function sendLiveMessage(
   client: Client,
   userId: string,

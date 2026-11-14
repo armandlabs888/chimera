@@ -86,7 +86,8 @@ export function MessagesChatPanel({
   const thread = state.threads.find((item) => item.id === threadId)
   const otherId = thread?.participantIds.find((id) => id !== currentUser.id)
   const other = otherId ? getPerson(otherId) : undefined
-  const request = thread ? getRequest(thread.requestId) : undefined
+  const isDirect = Boolean(thread && thread.requestId == null)
+  const request = thread?.requestId ? getRequest(thread.requestId) : undefined
   const categoryLabel = request
     ? formatCategoryLabel(request.category, request.categoryCustom)
     : undefined
@@ -107,7 +108,7 @@ export function MessagesChatPanel({
     el.scrollTop = el.scrollHeight
   }, [messages.length, threadId])
 
-  if (!thread || !other || !request || !categoryLabel) {
+  if (!thread || !other || (!isDirect && (!request || !categoryLabel))) {
     return (
       <div className="flex h-full min-h-0 flex-col bg-white" data-testid="messages-thread-missing">
         <div className="flex h-16 shrink-0 items-center justify-end border-b border-[#E3E8EF] px-2">
@@ -165,10 +166,12 @@ export function MessagesChatPanel({
 
   const neighborhood = formatLocation(other)
   const firstName = other.name.split(' ')[0] || other.name
-  const budgetLabel = formatBudget(request)
+  const budgetLabel = request ? formatBudget(request) : ''
   const budgetText = budgetLabel.startsWith('$') ? `${budgetLabel} budget` : budgetLabel
-  const status = statusText(request.status)
-  const statusLive = request.status === 'open' || request.status === 'accepted'
+  const status = request ? statusText(request.status) : ''
+  const statusLive = request
+    ? request.status === 'open' || request.status === 'accepted'
+    : false
 
   return (
     <section
@@ -213,52 +216,66 @@ export function MessagesChatPanel({
         </button>
       </header>
 
-      <div className="shrink-0 border-b border-[#E3E8EF] bg-[#FBFCFE] px-3 py-3 sm:px-4">
-        <div
-          className="flex items-center gap-3 rounded-xl border border-[#E3E8EF] bg-white p-2.5"
-          data-testid="messages-job-strip"
-        >
-          {request.image ? (
-            <img
-              src={request.image}
-              alt=""
-              className="h-11 w-11 shrink-0 rounded-lg object-cover"
-            />
-          ) : (
-            <span className="h-11 w-11 shrink-0 rounded-lg bg-[#E8EEF7]" aria-hidden />
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[14px] font-semibold text-[#071330]">{request.title}</p>
-            <p className="mt-px truncate text-[12.5px] text-[#273449]">
-              <span className="messages-job-category">{categoryLabel} · </span>
-              {budgetText}
-              {' · '}
-              <span
-                className={`inline-flex items-center gap-1 font-semibold ${
-                  statusLive ? 'text-[#0F5132]' : 'text-[#3D4A5F]'
-                }`}
-              >
+      {request && categoryLabel ? (
+        <div className="shrink-0 border-b border-[#E3E8EF] bg-[#FBFCFE] px-3 py-3 sm:px-4">
+          <div
+            className="flex items-center gap-3 rounded-xl border border-[#E3E8EF] bg-white p-2.5"
+            data-testid="messages-job-strip"
+          >
+            {request.image ? (
+              <img
+                src={request.image}
+                alt=""
+                className="h-11 w-11 shrink-0 rounded-lg object-cover"
+              />
+            ) : (
+              <span className="h-11 w-11 shrink-0 rounded-lg bg-[#E8EEF7]" aria-hidden />
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[14px] font-semibold text-[#071330]">{request.title}</p>
+              <p className="mt-px truncate text-[12.5px] text-[#273449]">
+                <span className="messages-job-category">{categoryLabel} · </span>
+                {budgetText}
+                {' · '}
                 <span
-                  className={`inline-block h-1.5 w-1.5 rounded-full ${
-                    statusLive ? 'bg-[#1F9D55]' : 'bg-[#94A3B8]'
+                  className={`inline-flex items-center gap-1 font-semibold ${
+                    statusLive ? 'text-[#0F5132]' : 'text-[#3D4A5F]'
                   }`}
-                  aria-hidden
-                />
-                {status}
-              </span>
+                >
+                  <span
+                    className={`inline-block h-1.5 w-1.5 rounded-full ${
+                      statusLive ? 'bg-[#1F9D55]' : 'bg-[#94A3B8]'
+                    }`}
+                    aria-hidden
+                  />
+                  {status}
+                </span>
+              </p>
+            </div>
+            <Link
+              href={`/requests/${request.id}`}
+              data-testid="messages-view-request"
+              className="inline-flex h-[34px] shrink-0 items-center gap-1 rounded-[9px] border border-[#CDD5E0] px-2.5 text-[13px] font-semibold text-[#071330] hover:bg-[#F4F8FD]"
+            >
+              <span className="messages-view-request-full">View request</span>
+              <span className="messages-view-request-short">View</span>
+              <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.9} />
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <div className="shrink-0 border-b border-[#E3E8EF] bg-[#FBFCFE] px-3 py-3 sm:px-4">
+          <div
+            className="rounded-xl border border-[#E3E8EF] bg-white px-3 py-2.5"
+            data-testid="messages-direct-strip"
+          >
+            <p className="text-[14px] font-semibold text-[#071330]">Direct message</p>
+            <p className="mt-px text-[12.5px] text-[#273449]">
+              Chat with {firstName} before booking a job.
             </p>
           </div>
-          <Link
-            href={`/requests/${request.id}`}
-            data-testid="messages-view-request"
-            className="inline-flex h-[34px] shrink-0 items-center gap-1 rounded-[9px] border border-[#CDD5E0] px-2.5 text-[13px] font-semibold text-[#071330] hover:bg-[#F4F8FD]"
-          >
-            <span className="messages-view-request-full">View request</span>
-            <span className="messages-view-request-short">View</span>
-            <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.9} />
-          </Link>
         </div>
-      </div>
+      )}
 
       <div
         ref={feedRef}

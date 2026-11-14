@@ -1,0 +1,576 @@
+.public-helper-profile {
+  --php-navy: #071330;
+  --php-ink: #10172a;
+  --php-blue: #1d5ce5;
+  --php-blue-hover: #1649bd;
+  --php-tint: #f5f9ff;
+  --php-tint-2: #f4f8fd;
+  --php-line: #e3e8ef;
+  --php-line-2: #d7e0ec;
+  --php-muted: #48556a;
+  --php-muted-2: #6b7384;
+  --php-sub: #878b95;
+  color: var(--php-navy);
+}
+
+.public-helper-profile .php-crumb {
+  font-size: 13.5px;
+  color: var(--php-sub);
+}
+
+.public-helper-profile .php-crumb a {
+  color: var(--php-muted);
+}
+
+.public-helper-profile .php-crumb a:hover {
+  color: var(--php-blue);
+}
+
+.public-helper-profile .php-crumb .php-here {
+  color: var(--php-navy);
+  font-weight: 600;
+}
+
+.public-helper-profile .php-crumb .php-sep {
+  margin: 0 8px;
+  color: var(--php-sub);
+}
+
+.public-helper-profile .php-your-area {
+  margin-top: 6px;
+  font-size: 13.5px;
+  color: var(--php-muted);
+}
+
+.public-helper-profile .php-your-area b {
+  font-weight: 600;
+  color: var(--php-navy);
+}
+
+.public-helper-profile .php-rule {
+  border: 0;
+  border-top: 1px solid var(--php-line);
+  margin: 12px 0 18px;
+}
+
+.public-helper-profile .php-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: 40px;
+  align-items: start;
+  padding-bottom: 48px;
+}
+
+.public-helper-profile .php-sticky {
+  position: sticky;
+  top: 89px;
+}
+
+.public-helper-profile .php-photo {
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center top;
+  background: #d7e0ec;
+}
+
+.public-helper-profile .php-cat-line {
+  margin-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  font-size: 14.5px;
+}
+
+.public-helper-profile .php-cat-link {
+  color: var(--php-blue);
+  font-weight: 650;
+}
+
+.public-helper-profile .php-cat-link:hover {
+  color: var(--php-blue-hover);
+}
+
+.public-helper-profile .php-cat-line .php-meta {
+  color: var(--php-muted);
+}
+
+.public-helper-profile .php-cat-line .php-dot {
+  color: #b0b8c6;
+}
+
+.public-helper-profile .php-name {
+  margin-top: 10px;
+  font-family: var(--font-display, inherit);
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: var(--php-navy);
+}
+
+.public-helper-profile .php-facts {
+  margin-top: 14px;
+  font-size: 15px;
+  color: var(--php-ink);
+  line-height: 1.55;
+}
+
+.public-helper-profile .php-facts .php-now {
+  color: var(--php-blue);
+  font-weight: 650;
+}
+
+.public-helper-profile .php-facts .php-sep {
+  margin: 0 8px;
+  color: #b0b8c6;
+}
+
+.public-helper-profile .php-facts-2 {
+  margin-top: 4px;
+  color: var(--php-ink);
+}
+
+.public-helper-profile .php-icon-actions {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.public-helper-profile .php-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid var(--php-line-2);
+  background: #fff;
+  font-size: 14.5px;
+  font-weight: 650;
+  color: var(--php-navy);
+  cursor: pointer;
+}
+
+.public-helper-profile .php-icon-btn:hover {
+  background: var(--php-tint-2);
+}
+
+.public-helper-profile .php-icon-btn.is-on {
+  border-color: var(--php-blue);
+  color: var(--php-blue);
+  background: var(--php-tint);
+}
+
+.public-helper-profile .php-book-hero {
+  display: none;
+  margin-top: 12px;
+  width: 100%;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--php-blue);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.public-helper-profile .php-book-hero:hover {
+  background: var(--php-blue-hover);
+}
+
+.public-helper-profile .php-block {
+  margin-top: 36px;
+}
+
+.public-helper-profile .php-block h2 {
+  font-family: var(--font-display, inherit);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--php-navy);
+}
+
+.public-helper-profile .php-block-sub {
+  margin-top: 6px;
+  font-size: 14.5px;
+  color: var(--php-muted);
+  line-height: 1.5;
+}
+
+.public-helper-profile .php-block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.public-helper-profile .php-count {
+  font-weight: 500;
+  color: var(--php-sub);
+}
+
+.public-helper-profile .php-days {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.public-helper-profile .php-day {
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--php-line);
+  background: #fff;
+  cursor: pointer;
+  color: var(--php-navy);
+}
+
+.public-helper-profile .php-day .php-dow {
+  font-size: 13.5px;
+  color: var(--php-muted);
+}
+
+.public-helper-profile .php-day .php-date {
+  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.public-helper-profile .php-day.is-on {
+  background: var(--php-navy);
+  border-color: var(--php-navy);
+  color: #fff;
+}
+
+.public-helper-profile .php-day.is-on .php-dow {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.public-helper-profile .php-reviews {
+  margin-top: 14px;
+  background: #fff;
+  border: 1px solid var(--php-line);
+  border-radius: 16px;
+  padding: 20px 20px 8px;
+}
+
+.public-helper-profile .php-empty-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.public-helper-profile .php-empty-body {
+  margin-top: 6px;
+  font-size: 14.5px;
+  color: var(--php-muted);
+  line-height: 1.55;
+}
+
+.public-helper-profile .php-guide {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--php-line);
+}
+
+.public-helper-profile .php-guide h3 {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.public-helper-profile .php-guide p {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--php-muted);
+  line-height: 1.5;
+}
+
+.public-helper-profile .php-ask {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 12px;
+  font-size: 14.5px;
+  font-weight: 650;
+  color: var(--php-blue);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+}
+
+.public-helper-profile .php-ask:hover {
+  color: var(--php-blue-hover);
+}
+
+.public-helper-profile .php-review-list {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.public-helper-profile .php-review-card {
+  background: #fff;
+  border: 1px solid var(--php-line);
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+
+.public-helper-profile .php-book-card {
+  margin-top: 0;
+  background: #fff;
+  border: 1px solid var(--php-line);
+  border-radius: 16px;
+  padding: 16px 16px 14px;
+  box-shadow: 0 10px 28px -16px rgba(12, 42, 102, 0.12);
+}
+
+.public-helper-profile .php-fee-note {
+  font-size: 13px;
+  color: var(--php-muted);
+  line-height: 1.45;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--php-line);
+}
+
+.public-helper-profile .php-field {
+  margin-top: 12px;
+}
+
+.public-helper-profile .php-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.public-helper-profile .php-field-row .php-field {
+  margin-top: 12px;
+}
+
+.public-helper-profile .php-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13.5px;
+  font-weight: 650;
+}
+
+.public-helper-profile .php-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--php-muted);
+  line-height: 1.4;
+}
+
+.public-helper-profile .php-select,
+.public-helper-profile .php-text,
+.public-helper-profile .php-area {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--php-line);
+  border-radius: 14px;
+  background: var(--php-tint-2);
+  font-size: 14.5px;
+  color: var(--php-navy);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.public-helper-profile .php-select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%236B7384' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 8 4 4 4-4'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 40px;
+}
+
+.public-helper-profile .php-select:focus,
+.public-helper-profile .php-text:focus,
+.public-helper-profile .php-area:focus {
+  border-color: var(--php-blue);
+  background-color: #fff;
+}
+
+.public-helper-profile .php-area {
+  height: auto;
+  min-height: 56px;
+  padding: 8px 14px;
+  resize: vertical;
+}
+
+.public-helper-profile .php-area::placeholder,
+.public-helper-profile .php-text::placeholder {
+  color: #9aa1ae;
+}
+
+.public-helper-profile .php-time-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.public-helper-profile .php-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 44px;
+  padding: 4px;
+  border: 1px solid var(--php-line);
+  border-radius: 14px;
+  background: var(--php-tint-2);
+  flex: none;
+}
+
+.public-helper-profile .php-stepper button {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--php-navy);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.public-helper-profile .php-stepper button:hover {
+  background: #fff;
+}
+
+.public-helper-profile .php-stepper .php-val {
+  min-width: 64px;
+  text-align: center;
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.public-helper-profile .php-total-row {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--php-line);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.public-helper-profile .php-total-row .php-lbl {
+  font-size: 14.5px;
+  font-weight: 650;
+}
+
+.public-helper-profile .php-total-row .php-amt {
+  font-family: var(--font-display, inherit);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.public-helper-profile .php-book-submit {
+  margin-top: 12px;
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--php-blue);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  border: 0;
+  cursor: pointer;
+}
+
+.public-helper-profile .php-book-submit:hover {
+  background: var(--php-blue-hover);
+}
+
+.public-helper-profile .php-charge-note {
+  margin-top: 8px;
+  margin-bottom: 2px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--php-muted);
+  line-height: 1.4;
+}
+
+.public-helper-profile .php-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  background: var(--php-navy);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 9999px;
+  box-shadow: 0 10px 24px -12px rgba(7, 19, 48, 0.45);
+}
+
+@media (min-width: 961px) {
+  .public-helper-profile .php-days {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 960px) {
+  .public-helper-profile .php-layout {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding-bottom: 32px;
+  }
+
+  .public-helper-profile .php-sticky {
+    position: static;
+  }
+
+  .public-helper-profile .php-book-hero {
+    display: inline-flex;
+  }
+
+  .public-helper-profile .php-name {
+    font-size: 32px;
+  }
+
+  .public-helper-profile .php-photo {
+    width: 120px;
+    height: 120px;
+  }
+
+  .public-helper-profile .php-cat-line {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .public-helper-profile .php-cat-line .php-dot {
+    display: none;
+  }
+
+  .public-helper-profile .php-facts {
+    font-size: 14.5px;
+  }
+
+  .public-helper-profile .php-field-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .public-helper-profile .php-field-row .php-field + .php-field {
+    margin-top: 12px;
+  }
+
+  .public-helper-profile .php-side {
+    margin-top: 28px;
+  }
+}
