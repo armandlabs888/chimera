@@ -213,6 +213,7 @@ export function HelperUrgentSmsSettings({
   if (loading) {
     return (
       <div
+        id="helper-urgent-sms"
         className="account-hc-card account-hc-sms-settings"
         data-testid="helper-sms-settings-loading"
       >
@@ -223,6 +224,7 @@ export function HelperUrgentSmsSettings({
 
   return (
     <section
+      id="helper-urgent-sms"
       className="account-hc-card account-hc-sms-settings"
       data-testid="helper-sms-settings"
       aria-labelledby="helper-sms-heading"

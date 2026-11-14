@@ -1671,10 +1671,9 @@ async function checkMarketplaceFlows() {
     } else {
       await page.waitForSelector('[data-testid="helper-onboarding-root"]', { timeout: 15000 })
       assert.ok(await page.getByTestId('helper-onboarding-root').count() >= 1)
-      assert.equal(
-        await page.locator('[data-testid="topnav-post-cta"]').count(),
-        0,
-        'topnav-post-cta hidden on /onboarding/helper',
+      assert.ok(
+        (await page.locator('[data-testid="topnav-post-cta"]').count()) >= 1,
+        'topnav-post-cta present on /onboarding/helper',
       )
       assert.equal(
         await page.locator('legend').count(),
@@ -1696,8 +1695,10 @@ async function checkMarketplaceFlows() {
       assert.equal(helperChrome.overflow, false, 'helper onboarding no horizontal overflow')
       assert.ok(
         /rgba?\(\s*255\s*,\s*255\s*,\s*255/i.test(helperChrome.shellBg) ||
-          helperChrome.shellBg === 'rgb(255, 255, 255)',
-        `helper onboarding shell should be white, got ${helperChrome.shellBg}`,
+          helperChrome.shellBg === 'rgb(255, 255, 255)' ||
+          /rgba?\(\s*245\s*,\s*249\s*,\s*255/i.test(helperChrome.shellBg) ||
+          helperChrome.shellBg === 'rgb(245, 249, 255)',
+        `helper onboarding shell should be white or account tint (#F5F9FF), got ${helperChrome.shellBg}`,
       )
       assert.ok(
         !helperChrome.formShadow ||

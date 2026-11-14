@@ -1,0 +1,367 @@
+/* Edit helper profile (/onboarding/helper) - 2-column layout on account-hc shell. */
+.account-hc-helper-edit.account-hc-page {
+  padding: 20px 0 64px;
+}
+
+.account-hc-helper-edit-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--hc-blue);
+  text-decoration: none;
+}
+
+.account-hc-helper-edit-back:hover {
+  color: var(--hc-blue-hover);
+}
+
+.account-hc-helper-edit-back .chev {
+  flex: none;
+}
+
+.account-hc-helper-edit .account-hc-hero-sub {
+  margin-top: 6px;
+  max-width: 52rem;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--hc-muted);
+}
+
+.account-hc-helper-edit-layout {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.account-hc-helper-edit-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 81px;
+}
+
+.account-hc-helper-edit-form.account-hc-form-card {
+  max-width: none;
+  margin: 0;
+  padding: 20px 24px;
+}
+
+.account-hc-helper-edit-form .account-hc-divider {
+  margin: 16px 0;
+}
+
+.account-hc-helper-edit-form .account-hc-field {
+  margin-top: 12px;
+}
+
+.account-hc-helper-edit-form .account-hc-section-label {
+  margin-bottom: 0;
+}
+
+.account-hc-helper-edit-form .account-hc-form-actions {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+
+.account-hc-helper-edit-save {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 48px;
+  border-radius: 10px;
+  background: var(--hc-blue);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.account-hc-helper-edit-save:hover {
+  background: var(--hc-blue-hover);
+}
+
+.account-hc-helper-edit-cancel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hc-muted);
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.account-hc-helper-edit-cancel:hover {
+  background: var(--hc-tint-2);
+  color: var(--hc-navy);
+}
+
+.account-hc-helper-side-card {
+  padding: 20px 20px 18px;
+}
+
+.account-hc-helper-side-card > h2 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--hc-navy);
+}
+
+.account-hc-helper-preview-who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.account-hc-helper-preview-who .name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--hc-navy);
+  letter-spacing: -0.02em;
+}
+
+.account-hc-helper-preview-who .loc {
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--hc-muted);
+}
+
+.account-hc-helper-preview-who .loc svg {
+  color: var(--hc-blue);
+  flex: none;
+}
+
+.account-hc-helper-preview-meta {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--hc-navy);
+}
+
+.account-hc-helper-preview-meta .rate {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.account-hc-helper-preview-meta .dot {
+  color: var(--hc-line-2);
+  font-weight: 500;
+}
+
+.account-hc-helper-preview-meta .rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--hc-navy);
+}
+
+.account-hc-helper-preview-meta .rating svg {
+  color: #071330;
+  fill: #071330;
+}
+
+.account-hc-helper-preview-meta .reviews {
+  font-weight: 500;
+  color: var(--hc-muted);
+}
+
+.account-hc-helper-avail-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 9999px;
+  background: var(--hc-tint);
+  border: 1px solid var(--hc-line-2);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--hc-blue);
+}
+
+.account-hc-helper-avail-pill b {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hc-blue);
+}
+
+.account-hc-helper-preview-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.account-hc-helper-preview-skills span {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--hc-tint-2);
+  border: 1px solid var(--hc-line);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--hc-navy);
+}
+
+.account-hc-helper-preview-bio {
+  margin-top: 12px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--hc-muted);
+}
+
+.account-hc-helper-tips-list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.account-hc-helper-tips-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--hc-navy);
+}
+
+.account-hc-helper-tips-list svg {
+  color: var(--hc-blue);
+  flex: none;
+  margin-top: 2px;
+}
+
+.account-hc-helper-urgent-card {
+  background: #1d5ce5;
+  border: 0;
+  color: #fff;
+  padding: 20px 20px 18px;
+}
+
+.account-hc-helper-urgent-card h2 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+  padding-top: 7px;
+  line-height: 1.2;
+}
+
+.account-hc-helper-urgent-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.account-hc-helper-urgent-ico {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fff;
+  color: #1d5ce5;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.account-hc-helper-urgent-card > p {
+  margin-top: 10px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: #fff;
+}
+
+.account-hc-helper-urgent-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 40px;
+  margin-top: 14px;
+  border-radius: 10px;
+  background: #fff;
+  color: #1d5ce5;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.account-hc-helper-urgent-btn:hover {
+  background: var(--hc-tint);
+}
+
+@media (max-width: 860px) {
+  .account-hc-helper-edit.account-hc-page {
+    padding: 20px 0 48px;
+  }
+
+  .account-hc-helper-edit .account-hc-hero-title {
+    font-size: 26px;
+  }
+
+  .account-hc-helper-edit .account-hc-hero-sub {
+    font-size: 14px;
+    max-width: none;
+  }
+
+  .account-hc-helper-edit-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 18px;
+  }
+
+  .account-hc-helper-edit-sidebar {
+    display: contents;
+  }
+
+  .account-hc-helper-edit-form.account-hc-form-card {
+    padding: 20px 16px;
+    order: 3;
+  }
+
+  .account-hc-helper-preview-card {
+    order: 1;
+  }
+
+  .account-hc-helper-urgent-card {
+    order: 2;
+  }
+
+  .account-hc-helper-tips-card {
+    order: 4;
+  }
+}
