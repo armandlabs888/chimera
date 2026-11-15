@@ -9,6 +9,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { HelperUrgentSmsSettings } from '@/components/account/HelperUrgentSmsSettings'
 import { SettingsPageChrome } from '@/components/account/SettingsNav'
@@ -26,8 +27,11 @@ import { createClient } from '@/lib/supabase/client'
 import '@/components/account/account-hc.css'
 import './settings-account.css'
 
+const HELPER_ONLY_ACCOUNT_HASHES = new Set(['notifications', 'verification'])
+
 export function SettingsAccount() {
   const { mode, authUser, currentUser, helperVerification, signOut } = useBeam()
+  const router = useRouter()
   const [modalOpen, setModalOpen] = useState(false)
   const isHelper = isHelperPerson(currentUser)
   const canSignOut = Boolean(authUser) || mode === 'demo'
@@ -35,62 +39,71 @@ export function SettingsAccount() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const hash = window.location.hash.replace('#', '')
-    if (!hash) return
-    const el = document.getElementById(hash)
-    if (el) {
-      requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+
+    function syncHash() {
+      const hash = window.location.hash.replace('#', '')
+      if (!isHelper && HELPER_ONLY_ACCOUNT_HASHES.has(hash)) {
+        router.replace('/settings')
+        return
+      }
+      if (!hash) return
+      const el = document.getElementById(hash)
+      if (el) {
+        requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+      }
     }
-  }, [])
+
+    syncHash()
+    window.addEventListener('hashchange', syncHash)
+    return () => window.removeEventListener('hashchange', syncHash)
+  }, [isHelper, router])
 
   return (
     <>
       <SettingsPageChrome
         title="Settings"
         subtitle="Private settings. Nothing here shows on your profile."
-        active="notifications"
+        active={isHelper ? 'notifications' : 'legal'}
         mobileBackHref="/settings"
         mobileBackLabel="Settings"
       >
         <div data-testid="settings-page">
-          <h2 className="sa-group" id="notifications">
-            Notifications
-          </h2>
           {isHelper ? (
-            <div className="sa-block" data-testid="settings-notifications">
-              <HelperUrgentSmsSettings
-                userId={authUser?.id || currentUser.id}
-                localOnly={mode !== 'live'}
-              />
-            </div>
-          ) : (
-            <p className="sa-empty">
-              Urgent job texts are available after you become a helper.
-            </p>
-          )}
+            <>
+              <h2 className="sa-group" id="notifications">
+                Notifications
+              </h2>
+              <div className="sa-block" data-testid="settings-notifications">
+                <HelperUrgentSmsSettings
+                  userId={authUser?.id || currentUser.id}
+                  localOnly={mode !== 'live'}
+                />
+              </div>
 
-          <h2 className="sa-group" id="verification">
-            Verification
-          </h2>
-          <div className="sa-list" data-testid="settings-verification">
-            <Link href="/verify" className="sa-row">
-              <ShieldCheck className="sa-lead" strokeWidth={2} aria-hidden />
-              <span className="sa-grow">
-                Home location check
-                <span className="sa-meta">
-                  Confirms you live where you say you do. Required to make offers.
-                </span>
-              </span>
-              {verificationDone ? (
-                <span className="sa-ok">
-                  <CheckCircle2 className="h-4 w-4 text-[#1D5CE5]" strokeWidth={2} aria-hidden />
-                  Done
-                </span>
-              ) : (
-                <ChevronRight className="sa-chev" strokeWidth={2} aria-hidden />
-              )}
-            </Link>
-          </div>
+              <h2 className="sa-group" id="verification">
+                Verification
+              </h2>
+              <div className="sa-list" data-testid="settings-verification">
+                <Link href="/verify" className="sa-row">
+                  <ShieldCheck className="sa-lead" strokeWidth={2} aria-hidden />
+                  <span className="sa-grow">
+                    Home location check
+                    <span className="sa-meta">
+                      Confirms you live where you say you do. Required to make offers.
+                    </span>
+                  </span>
+                  {verificationDone ? (
+                    <span className="sa-ok">
+                      <CheckCircle2 className="h-4 w-4 text-[#1D5CE5]" strokeWidth={2} aria-hidden />
+                      Done
+                    </span>
+                  ) : (
+                    <ChevronRight className="sa-chev" strokeWidth={2} aria-hidden />
+                  )}
+                </Link>
+              </div>
+            </>
+          ) : null}
 
           <h2 className="sa-group" id="legal">
             Legal

@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { HelperProfileBody } from '@/components/profile/HelperProfileBody'
 import { useBeam } from '@/context/BeamContext'
+import { isHelperPerson } from '@/lib/roles'
 
 const ACTIVITY_TABS = ['requests', 'offers', 'saved'] as const
 
@@ -18,6 +19,7 @@ export function You() {
   const pathname = usePathname()
   const params = useSearchParams()
   const rawTab = params.get('tab')
+  const isHelper = isHelperPerson(currentUser)
 
   // Keep old deep links working.
   useEffect(() => {
@@ -27,11 +29,12 @@ export function You() {
       return
     }
     if (rawTab === 'helper') {
-      router.replace('/settings/profile#services')
+      // Neighbors keep the become-a-helper path on edit profile; helpers open services.
+      router.replace(isHelper ? '/settings/profile#services' : '/settings/profile')
       return
     }
     if (rawTab === 'notifications') {
-      router.replace('/settings/account#notifications')
+      router.replace(isHelper ? '/settings/account#notifications' : '/settings')
       return
     }
     if (ACTIVITY_TABS.includes(rawTab as (typeof ACTIVITY_TABS)[number])) {
@@ -45,7 +48,7 @@ export function You() {
     nextParams.delete('tab')
     const qs = nextParams.toString()
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
-  }, [rawTab, params, pathname, router])
+  }, [rawTab, params, pathname, router, isHelper])
 
   const myRequests = useMemo(
     () => state.requests.filter((r) => r.requesterId === currentUser.id),
