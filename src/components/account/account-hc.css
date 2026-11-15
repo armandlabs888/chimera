@@ -1947,9 +1947,9 @@
 .hc-account-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 40px;
-  padding: 0 8px 0 4px;
+  gap: 4px;
+  height: 32px;
+  padding: 0 6px 0 2px;
   border-radius: 9999px;
   background: none;
   border: 0;
@@ -2092,7 +2092,7 @@
   flex-direction: column;
   gap: 16px;
   position: sticky;
-  top: 81px;
+  top: 72px;
 }
 
 .account-hc-tabs-wrap-flush {
