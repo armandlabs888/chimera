@@ -130,7 +130,7 @@ export function LandingHero() {
             Local services · Real everyday help
           </p>
 
-          <h1 className="mx-auto mt-5 max-w-[17ch] text-[44px] font-extrabold leading-[1.02] tracking-[-0.045em] text-white md:text-[72px]">
+          <h1 className="landing-hero-title mx-auto mt-5 max-w-[17ch] font-extrabold tracking-[-0.045em] text-white">
             <span className="block">Trusted help,</span>
             <span className="block whitespace-nowrap">
               right <span className="text-[#8FB2FF]">next door.</span>
