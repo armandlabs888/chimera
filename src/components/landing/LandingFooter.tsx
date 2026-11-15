@@ -11,11 +11,11 @@ const FOOTER_LINKS = [
 ] as const
 
 const linkClass =
-  'inline-flex min-h-[44px] items-center text-[13px] font-medium leading-snug text-[#4A5568] transition hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white'
+  'inline-flex min-h-[44px] items-center text-[13px] font-medium leading-snug text-[#CBD5E1] transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330]'
 
 /**
  * Slim site footer used on every page: logo + copyright, one link row.
- * White surface with top hairline to match the flat white app chrome.
+ * Navy surface (#071330) matching the prior HouseCall footer theme.
  */
 export function LandingFooter({
   dockPadding = false,
@@ -25,7 +25,7 @@ export function LandingFooter({
 }) {
   return (
     <footer
-      className={`shrink-0 border-t border-[#E3E8EF] bg-white ${
+      className={`shrink-0 border-t border-white/10 bg-[#071330] ${
         dockPadding ? 'pb-24 md:pb-0' : ''
       }`}
       data-testid="landing-footer"
@@ -36,18 +36,18 @@ export function LandingFooter({
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <Link
             href="/"
-            className="inline-flex w-fit rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            className="inline-flex w-fit rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330]"
             aria-label="HouseCall home"
           >
             <BeamWordmark
               markWidth={18}
               markHeight={18}
               wordClassName="text-[16px] tracking-[-0.03em]"
-              tone="ink"
+              tone="white"
             />
           </Link>
           <p
-            className="text-[13px] leading-none text-[#4A5568]"
+            className="text-[13px] leading-none text-[#94A3B8]"
             data-testid="footer-legal"
           >
             © HouseCall
