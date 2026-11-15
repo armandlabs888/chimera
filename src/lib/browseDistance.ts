@@ -14,6 +14,8 @@ export const BROWSE_RADIUS_STEP: BrowseRadiusId[] = ['1', '5', '10', 'all']
 /** Round for display: one decimal under 10 mi, whole miles at/above 10. */
 export function roundBrowseMiles(miles: number): number {
   if (!Number.isFinite(miles)) return miles
+  // Match prior browse UX: never show 0.0 mi on cards.
+  if (miles >= 0 && miles < 0.1) return 0.1
   if (miles < 10) return Math.round(miles * 10) / 10
   return Math.round(miles)
 }
@@ -21,8 +23,7 @@ export function roundBrowseMiles(miles: number): number {
 export function formatBrowseMiles(miles: number): string {
   const rounded = roundBrowseMiles(miles)
   if (rounded < 10) {
-    const text = Number.isInteger(rounded) ? rounded.toFixed(1) : String(rounded)
-    return `${text} mi`
+    return `${rounded.toFixed(1)} mi`
   }
   return `${rounded} mi`
 }

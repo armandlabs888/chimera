@@ -12,6 +12,7 @@ strict
 set search_path = ''
 as $$
   select case
+    when p_miles >= 0 and p_miles < 0.1 then 0.1::double precision
     when p_miles < 10 then round(p_miles::numeric, 1)::double precision
     else round(p_miles::numeric, 0)::double precision
   end;
