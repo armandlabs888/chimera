@@ -606,57 +606,61 @@ export function Match() {
                           className="match-helper-card"
                           data-testid="match-helper-card"
                         >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            className="photo"
-                            src={person.avatar}
-                            alt=""
-                            width={112}
-                            height={112}
-                          />
-                          <h3 className="name">{person.name}</h3>
-                          <p className="skill">{skill}</p>
-                          <p className="stats">
-                            {rating ? (
-                              <>
-                                <span className="stars">★ {rating}</span>
-                                <span className="match-dot" aria-hidden>
-                                  ·
-                                </span>
-                                <span>
-                                  {person.reviewCount}{' '}
-                                  {person.reviewCount === 1 ? 'review' : 'reviews'}
-                                </span>
-                                {person.jobsCompleted > 0 ? (
+                          <div className="match-helper-card-header">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              className="photo"
+                              src={person.avatar}
+                              alt=""
+                              width={96}
+                              height={96}
+                            />
+                            <div className="match-helper-card-meta">
+                              <h3 className="name">{person.name}</h3>
+                              <p className="skill">{skill}</p>
+                              <p className="stats">
+                                {rating ? (
                                   <>
+                                    <span className="stars">★ {rating}</span>
                                     <span className="match-dot" aria-hidden>
                                       ·
                                     </span>
                                     <span>
-                                      {person.jobsCompleted}{' '}
-                                      {person.jobsCompleted === 1
-                                        ? 'job completed'
-                                        : 'jobs completed'}
+                                      {person.reviewCount}{' '}
+                                      {person.reviewCount === 1 ? 'review' : 'reviews'}
                                     </span>
+                                    {person.jobsCompleted > 0 ? (
+                                      <>
+                                        <span className="match-dot" aria-hidden>
+                                          ·
+                                        </span>
+                                        <span>
+                                          {person.jobsCompleted}{' '}
+                                          {person.jobsCompleted === 1
+                                            ? 'job completed'
+                                            : 'jobs completed'}
+                                        </span>
+                                      </>
+                                    ) : null}
                                   </>
+                                ) : (
+                                  <span className="match-badge-new">New</span>
+                                )}
+                              </p>
+                              <p className="stats">
+                                {joined ? <span>{joined}</span> : null}
+                                {joined && (area || milesLabel) ? (
+                                  <span className="match-dot" aria-hidden>
+                                    ·
+                                  </span>
                                 ) : null}
-                              </>
-                            ) : (
-                              <span className="match-badge-new">New</span>
-                            )}
-                          </p>
-                          <p className="stats">
-                            {joined ? <span>{joined}</span> : null}
-                            {joined && (area || milesLabel) ? (
-                              <span className="match-dot" aria-hidden>
-                                ·
-                              </span>
-                            ) : null}
-                            <span>
-                              {area}
-                              {milesLabel ? `, ${milesLabel}` : ''}
-                            </span>
-                          </p>
+                                <span>
+                                  {area}
+                                  {milesLabel ? `, ${milesLabel}` : ''}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
                           <p className="rate">{formatRate(person)}</p>
                           {review ? (
                             <blockquote className="quote">
