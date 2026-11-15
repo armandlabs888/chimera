@@ -10,6 +10,10 @@ const CATEGORY_SYNONYMS = [
     terms: [
       'house cleaner',
       'house cleaning',
+      'house clean',
+      'home cleaner',
+      'home cleaning',
+      'home clean',
       'housekeeping',
       'housekeeper',
       'maid',
@@ -21,7 +25,19 @@ const CATEGORY_SYNONYMS = [
     weight: 10,
   },
   {
-    terms: ['carpet cleaning', 'carpet', 'rug'],
+    terms: [
+      'carpet cleaning',
+      'carpet cleaner',
+      'carpet clean',
+      'carpet steam clean',
+      'steam clean carpet',
+      'carpet',
+      'rug cleaning',
+      'rug cleaner',
+      'rug clean',
+      'rugs',
+      'rug',
+    ],
     categoryId: 'carpet-cleaning',
     weight: 10,
   },
@@ -145,7 +161,41 @@ function termMatches(haystack, term) {
   const t = term.toLowerCase().trim()
   if (!t) return false
   const re = new RegExp(`(?:^|[^a-z0-9])${escapeRegExp(t)}(?:[^a-z0-9]|$)`, 'i')
-  return re.test(haystack)
+  if (re.test(haystack)) return true
+
+  const parts = t.split(/\s+/).filter(Boolean)
+  if (parts.length < 2) return false
+  const last = parts[parts.length - 1]
+  if (!last.startsWith('clean') || last.length > 8) return false
+  const head = parts.slice(0, -1).map(escapeRegExp).join('\\s+')
+  const stemRe = new RegExp(
+    `(?:^|[^a-z0-9])${head}\\s+clean[a-z]{0,6}(?:[^a-z0-9]|$)`,
+    'i',
+  )
+  return stemRe.test(haystack)
+}
+
+function applyCleaningStemBoosts(normalized, scores) {
+  const hasHouseClean = /\b(?:house|home)\s+clean[a-z]*/i.test(normalized)
+  const hasCarpetOrRug = /\b(?:carpet|rugs?)\b/i.test(normalized)
+  const hasCarpetClean =
+    /\b(?:carpet|rugs?)\s+clean[a-z]*/i.test(normalized) ||
+    /\bclean[a-z]*\s+(?:the\s+)?(?:carpet|rugs?)\b/i.test(normalized) ||
+    /\bcarpet\s+steam\s+clean/i.test(normalized) ||
+    /\bsteam\s+clean(?:ing)?\s+(?:the\s+)?(?:carpet|rugs?)\b/i.test(normalized)
+
+  if (hasHouseClean && !hasCarpetOrRug) {
+    scores.set('house-cleaning', (scores.get('house-cleaning') ?? 0) + 30)
+    if ((scores.get('carpet-cleaning') ?? 0) > 0) {
+      scores.set(
+        'carpet-cleaning',
+        Math.min(scores.get('carpet-cleaning') ?? 0, (scores.get('house-cleaning') ?? 0) - 1),
+      )
+    }
+  }
+  if (hasCarpetClean || (hasCarpetOrRug && /\bclean/i.test(normalized))) {
+    scores.set('carpet-cleaning', (scores.get('carpet-cleaning') ?? 0) + 30)
+  }
 }
 
 function stripTrailingLocationPhrase(query) {
@@ -206,6 +256,7 @@ function scoreCategories(normalized) {
       scores.set(rule.categoryId, (scores.get(rule.categoryId) ?? 0) + bump)
     }
   }
+  applyCleaningStemBoosts(normalized, scores)
   return [...scores.entries()]
     .map(([id, score]) => ({
       id,
@@ -213,7 +264,7 @@ function scoreCategories(normalized) {
       score,
       description: DESCRIPTIONS[id] || 'Local help nearby',
     }))
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => b.score - a.score || (LABELS[a.id] || a.id).localeCompare(LABELS[b.id] || b.id))
 }
 
 function fillRelated(category, related, maxRelated) {
@@ -301,6 +352,20 @@ function formatHelpersHeading(categoryLabel) {
   return `Best ${lower} helpers for you`
 }
 
+function formatHelpersEmptyNoun(categoryLabel, categoryId = null) {
+  const id = categoryId || ''
+  const lower = (categoryLabel || '').toLowerCase()
+  if (id === 'house-cleaning' || lower === 'house cleaning') return 'house cleaners'
+  if (id === 'carpet-cleaning' || lower === 'carpet cleaning') return 'carpet cleaners'
+  if (id === 'moving' || lower === 'moving & lifting' || lower === 'moving') return 'movers'
+  if (lower.includes('cleaning')) {
+    const base = lower.replace(/\s*cleaning\s*$/i, '').trim()
+    return base ? `${base} cleaners` : 'cleaners'
+  }
+  if (lower) return `${lower} helpers`
+  return 'helpers'
+}
+
 // --- Tests ---
 
 {
@@ -308,6 +373,25 @@ function formatHelpersHeading(categoryLabel) {
   assert.equal(r.intent, 'helpers')
   assert.equal(r.category?.id, 'house-cleaning')
   assert.equal(r.ambiguous, false)
+}
+
+{
+  // house clean* must rank house-cleaning ahead of carpet-cleaning
+  const weekly = detectDescribeIntent('Weekly house cleaner')
+  assert.equal(weekly.category?.id, 'house-cleaning')
+  assert.ok((weekly.category?.score ?? 0) > (weekly.related.find((x) => x.id === 'carpet-cleaning')?.score ?? 0))
+
+  const houseClean = detectDescribeIntent('house clean')
+  assert.equal(houseClean.category?.id, 'house-cleaning')
+
+  const carpetSteam = detectDescribeIntent('carpet steam clean')
+  assert.equal(carpetSteam.category?.id, 'carpet-cleaning')
+}
+
+{
+  assert.equal(formatHelpersEmptyNoun('House Cleaning', 'house-cleaning'), 'house cleaners')
+  assert.equal(formatHelpersEmptyNoun('Carpet Cleaning', 'carpet-cleaning'), 'carpet cleaners')
+  assert.doesNotMatch(formatHelpersEmptyNoun('House Cleaning', 'house-cleaning'), /[—–]/)
 }
 
 {

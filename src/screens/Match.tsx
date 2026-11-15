@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { MapPin } from 'lucide-react'
-import { BeamWordmark } from '@/components/BeamMark'
 import { BrowseJobRow } from '@/components/browse/BrowseJobRow'
 import {
   DescribeSearchForm,
@@ -13,8 +12,10 @@ import {
 import { useBeam } from '@/context/BeamContext'
 import {
   detectDescribeIntent,
+  formatHelpersEmptyNoun,
   formatHelpersHeading,
   formatIntentChip,
+  formatJobsEmptyCategory,
   matchRequestAgainstCategory,
   matchSkillAgainstCategory,
   resolveDescribeZip,
@@ -130,7 +131,7 @@ function rankHelpers(input: {
   helpers: Person[]
   categoryId: string | null
   milesById: Map<string, number | null>
-}): { ranked: RankedHelper[]; usedFallback: boolean } {
+}): RankedHelper[] {
   const { helpers, categoryId, milesById } = input
   const withMeta = helpers.map((person) => ({
     person,
@@ -138,19 +139,10 @@ function rankHelpers(input: {
     skillMatch: matchSkillAgainstCategory(person.skills, categoryId),
   }))
 
-  let usedFallback = false
-  let pool = withMeta
-  if (categoryId) {
-    const matched = withMeta.filter((h) => h.skillMatch)
-    if (matched.length > 0) {
-      pool = matched
-    } else {
-      usedFallback = true
-      pool = withMeta
-    }
-  }
+  // Strict category match only. No unrelated-helpers fallback.
+  const pool = categoryId ? withMeta.filter((h) => h.skillMatch) : withMeta
 
-  const ranked = [...pool].sort((a, b) => {
+  return [...pool].sort((a, b) => {
     if (a.skillMatch !== b.skillMatch) return a.skillMatch ? -1 : 1
     const da = a.miles ?? Number.POSITIVE_INFINITY
     const db = b.miles ?? Number.POSITIVE_INFINITY
@@ -163,8 +155,6 @@ function rankHelpers(input: {
     const tb = b.person.createdAt ? +new Date(b.person.createdAt) : 0
     return tb - ta
   })
-
-  return { ranked, usedFallback }
 }
 
 export function Match() {
@@ -318,7 +308,7 @@ export function Match() {
     [state.people, currentUser.id],
   )
 
-  const { ranked: rankedHelpers, usedFallback } = useMemo(
+  const rankedHelpers = useMemo(
     () =>
       rankHelpers({
         helpers: helperBase,
@@ -364,6 +354,18 @@ export function Match() {
   const top3 = rankedHelpers.slice(0, 3)
   const more = rankedHelpers.slice(3)
   const postHref = postJobHref(qForHeading || qParam, categoryId, zipParam)
+  const postAuthHref = isLiveGuest ? `/auth?next=${encodeURIComponent(postHref)}` : postHref
+  const browseHelpersHref = zipParam
+    ? `/browse?tab=people&zip=${encodeURIComponent(zipParam)}`
+    : '/browse?tab=people'
+  const browseJobsHref = zipParam
+    ? `/browse?zip=${encodeURIComponent(zipParam)}${
+        categoryId ? `&category=${encodeURIComponent(categoryId)}` : ''
+      }`
+    : '/browse'
+  const helpersEmptyNoun = formatHelpersEmptyNoun(categoryLabel, categoryId)
+  const jobsEmptyCategory = formatJobsEmptyCategory(categoryLabel, categoryId)
+  const nearLabel = zipParam || 'you'
 
   const intentSwitch = formatIntentChip({
     intent,
@@ -376,49 +378,23 @@ export function Match() {
     return `/match?${next.toString()}`
   }, [params, intent])
 
-  const loginHref = `/auth?next=${encodeURIComponent(
-    `/match?${params.toString()}`,
-  )}`
-  const signupHref = `/auth?mode=signup&next=${encodeURIComponent(
-    `/match?${params.toString()}`,
-  )}`
-
   return (
     <div className="match-page" data-testid="match-page">
-      <header className="match-header">
-        <div className="match-header-inner">
-          <div className="match-header-row">
-            <Link href="/" aria-label="HouseCall home" className="shrink-0">
-              <BeamWordmark />
-            </Link>
-            <div className="min-w-0 flex-1">
-              <DescribeSearchForm
-                key={`${qParam}|${zipParam}|${intent}|${categoryId ?? ''}`}
-                initialQuery={qParam}
-                initialZip={zipParam}
-                initialIntent={intent}
-                roleHint={roleHint}
-                cityLabel={cityName}
-                variant="results"
-                showChips={false}
-                onSubmit={navigateMatch}
-              />
-            </div>
-            {isLiveGuest ? (
-              <div className="match-header-cta">
-                <Link href={loginHref} className="login">
-                  Log in
-                </Link>
-                <Link href={signupHref} className="signup">
-                  Sign up
-                </Link>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </header>
-
       <div className="match-wrap">
+        <div className="match-search">
+          <DescribeSearchForm
+            key={`${qParam}|${zipParam}|${intent}|${categoryId ?? ''}`}
+            initialQuery={qParam}
+            initialZip={zipParam}
+            initialIntent={intent}
+            roleHint={roleHint}
+            cityLabel={cityName}
+            variant="results"
+            showChips={false}
+            onSubmit={navigateMatch}
+          />
+        </div>
+
         {isDemo ? (
           <div className="match-sample">
             <span className="match-sample-pill">Sample data</span>
@@ -435,56 +411,46 @@ export function Match() {
             >
               {intentSwitch.toggleLabel}
             </Link>
-            <p className="match-sub">
-              <MapPin width={18} height={18} strokeWidth={2.2} aria-hidden />
-              {cityName ? `Helpers serving ${cityName}` : 'Helpers near you'}
-            </p>
-
-            <aside className="match-post-banner" data-testid="match-post-banner">
-              <div>
-                <h2>Want helpers to come to you?</h2>
-                <p>
-                  Post this as a job and we will pre-fill{' '}
-                  <span className="query">
-                    &quot;{qForHeading || qParam || 'your request'}&quot;
-                  </span>
-                  . Helpers nearby can send offers.
-                </p>
-              </div>
-              <Link href={isLiveGuest ? `/auth?next=${encodeURIComponent(postHref)}` : postHref} className="btn">
-                Post this as a job
-              </Link>
-            </aside>
 
             {!ready ? (
               <p className="match-note">Loading helpers…</p>
             ) : rankedHelpers.length === 0 ? (
               <div className="match-empty" data-testid="match-helpers-empty">
                 <h2>
-                  No helpers for this yet
-                  {zipParam ? ` near ${zipParam}` : ''}
+                  No {helpersEmptyNoun} near {nearLabel} yet
                 </h2>
-                <p>
-                  Post the job and nearby helpers can send offers. You can also try a broader
-                  request or another ZIP.
-                </p>
-                <div className="mt-5">
-                  <Link
-                    href={isLiveGuest ? `/auth?next=${encodeURIComponent(postHref)}` : postHref}
-                    className={`match-view-btn ${navyButtonClass}`}
-                  >
+                <p>Post it as a job and helpers nearby can send you offers.</p>
+                <div className="match-empty-actions">
+                  <Link href={postAuthHref} className="match-empty-primary">
                     Post this as a job
+                  </Link>
+                  <Link href={browseHelpersHref} className="match-empty-secondary">
+                    Browse all helpers
                   </Link>
                 </div>
               </div>
             ) : (
               <>
-                {usedFallback && categoryLabel ? (
-                  <p className="match-note" data-testid="match-fallback-note">
-                    No exact {categoryLabel.toLowerCase()} matches nearby yet. Showing other
-                    helpers close to you.
-                  </p>
-                ) : null}
+                <p className="match-sub">
+                  <MapPin width={18} height={18} strokeWidth={2.2} aria-hidden />
+                  {cityName ? `Helpers serving ${cityName}` : 'Helpers near you'}
+                </p>
+
+                <aside className="match-post-banner" data-testid="match-post-banner">
+                  <div>
+                    <h2>Want helpers to come to you?</h2>
+                    <p>
+                      Post this as a job and we will pre-fill{' '}
+                      <span className="query">
+                        &quot;{qForHeading || qParam || 'your request'}&quot;
+                      </span>
+                      . Helpers nearby can send offers.
+                    </p>
+                  </div>
+                  <Link href={postAuthHref} className="btn">
+                    Post this as a job
+                  </Link>
+                </aside>
 
                 <section className="match-top" aria-label="Top matches">
                   <p className="match-top-label">Top {Math.min(3, top3.length)} matches</p>
@@ -690,80 +656,76 @@ export function Match() {
             >
               {intentSwitch.toggleLabel}
             </Link>
-            <p className="match-sub">
-              <MapPin width={18} height={18} strokeWidth={2.2} aria-hidden />
-              {cityName
-                ? `Open jobs close to ${cityName}`
-                : 'Open jobs close to you'}
-            </p>
-
-            <div className="match-meta">
-              <span>
-                {openJobs.length} {openJobs.length === 1 ? 'job' : 'jobs'} nearby
-              </span>
-              <span>
-                Sorted by newest and closest
-                {' · '}
-                <Link
-                  href={
-                    zipParam
-                      ? `/browse?zip=${encodeURIComponent(zipParam)}${
-                          categoryId ? `&category=${encodeURIComponent(categoryId)}` : ''
-                        }`
-                      : '/browse'
-                  }
-                >
-                  See all in Browse
-                </Link>
-              </span>
-            </div>
 
             {!ready ? (
               <p className="match-note">Loading jobs…</p>
             ) : openJobs.length === 0 ? (
               <div className="match-empty" data-testid="match-jobs-empty">
-                <h2>No open jobs match this yet{zipParam ? ` near ${zipParam}` : ''}</h2>
-                <p>
-                  Try another request, widen your ZIP, or{' '}
-                  <Link href="/browse" className="font-semibold text-[#1649BD]">
-                    see all in Browse
+                <h2>
+                  {jobsEmptyCategory
+                    ? `No ${jobsEmptyCategory} jobs near ${nearLabel} yet`
+                    : `No jobs near ${nearLabel} yet`}
+                </h2>
+                <p>Try another request, or browse open jobs nearby.</p>
+                <div className="match-empty-actions">
+                  <Link href={browseJobsHref} className="match-empty-secondary">
+                    Browse all jobs
                   </Link>
-                  .
-                </p>
+                </div>
               </div>
             ) : (
-              <ul className="browse-job-list mt-0 border-0 p-0" data-testid="match-job-list">
-                {openJobs.map((request) => {
-                  const miles = requestMilesById.get(request.id)
-                  const openBudget = !hasListedPrice(request) || requestAcceptsOffers(request)
-                  const priceCaption = formatPriceCaption(request)
-                  const images = normalizeListingImages(request.images, request.image)
-                  const imageSrc = listingCoverImage(images, request.image) || ''
-                  const excerpt = formatJobDetailsDisplay(request.details).slice(0, 160)
-                  return (
-                    <BrowseJobRow
-                      key={request.id}
-                      request={request}
-                      title={request.title}
-                      categoryLabel={formatCategoryLabel(
-                        request.category,
-                        request.categoryCustom,
-                      )}
-                      areaLabel={areaFromLabel(formatLocation(request))}
-                      distanceLabel={miles != null ? formatBrowseMiles(miles) : null}
-                      timingLabel={request.whenLabel || ''}
-                      asap={request.when === 'asap'}
-                      excerpt={excerpt}
-                      priceLabel={formatBudget(request)}
-                      priceCaption={priceCaption || (openBudget && hasListedPrice(request) ? 'Open to offers' : hasListedPrice(request) ? 'Firm price' : '')}
-                      openBudget={!hasListedPrice(request)}
-                      imageSrc={imageSrc}
-                      selected={false}
-                      onOpen={(id) => router.push(`/requests/${id}`)}
-                    />
-                  )
-                })}
-              </ul>
+              <>
+                <p className="match-sub">
+                  <MapPin width={18} height={18} strokeWidth={2.2} aria-hidden />
+                  {cityName
+                    ? `Open jobs close to ${cityName}`
+                    : 'Open jobs close to you'}
+                </p>
+
+                <div className="match-meta">
+                  <span>
+                    {openJobs.length} {openJobs.length === 1 ? 'job' : 'jobs'} nearby
+                  </span>
+                  <span>
+                    Sorted by newest and closest
+                    {' · '}
+                    <Link href={browseJobsHref}>See all in Browse</Link>
+                  </span>
+                </div>
+
+                <ul className="browse-job-list mt-0 border-0 p-0" data-testid="match-job-list">
+                  {openJobs.map((request) => {
+                    const miles = requestMilesById.get(request.id)
+                    const openBudget = !hasListedPrice(request) || requestAcceptsOffers(request)
+                    const priceCaption = formatPriceCaption(request)
+                    const images = normalizeListingImages(request.images, request.image)
+                    const imageSrc = listingCoverImage(images, request.image) || ''
+                    const excerpt = formatJobDetailsDisplay(request.details).slice(0, 160)
+                    return (
+                      <BrowseJobRow
+                        key={request.id}
+                        request={request}
+                        title={request.title}
+                        categoryLabel={formatCategoryLabel(
+                          request.category,
+                          request.categoryCustom,
+                        )}
+                        areaLabel={areaFromLabel(formatLocation(request))}
+                        distanceLabel={miles != null ? formatBrowseMiles(miles) : null}
+                        timingLabel={request.whenLabel || ''}
+                        asap={request.when === 'asap'}
+                        excerpt={excerpt}
+                        priceLabel={formatBudget(request)}
+                        priceCaption={priceCaption || (openBudget && hasListedPrice(request) ? 'Open to offers' : hasListedPrice(request) ? 'Firm price' : '')}
+                        openBudget={!hasListedPrice(request)}
+                        imageSrc={imageSrc}
+                        selected={false}
+                        onOpen={(id) => router.push(`/requests/${id}`)}
+                      />
+                    )
+                  })}
+                </ul>
+              </>
             )}
           </>
         )}
