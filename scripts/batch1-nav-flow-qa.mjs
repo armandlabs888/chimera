@@ -285,28 +285,31 @@ async function main() {
         const footer = document.querySelector('[data-testid="landing-footer"]')
         const bottomNav = document.querySelector('[data-testid="bottom-dock"]')
         const legal = document.querySelector('[data-testid="footer-legal"]')
+        const fr = footer?.getBoundingClientRect()
         const lr = legal?.getBoundingClientRect()
         const nr = bottomNav?.getBoundingClientRect()
         const cs = footer ? getComputedStyle(footer) : null
         return {
           hasBottomNav: Boolean(bottomNav),
           footerPadBottom: cs?.paddingBottom || null,
+          footerBottom: fr ? Math.round(fr.bottom) : null,
           legalBottom: lr ? Math.round(lr.bottom) : null,
           navTop: nr ? Math.round(nr.top) : null,
           vh: window.innerHeight,
           copyrightVisible: Boolean(
-            legal && lr.bottom > 0 && lr.top < window.innerHeight,
+            legal && lr && lr.bottom > 0 && lr.top < window.innerHeight,
           ),
         }
       })
-      // In demo, BottomNav exists; dock padding must keep legal above the nav.
+      // In demo, BottomNav exists; dock padding must keep footer content above the nav.
       if (footerProbe.hasBottomNav) {
+        const contentBottom = footerProbe.legalBottom ?? footerProbe.footerBottom
         const clear =
-          footerProbe.legalBottom != null && footerProbe.navTop != null
-            ? footerProbe.legalBottom <= footerProbe.navTop + 2
+          contentBottom != null && footerProbe.navTop != null
+            ? contentBottom <= footerProbe.navTop + 2
             : false
         check(
-          'A0.5 footer legal above bottom nav (demo dock padding)',
+          'A0.5 footer content above bottom nav (demo dock padding)',
           clear || Number.parseFloat(footerProbe.footerPadBottom) >= 64,
           JSON.stringify(footerProbe),
         )
@@ -405,7 +408,7 @@ async function main() {
       await context.close()
     }
 
-    // ---- Footer services + action names ----
+    // ---- Slim footer link row ----
     {
       const context = await browser.newContext({
         viewport: { width: 1280, height: 800 },
@@ -414,15 +417,27 @@ async function main() {
       const page = await context.newPage()
       await page.goto(`${BASE}/browse?demo=1`, { waitUntil: 'networkidle', timeout: 60000 })
       await page.waitForSelector('[data-testid="landing-footer"]', { timeout: 15000 })
-      const footerText = await page.locator('[data-testid="landing-footer"]').innerText()
+      const footer = page.locator('[data-testid="landing-footer"]')
+      const footerText = await footer.innerText()
       check('A3 footer Browse jobs', /Browse jobs/.test(footerText))
       check('A3 footer Post a task', /Post a task/.test(footerText))
-      check('A3 footer Become a helper or Helper profile', /Become a helper|Helper profile/.test(footerText))
-      check('A4 footer House cleaning', /House cleaning/.test(footerText))
-      check('A4 footer Moving', /\bMoving\b/.test(footerText))
-      check('A4 footer Junk removal sentence case', /Junk removal/.test(footerText))
-      check('A4 footer Pet care', /Pet care/.test(footerText))
-      check('A4 no legacy Home-only services column', !/^\s*Home\s*$/m.test(footerText.split('Services')[1] || ''))
+      check('A3 footer How it works', /How it works/.test(footerText))
+      check('A3 footer Safety', /\bSafety\b/.test(footerText))
+      check('A3 footer Terms', /\bTerms\b/.test(footerText))
+      check('A3 footer Privacy', /\bPrivacy\b/.test(footerText))
+      check('A3 footer copyright', /© HouseCall/.test(footerText))
+      check('A4 no services column', !/House cleaning|Junk removal|Pet care/.test(footerText))
+      check('A4 no Become a helper in footer', !/Become a helper|Helper profile/.test(footerText))
+      check('A4 no payments disclaimer', !/Payments are arranged/.test(footerText))
+      const hrefs = await footer.locator('a').evaluateAll((els) =>
+        els.map((el) => el.getAttribute('href')),
+      )
+      check('A4 footer href /browse', hrefs.includes('/browse'))
+      check('A4 footer href /post', hrefs.includes('/post'))
+      check('A4 footer href /#how-it-works', hrefs.includes('/#how-it-works'))
+      check('A4 footer href /safety', hrefs.includes('/safety'))
+      check('A4 footer href /terms', hrefs.includes('/terms'))
+      check('A4 footer href /privacy', hrefs.includes('/privacy'))
       await context.close()
     }
   } catch (err) {
