@@ -19,6 +19,7 @@ import {
 } from '@/components/browse/ReferHelperActions'
 import { SuggestedHelpersSection } from '@/components/refer/SuggestedHelpersSection'
 import { CancelJobAction } from '@/components/jobs/CancelJobAction'
+import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
@@ -139,7 +140,9 @@ export function RequestDetail() {
     [state.offers, request?.id],
   )
 
-  const myOffer = offers.find((o) => o.helperId === currentUser.id)
+  const myOffer = offers.find(
+    (o) => o.helperId === currentUser.id && o.status !== 'declined',
+  )
   const acceptedOffer = offers.find((o) => o.id === request?.acceptedOfferId)
   const acceptedHelper = request?.helperId ? getPerson(request.helperId) : undefined
 
@@ -811,14 +814,39 @@ export function RequestDetail() {
                       ) : null}
 
                       <div className="flex flex-col gap-2">
-                        <Button
-                          type="submit"
-                          loading={offerPending}
-                          className="h-12 w-full rounded-lg bg-[#1D5CE5] text-white shadow-none hover:bg-[#1649BD]"
+                        <div
+                          className={
+                            myOffer?.status === 'pending'
+                              ? 'flex flex-col gap-2 sm:flex-row sm:items-start'
+                              : undefined
+                          }
                         >
-                          <Send className="h-4 w-4" />
-                          {myOffer ? 'Update offer' : 'Submit offer'}
-                        </Button>
+                          <Button
+                            type="submit"
+                            loading={offerPending}
+                            className={`h-12 rounded-lg bg-[#1D5CE5] text-white shadow-none hover:bg-[#1649BD] ${
+                              myOffer?.status === 'pending' ? 'w-full sm:flex-1' : 'w-full'
+                            }`}
+                          >
+                            <Send className="h-4 w-4" />
+                            {myOffer ? 'Update offer' : 'Submit offer'}
+                          </Button>
+                          {myOffer?.status === 'pending' ? (
+                            <CancelOfferAction
+                              offerId={myOffer.id}
+                              className="w-full sm:flex-1"
+                              fullWidth
+                              testId="request-cancel-offer"
+                              buttonClassName="inline-flex h-12 w-full items-center justify-center whitespace-nowrap rounded-lg border border-[#D7E0EC] bg-white px-[18px] text-[14px] font-semibold tracking-[-0.01em] text-[#071330] hover:bg-[#EEF2F7] disabled:cursor-not-allowed disabled:opacity-60"
+                              onCancelled={() => {
+                                setOfferError('')
+                                setOfferPrice(initialOfferPrice(undefined, request.budget))
+                                setOfferNote('')
+                                setOfferEta('Within 1 hour')
+                              }}
+                            />
+                          ) : null}
+                        </div>
                         <Button
                           type="button"
                           variant="secondary"
@@ -833,10 +861,29 @@ export function RequestDetail() {
                   </>
                 ) : (
                   <>
-                    <h2 className="text-[18px] font-bold text-[#071330]">Verification required</h2>
+                    <h2 className="text-[18px] font-bold text-[#071330]">
+                      {myOffer?.status === 'pending' ? 'Your offer is pending' : 'Verification required'}
+                    </h2>
                     <p className="mt-1 text-[14px] text-[#4A5568]">
-                      Offering unlocks after HouseCall confirms you&apos;re at your home address.
+                      {myOffer?.status === 'pending'
+                        ? 'You can cancel this offer anytime. New offers unlock after HouseCall confirms you are at your home address.'
+                        : 'Offering unlocks after HouseCall confirms you&apos;re at your home address.'}
                     </p>
+                    {myOffer?.status === 'pending' ? (
+                      <div className="mt-4">
+                        <CancelOfferAction
+                          offerId={myOffer.id}
+                          fullWidth
+                          testId="request-cancel-offer"
+                          onCancelled={() => {
+                            setOfferError('')
+                            setOfferPrice(initialOfferPrice(undefined, request.budget))
+                            setOfferNote('')
+                            setOfferEta('Within 1 hour')
+                          }}
+                        />
+                      </div>
+                    ) : null}
                     <OfferGateNotice verification={helperVerification} />
                     <div className="mt-4 flex flex-col gap-2">
                       {(() => {

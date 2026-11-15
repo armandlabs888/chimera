@@ -25,6 +25,7 @@ import {
   type ProfileHeaderOverflowItem,
 } from '@/components/profile/ProfileHeader'
 import { HelperProfileReviews } from '@/components/profile/HelperProfileReviews'
+import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
 import { RequestCard } from '@/components/RequestCard'
 import { Button, ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
@@ -357,21 +358,29 @@ export function You() {
                     if (!request) return null
                     return (
                       <li key={offer.id}>
-                        <Link href={`/requests/${request.id}`} className="account-hc-list-row">
-                          <div className="min-w-0">
+                        <div className="account-hc-list-row">
+                          <Link href={`/requests/${request.id}`} className="min-w-0 flex-1 text-inherit no-underline">
                             <p className="title truncate">{request.title}</p>
                             <p className="meta">
                               Your offer ${Math.round(offer.price)} · {offer.eta}
                             </p>
+                          </Link>
+                          <div className="flex shrink-0 flex-col items-end gap-2">
+                            <span
+                              className={`account-hc-badge ${
+                                offer.status === 'accepted' ? 'accepted' : ''
+                              }`}
+                            >
+                              {offer.status}
+                            </span>
+                            {offer.status === 'pending' ? (
+                              <CancelOfferAction
+                                offerId={offer.id}
+                                testId={`you-cancel-offer-${offer.id}`}
+                              />
+                            ) : null}
                           </div>
-                          <span
-                            className={`account-hc-badge ${
-                              offer.status === 'accepted' ? 'accepted' : ''
-                            }`}
-                          >
-                            {offer.status}
-                          </span>
-                        </Link>
+                        </div>
                       </li>
                     )
                   })}

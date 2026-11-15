@@ -75,10 +75,10 @@ async function run(viewport, label, sel) {
   const s = await cancelStyle(page)
   console.log(label, s)
   assert.equal(s.text, 'Cancel offer')
-  assert.equal(s.color, 'rgb(185, 28, 28)')
+  assert.equal(s.color, 'rgb(7, 19, 48)')
   assert.equal(s.bg, 'rgb(255, 255, 255)')
-  // Spec is 1.5px; Chromium snaps computed border widths, so accept 1–1.5px.
-  assert.match(s.border, /^1(\.5)?px rgb\(220, 38, 38\)$/)
+  // Outline: 1px #D7E0EC; Chromium may report 1px or 0. concurrent subpixels.
+  assert.match(s.border, /^1(\.5)?px rgb\(215, 224, 236\)$/)
   assert.equal(s.radius, '8px')
   assert.ok(Math.abs(s.height - 44) < 1, `height ${s.height}`)
   assert.equal(s.font, '14px 600')

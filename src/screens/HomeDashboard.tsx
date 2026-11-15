@@ -355,7 +355,8 @@ function RecommendedJobRow({ request }: { request: HelpRequest }) {
         (o) =>
           o.requestId === request.id &&
           o.helperId === currentUser.id &&
-          o.status !== 'withdrawn',
+          o.status !== 'withdrawn' &&
+          o.status !== 'declined',
       ),
     [state.offers, request.id, currentUser.id],
   )

@@ -19,6 +19,7 @@ import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 import type { HelpRequest } from '@/types'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { CancelJobAction } from '@/components/jobs/CancelJobAction'
+import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
@@ -48,7 +49,6 @@ export function BrowseJobDetailPanel({
     mode,
     authUser,
     createOffer,
-    withdrawOffer,
     ensureThread,
     helperVerification,
   } = useBeam()
@@ -58,7 +58,11 @@ export function BrowseJobDetailPanel({
   const isOwner = request.requesterId === currentUser.id
   const isNeighborViewer = !isGuest && !isOwner && !isHelperPerson(currentUser)
   const myOffer = state.offers.find(
-    (o) => o.requestId === request.id && o.helperId === currentUser.id && o.status !== 'withdrawn',
+    (o) =>
+      o.requestId === request.id &&
+      o.helperId === currentUser.id &&
+      o.status !== 'withdrawn' &&
+      o.status !== 'declined',
   )
   const verified = canMakeOffer(helperVerification)
   const gateKind = offerGateKind(helperVerification)
@@ -70,7 +74,6 @@ export function BrowseJobDetailPanel({
   const [offerEta, setOfferEta] = useState(myOffer?.eta ?? 'Within 1 hour')
   const [offerError, setOfferError] = useState('')
   const [offerPending, setOfferPending] = useState(false)
-  const [cancelPending, setCancelPending] = useState(false)
   const [askPending, setAskPending] = useState(false)
   const [saved, setSaved] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -179,37 +182,28 @@ export function BrowseJobDetailPanel({
     })
   }
 
-  async function cancelOffer() {
-    if (!pendingOffer || cancelPending) return
-    setCancelPending(true)
-    setOfferError('')
-    try {
-      await withdrawOffer(pendingOffer.id)
-      setOfferOpen(false)
-    } catch (err) {
-      setOfferError(err instanceof Error ? err.message : 'Could not cancel offer')
-    } finally {
-      setCancelPending(false)
-    }
-  }
-
   const showHelperOfferChrome = canOffer && !isNeighborViewer
 
   const ownerCanCancel =
     isOwner && (request.status === 'open' || request.status === 'accepted')
 
   const primaryButton =
-    pendingOffer && !offerOpen && verified ? (
-      <button
-        type="button"
-        data-testid="browse-cancel-offer"
-        disabled={cancelPending}
-        aria-busy={cancelPending || undefined}
-        onClick={() => void cancelOffer()}
-        className="browse-hc-btn-cancel"
-      >
-        {cancelPending ? 'Canceling…' : 'Cancel offer'}
-      </button>
+    pendingOffer && !offerOpen ? (
+      <CancelOfferAction
+        offerId={pendingOffer.id}
+        testId="browse-cancel-offer"
+        className="min-w-0 flex-[1.15]"
+        buttonClassName="browse-hc-btn-cancel"
+        showInlineError={false}
+        onCancelled={() => {
+          setOfferOpen(false)
+          setOfferError('')
+          setOfferPrice(request.budget > 0 ? String(Math.round(request.budget)) : '')
+          setOfferNote('')
+          setOfferEta('Within 1 hour')
+        }}
+        onError={(message) => setOfferError(message)}
+      />
     ) : showHelperOfferChrome && !isGuest && !verified && gateKind !== 'approved' ? (
       <OfferGatePrimaryButton kind={gateKind} narrow={false} className="browse-hc-btn-offer !flex-[1.15]" />
     ) : showHelperOfferChrome ? (
