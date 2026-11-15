@@ -14,6 +14,7 @@ import { useBeam } from '@/context/BeamContext'
 import {
   detectDescribeIntent,
   formatHelpersHeading,
+  formatIntentChip,
   matchRequestAgainstCategory,
   matchSkillAgainstCategory,
   resolveDescribeZip,
@@ -364,6 +365,17 @@ export function Match() {
   const more = rankedHelpers.slice(3)
   const postHref = postJobHref(qForHeading || qParam, categoryId, zipParam)
 
+  const intentSwitch = formatIntentChip({
+    intent,
+    categoryLabel: null,
+    zip: zipParam,
+  })
+  const intentSwitchHref = useMemo(() => {
+    const next = new URLSearchParams(params.toString())
+    next.set('intent', intent === 'jobs' ? 'helpers' : 'jobs')
+    return `/match?${next.toString()}`
+  }, [params, intent])
+
   const loginHref = `/auth?next=${encodeURIComponent(
     `/match?${params.toString()}`,
   )}`
@@ -416,6 +428,13 @@ export function Match() {
         {intent === 'helpers' ? (
           <>
             <h1 className="match-title">{formatHelpersHeading(categoryLabel)}</h1>
+            <Link
+              href={intentSwitchHref}
+              className="match-intent-switch"
+              data-testid="match-intent-switch"
+            >
+              {intentSwitch.toggleLabel}
+            </Link>
             <p className="match-sub">
               <MapPin width={18} height={18} strokeWidth={2.2} aria-hidden />
               {cityName ? `Helpers serving ${cityName}` : 'Helpers near you'}
@@ -664,6 +683,13 @@ export function Match() {
             <h1 className="match-title">
               New jobs near {zipParam || 'you'}
             </h1>
+            <Link
+              href={intentSwitchHref}
+              className="match-intent-switch"
+              data-testid="match-intent-switch"
+            >
+              {intentSwitch.toggleLabel}
+            </Link>
             <p className="match-sub">
               <MapPin width={18} height={18} strokeWidth={2.2} aria-hidden />
               {cityName

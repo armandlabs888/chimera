@@ -14,7 +14,6 @@ import { MapPin, Search } from 'lucide-react'
 import { getBrowseCategoryIcon } from '@/lib/categoryIcons'
 import {
   detectDescribeIntent,
-  formatIntentChip,
   resolveDescribeZip,
   type DescribeRoleHint,
   type MatchIntent,
@@ -102,13 +101,6 @@ export function DescribeSearchForm({
   )
 
   const zipDigits = zip.replace(/\D/g, '').slice(0, 5)
-  // Prefer ZIP field; if the user typed "… in 95131" in q, use that for heading display only.
-  const displayZip = resolveDescribeZip(zipDigits, query)
-  const chip = formatIntentChip({
-    intent: detection.intent,
-    categoryLabel: null,
-    zip: displayZip,
-  })
 
   const categories = useMemo(() => {
     const cats: MatchedCategory[] = []
@@ -128,7 +120,6 @@ export function DescribeSearchForm({
   }, [categories])
 
   const showSuggest = open && query.trim().length > 0
-  const showIntentChip = query.trim().length > 0
   const isHero = variant === 'hero'
   const typedQuery = query.trim()
 
@@ -160,7 +151,7 @@ export function DescribeSearchForm({
     }
 
     function placeMenu() {
-      // Anchor below the pill + intent chip so the portal does not cover the chip.
+      // Anchor below the search pill so the portal opens under the form.
       const trigger = anchorRef.current || pillRef.current
       if (!trigger) return
       const rect = trigger.getBoundingClientRect()
@@ -276,12 +267,6 @@ export function DescribeSearchForm({
     if (detected.intent === 'jobs' && !detected.ambiguous) {
       submitSearch({ q: text, intent: 'jobs' })
     }
-  }
-
-  function toggleIntent() {
-    const next: MatchIntent = detection.intent === 'helpers' ? 'jobs' : 'helpers'
-    setIntentOverride(next)
-    setOpen(true)
   }
 
   function selectOption(index: number) {
@@ -467,37 +452,9 @@ export function DescribeSearchForm({
           </button>
         </div>
 
-        {showIntentChip ? (
-          <div
-            className={`describe-intent-chip${!isHero ? ' on-light' : ''}`}
-            data-testid="intent-chip"
-          >
-            <span className="understood">
-              {detection.intent === 'jobs' ? (
-                <>
-                  Showing jobs near{' '}
-                  <b>{displayZip.length === 5 ? displayZip : 'you'}</b>
-                </>
-              ) : (
-                <>
-                  Showing helpers near{' '}
-                  <b>{displayZip.length === 5 ? displayZip : 'you'}</b>
-                </>
-              )}
-            </span>
-            <button
-              type="button"
-              className="switch"
-              data-testid="intent-toggle"
-              onClick={toggleIntent}
-            >
-              {chip.toggleLabel}
-            </button>
-          </div>
-        ) : null}
       </div>
 
-      {showChips && !showIntentChip ? (
+      {showChips && !typedQuery ? (
         <div className="describe-chips" aria-label="Try a request">
           {DESCRIBE_CHIPS.map((label) => (
             <button

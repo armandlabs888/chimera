@@ -38,10 +38,6 @@
   width: 100%;
 }
 
-.match-header .describe-intent-chip {
-  margin-top: 0;
-}
-
 .match-header-cta {
   margin-left: auto;
   display: flex;
@@ -105,6 +101,23 @@
   letter-spacing: -0.035em;
   line-height: 1.15;
   color: #071330;
+}
+
+.match-intent-switch {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #1649bd;
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: none;
+}
+
+.match-intent-switch:hover {
+  text-decoration: underline;
 }
 
 .match-sub {

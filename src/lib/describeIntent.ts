@@ -542,7 +542,7 @@ export function matchRequestAgainstCategory(
   return expanded.includes(requestCategory)
 }
 
-/** Chip copy under the search pill. */
+/** Intent labels for results switch (and unit tests). */
 export function formatIntentChip(input: {
   intent: MatchIntent
   categoryLabel: string | null

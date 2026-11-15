@@ -125,6 +125,18 @@
   }
 }
 
+/* Hero lede: wrap on mobile; single line on tablet/desktop. */
+.landing-hero-lede {
+  max-width: 46ch;
+}
+
+@media (min-width: 768px) {
+  .landing-hero-lede {
+    max-width: none;
+    white-space: nowrap;
+  }
+}
+
 /* Popular services: first content after hero; comfortable section padding. */
 #categories {
   margin-top: 0;

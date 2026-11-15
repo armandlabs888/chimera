@@ -137,7 +137,7 @@ export function LandingHero() {
             </span>
           </h1>
 
-          <p className="mx-auto mt-5 max-w-[46ch] text-[15px] leading-6 text-white/80 md:text-[17px] md:leading-7">
+          <p className="landing-hero-lede mx-auto mt-5 text-[15px] leading-6 text-white/80 md:text-[17px] md:leading-7">
             Describe the job, compare helpers nearby, or find new work in your area.
           </p>
 
