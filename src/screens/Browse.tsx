@@ -698,6 +698,7 @@ export function Browse() {
 
   const liveCount = tab === 'requests' ? openRequests.length : people.length
   const taskNoun = liveCount === 1 ? 'task' : 'tasks'
+  const helperNoun = liveCount === 1 ? 'helper' : 'helpers'
   const shownRequests = openRequests.slice(0, visibleCount)
   const shownPeople = people.slice(0, visibleCount)
   const selectedRequest = jobId ? state.requests.find((r) => r.id === jobId) ?? null : null
@@ -747,7 +748,7 @@ export function Browse() {
     : ''
 
   const heroTitle = tab === 'people' ? 'Helpers near you' : 'Jobs near you'
-  const subline =
+  const resultsCountLine =
     tab === 'requests'
       ? !hasHome
         ? `${liveCount} ${taskNoun} nearby`
@@ -756,7 +757,13 @@ export function Browse() {
           : radius === 'all'
             ? `${liveCount} ${taskNoun} at any distance`
             : `${liveCount} ${taskNoun} within ${radiusPhrase(radius)}`
-      : null
+      : !hasHome
+        ? `${liveCount} ${helperNoun} nearby`
+        : liveCount === 0
+          ? `No helpers within ${radiusPhrase(radius)}`
+          : radius === 'all'
+            ? `${liveCount} ${helperNoun} at any distance`
+            : `${liveCount} ${helperNoun} within ${radiusPhrase(radius)}`
 
   const distanceToggleDisabled = !hasHome
 
@@ -809,7 +816,6 @@ export function Browse() {
             <h1 className="browse-hc-hero-title" data-testid="browse-hero-title">
               {heroTitle}
             </h1>
-            {subline ? <p className="browse-hc-hero-sub">{subline}</p> : null}
             {!hasHome && homeReady ? (
               <button
                 type="button"
@@ -941,6 +947,9 @@ export function Browse() {
         ) : tab === 'requests' ? (
           <div className={`browse-hc-layout ${showDesktopDetail ? '' : 'browse-hc-layout--solo'}`}>
             <div>
+              <p className="browse-hc-results-count" data-testid="browse-results-count">
+                {resultsCountLine}
+              </p>
               <ul className="browse-hc-job-list" data-testid="browse-job-list">
                 {shownRequests.map((request) => {
                   const area = publicArea(request)
@@ -1020,6 +1029,9 @@ export function Browse() {
         ) : (
           <div className={`browse-hc-layout ${showDesktopHelperDetail ? '' : 'browse-hc-layout--solo'}`}>
             <div>
+              <p className="browse-hc-results-count" data-testid="browse-results-count">
+                {resultsCountLine}
+              </p>
               <ul className="browse-hc-job-list browse-hc-helper-list" data-testid="browse-helper-list">
                 {shownPeople.map((person) => {
                   const skill = person.skills[0]
