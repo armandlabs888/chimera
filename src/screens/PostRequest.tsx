@@ -118,6 +118,7 @@ export function PostRequest() {
   const timeParam = (params.get('time') || params.get('start') || '').trim()
   const zipParam = (params.get('zip') || '').trim()
   const detailsParam = (params.get('details') || '').trim()
+  const titleParam = (params.get('title') || '').trim()
   const budgetParamRaw = (params.get('budget') || '').trim()
   const budgetParam = Number(budgetParamRaw)
   const budgetTypeParam = params.get('budgetType')
@@ -128,12 +129,13 @@ export function PostRequest() {
       Boolean(timeParam) ||
       Boolean(zipParam) ||
       Boolean(detailsParam) ||
+      Boolean(titleParam) ||
       Number.isFinite(budgetParam))
 
   const [category, setCategory] = useState<ServiceCategoryId>(initialCategory)
   const [categoryCustom, setCategoryCustom] = useState('')
   const [customError, setCustomError] = useState('')
-  const [title, setTitle] = useState('')
+  const [title, setTitle] = useState(() => titleParam.slice(0, TITLE_MAX))
   const [details, setDetails] = useState(() => detailsParam.slice(0, DETAILS_MAX))
   const [aiPrompt, setAiPrompt] = useState('')
   const [aiBlocked, setAiBlocked] = useState('')
