@@ -15,8 +15,10 @@ import { getBrowseCategoryIcon } from '@/lib/categoryIcons'
 import {
   detectDescribeIntent,
   formatIntentChip,
+  resolveDescribeZip,
   softCategoryLabel,
   type DescribeRoleHint,
+  type ExampleRequest,
   type MatchIntent,
   type MatchedCategory,
 } from '@/lib/describeIntent'
@@ -98,12 +100,14 @@ export function DescribeSearchForm({
   )
 
   const zipDigits = zip.replace(/\D/g, '').slice(0, 5)
+  // Prefer ZIP field; if the user typed "… in 95131" in q, use that for heading display only.
+  const displayZip = resolveDescribeZip(zipDigits, query)
   const chip = formatIntentChip({
     intent: detection.intent,
     categoryLabel: detection.category
       ? softCategoryLabel(detection.category.label)
       : null,
-    zip: zipDigits.length === 5 ? zipDigits : '',
+    zip: displayZip,
   })
 
   const options = useMemo(() => {
@@ -119,10 +123,10 @@ export function DescribeSearchForm({
   const flatOptions = useMemo(() => {
     const rows: Array<
       | { kind: 'category'; cat: MatchedCategory }
-      | { kind: 'example'; text: string }
+      | { kind: 'example'; example: ExampleRequest }
     > = []
     for (const cat of options.categories) rows.push({ kind: 'category', cat })
-    for (const text of options.examples) rows.push({ kind: 'example', text })
+    for (const example of options.examples) rows.push({ kind: 'example', example })
     return rows
   }, [options])
 
@@ -221,7 +225,12 @@ export function DescribeSearchForm({
 
   function submitSearch(next?: Partial<DescribeSearchSubmit>) {
     const q = (next?.q ?? query).trim()
-    const digits = (next?.zip ?? zip).replace(/\D/g, '').slice(0, 5)
+    let digits = (next?.zip ?? zip).replace(/\D/g, '').slice(0, 5)
+    // If ZIP field empty but q ends with "in 12345", carry that ZIP (keep typed q as-is).
+    if (digits.length !== 5) {
+      const fromQuery = resolveDescribeZip('', q)
+      if (fromQuery.length === 5) digits = fromQuery
+    }
     if (digits.length > 0 && digits.length !== 5) {
       setZipError(true)
       return
@@ -288,8 +297,20 @@ export function DescribeSearchForm({
       })
       return
     }
-    setQuery(row.text)
-    submitSearch({ q: row.text, intent: detection.intent })
+    // Suggestions put only the request text into q; location stays in the ZIP field.
+    // Example rows are neighbor-style requests; only use jobs when the example text
+    // itself is a clear job-seeking phrase (role tiebreak must not flip them).
+    const fromExample = detectDescribeIntent(row.example.text, {
+      zip: zipDigits,
+      city: cityLabel,
+      roleHint,
+      intentOverride: null,
+    })
+    const exampleIntent: MatchIntent =
+      fromExample.intent === 'jobs' && !fromExample.ambiguous ? 'jobs' : 'helpers'
+    setIntentOverride(null)
+    setQuery(row.example.text)
+    submitSearch({ q: row.example.text, intent: exampleIntent })
   }
 
   function onQueryKeyDown(e: KeyboardEvent<HTMLInputElement>) {
@@ -345,10 +366,10 @@ export function DescribeSearchForm({
                     for <b>{softCategoryLabel(detection.category.label)}</b>
                   </>
                 ) : null}
-                {zipDigits.length === 5 ? (
+                {displayZip.length === 5 ? (
                   <>
                     {' '}
-                    near <b>{zipDigits}</b>
+                    near <b>{displayZip}</b>
                   </>
                 ) : null}
                 .
@@ -386,11 +407,11 @@ export function DescribeSearchForm({
             {options.examples.length > 0 ? (
               <>
                 <p className="describe-suggest-label">Try a request</p>
-                {options.examples.map((text, ei) => {
+                {options.examples.map((example, ei) => {
                   const index = options.categories.length + ei
                   return (
                     <button
-                      key={`ex-${text}`}
+                      key={`ex-${example.text}`}
                       type="button"
                       role="option"
                       aria-selected={activeIndex === index}
@@ -399,7 +420,8 @@ export function DescribeSearchForm({
                       onClick={() => selectOption(index)}
                     >
                       <Search width={18} height={18} aria-hidden />
-                      {text}
+                      <span className="describe-suggest-request">{example.text}</span>
+                      <span className="meta">{example.locationMeta}</span>
                     </button>
                   )
                 })}
@@ -492,17 +514,17 @@ export function DescribeSearchForm({
               {detection.intent === 'jobs' ? (
                 <>
                   Showing new jobs near{' '}
-                  <b>{zipDigits.length === 5 ? zipDigits : 'your area'}</b>
+                  <b>{displayZip.length === 5 ? displayZip : 'your area'}</b>
                 </>
               ) : detection.category ? (
                 <>
                   Finding helpers for <b>{softCategoryLabel(detection.category.label)}</b> near{' '}
-                  <b>{zipDigits.length === 5 ? zipDigits : 'your area'}</b>
+                  <b>{displayZip.length === 5 ? displayZip : 'your area'}</b>
                 </>
               ) : (
                 <>
                   Finding helpers near{' '}
-                  <b>{zipDigits.length === 5 ? zipDigits : 'your area'}</b>
+                  <b>{displayZip.length === 5 ? displayZip : 'your area'}</b>
                 </>
               )}
             </span>

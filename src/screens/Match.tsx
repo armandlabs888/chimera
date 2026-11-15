@@ -16,7 +16,9 @@ import {
   formatHelpersHeading,
   matchRequestAgainstCategory,
   matchSkillAgainstCategory,
+  resolveDescribeZip,
   softCategoryLabel,
+  stripTrailingLocationPhrase,
   type DescribeRoleHint,
   type MatchIntent,
 } from '@/lib/describeIntent'
@@ -172,9 +174,13 @@ export function Match() {
   const isDemo = mode === 'demo'
 
   const qParam = (params.get('q') || '').trim()
-  const zipParam = normalizeZipInput(params.get('zip') || '') || ''
+  const zipFromUrl = normalizeZipInput(params.get('zip') || '') || ''
+  // Prefer ZIP query param; if missing, use a ZIP typed at the end of q (heading / match only).
+  const zipParam = resolveDescribeZip(zipFromUrl, qParam) || zipFromUrl
   const intentParam = params.get('intent')
   const categoryParam = params.get('category')
+  // Keep the typed q in the field; heading / category logic uses the stripped request text.
+  const { requestText: qForHeading } = stripTrailingLocationPhrase(qParam)
 
   const roleHint: DescribeRoleHint = useMemo(() => {
     if (isLiveGuest) return 'guest'
@@ -356,7 +362,7 @@ export function Match() {
 
   const top3 = rankedHelpers.slice(0, 3)
   const more = rankedHelpers.slice(3)
-  const postHref = postJobHref(qParam, categoryId, zipParam)
+  const postHref = postJobHref(qForHeading || qParam, categoryId, zipParam)
 
   const loginHref = `/auth?next=${encodeURIComponent(
     `/match?${params.toString()}`,
@@ -421,7 +427,7 @@ export function Match() {
                 <p>
                   Post this as a job and we will pre-fill{' '}
                   <span className="query">
-                    &quot;{qParam || 'your request'}&quot;
+                    &quot;{qForHeading || qParam || 'your request'}&quot;
                   </span>
                   . Helpers nearby can send offers.
                 </p>
