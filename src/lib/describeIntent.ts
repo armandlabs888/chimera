@@ -28,7 +28,8 @@ export type MatchedCategory = {
   parentId: BrowseParentId | null
   /** Higher is better. */
   score: number
-  meta: string
+  /** One-line plain description of what the category covers. */
+  description: string
 }
 
 export type ExampleRequest = {
@@ -52,6 +53,26 @@ type SynonymRule = {
   terms: string[]
   categoryId: string
   weight: number
+}
+
+/** Short plain descriptions for dropdown rows (no em/en dashes). */
+export const CATEGORY_DESCRIPTIONS: Record<string, string> = {
+  'house-cleaning': 'Homes, apartments, kitchens and baths',
+  'carpet-cleaning': 'Rooms, stairs, and spot treatment',
+  'auto-detailing': 'Interior and exterior car detailing',
+  'junk-removal': 'Haul away old furniture and clutter',
+  'pet-sitting': 'Walks, drop-ins, and overnight sitting',
+  grooming: 'Bath, brush, and nail trim at home',
+  other: 'Everyday tasks you describe',
+  moving: 'Couches, boxes, loading a truck',
+  handyman: 'Furniture setup, small repairs',
+  cleaning: 'Homes, apartments, kitchens and baths',
+  petcare: 'Walks, drop-ins, and overnight sitting',
+  tutoring: 'Homework help and basic tech setup',
+  events: 'Setup, photo help, and party tasks',
+  home: 'House and carpet cleaning',
+  auto: 'Car wash and detailing',
+  pets: 'Sitting and grooming',
 }
 
 /**
@@ -155,7 +176,33 @@ export const CATEGORY_SYNONYMS: SynonymRule[] = [
     categoryId: 'moving',
     weight: 10,
   },
+  {
+    terms: [
+      'handyman',
+      'assembly',
+      'assemble',
+      'furniture setup',
+      'ikea',
+      'mount tv',
+      'tv mount',
+      'small repairs',
+      'fix together',
+    ],
+    categoryId: 'handyman',
+    weight: 10,
+  },
 ]
+
+/** Neighbor categories to surface after the best match when synonym hits are sparse. */
+const RELATED_NEIGHBORS: Record<string, string[]> = {
+  moving: ['junk-removal', 'handyman'],
+  'junk-removal': ['moving', 'handyman'],
+  handyman: ['moving', 'junk-removal'],
+  'house-cleaning': ['carpet-cleaning'],
+  'carpet-cleaning': ['house-cleaning'],
+  'pet-sitting': ['grooming'],
+  grooming: ['pet-sitting'],
+}
 
 /** Phrases that strongly indicate the searcher wants open jobs (helper intent). */
 const HELPER_INTENT_PATTERNS: RegExp[] = [
@@ -190,6 +237,7 @@ const EXAMPLE_BY_CATEGORY: Record<string, string[]> = {
   'pet-sitting': ['Dog walker this week', 'Cat drop-in while away'],
   grooming: ['Dog bath and brush', 'Pet grooming at home'],
   moving: ['Help moving a couch', 'Moving help this weekend'],
+  handyman: ['Assemble a bookshelf', 'Mount a TV'],
   other: ['Help with an everyday task', 'Local help'],
 }
 
@@ -259,6 +307,10 @@ function labelForCategoryId(id: string): string {
   return formatCategoryLabel(id)
 }
 
+function descriptionForCategoryId(id: string): string {
+  return CATEGORY_DESCRIPTIONS[id] || 'Local help nearby'
+}
+
 function parentForCategoryId(id: string): BrowseParentId | null {
   if (isServiceCategoryId(id)) return parentIdForService(id)
   if (id === 'moving') return 'junk-removal'
@@ -266,6 +318,16 @@ function parentForCategoryId(id: string): BrowseParentId | null {
   if (id === 'petcare') return 'pets'
   if (isBrowseParentId(id)) return id
   return null
+}
+
+function toMatchedCategory(id: string, score: number): MatchedCategory {
+  return {
+    id,
+    label: labelForCategoryId(id),
+    parentId: parentForCategoryId(id),
+    score,
+    description: descriptionForCategoryId(id),
+  }
 }
 
 function scoreCategories(normalized: string): MatchedCategory[] {
@@ -296,28 +358,9 @@ function scoreCategories(normalized: string): MatchedCategory[] {
     }
   }
 
-  const ranked = [...scores.entries()]
-    .map(([id, score]) => {
-      const parentId = parentForCategoryId(id)
-      const label = labelForCategoryId(id)
-      return {
-        id,
-        label,
-        parentId,
-        score,
-        meta: '',
-      } satisfies MatchedCategory
-    })
+  return [...scores.entries()]
+    .map(([id, score]) => toMatchedCategory(id, score))
     .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label))
-
-  return ranked.map((item, index) => {
-    if (index === 0) return { ...item, meta: 'Best match' }
-    if (item.parentId) {
-      const parent = getBrowseParent(item.parentId)
-      return { ...item, meta: `Related · ${parent.label}` }
-    }
-    return { ...item, meta: 'Related' }
-  })
 }
 
 function detectHelperIntent(normalized: string): boolean {
@@ -371,6 +414,35 @@ function buildExamples(
   return templates.map((text) => ({ text, locationMeta }))
 }
 
+function fillRelated(
+  category: MatchedCategory,
+  related: MatchedCategory[],
+  maxRelated: number,
+): MatchedCategory[] {
+  const out = [...related]
+  const seen = new Set<string>([category.id, ...out.map((r) => r.id)])
+
+  const neighbors = RELATED_NEIGHBORS[category.id] || []
+  for (const id of neighbors) {
+    if (out.length >= maxRelated) break
+    if (seen.has(id)) continue
+    seen.add(id)
+    out.push(toMatchedCategory(id, 1))
+  }
+
+  if (out.length < maxRelated && category.parentId) {
+    const parent = getBrowseParent(category.parentId)
+    for (const sid of parent.serviceIds) {
+      if (out.length >= maxRelated) break
+      if (seen.has(sid)) continue
+      seen.add(sid)
+      out.push(toMatchedCategory(sid, 1))
+    }
+  }
+
+  return out.slice(0, maxRelated)
+}
+
 /**
  * Detect search intent + matching categories from free text.
  * @param query Raw describe field
@@ -395,22 +467,10 @@ export function detectDescribeIntent(
   const normalized = normalizeQuery(requestText)
   const ranked = normalized ? scoreCategories(normalized) : []
   const category = ranked[0] ?? null
-  const related = ranked.slice(1, 4)
-
-  // When parent "home" cleaning hits both leaves, keep best + one sibling as related.
-  if (category && related.length === 0 && category.parentId) {
-    const parent = getBrowseParent(category.parentId)
-    for (const sid of parent.serviceIds) {
-      if (sid === category.id) continue
-      related.push({
-        id: sid,
-        label: labelForCategoryId(sid),
-        parentId: category.parentId,
-        score: 1,
-        meta: `Related · ${parent.label}`,
-      })
-      break
-    }
+  // Up to 3 total in the dropdown: best match + up to 2 related.
+  let related = ranked.slice(1, 3)
+  if (category) {
+    related = fillRelated(category, related, 2)
   }
 
   let intent: MatchIntent
@@ -482,28 +542,23 @@ export function matchRequestAgainstCategory(
   return expanded.includes(requestCategory)
 }
 
-/** Chip copy: "Finding helpers for House cleaning near 95131" / "Showing new jobs near 95131". */
+/** Chip copy under the search pill. */
 export function formatIntentChip(input: {
   intent: MatchIntent
   categoryLabel: string | null
   zip: string
 }): { understood: string; toggleLabel: string } {
-  const zip = input.zip || 'your area'
+  const zip = input.zip || 'you'
+  const near = input.zip ? `near ${zip}` : 'near you'
   if (input.intent === 'jobs') {
     return {
-      understood: `Showing new jobs near ${zip}`,
-      toggleLabel: 'Show helpers instead',
-    }
-  }
-  if (input.categoryLabel) {
-    return {
-      understood: `Finding helpers for ${input.categoryLabel} near ${zip}`,
-      toggleLabel: 'Show jobs instead',
+      understood: `Showing jobs ${near}`,
+      toggleLabel: 'Looking for helpers instead?',
     }
   }
   return {
-    understood: `Finding helpers near ${zip}`,
-    toggleLabel: 'Show jobs instead',
+    understood: `Showing helpers ${near}`,
+    toggleLabel: 'Looking for work instead?',
   }
 }
 

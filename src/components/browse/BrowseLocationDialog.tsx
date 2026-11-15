@@ -185,7 +185,7 @@ function BrowseLocationDialog({
     }
   }
 
-  async function useCurrentLocation() {
+  async function applyCurrentLocation() {
     if (!navigator.geolocation) {
       setError('Location is not available in this browser.')
       return
@@ -307,7 +307,7 @@ function BrowseLocationDialog({
 
           <button
             type="button"
-            onClick={() => void useCurrentLocation()}
+            onClick={() => void applyCurrentLocation()}
             disabled={geoPending || pending}
             data-testid="browse-location-geolocate"
             className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] border border-[#D7E0EC] bg-[#EEF2F7] px-4 text-[14px] font-semibold text-[#071330] transition hover:bg-[#E3E8EF] disabled:opacity-60"

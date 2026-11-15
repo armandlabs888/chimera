@@ -181,57 +181,21 @@
   border: 1px solid rgba(7, 19, 48, 0.12);
   border-radius: 10px;
   box-shadow: 0 18px 40px -12px rgba(12, 42, 102, 0.35);
-  padding: 8px 0;
+  padding: 6px;
   overflow: auto;
   overscroll-behavior: contain;
-}
-
-.describe-suggest-intent {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 10px;
-  margin: 4px 10px 8px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: #eef4ff;
-  color: #071330;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.describe-suggest-intent b {
-  font-weight: 600;
-}
-
-.describe-suggest-intent .switch {
-  color: #1649bd;
-  font-weight: 600;
-  margin-left: auto;
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  font: inherit;
-}
-
-.describe-suggest-label {
-  padding: 8px 16px 4px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #4a5568;
 }
 
 .describe-suggest-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  min-height: 44px;
-  padding: 8px 16px;
-  font-size: 14px;
+  min-height: 56px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 400;
   color: #071330;
   text-align: left;
   background: none;
@@ -241,31 +205,71 @@
 
 .describe-suggest-item:hover,
 .describe-suggest-item.is-active {
-  background: #eef4ff;
+  background: #eef2f7;
 }
 
-.describe-suggest-item.is-active {
-  font-weight: 600;
+.describe-cat-ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #eef2f7;
   color: #1d5ce5;
 }
 
-.describe-suggest-item .describe-suggest-request {
-  flex: 1;
-  min-width: 0;
-  text-align: left;
+.describe-suggest-item.is-active .describe-cat-ico {
+  background: #fff;
 }
 
-.describe-suggest-item .meta {
+.describe-cat-ico.plain {
+  background: transparent;
+}
+
+.describe-cat-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.describe-cat-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #071330;
+}
+
+.describe-cat-desc {
+  font-size: 13px;
+  color: #4a5568;
+  margin-top: 1px;
+}
+
+.describe-suggest-item--search .describe-cat-name {
+  font-weight: 500;
+}
+
+.describe-suggest-sep {
+  height: 1px;
+  background: #e3e8ef;
+  margin: 6px 10px;
+}
+
+.describe-enter-hint {
   margin-left: auto;
   flex: none;
-  font-size: 12px;
-  font-weight: 500;
+  font: 500 12px inherit;
   color: #4a5568;
+  border: 1px solid #d7e0ec;
+  border-radius: 6px;
+  padding: 2px 6px;
 }
 
-.describe-suggest-item svg {
-  flex: none;
-  color: #1d5ce5;
+@media (max-width: 767px) {
+  .describe-enter-hint {
+    display: none;
+  }
 }
 
 .describe-zip-error {
@@ -307,4 +311,121 @@
   .describe-search-field.zip {
     flex-basis: 150px;
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Hero glassmorphic overlay (landing only). /match keeps white styles above. */
+/* -------------------------------------------------------------------------- */
+
+.describe-search--hero .describe-search-pill,
+.describe-search--hero .describe-intent-chip,
+.describe-search--hero .describe-chip,
+.describe-suggest--glass {
+  background: rgba(255, 255, 255, 0.14) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.32) !important;
+  box-shadow: 0 12px 32px -12px rgba(7, 19, 48, 0.45) !important;
+}
+
+.describe-suggest--glass {
+  background: rgba(7, 19, 48, 0.38) !important;
+}
+
+.describe-search--hero .describe-search-pill:focus-within {
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.28),
+    0 12px 32px -12px rgba(7, 19, 48, 0.45) !important;
+}
+
+.describe-search--hero .describe-search-field svg {
+  color: #fff;
+}
+
+.describe-search--hero .describe-search-field input {
+  color: #fff;
+}
+
+.describe-search--hero .describe-search-field input::placeholder {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.describe-search--hero .describe-search-div {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+.describe-search--hero .describe-intent-chip .understood {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.describe-search--hero .describe-intent-chip .understood b {
+  color: #fff;
+}
+
+.describe-search--hero .describe-intent-chip .switch {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
+}
+
+.describe-search--hero .describe-intent-chip .switch:hover {
+  text-decoration: underline;
+}
+
+.describe-search--hero .describe-chip {
+  color: #fff !important;
+}
+
+.describe-search--hero .describe-chip:hover {
+  background: rgba(255, 255, 255, 0.24) !important;
+}
+
+.describe-search--hero .describe-zip-error {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.describe-suggest--glass .describe-suggest-item:hover,
+.describe-suggest--glass .describe-suggest-item.is-active {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.describe-suggest--glass .describe-cat-ico {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.describe-suggest--glass .describe-suggest-item.is-active .describe-cat-ico {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.describe-suggest--glass .describe-cat-ico.plain {
+  background: transparent;
+}
+
+.describe-suggest--glass .describe-cat-name {
+  color: #fff;
+}
+
+.describe-suggest--glass .describe-cat-desc {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.describe-suggest--glass .describe-suggest-sep {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.describe-suggest--glass .describe-enter-hint {
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.describe-suggest--glass .describe-suggest-item svg {
+  color: #fff !important;
+}
+
+/* Search button stays solid brand blue on glass hero. */
+.describe-search--hero .describe-search-btn {
+  background: #1d5ce5;
+  color: #fff;
 }

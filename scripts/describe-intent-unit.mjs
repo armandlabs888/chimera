@@ -54,6 +54,11 @@ const CATEGORY_SYNONYMS = [
     weight: 10,
   },
   {
+    terms: ['handyman', 'assembly', 'furniture setup', 'small repairs'],
+    categoryId: 'handyman',
+    weight: 10,
+  },
+  {
     terms: ['auto detailing', 'car detailing', 'detailing'],
     categoryId: 'auto-detailing',
     weight: 10,
@@ -68,6 +73,28 @@ const LABELS = {
   grooming: 'Grooming',
   'auto-detailing': 'Auto Detailing',
   moving: 'Moving & lifting',
+  handyman: 'Handyman & assembly',
+}
+
+const DESCRIPTIONS = {
+  'house-cleaning': 'Homes, apartments, kitchens and baths',
+  'carpet-cleaning': 'Rooms, stairs, and spot treatment',
+  'auto-detailing': 'Interior and exterior car detailing',
+  'junk-removal': 'Haul away old furniture and clutter',
+  'pet-sitting': 'Walks, drop-ins, and overnight sitting',
+  grooming: 'Bath, brush, and nail trim at home',
+  moving: 'Couches, boxes, loading a truck',
+  handyman: 'Furniture setup, small repairs',
+}
+
+const RELATED_NEIGHBORS = {
+  moving: ['junk-removal', 'handyman'],
+  'junk-removal': ['moving', 'handyman'],
+  handyman: ['moving', 'junk-removal'],
+  'house-cleaning': ['carpet-cleaning'],
+  'carpet-cleaning': ['house-cleaning'],
+  'pet-sitting': ['grooming'],
+  grooming: ['pet-sitting'],
 }
 
 const HELPER_INTENT_PATTERNS = [
@@ -180,8 +207,30 @@ function scoreCategories(normalized) {
     }
   }
   return [...scores.entries()]
-    .map(([id, score]) => ({ id, label: LABELS[id] || id, score }))
+    .map(([id, score]) => ({
+      id,
+      label: LABELS[id] || id,
+      score,
+      description: DESCRIPTIONS[id] || 'Local help nearby',
+    }))
     .sort((a, b) => b.score - a.score)
+}
+
+function fillRelated(category, related, maxRelated) {
+  const out = [...related]
+  const seen = new Set([category.id, ...out.map((r) => r.id)])
+  for (const id of RELATED_NEIGHBORS[category.id] || []) {
+    if (out.length >= maxRelated) break
+    if (seen.has(id)) continue
+    seen.add(id)
+    out.push({
+      id,
+      label: LABELS[id] || id,
+      score: 1,
+      description: DESCRIPTIONS[id] || 'Local help nearby',
+    })
+  }
+  return out.slice(0, maxRelated)
 }
 
 function detectDescribeIntent(query, options = {}) {
@@ -190,6 +239,8 @@ function detectDescribeIntent(query, options = {}) {
   const normalized = normalizeQuery(requestText)
   const ranked = normalized ? scoreCategories(normalized) : []
   const category = ranked[0] ?? null
+  let related = ranked.slice(1, 3)
+  if (category) related = fillRelated(category, related, 2)
 
   const helperCue = HELPER_INTENT_PATTERNS.some((re) => re.test(normalizedForIntent))
   const neighborCue = NEIGHBOR_INTENT_PATTERNS.some((re) => re.test(normalizedForIntent))
@@ -216,6 +267,7 @@ function detectDescribeIntent(query, options = {}) {
     intent,
     ambiguous,
     category,
+    related,
     exampleRequests: buildExamples(
       category?.id ?? null,
       resolvedZip || options.zip || '',
@@ -231,18 +283,12 @@ function expandMatchCategoryFilter(categoryId) {
   return [categoryId]
 }
 
-function formatIntentChip({ intent, categoryLabel, zip }) {
-  const z = zip || 'your area'
+function formatIntentChip({ intent, zip }) {
+  const near = zip ? `near ${zip}` : 'near you'
   if (intent === 'jobs') {
-    return { understood: `Showing new jobs near ${z}`, toggleLabel: 'Show helpers instead' }
+    return { understood: `Showing jobs ${near}`, toggleLabel: 'Looking for helpers instead?' }
   }
-  if (categoryLabel) {
-    return {
-      understood: `Finding helpers for ${categoryLabel} near ${z}`,
-      toggleLabel: 'Show jobs instead',
-    }
-  }
-  return { understood: `Finding helpers near ${z}`, toggleLabel: 'Show jobs instead' }
+  return { understood: `Showing helpers ${near}`, toggleLabel: 'Looking for work instead?' }
 }
 
 function formatHelpersHeading(categoryLabel) {
@@ -268,6 +314,14 @@ function formatHelpersHeading(categoryLabel) {
   const r = detectDescribeIntent('Help moving a couch Saturday')
   assert.equal(r.intent, 'helpers')
   assert.equal(r.category?.id, 'moving')
+  assert.equal(r.category?.description, 'Couches, boxes, loading a truck')
+  assert.equal(r.related.length, 2)
+  assert.deepEqual(
+    r.related.map((x) => x.id),
+    ['junk-removal', 'handyman'],
+  )
+  assert.equal(r.related[0].description, 'Haul away old furniture and clutter')
+  assert.equal(r.related[1].description, 'Furniture setup, small repairs')
 }
 
 {
@@ -356,14 +410,19 @@ function formatHelpersHeading(categoryLabel) {
     categoryLabel: 'House cleaning',
     zip: '95131',
   })
-  assert.equal(chip.understood, 'Finding helpers for House cleaning near 95131')
-  assert.equal(chip.toggleLabel, 'Show jobs instead')
+  assert.equal(chip.understood, 'Showing helpers near 95131')
+  assert.equal(chip.toggleLabel, 'Looking for work instead?')
 }
 
 {
   const chip = formatIntentChip({ intent: 'jobs', categoryLabel: null, zip: '95131' })
-  assert.equal(chip.understood, 'Showing new jobs near 95131')
-  assert.equal(chip.toggleLabel, 'Show helpers instead')
+  assert.equal(chip.understood, 'Showing jobs near 95131')
+  assert.equal(chip.toggleLabel, 'Looking for helpers instead?')
+}
+
+{
+  const chip = formatIntentChip({ intent: 'helpers', categoryLabel: null, zip: '' })
+  assert.equal(chip.understood, 'Showing helpers near you')
 }
 
 {
