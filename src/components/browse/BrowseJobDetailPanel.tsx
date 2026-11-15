@@ -1,9 +1,10 @@
 'use client'
 
-import { Bookmark, Clock, MapPin } from 'lucide-react'
+import { Clock, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useId, useRef, useState } from 'react'
+import { JobSaveButton } from '@/components/jobs/JobSaveButton'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import {
   OfferGateNotice,
@@ -83,7 +84,6 @@ export function BrowseJobDetailPanel({
   const [offerError, setOfferError] = useState('')
   const [offerPending, setOfferPending] = useState(false)
   const [askPending, setAskPending] = useState(false)
-  const [saved, setSaved] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const offerFormRef = useRef<HTMLFormElement>(null)
 
@@ -95,7 +95,6 @@ export function BrowseJobDetailPanel({
     setOfferNote(myOffer?.note ?? '')
     setOfferEta(myOffer?.eta ?? 'Within 1 hour')
     setOfferError('')
-    setSaved(false)
     // Reset form when switching jobs; myOffer is derived from request.id + offers.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional job-id sync
   }, [request.id])
@@ -255,19 +254,7 @@ export function BrowseJobDetailPanel({
           <div className="browse-hc-photo-caption">
             {categoryLabel} · Posted {posted}
           </div>
-          <button
-            type="button"
-            className="browse-hc-save-btn"
-            aria-pressed={saved}
-            onClick={() => setSaved((v) => !v)}
-          >
-            <Bookmark
-              className={`h-4 w-4 ${saved ? 'fill-[#1D5CE5]' : ''}`}
-              strokeWidth={1.9}
-              aria-hidden
-            />
-            {saved ? 'Saved' : 'Save'}
-          </button>
+          <JobSaveButton requestId={request.id} testId="browse-job-save" />
         </JobDetailPhoto>
 
         <div className="browse-hc-detail-body">

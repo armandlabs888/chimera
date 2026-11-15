@@ -664,6 +664,39 @@ export type Database = {
           },
         ]
       }
+      saved_help_requests: {
+        Row: {
+          created_at: string
+          help_request_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          help_request_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          help_request_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_help_requests_help_request_id_fkey"
+            columns: ["help_request_id"]
+            isOneToOne: false
+            referencedRelation: "help_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_help_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       us_places: {
         Row: {
           geoid: string

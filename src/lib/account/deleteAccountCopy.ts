@@ -4,7 +4,7 @@ export const ACCOUNT_DELETE_ERASE_ITEMS = [
   'Addresses and location verification, including home address and coordinates',
   'Requests, offers, and job history',
   'Messages',
-  'Saved helpers',
+  'Saved helpers and jobs',
   'Urgent job text settings',
   'Photos, including your profile photo and listing photos',
 ] as const

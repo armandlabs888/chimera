@@ -76,6 +76,7 @@ export function hydrateAppState(raw: Partial<AppState> & { people?: Person[] }):
     reviews: raw.reviews ?? seed.reviews,
     invites: raw.invites ?? [],
     savedHelperIds: raw.savedHelperIds ?? [],
+    savedRequestIds: raw.savedRequestIds ?? [],
     notifications: raw.notifications ?? [],
     jobReferrals: raw.jobReferrals ?? seed.jobReferrals ?? [],
     helperVerification:

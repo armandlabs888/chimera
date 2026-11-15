@@ -34,6 +34,7 @@ import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { JobDetailPriceLine } from '@/components/jobs/JobDetailPriceLine'
+import { JobSaveButton } from '@/components/jobs/JobSaveButton'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { formatJobAreaCaption } from '@/lib/location'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
@@ -222,6 +223,7 @@ export function BrowseJobDrawer({
     <div className="min-h-0 flex-1 overflow-y-auto">
       <JobDetailPhoto
         src={cover}
+        showBottomScrim
         fallback={
           <BrowseCategoryThumb
             categoryId={request.category}
@@ -229,7 +231,12 @@ export function BrowseJobDrawer({
             className="!aspect-auto h-full w-full !rounded-none"
           />
         }
-      />
+      >
+        <div className="browse-hc-photo-caption">
+          {categoryLabel} · Posted {posted}
+        </div>
+        <JobSaveButton requestId={request.id} testId="browse-drawer-job-save" />
+      </JobDetailPhoto>
 
       <div
         className={
