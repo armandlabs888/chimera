@@ -41,6 +41,7 @@ import {
   sendLiveMessage,
   submitLiveReview,
   toggleLiveSavedHelper,
+  toggleLiveSavedRequest,
   updateLiveProfile,
   BeamBackendError,
   type CreateRequestInput,
@@ -172,6 +173,7 @@ interface BeamContextValue {
   dismissJobReferral: (referralId: string) => Promise<void>
   markJobReferralViewed: (referralId: string) => Promise<void>
   toggleSavedHelper: (helperId: string) => void | Promise<void>
+  toggleSavedRequest: (requestId: string) => void | Promise<void>
   markNotificationRead: (notificationId: string) => void | Promise<void>
   /** Mark several notifications read in one pass (one demo state update, one live refresh). */
   markNotificationsRead: (notificationIds: string[]) => void | Promise<void>
@@ -237,6 +239,7 @@ function emptyLiveState(userId: string): AppState {
     reviews: [],
     invites: [],
     savedHelperIds: [],
+    savedRequestIds: [],
     notifications: [],
     jobReferrals: [],
     helperVerification: null,
@@ -1651,6 +1654,49 @@ export function BeamProvider({
     [authUser, mode, refreshLive, reportError],
   )
 
+  const toggleSavedRequestLocal = useCallback((requestId: string) => {
+    withState(setState, (prev) => {
+      const ids = prev.savedRequestIds ?? []
+      const saved = ids.includes(requestId)
+      return {
+        ...prev,
+        savedRequestIds: saved ? ids.filter((id) => id !== requestId) : [...ids, requestId],
+      }
+    })
+  }, [])
+
+  const toggleSavedRequest = useCallback(
+    (requestId: string) => {
+      if (mode === 'live') {
+        return (async () => {
+          try {
+            if (!authUser) throw new Error('Not signed in')
+            const client = createClient()
+            const currentlySaved = Boolean(
+              stateRef.current?.savedRequestIds?.includes(requestId),
+            )
+            const result = await toggleLiveSavedRequest(
+              client,
+              authUser.id,
+              requestId,
+              currentlySaved,
+            )
+            if (result === 'missing_table') {
+              // Migration not applied yet: keep UX working with local state only.
+              toggleSavedRequestLocal(requestId)
+              return
+            }
+            await refreshLive(authUser.id)
+          } catch (err) {
+            reportError(err, 'Toggle saved request failed')
+          }
+        })()
+      }
+      toggleSavedRequestLocal(requestId)
+    },
+    [authUser, mode, refreshLive, reportError, toggleSavedRequestLocal],
+  )
+
   const markNotificationRead = useCallback(
     (notificationId: string) => {
       if (mode === 'live') {
@@ -2086,6 +2132,7 @@ export function BeamProvider({
     dismissJobReferral,
     markJobReferralViewed,
     toggleSavedHelper,
+    toggleSavedRequest,
     markNotificationRead,
     markNotificationsRead,
     markAllNotificationsRead,

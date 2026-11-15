@@ -1,6 +1,6 @@
 'use client'
 
-import { Heart } from 'lucide-react'
+import { Bookmark, Heart } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
@@ -43,6 +43,7 @@ export function HomeDashboard() {
     currentUser,
     getRequest,
     toggleSavedHelper,
+    toggleSavedRequest,
   } = useBeam()
   const router = useRouter()
   const pathname = usePathname()
@@ -98,17 +99,29 @@ export function HomeDashboard() {
     [state.savedHelperIds, state.people],
   )
 
+  // Drop cancelled or removed jobs from the Saved list.
+  const savedJobs = useMemo(() => {
+    const jobs: HelpRequest[] = []
+    for (const id of state.savedRequestIds ?? []) {
+      const request = state.requests.find((r) => r.id === id)
+      if (request && request.status !== 'cancelled') jobs.push(request)
+    }
+    return jobs
+  }, [state.savedRequestIds, state.requests])
+
+  const hasSavedAnything = savedJobs.length > 0 || savedHelpers.length > 0
+
   return (
     <div className="beam-container pb-10 pt-6 sm:pt-8" data-testid="my-activity-page">
       <h1 className="ma-h1">My activity</h1>
-      <p className="ma-sub">Tasks you posted, offers you made, and helpers you saved.</p>
+      <p className="ma-sub">Tasks you posted, offers you made, and jobs or helpers you saved.</p>
 
       <div className="ma-tabs" role="tablist" aria-label="Activity">
         {(
           [
             ['requests', 'My requests'],
             ['offers', 'My offers'],
-            ['saved', 'Saved helpers'],
+            ['saved', 'Saved'],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -218,67 +231,129 @@ export function HomeDashboard() {
       ) : null}
 
       {activityTab === 'saved' ? (
-        savedHelpers.length ? (
-          <div className="ma-list" data-testid="activity-saved">
-            {savedHelpers.map((person) => (
-              <div key={person.id} className="ma-act-row-wrap">
-                <Link href={`/people/${person.id}`} className="ma-act-row">
-                  <span className="ma-cat ma-cat-avatar">
-                    <Avatar src={person.avatar} name={person.name} size={48} />
-                  </span>
-                  <span className="min-w-0">
-                    <div className="ma-act-title">{person.name}</div>
-                    <div className="ma-act-meta">
-                      {person.skills[0]
-                        ? formatCategoryLabel(
-                            person.skills[0],
-                            person.skills[0] === 'other' ? person.otherSkillLabel : null,
-                          )
-                        : 'Helper'}
-                    </div>
-                  </span>
-                  <span className="ma-act-right">
-                    <div className="ma-act-price">
-                      {person.rateType === 'quote'
-                        ? 'Quote'
-                        : `$${Math.round(person.hourlyRate || 0)}`}
-                    </div>
-                    <div className="ma-act-price-label">
-                      {person.rateType === 'quote' ? 'Rate' : '/hr'}
-                    </div>
-                  </span>
-                </Link>
-                <div className="ma-offer-actions">
-                  <Link
-                    href={
-                      person.skills[0]
-                        ? `/post?rebook=${person.id}&category=${person.skills[0]}`
-                        : `/post?rebook=${person.id}`
-                    }
-                    className="ma-link"
-                  >
-                    Book again
-                  </Link>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    aria-label="Remove saved helper"
-                    onClick={() => void toggleSavedHelper(person.id)}
-                  >
-                    <Heart className="h-4 w-4 fill-[#1D5CE5] text-[#1D5CE5]" />
-                  </Button>
-                </div>
+        hasSavedAnything ? (
+          <div className="space-y-8" data-testid="activity-saved">
+            <section data-testid="activity-saved-jobs">
+              <div className="mt-5 flex items-center gap-2">
+                <h2 className="text-[15px] font-bold text-[#071330]">Jobs</h2>
+                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#EEF2F7] px-2 text-[12px] font-semibold text-[#4A5568]">
+                  {savedJobs.length}
+                </span>
               </div>
-            ))}
+              {savedJobs.length ? (
+                <div className="ma-list">
+                  {savedJobs.map((request) => (
+                    <div key={request.id} className="ma-act-row-wrap">
+                      <RequestActivityRow request={request} />
+                      <div className="ma-offer-actions">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          aria-label="Remove saved job"
+                          onClick={() => void toggleSavedRequest(request.id)}
+                        >
+                          <Bookmark className="h-4 w-4 fill-[#1D5CE5] text-[#1D5CE5]" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="ma-empty !mt-3" data-testid="activity-saved-jobs-empty">
+                  <h3>No saved jobs</h3>
+                  <p>Tap Save on a job to keep it here.</p>
+                  <Link href="/browse" className="ma-link">
+                    Browse jobs
+                  </Link>
+                </div>
+              )}
+            </section>
+
+            <section data-testid="activity-saved-helpers">
+              <div className="flex items-center gap-2">
+                <h2 className="text-[15px] font-bold text-[#071330]">Helpers</h2>
+                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#EEF2F7] px-2 text-[12px] font-semibold text-[#4A5568]">
+                  {savedHelpers.length}
+                </span>
+              </div>
+              {savedHelpers.length ? (
+                <div className="ma-list">
+                  {savedHelpers.map((person) => (
+                    <div key={person.id} className="ma-act-row-wrap">
+                      <Link href={`/people/${person.id}`} className="ma-act-row">
+                        <span className="ma-cat ma-cat-avatar">
+                          <Avatar src={person.avatar} name={person.name} size={48} />
+                        </span>
+                        <span className="min-w-0">
+                          <div className="ma-act-title">{person.name}</div>
+                          <div className="ma-act-meta">
+                            {person.skills[0]
+                              ? formatCategoryLabel(
+                                  person.skills[0],
+                                  person.skills[0] === 'other' ? person.otherSkillLabel : null,
+                                )
+                              : 'Helper'}
+                          </div>
+                        </span>
+                        <span className="ma-act-right">
+                          <div className="ma-act-price">
+                            {person.rateType === 'quote'
+                              ? 'Quote'
+                              : `$${Math.round(person.hourlyRate || 0)}`}
+                          </div>
+                          <div className="ma-act-price-label">
+                            {person.rateType === 'quote' ? 'Rate' : '/hr'}
+                          </div>
+                        </span>
+                      </Link>
+                      <div className="ma-offer-actions">
+                        <Link
+                          href={
+                            person.skills[0]
+                              ? `/post?rebook=${person.id}&category=${person.skills[0]}`
+                              : `/post?rebook=${person.id}`
+                          }
+                          className="ma-link"
+                        >
+                          Book again
+                        </Link>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          aria-label="Remove saved helper"
+                          onClick={() => void toggleSavedHelper(person.id)}
+                        >
+                          <Heart className="h-4 w-4 fill-[#1D5CE5] text-[#1D5CE5]" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="ma-empty !mt-3" data-testid="activity-saved-helpers-empty">
+                  <h3>No saved helpers</h3>
+                  <p>Tap Save on a helper profile to keep them here.</p>
+                  <Link href="/browse?tab=people" className="ma-link">
+                    Meet helpers
+                  </Link>
+                </div>
+              )}
+            </section>
           </div>
         ) : (
           <div className="ma-empty" data-testid="activity-saved-empty">
-            <h3>No saved helpers</h3>
-            <p>Tap the heart on a helper profile to save them for next time.</p>
-            <Link href="/browse?tab=people" className="ma-link">
-              Meet helpers
-            </Link>
+            <h3>Nothing saved yet</h3>
+            <p>Save jobs or helpers while you browse so you can find them again here.</p>
+            <div className="mt-3 flex flex-wrap justify-center gap-4">
+              <Link href="/browse" className="ma-link">
+                Browse jobs
+              </Link>
+              <Link href="/browse?tab=people" className="ma-link">
+                Meet helpers
+              </Link>
+            </div>
           </div>
         )
       ) : null}

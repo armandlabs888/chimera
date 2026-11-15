@@ -298,6 +298,8 @@ export interface AppState {
   reviews: Review[]
   invites: RequestInvite[]
   savedHelperIds: string[]
+  /** Help request ids the current user has saved (demo + live). */
+  savedRequestIds: string[]
   notifications: BeamNotification[]
   /** Neighbor referrals of helpers onto open jobs (demo + live). */
   jobReferrals?: JobReferral[]

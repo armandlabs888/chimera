@@ -49,9 +49,15 @@ function throwOnError(error: { message: string } | null, action: string): void {
 
 function emptyExtras(): Pick<
   AppState,
-  'invites' | 'savedHelperIds' | 'notifications' | 'jobReferrals'
+  'invites' | 'savedHelperIds' | 'savedRequestIds' | 'notifications' | 'jobReferrals'
 > {
-  return { invites: [], savedHelperIds: [], notifications: [], jobReferrals: [] }
+  return {
+    invites: [],
+    savedHelperIds: [],
+    savedRequestIds: [],
+    notifications: [],
+    jobReferrals: [],
+  }
 }
 
 /** Missing-table / not-yet-migrated errors should not crash the app. */
@@ -98,6 +104,7 @@ export async function loadLiveState(client: Client, userId: string): Promise<App
     reviews,
     invites,
     saved,
+    savedRequests,
     notifications,
     jobReferrals,
     privateDetails,
@@ -112,6 +119,7 @@ export async function loadLiveState(client: Client, userId: string): Promise<App
     client.from('reviews').select('*').order('created_at', { ascending: false }),
     client.from('request_invites').select('*').order('created_at', { ascending: false }),
     client.from('saved_helpers').select('helper_id').eq('user_id', userId),
+    client.from('saved_help_requests').select('help_request_id').eq('user_id', userId),
     client.from('notifications').select('*').eq('user_id', userId).order('created_at', {
       ascending: false,
     }),
@@ -130,6 +138,18 @@ export async function loadLiveState(client: Client, userId: string): Promise<App
   // New tables may fail briefly on older deploys - treat as empty rather than hard-fail.
   const inviteRows = invites.error ? [] : (invites.data ?? [])
   const savedIds = saved.error ? [] : (saved.data ?? []).map((r) => r.helper_id as string)
+  let savedRequestIds: string[] = []
+  if (savedRequests.error) {
+    if (isMissingRelationError(savedRequests.error)) {
+      console.warn(
+        '[beam] saved_help_requests table missing; treating saved jobs as empty until migration is applied',
+      )
+    } else {
+      console.warn('[beam] load saved_help_requests failed:', savedRequests.error.message)
+    }
+  } else {
+    savedRequestIds = (savedRequests.data ?? []).map((r) => r.help_request_id as string)
+  }
   const notifRows = notifications.error ? [] : (notifications.data ?? [])
   // job_referrals may be missing until the migration is applied.
   const referralRows = jobReferrals.error ? [] : (jobReferrals.data ?? [])
@@ -174,6 +194,7 @@ export async function loadLiveState(client: Client, userId: string): Promise<App
     reviews: (reviews.data ?? []).map(mapReview),
     invites: inviteRows.map(mapInvite),
     savedHelperIds: savedIds,
+    savedRequestIds,
     notifications: notifRows.map(mapNotification),
     jobReferrals: referralRows.map((row) => mapJobReferral(row as Record<string, unknown>)),
     helperVerification,
@@ -654,6 +675,45 @@ export async function toggleLiveSavedHelper(
     })
     throwOnError(error, 'Save helper')
   }
+}
+
+/** Result of toggling a saved job; `missing_table` means migration not applied yet. */
+export type ToggleSavedRequestResult = 'ok' | 'missing_table'
+
+export async function toggleLiveSavedRequest(
+  client: Client,
+  userId: string,
+  requestId: string,
+  currentlySaved: boolean,
+): Promise<ToggleSavedRequestResult> {
+  if (currentlySaved) {
+    const { error } = await client
+      .from('saved_help_requests')
+      .delete()
+      .eq('user_id', userId)
+      .eq('help_request_id', requestId)
+    if (error && isMissingRelationError(error)) {
+      console.warn(
+        '[beam] saved_help_requests table missing; unsaved locally until migration is applied',
+      )
+      return 'missing_table'
+    }
+    throwOnError(error, 'Unsave request')
+    return 'ok'
+  }
+
+  const { error } = await client.from('saved_help_requests').insert({
+    user_id: userId,
+    help_request_id: requestId,
+  })
+  if (error && isMissingRelationError(error)) {
+    console.warn(
+      '[beam] saved_help_requests table missing; saved locally until migration is applied',
+    )
+    return 'missing_table'
+  }
+  throwOnError(error, 'Save request')
+  return 'ok'
 }
 
 export async function markLiveNotificationRead(

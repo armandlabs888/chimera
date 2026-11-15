@@ -23,6 +23,8 @@ import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { JobDetailPriceLine } from '@/components/jobs/JobDetailPriceLine'
+import { JobSaveButton } from '@/components/jobs/JobSaveButton'
+import '@/components/browse/browse-hc.css'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { formatJobAreaCaption } from '@/lib/location'
@@ -411,9 +413,12 @@ export function RequestDetail() {
                 <div className="mt-1 space-y-2" data-testid="request-detail-photos">
                   <JobDetailPhoto
                     src={coverImage ?? listingImages[0]}
+                    showBottomScrim
                     className="rounded-lg"
                     testId="request-detail-cover"
-                  />
+                  >
+                    <JobSaveButton requestId={request.id} testId="request-job-save" />
+                  </JobDetailPhoto>
                   {listingImages.length > 1 ? (
                     <ul className="grid grid-cols-4 gap-2 sm:grid-cols-5">
                       {listingImages.map((src, i) => (
@@ -433,7 +438,15 @@ export function RequestDetail() {
                     </ul>
                   ) : null}
                 </div>
-              ) : null}
+              ) : (
+                <div className="pt-1">
+                  <JobSaveButton
+                    requestId={request.id}
+                    testId="request-job-save"
+                    className="inline-flex h-10 min-h-10 items-center gap-1.5 rounded-full bg-[#EEF2F7] px-4 text-[14px] font-semibold text-[#071330]"
+                  />
+                </div>
+              )}
 
               <JobAreaMap
                 jobId={request.id}

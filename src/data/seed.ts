@@ -707,6 +707,7 @@ export function createSeedState(): AppState {
     reviews: structuredClone(reviews),
     invites: structuredClone(invites),
     savedHelperIds: ['p-maya'],
+    savedRequestIds: ['req-2'],
     notifications: structuredClone(notifications),
     jobReferrals: structuredClone(jobReferrals),
     helperVerification: structuredClone(demoCurrentVerification),
