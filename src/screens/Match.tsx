@@ -12,6 +12,7 @@ import {
 import { useBeam } from '@/context/BeamContext'
 import {
   detectDescribeIntent,
+  expandMatchCategoryFilter,
   formatHelpersEmptyNoun,
   formatHelpersHeading,
   formatIntentChip,
@@ -37,13 +38,25 @@ import {
 } from '@/lib/matching'
 import { formatPublicRating } from '@/lib/ratingDisplay'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
-import { formatCategoryLabel, isServiceCategoryId, SERVICE_CATEGORIES } from '@/lib/taxonomy'
+import {
+  formatCategoryLabel,
+  isLegacyCategoryId,
+  isServiceCategoryId,
+  LEGACY_CATEGORY_LABELS,
+  SERVICE_CATEGORIES,
+} from '@/lib/taxonomy'
 import { getBrowseCategoryIcon } from '@/lib/categoryIcons'
 import { navyButtonClass } from '@/components/ui/button'
 import { normalizeZipInput } from '@/lib/zip/format'
 import type { Person, Review } from '@/types'
 import '@/components/browse/browse-hc.css'
 import '@/components/match/match-page.css'
+
+/** Stable chip order: launch services first, then common legacy skills. */
+const NEARBY_OFFER_CHIP_ORDER = [
+  ...SERVICE_CATEGORIES.map((c) => c.id),
+  ...(Object.keys(LEGACY_CATEGORY_LABELS) as string[]),
+] as const
 
 function isBrowseHelper(person: Person): boolean {
   return Boolean(person.isHelper || person.skills.length > 0) && !isBlankZeroCard(person)
@@ -156,6 +169,45 @@ function rankHelpers(input: {
     const tb = b.person.createdAt ? +new Date(b.person.createdAt) : 0
     return tb - ta
   })
+}
+
+/**
+ * Categories offered by helpers in the ZIP marketplace pool, before any
+ * searched-category filter. Includes launch services and legacy skills
+ * (e.g. moving → "Moving & lifting") so empty states can deep-link to them.
+ */
+function categoriesOfferedByNearbyHelpers(input: {
+  helpers: Person[]
+  excludeCategoryId: string | null
+}): { id: string; label: string }[] {
+  const { helpers, excludeCategoryId } = input
+  const excluded = new Set(expandMatchCategoryFilter(excludeCategoryId) ?? [])
+  if (excludeCategoryId) excluded.add(excludeCategoryId)
+
+  const found = new Map<string, string>()
+  for (const person of helpers) {
+    for (const skill of person.skills) {
+      if (!skill || skill === 'other') continue
+      if (found.has(skill) || excluded.has(skill)) continue
+      if (excludeCategoryId && matchSkillAgainstCategory([skill], excludeCategoryId)) {
+        continue
+      }
+      if (!isServiceCategoryId(skill) && !isLegacyCategoryId(skill)) continue
+      found.set(skill, softCategoryLabel(formatCategoryLabel(skill)))
+    }
+  }
+
+  const ordered: { id: string; label: string }[] = []
+  for (const id of NEARBY_OFFER_CHIP_ORDER) {
+    const label = found.get(id)
+    if (!label) continue
+    ordered.push({ id, label })
+    found.delete(id)
+  }
+  for (const [id, label] of found) {
+    ordered.push({ id, label })
+  }
+  return ordered
 }
 
 export function Match() {
@@ -370,17 +422,28 @@ export function Match() {
   const nearLabel = zipParam || 'you'
   const emptyCategoryIcon = getBrowseCategoryIcon(categoryId)
 
-  /** Categories that have at least one helper in the marketplace pool (excludes current empty category). */
-  const nearbyOfferCategories = useMemo(() => {
-    return SERVICE_CATEGORIES.filter((cat) => {
-      if (cat.id === 'other') return false
-      if (categoryId && cat.id === categoryId) return false
-      return helperBase.some((person) => matchSkillAgainstCategory(person.skills, cat.id))
-    }).map((cat) => ({
-      id: cat.id,
-      label: softCategoryLabel(cat.label),
-    }))
-  }, [helperBase, categoryId])
+  /**
+   * Full helper pool for this ZIP before category filtering — same universe
+   * `rankHelpers` uses prior to the skillMatch cut. When a ZIP origin is known,
+   * only helpers with a finite distance participate (locatable near that ZIP).
+   */
+  const nearbyHelperPool = useMemo(() => {
+    if (!origin) return helperBase
+    return helperBase.filter((person) => {
+      const miles = profileMilesById.get(person.id)
+      return miles != null && Number.isFinite(miles)
+    })
+  }, [helperBase, origin, profileMilesById])
+
+  /** Chip categories from skills on the nearby pool (launch + legacy). */
+  const nearbyOfferCategories = useMemo(
+    () =>
+      categoriesOfferedByNearbyHelpers({
+        helpers: nearbyHelperPool,
+        excludeCategoryId: categoryId,
+      }),
+    [nearbyHelperPool, categoryId],
+  )
 
   const intentSwitch = formatIntentChip({
     intent,
