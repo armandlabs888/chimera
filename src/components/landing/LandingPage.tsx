@@ -16,7 +16,7 @@ export function LandingPage() {
       <Suspense fallback={null}>
         <AccountDeletedNotice />
       </Suspense>
-      {/* Outside the hero so fixed positioning is not trapped by isolate/overflow-x-clip. */}
+      {/* Outside the hero so fixed positioning is not trapped by isolate stacking. */}
       <LandingNav variant="float" />
       <main>
         <LandingHero />
