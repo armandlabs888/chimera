@@ -12,7 +12,10 @@
     var(--landing-float-header-offset) + var(--landing-hero-header-gap)
   );
 
-  min-height: 92vh;
+  /* Fill the first viewport so no white strip shows under the photo on load. */
+  min-height: 100svh;
+  margin-bottom: 0;
+  border-radius: 0;
   display: flex;
   flex-direction: column;
   background: #071330;
