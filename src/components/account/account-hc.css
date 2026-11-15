@@ -2457,21 +2457,9 @@
   height: 44px;
 }
 
-/* Keep the shell at shared width; narrow the reading column inside. */
-.account-hc-policy-page .account-hc-policy-card {
+/* Keep the shell at shared width; reading column is .legal-doc (~720px). */
+.account-hc-policy-page .legal-doc {
   max-width: 720px;
-}
-
-.account-hc-policy-card {
-  margin-top: 20px;
-  padding: 24px;
-}
-
-.account-hc-policy-card p {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.55;
-  color: var(--hc-muted);
 }
 
 .account-hc-policy-link-wrap {

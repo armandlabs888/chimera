@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
-import { PolicyPlaceholder } from '@/screens/PolicyPlaceholder'
+import { LegalDocumentView } from '@/components/legal/LegalDocumentView'
+import { loadLegalDocument } from '@/lib/legal/loadLegalDocument'
 import { pageMetadata } from '@/lib/seo/site'
+import { PolicyPlaceholder } from '@/screens/PolicyPlaceholder'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Terms of Service',
@@ -9,5 +11,10 @@ export const metadata: Metadata = pageMetadata({
 })
 
 export default function TermsPage() {
-  return <PolicyPlaceholder title="Terms of Service" testId="terms-page" />
+  const doc = loadLegalDocument('terms')
+  return (
+    <PolicyPlaceholder title="Terms of Service" testId="terms-page">
+      <LegalDocumentView doc={doc} />
+    </PolicyPlaceholder>
+  )
 }
