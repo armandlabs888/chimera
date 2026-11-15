@@ -68,9 +68,9 @@ export function LandingHero() {
   }
 
   return (
-    <section className="landing-hero-photo relative isolate overflow-x-clip pb-0 pt-0">
+    <section className="landing-hero-photo relative isolate min-h-[100svh] overflow-x-clip rounded-none pb-0 pt-0 mb-0">
       <div
-        className="pointer-events-none absolute inset-0 z-0"
+        className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-none"
         aria-hidden="true"
         data-testid="landing-hero-photo"
       >
@@ -81,7 +81,7 @@ export function LandingHero() {
           priority
           sizes="100vw"
           quality={85}
-          className="landing-hero-photo-img object-cover"
+          className="landing-hero-photo-img rounded-none object-cover"
         />
         <div className="landing-hero-overlay absolute inset-0" />
         <div className="landing-hero-overlay-mute absolute inset-0" />
