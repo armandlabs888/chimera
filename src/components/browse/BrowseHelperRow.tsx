@@ -107,7 +107,7 @@ export function BrowseHelperRow({
             <Link
               href={profileHref}
               data-testid="browse-helper-view-profile"
-              className="browse-hc-btn-secondary"
+              className="browse-hc-btn-secondary hc-btn-navy"
               onClick={(e) => e.stopPropagation()}
             >
               View profile

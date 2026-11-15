@@ -1306,6 +1306,7 @@
   color: var(--hc-navy);
 }
 
+/* Sizing only. Pair with .hc-btn-navy for the dark CTA surface. */
 .browse-hc-btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -1313,17 +1314,35 @@
   height: 44px;
   padding: 0 12px;
   border-radius: 8px;
-  border: 1px solid var(--hc-line-2);
-  background: var(--hc-white);
-  color: var(--hc-navy);
   font-size: 13px;
   font-weight: 650;
   text-decoration: none;
   white-space: nowrap;
 }
 
-.browse-hc-btn-secondary:hover {
-  background: var(--hc-tint-2);
+/* Ensure shared .hc-btn-navy wins over browse-hc.css load order. */
+.browse-hc-btn-secondary.hc-btn-navy,
+.browse-hc-helper-action.hc-btn-navy {
+  background: #071330;
+  border: 1px solid #071330;
+  color: #ffffff;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.browse-hc-btn-secondary.hc-btn-navy:hover,
+.browse-hc-helper-action.hc-btn-navy:hover {
+  background: #142450;
+  border-color: #142450;
+}
+
+.browse-hc-btn-secondary.hc-btn-navy:focus-visible,
+.browse-hc-helper-action.hc-btn-navy:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px rgba(147, 197, 253, 0.7);
 }
 
 .browse-hc-helper-detail .browse-hc-detail-body {
@@ -1453,16 +1472,6 @@
   font-family: inherit;
   -webkit-appearance: none;
   appearance: none;
-}
-
-.browse-hc-helper-action--outline {
-  border-color: #d7e0ec;
-  background: var(--hc-white);
-  color: #071330;
-}
-
-.browse-hc-helper-action--outline:hover {
-  background: var(--hc-tint-2);
 }
 
 .browse-hc-helper-action--primary {

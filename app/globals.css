@@ -792,3 +792,28 @@ input[type='search']::-ms-clear {
     animation: none;
   }
 }
+
+/*
+  Dark navy CTA surface (landing floating-header Sign up family).
+  Color / hover / focus only. Host keeps size, radius, and font.
+*/
+.hc-btn-navy {
+  background: #071330;
+  border: 1px solid #071330;
+  color: #ffffff;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.hc-btn-navy:hover {
+  background: #142450;
+  border-color: #142450;
+}
+
+.hc-btn-navy:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px rgba(147, 197, 253, 0.7);
+}
