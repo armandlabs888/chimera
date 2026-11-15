@@ -31,13 +31,20 @@ export type MatchedCategory = {
   meta: string
 }
 
+export type ExampleRequest = {
+  /** Request text only (never includes location). Goes into `q` on select. */
+  text: string
+  /** Muted location hint for dropdown rows, e.g. "in 95131" or "in your area". */
+  locationMeta: string
+}
+
 export type DescribeIntentResult = {
   intent: MatchIntent
   /** True when text had no strong helper/neighbor cue and role was the tiebreaker. */
   ambiguous: boolean
   category: MatchedCategory | null
   related: MatchedCategory[]
-  exampleRequests: string[]
+  exampleRequests: ExampleRequest[]
 }
 
 type SynonymRule = {
@@ -174,33 +181,57 @@ const NEIGHBOR_INTENT_PATTERNS: RegExp[] = [
   /\bfind\s+(?:a|me\s+a)\b/i,
 ]
 
+/** Request-only example copy. Location is shown separately as muted meta, never in `q`. */
 const EXAMPLE_BY_CATEGORY: Record<string, string[]> = {
-  'house-cleaning': [
-    'Weekly house cleaner in {zip}',
-    'Move-out house cleaning in {city}',
-  ],
-  'carpet-cleaning': [
-    'Living room carpet clean in {zip}',
-    'Carpet cleaning after kids in {city}',
-  ],
-  'auto-detailing': [
-    'Interior car detail in {zip}',
-    'Exterior wash before a trip in {city}',
-  ],
-  'junk-removal': [
-    'Haul away garage clutter in {zip}',
-    'Junk removal this weekend in {city}',
-  ],
-  'pet-sitting': [
-    'Dog walker this week in {zip}',
-    'Cat drop-in while away in {city}',
-  ],
-  grooming: ['Dog bath and brush in {zip}', 'Pet grooming at home in {city}'],
-  moving: [
-    'Help moving a couch in {zip}',
-    'Moving help this weekend in {city}',
-  ],
-  other: ['Help with an everyday task in {zip}', 'Local help near {city}'],
+  'house-cleaning': ['Weekly house cleaner', 'Move-out house cleaning'],
+  'carpet-cleaning': ['Living room carpet clean', 'Carpet cleaning after kids'],
+  'auto-detailing': ['Interior car detail', 'Exterior wash before a trip'],
+  'junk-removal': ['Haul away garage clutter', 'Junk removal this weekend'],
+  'pet-sitting': ['Dog walker this week', 'Cat drop-in while away'],
+  grooming: ['Dog bath and brush', 'Pet grooming at home'],
+  moving: ['Help moving a couch', 'Moving help this weekend'],
+  other: ['Help with an everyday task', 'Local help'],
+}
+
+/**
+ * Strip trailing location phrases from a describe query for heading / matching logic.
+ * Does not change what the user typed in the field; callers keep the raw value in `q`.
+ * Recognizes: "in your area", "near me", "nearby", "in <5-digit zip>".
+ */
+export function stripTrailingLocationPhrase(query: string): {
+  requestText: string
+  extractedZip: string | null
+} {
+  const raw = String(query ?? '').trim()
+  if (!raw) return { requestText: '', extractedZip: null }
+
+  const zipMatch = raw.match(/\s+in\s+(\d{5})\s*$/i)
+  if (zipMatch) {
+    return {
+      requestText: raw.slice(0, zipMatch.index).trim(),
+      extractedZip: zipMatch[1],
+    }
+  }
+
+  const phraseMatch = raw.match(/\s+(?:in your area|near me|nearby)\s*$/i)
+  if (phraseMatch) {
+    return {
+      requestText: raw.slice(0, phraseMatch.index).trim(),
+      extractedZip: null,
+    }
+  }
+
+  return { requestText: raw, extractedZip: null }
+}
+
+/** Prefer the ZIP field; fall back to a ZIP typed at the end of `q`. */
+export function resolveDescribeZip(zipField: string, query: string): string {
+  const fromField = String(zipField ?? '')
+    .replace(/\D/g, '')
+    .slice(0, 5)
+  if (fromField.length === 5) return fromField
+  const { extractedZip } = stripTrailingLocationPhrase(query)
+  return extractedZip || ''
 }
 
 function normalizeQuery(raw: string): string {
@@ -318,19 +349,26 @@ function resolveIntent(
   return { intent: 'helpers', ambiguous: true }
 }
 
+function exampleLocationMeta(zip: string, city: string): string {
+  const zipDigits = String(zip ?? '')
+    .replace(/\D/g, '')
+    .slice(0, 5)
+  if (zipDigits.length === 5) return `in ${zipDigits}`
+  const cityLabel = String(city ?? '').trim()
+  if (cityLabel) return `in ${cityLabel}`
+  return 'in your area'
+}
+
 function buildExamples(
   categoryId: string | null,
   zip: string,
   city: string,
-): string[] {
+): ExampleRequest[] {
   const templates =
     (categoryId && EXAMPLE_BY_CATEGORY[categoryId]) ||
     EXAMPLE_BY_CATEGORY.other
-  const zipToken = zip || 'your ZIP'
-  const cityToken = city || 'your area'
-  return templates.map((t) =>
-    t.replace('{zip}', zipToken).replace('{city}', cityToken),
-  )
+  const locationMeta = exampleLocationMeta(zip, city)
+  return templates.map((text) => ({ text, locationMeta }))
 }
 
 /**
@@ -350,7 +388,11 @@ export function detectDescribeIntent(
     intentOverride?: MatchIntent | null
   } = {},
 ): DescribeIntentResult {
-  const normalized = normalizeQuery(query)
+  // Intent cues (e.g. "Find jobs near me") use the full typed query.
+  const normalizedForIntent = normalizeQuery(query)
+  // Category scoring strips trailing location phrases so "… in your area" does not pollute matches.
+  const { requestText } = stripTrailingLocationPhrase(query)
+  const normalized = normalizeQuery(requestText)
   const ranked = normalized ? scoreCategories(normalized) : []
   const category = ranked[0] ?? null
   const related = ranked.slice(1, 4)
@@ -376,10 +418,12 @@ export function detectDescribeIntent(
   if (options.intentOverride === 'helpers' || options.intentOverride === 'jobs') {
     intent = options.intentOverride
   } else {
-    const resolved = resolveIntent(normalized, options.roleHint ?? null)
+    const resolved = resolveIntent(normalizedForIntent, options.roleHint ?? null)
     intent = resolved.intent
     ambiguous = resolved.ambiguous
   }
+
+  const resolvedZip = resolveDescribeZip(options.zip ?? '', query)
 
   return {
     intent,
@@ -388,7 +432,7 @@ export function detectDescribeIntent(
     related,
     exampleRequests: buildExamples(
       category?.id ?? null,
-      options.zip ?? '',
+      resolvedZip || options.zip || '',
       options.city ?? '',
     ),
   }

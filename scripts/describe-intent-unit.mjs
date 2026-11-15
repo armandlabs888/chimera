@@ -90,6 +90,17 @@ const NEIGHBOR_INTENT_PATTERNS = [
   /\bfind\s+(?:a|me\s+a)\b/i,
 ]
 
+const EXAMPLE_BY_CATEGORY = {
+  'house-cleaning': ['Weekly house cleaner', 'Move-out house cleaning'],
+  'carpet-cleaning': ['Living room carpet clean', 'Carpet cleaning after kids'],
+  'auto-detailing': ['Interior car detail', 'Exterior wash before a trip'],
+  'junk-removal': ['Haul away garage clutter', 'Junk removal this weekend'],
+  'pet-sitting': ['Dog walker this week', 'Cat drop-in while away'],
+  grooming: ['Dog bath and brush', 'Pet grooming at home'],
+  moving: ['Help moving a couch', 'Moving help this weekend'],
+  other: ['Help with an everyday task', 'Local help'],
+}
+
 function normalizeQuery(raw) {
   return String(raw ?? '')
     .toLowerCase()
@@ -110,6 +121,55 @@ function termMatches(haystack, term) {
   return re.test(haystack)
 }
 
+function stripTrailingLocationPhrase(query) {
+  const raw = String(query ?? '').trim()
+  if (!raw) return { requestText: '', extractedZip: null }
+
+  const zipMatch = raw.match(/\s+in\s+(\d{5})\s*$/i)
+  if (zipMatch) {
+    return {
+      requestText: raw.slice(0, zipMatch.index).trim(),
+      extractedZip: zipMatch[1],
+    }
+  }
+
+  const phraseMatch = raw.match(/\s+(?:in your area|near me|nearby)\s*$/i)
+  if (phraseMatch) {
+    return {
+      requestText: raw.slice(0, phraseMatch.index).trim(),
+      extractedZip: null,
+    }
+  }
+
+  return { requestText: raw, extractedZip: null }
+}
+
+function resolveDescribeZip(zipField, query) {
+  const fromField = String(zipField ?? '')
+    .replace(/\D/g, '')
+    .slice(0, 5)
+  if (fromField.length === 5) return fromField
+  const { extractedZip } = stripTrailingLocationPhrase(query)
+  return extractedZip || ''
+}
+
+function exampleLocationMeta(zip, city) {
+  const zipDigits = String(zip ?? '')
+    .replace(/\D/g, '')
+    .slice(0, 5)
+  if (zipDigits.length === 5) return `in ${zipDigits}`
+  const cityLabel = String(city ?? '').trim()
+  if (cityLabel) return `in ${cityLabel}`
+  return 'in your area'
+}
+
+function buildExamples(categoryId, zip, city) {
+  const templates =
+    (categoryId && EXAMPLE_BY_CATEGORY[categoryId]) || EXAMPLE_BY_CATEGORY.other
+  const locationMeta = exampleLocationMeta(zip, city)
+  return templates.map((text) => ({ text, locationMeta }))
+}
+
 function scoreCategories(normalized) {
   const scores = new Map()
   for (const rule of CATEGORY_SYNONYMS) {
@@ -125,12 +185,14 @@ function scoreCategories(normalized) {
 }
 
 function detectDescribeIntent(query, options = {}) {
-  const normalized = normalizeQuery(query)
+  const normalizedForIntent = normalizeQuery(query)
+  const { requestText } = stripTrailingLocationPhrase(query)
+  const normalized = normalizeQuery(requestText)
   const ranked = normalized ? scoreCategories(normalized) : []
   const category = ranked[0] ?? null
 
-  const helperCue = HELPER_INTENT_PATTERNS.some((re) => re.test(normalized))
-  const neighborCue = NEIGHBOR_INTENT_PATTERNS.some((re) => re.test(normalized))
+  const helperCue = HELPER_INTENT_PATTERNS.some((re) => re.test(normalizedForIntent))
+  const neighborCue = NEIGHBOR_INTENT_PATTERNS.some((re) => re.test(normalizedForIntent))
 
   let intent
   let ambiguous = false
@@ -148,7 +210,18 @@ function detectDescribeIntent(query, options = {}) {
     intent = options.roleHint === 'helper' ? 'jobs' : 'helpers'
   }
 
-  return { intent, ambiguous, category }
+  const resolvedZip = resolveDescribeZip(options.zip ?? '', query)
+
+  return {
+    intent,
+    ambiguous,
+    category,
+    exampleRequests: buildExamples(
+      category?.id ?? null,
+      resolvedZip || options.zip || '',
+      options.city ?? '',
+    ),
+  }
 }
 
 function expandMatchCategoryFilter(categoryId) {
@@ -307,6 +380,95 @@ function formatHelpersHeading(categoryLabel) {
   })
   assert.doesNotMatch(chip.understood, /[—–]/)
   assert.doesNotMatch(formatHelpersHeading('House Cleaning'), /[—–]/)
+}
+
+// Suggestion examples never bake location into the request text
+{
+  const r = detectDescribeIntent('cat sit while away', { zip: '95131', city: 'Milpitas' })
+  assert.equal(r.category?.id, 'pet-sitting')
+  assert.ok(r.exampleRequests.length >= 2)
+  for (const ex of r.exampleRequests) {
+    assert.equal(typeof ex.text, 'string')
+    assert.doesNotMatch(ex.text, /\bin your area\b/i)
+    assert.doesNotMatch(ex.text, /\bin \d{5}\b/)
+    assert.doesNotMatch(ex.text, /\bnear me\b/i)
+    assert.equal(ex.locationMeta, 'in 95131')
+  }
+  assert.ok(r.exampleRequests.some((ex) => ex.text === 'Cat drop-in while away'))
+}
+
+{
+  const r = detectDescribeIntent('cleaner', { zip: '', city: '' })
+  for (const ex of r.exampleRequests) {
+    assert.equal(ex.locationMeta, 'in your area')
+    assert.doesNotMatch(ex.text, /in your area/i)
+  }
+}
+
+// stripTrailingLocationPhrase: heading sanitization (field keeps typed text)
+{
+  assert.deepEqual(stripTrailingLocationPhrase('Cat drop-in while away in your area'), {
+    requestText: 'Cat drop-in while away',
+    extractedZip: null,
+  })
+  assert.deepEqual(stripTrailingLocationPhrase('Dog walker this week near me'), {
+    requestText: 'Dog walker this week',
+    extractedZip: null,
+  })
+  assert.deepEqual(stripTrailingLocationPhrase('Help moving a couch nearby'), {
+    requestText: 'Help moving a couch',
+    extractedZip: null,
+  })
+  assert.deepEqual(stripTrailingLocationPhrase('Cat drop-in while away in 95131'), {
+    requestText: 'Cat drop-in while away',
+    extractedZip: '95131',
+  })
+  assert.deepEqual(stripTrailingLocationPhrase('Weekly house cleaner'), {
+    requestText: 'Weekly house cleaner',
+    extractedZip: null,
+  })
+}
+
+{
+  assert.equal(resolveDescribeZip('95131', 'Cat drop-in while away in 94040'), '95131')
+  assert.equal(resolveDescribeZip('', 'Cat drop-in while away in 94040'), '94040')
+  assert.equal(resolveDescribeZip('', 'Cat drop-in while away in your area'), '')
+  assert.equal(resolveDescribeZip('12', 'help in 95131'), '95131')
+}
+
+// Typed q with trailing location still detects category; ZIP extracted for display
+{
+  const r = detectDescribeIntent('cat sit while away in your area', { zip: '95131' })
+  assert.equal(r.category?.id, 'pet-sitting')
+  assert.equal(r.intent, 'helpers')
+  assert.ok(r.exampleRequests.every((ex) => !/in your area/i.test(ex.text)))
+}
+
+{
+  const r = detectDescribeIntent('cat sit while away in 95131', { zip: '' })
+  assert.equal(r.category?.id, 'pet-sitting')
+  assert.ok(r.exampleRequests.every((ex) => ex.locationMeta === 'in 95131'))
+}
+
+// Hero chips still route with the right intent ("Find jobs near me" → jobs)
+{
+  const chips = [
+    'Weekly house cleaner',
+    'Help moving a couch',
+    'Find jobs near me',
+    'Dog walker this week',
+  ]
+  const intents = chips.map((c) => detectDescribeIntent(c).intent)
+  assert.deepEqual(intents, ['helpers', 'helpers', 'jobs', 'helpers'])
+  assert.equal(detectDescribeIntent('Find jobs near me').ambiguous, false)
+}
+
+{
+  // Stripping "near me" for category must not break jobs intent on the full phrase
+  const r = detectDescribeIntent('Find jobs near me')
+  assert.equal(r.intent, 'jobs')
+  const stripped = stripTrailingLocationPhrase('Find jobs near me')
+  assert.equal(stripped.requestText, 'Find jobs')
 }
 
 console.log('describe-intent-unit PASS')
