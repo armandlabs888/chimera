@@ -212,7 +212,7 @@ export interface HelpRequest {
   scheduledEnd?: string | null
   preferredHelperId?: string | null
   publicOfferCount?: number
-  /** Poster opted into I need help now SMS matching. */
+  /** Poster opted into Text nearby helpers SMS matching. */
   isUrgent?: boolean
   /** Helpers successfully texted for this urgent job (count only). */
   urgentHelpersNotifiedCount?: number

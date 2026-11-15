@@ -2,9 +2,6 @@
 
 export type ClockTime = { hours: number; minutes: number }
 
-/** Exact copy for ASAP mode on the post form. */
-export const ASAP_ARRIVAL_NOTE = 'Arrival time confirmed with your helper.'
-
 /** Persisted / card-facing label for new ASAP listings. */
 export const ASAP_WHEN_LABEL = 'As soon as possible'
 

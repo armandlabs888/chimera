@@ -19,7 +19,6 @@ function run(source) {
 
 const r = run(`
 import {
-  ASAP_ARRIVAL_NOTE,
   ASAP_WHEN_LABEL,
   addLocalDays,
   buildWhenLabel,
@@ -90,7 +89,6 @@ const submitAsap = {
 }
 
 console.log(JSON.stringify({
-  note: ASAP_ARRIVAL_NOTE,
   asapLabel,
   scheduledLabel,
   legacyToday,
@@ -106,7 +104,6 @@ console.log(JSON.stringify({
 }))
 `)
 
-assert.equal(r.note, 'Arrival time confirmed with your helper.')
 assert.equal(r.asapLabel, 'As soon as possible')
 assert.match(r.scheduledLabel, /Nov 9/)
 assert.match(r.scheduledLabel, /9:30/)
