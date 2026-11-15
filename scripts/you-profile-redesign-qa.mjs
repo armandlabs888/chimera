@@ -66,11 +66,11 @@ async function capture(browser, path, testId, prefix) {
     const page = await context.newPage()
     await seedHelper(page)
     await page.goto(`${BASE}${path}${path.includes('?') ? '&' : '?'}demo=1`, {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
       timeout: 60000,
     })
     await page.getByTestId(testId).waitFor({ state: 'visible', timeout: 20000 })
-    await page.waitForTimeout(300)
+    await page.waitForTimeout(400)
     await shot(page, `${prefix}-${vp.name}.png`)
     await context.close()
   }
@@ -93,10 +93,47 @@ async function main() {
       })
       const page = await context.newPage()
       await seedHelper(page)
-      await page.goto(`${BASE}/settings?demo=1`, { waitUntil: 'networkidle', timeout: 60000 })
+      await page.goto(`${BASE}/settings?demo=1`, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      })
       await page.getByTestId('you-settings-menu').waitFor({ state: 'visible', timeout: 20000 })
-      await page.waitForTimeout(300)
+      await page.waitForTimeout(400)
       await shot(page, 'settings-menu-390.png')
+      await context.close()
+    }
+    // Public helper profile still has the booking estimator (PR #112).
+    {
+      const context = await browser.newContext({
+        viewport: { width: 1440, height: 900 },
+        deviceScaleFactor: 1,
+      })
+      const page = await context.newPage()
+      await seedHelper(page)
+      await page.goto(`${BASE}/browse?demo=1&tab=people`, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      })
+      await page.waitForFunction((key) => !!localStorage.getItem(key), STORAGE_KEY, {
+        timeout: 20000,
+      })
+      // Open another helper's public profile (not self) so the estimator is active.
+      const helperId = await page.evaluate((key) => {
+        const state = JSON.parse(localStorage.getItem(key) || '{}')
+        const me = state.currentUserId
+        const other = (state.people || []).find(
+          (p) => p.id !== me && (p.isHelper || (p.skills && p.skills.length)),
+        )
+        return other?.id || null
+      }, STORAGE_KEY)
+      if (!helperId) throw new Error('No other helper found for public profile shot')
+      await page.goto(`${BASE}/people/${helperId}?demo=1`, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      })
+      await page.getByTestId('public-helper-estimator').waitFor({ state: 'visible', timeout: 20000 })
+      await page.waitForTimeout(400)
+      await shot(page, 'public-helper-estimator-1440.png')
       await context.close()
     }
     // Desktop account menu
@@ -107,7 +144,7 @@ async function main() {
       })
       const page = await context.newPage()
       await seedHelper(page)
-      await page.goto(`${BASE}/you?demo=1`, { waitUntil: 'networkidle', timeout: 60000 })
+      await page.goto(`${BASE}/you?demo=1`, { waitUntil: 'domcontentloaded', timeout: 60000 })
       await page.getByTestId('you-page').waitFor({ state: 'visible' })
       await page.getByTestId('account-menu-trigger').click()
       await page.getByTestId('account-menu').waitFor({ state: 'visible' })
