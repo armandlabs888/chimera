@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { mapHelperVerification } from '@/lib/beam/mappers'
-import { deriveZipForNewVerification, normalizeZipInput } from '@/lib/zip/lookup'
+import { deriveZipForNewVerification, normalizeZipInput } from '@/lib/zip/server'
 
 export const runtime = 'nodejs'
 

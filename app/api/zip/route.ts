@@ -4,7 +4,7 @@ import {
   lookupZip,
   nearestZip,
   normalizeZipInput,
-} from '@/lib/zip/lookup'
+} from '@/lib/zip/server'
 
 export const runtime = 'nodejs'
 

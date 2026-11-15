@@ -16,6 +16,7 @@
     "test:main-auth": "node scripts/main-auth-qa.mjs",
     "test:taxonomy": "node scripts/taxonomy-unit.mjs",
     "test:zip-lookup": "node scripts/zip-lookup-unit.mjs",
+    "test:zip-bundle": "node scripts/zip-bundle-check.mjs",
     "test:account-delete-confirm": "node scripts/account-delete-confirm-unit.mjs",
     "test:casual-categories": "node scripts/casual-categories-qa.mjs",
     "test:other-persistence": "node scripts/other-persistence-qa.mjs",
@@ -34,7 +35,8 @@
     "lucide-react": "^1.69.0",
     "next": "^16.4.5",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.4",

@@ -107,16 +107,28 @@ function helperMatchesUrgentJob(job, helper, radiusMiles) {
 }
 
 // Contract: source modules export the expected symbols / radii.
-const lookupSrc = readFileSync(join(root, 'src/lib/zip/lookup.ts'), 'utf8')
+const formatSrc = readFileSync(join(root, 'src/lib/zip/format.ts'), 'utf8')
+const serverSrc = readFileSync(join(root, 'src/lib/zip/server.ts'), 'utf8')
 const matchSrc = readFileSync(join(root, 'src/lib/zip/match.ts'), 'utf8')
 const constantsSrc = readFileSync(join(root, 'src/lib/urgent/constants.ts'), 'utf8')
-assert.match(lookupSrc, /export function lookupZip/)
-assert.match(lookupSrc, /export function normalizeZipInput/)
-assert.match(lookupSrc, /export function nearestZip/)
-assert.match(lookupSrc, /export function deriveZipForNewVerification/)
+const postSrc = readFileSync(join(root, 'src/screens/PostRequest.tsx'), 'utf8')
+assert.match(formatSrc, /export function normalizeZipInput/)
+assert.match(formatSrc, /export function formatZipPlaceLabel/)
+assert.doesNotMatch(formatSrc, /us-zips/)
+assert.doesNotMatch(formatSrc, /lookupZip/)
+assert.match(serverSrc, /import 'server-only'/)
+assert.match(serverSrc, /us-zips\.v1\.json/)
+assert.match(serverSrc, /export function lookupZip/)
+assert.match(serverSrc, /export function nearestZip/)
+assert.match(serverSrc, /export function deriveZipForNewVerification/)
 assert.match(matchSrc, /export function helperMatchesUrgentJob/)
 assert.match(constantsSrc, /URGENT_MATCH_RADIUS_MILES = 5/)
 assert.match(constantsSrc, /URGENT_ESCALATION_RADIUS_MILES = 8/)
+// Client screen must not import the gazetteer / server module.
+assert.match(postSrc, /@\/lib\/zip\/format/)
+assert.doesNotMatch(postSrc, /@\/lib\/zip\/server/)
+assert.doesNotMatch(postSrc, /us-zips/)
+assert.doesNotMatch(postSrc, /lookupZip/)
 
 const URGENT_ZIP_MATCH_RADIUS_MILES = 5
 const URGENT_ZIP_ESCALATION_RADIUS_MILES = 8

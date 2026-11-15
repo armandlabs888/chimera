@@ -31,6 +31,7 @@ import {
 } from '@/lib/beam/mappers'
 import type { HelperVerification } from '@/types'
 import { assertOwnedListingPhotoUrls } from '@/lib/listingPhotos'
+import { formatZipLocationLabel, normalizeZipInput } from '@/lib/zip/format'
 
 // Untyped client keeps app compiling while schema evolves; runtime RLS still enforces authz.
 type Client = SupabaseClient
@@ -309,6 +310,31 @@ export type CreateRequestInput = {
   isUrgent?: boolean
 }
 
+async function resolveZipPlaceFromApi(zip: string): Promise<{
+  zip: string
+  lat: number
+  lng: number
+  city: string
+  stateCode: string
+  label: string
+}> {
+  const res = await fetch(`/api/zip?zip=${encodeURIComponent(zip)}`)
+  if (res.status === 404) {
+    throw new Error('We could not find that ZIP code')
+  }
+  if (!res.ok) {
+    throw new Error('Could not look up that ZIP. Try again.')
+  }
+  return (await res.json()) as {
+    zip: string
+    lat: number
+    lng: number
+    city: string
+    stateCode: string
+    label: string
+  }
+}
+
 export async function createLiveRequest(
   client: Client,
   userId: string,
@@ -327,6 +353,17 @@ export async function createLiveRequest(
       throw new Error('Photos must be uploaded through HouseCall. External image links are not allowed.')
     }
   }
+
+  // Authoritative ZIP center from the server gazetteer. Ignore client lat/lng so
+  // spoofed coordinates cannot break urgent SMS matching.
+  const zip = normalizeZipInput(input.zip ?? '')
+  if (!zip) {
+    throw new Error('Enter a 5-digit US ZIP code')
+  }
+  const place = await resolveZipPlaceFromApi(zip)
+  const locationLabel =
+    formatZipLocationLabel(place) || input.locationLabel?.trim() || ''
+
   const { data, error } = await client
     .from('help_requests')
     .insert({
@@ -344,12 +381,12 @@ export async function createLiveRequest(
       requester_id: userId,
       image: cover,
       images,
-      location_label: input.locationLabel?.trim() || '',
-      city: input.city?.trim() || null,
-      state_code: input.stateCode?.trim()?.toUpperCase() || null,
-      zip: input.zip?.trim() || null,
-      lat: input.lat ?? null,
-      lng: input.lng ?? null,
+      location_label: locationLabel,
+      city: place.city || null,
+      state_code: place.stateCode || null,
+      zip: place.zip,
+      lat: place.lat,
+      lng: place.lng,
       // Legacy column kept for schema compatibility. Matching uses helper travel
       // distance (service_radius_miles), not this poster radius.
       radius_miles: input.radiusMiles ?? 5,

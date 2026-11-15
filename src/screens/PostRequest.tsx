@@ -48,9 +48,8 @@ import {
 import {
   formatZipLocationLabel,
   formatZipPlaceLabel,
-  lookupZip,
   type ZipPlace,
-} from '@/lib/zip/lookup'
+} from '@/lib/zip/format'
 import type {
   BudgetType,
   CategoryId,
@@ -152,23 +151,12 @@ export function PostRequest() {
     if (fromParam) return fromParam
     return ''
   })
-  /** Set when "Use my current location" resolves a ZIP that may differ from typed input. */
-  const [geoZipPlace, setGeoZipPlace] = useState<ZipPlace | null>(null)
+  const [zipPlace, setZipPlace] = useState<ZipPlace | null>(null)
+  const [zipLookupError, setZipLookupError] = useState('')
+  const [zipResolving, setZipResolving] = useState(false)
   const [geoPending, setGeoPending] = useState(false)
-
   const [zipSubmitAttempted, setZipSubmitAttempted] = useState(false)
   const zipDigits = zipInput.replace(/\D/g, '').slice(0, 5)
-  const zipPlace: ZipPlace | null = useMemo(() => {
-    if (geoZipPlace && geoZipPlace.zip === zipDigits) return geoZipPlace
-    if (zipDigits.length !== 5) return null
-    return lookupZip(zipDigits)
-  }, [zipDigits, geoZipPlace])
-  const zipError =
-    zipDigits.length === 5 && !zipPlace
-      ? 'We could not find that ZIP code'
-      : zipSubmitAttempted && zipDigits.length !== 5
-        ? 'Enter a 5-digit US ZIP code'
-        : ''
 
   const [nowTick, setNowTick] = useState(() => Date.now())
   // Prefill scheduled mode when request-to-book sent a date; otherwise ASAP.
@@ -239,6 +227,15 @@ export function PostRequest() {
 
   const coverImage = listingCoverImage(photoUrls, cat.image)
 
+  const resolvedZipPlace =
+    zipPlace && zipPlace.zip === zipDigits ? zipPlace : null
+  const resolvedZipError =
+    zipLookupError && zipDigits.length === 5 && !resolvedZipPlace
+      ? zipLookupError
+      : zipSubmitAttempted && zipDigits.length !== 5
+        ? 'Enter a 5-digit US ZIP code'
+        : ''
+
   const draft = useMemo<HelpRequest>(
     () => ({
       id: 'draft-preview',
@@ -255,12 +252,14 @@ export function PostRequest() {
       image: coverImage,
       images: photoUrls,
       createdAt: new Date().toISOString(),
-      locationLabel: zipPlace ? formatZipLocationLabel(zipPlace) : undefined,
-      city: zipPlace?.city ?? null,
-      stateCode: zipPlace?.stateCode ?? null,
-      zip: zipPlace?.zip ?? null,
-      lat: zipPlace?.lat ?? null,
-      lng: zipPlace?.lng ?? null,
+      locationLabel: resolvedZipPlace
+        ? formatZipLocationLabel(resolvedZipPlace)
+        : undefined,
+      city: resolvedZipPlace?.city ?? null,
+      stateCode: resolvedZipPlace?.stateCode ?? null,
+      zip: resolvedZipPlace?.zip ?? null,
+      lat: resolvedZipPlace?.lat ?? null,
+      lng: resolvedZipPlace?.lng ?? null,
       radiusMiles: 5,
       scheduledFor,
       scheduledEnd,
@@ -279,7 +278,7 @@ export function PostRequest() {
       currentUser.id,
       coverImage,
       photoUrls,
-      zipPlace,
+      resolvedZipPlace,
       scheduledFor,
       scheduledEnd,
       preferredHelper?.id,
@@ -298,6 +297,57 @@ export function PostRequest() {
     return () => window.clearInterval(id)
   }, [])
 
+  // Resolve ZIP only through the server gazetteer API (never ship the table to the client).
+  useEffect(() => {
+    if (zipDigits.length !== 5) return
+
+    let cancelled = false
+    const handle = window.setTimeout(async () => {
+      setZipResolving(true)
+      try {
+        const res = await fetch(`/api/zip?zip=${encodeURIComponent(zipDigits)}`)
+        if (cancelled) return
+        if (res.status === 404) {
+          setZipPlace(null)
+          setZipLookupError('We could not find that ZIP code')
+          return
+        }
+        if (!res.ok) {
+          setZipPlace(null)
+          setZipLookupError('Could not look up that ZIP. Try again.')
+          return
+        }
+        const data = (await res.json()) as {
+          zip: string
+          lat: number
+          lng: number
+          city: string
+          stateCode: string
+        }
+        setZipPlace({
+          zip: data.zip,
+          lat: data.lat,
+          lng: data.lng,
+          city: data.city,
+          stateCode: data.stateCode,
+        })
+        setZipLookupError('')
+      } catch {
+        if (!cancelled) {
+          setZipPlace(null)
+          setZipLookupError('Could not look up that ZIP. Try again.')
+        }
+      } finally {
+        if (!cancelled) setZipResolving(false)
+      }
+    }, 180)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(handle)
+    }
+  }, [zipDigits])
+
   async function onUseMyLocation() {
     if (!navigator.geolocation) {
       setError('Geolocation is not available in this browser.')
@@ -305,6 +355,7 @@ export function PostRequest() {
     }
     setGeoPending(true)
     setError('')
+    setZipLookupError('')
     try {
       const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
         navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -323,15 +374,15 @@ export function PostRequest() {
         city: string
         stateCode: string
       }
-      const place: ZipPlace = {
+      setZipInput(data.zip)
+      setZipPlace({
         zip: data.zip,
         lat: data.lat,
         lng: data.lng,
         city: data.city,
         stateCode: data.stateCode,
-      }
-      setGeoZipPlace(place)
-      setZipInput(data.zip)
+      })
+      setZipLookupError('')
     } catch {
       setError('Could not detect your location. Enter a 5-digit ZIP instead.')
     } finally {
@@ -519,11 +570,16 @@ export function PostRequest() {
       return
     }
     setZipSubmitAttempted(true)
-    if (zipDigits.length !== 5 || !zipPlace || zipPlace.zip !== zipDigits) {
+    if (zipResolving) {
+      setError('Looking up ZIP…')
+      return
+    }
+    if (zipDigits.length !== 5 || !resolvedZipPlace) {
       const message =
-        zipDigits.length === 5 && !zipPlace
+        resolvedZipError ||
+        (zipDigits.length === 5
           ? 'We could not find that ZIP code'
-          : 'Enter a 5-digit US ZIP code'
+          : 'Enter a 5-digit US ZIP code')
       setError(message)
       return
     }
@@ -544,12 +600,12 @@ export function PostRequest() {
         whenLabel: computedWhenLabel,
         budget: budgetType === 'open' ? 0 : budget,
         budgetType,
-        locationLabel: formatZipLocationLabel(zipPlace),
-        city: zipPlace.city,
-        stateCode: zipPlace.stateCode,
-        zip: zipPlace.zip,
-        lat: zipPlace.lat,
-        lng: zipPlace.lng,
+        locationLabel: formatZipLocationLabel(resolvedZipPlace),
+        city: resolvedZipPlace.city,
+        stateCode: resolvedZipPlace.stateCode,
+        zip: resolvedZipPlace.zip,
+        lat: resolvedZipPlace.lat,
+        lng: resolvedZipPlace.lng,
         scheduledFor,
         scheduledEnd,
         preferredHelperId: preferredHelper?.id ?? null,
@@ -817,18 +873,22 @@ export function PostRequest() {
                       onChange={(e) => {
                         const next = e.target.value.replace(/\D/g, '').slice(0, 5)
                         setZipInput(next)
-                        setGeoZipPlace(null)
+                        setZipLookupError('')
+                        if (next.length !== 5) {
+                          setZipPlace(null)
+                          setZipResolving(false)
+                        }
                       }}
                       placeholder="95124"
                       className="pl-10"
                       inputMode="numeric"
                       autoComplete="postal-code"
                       maxLength={5}
-                      aria-invalid={zipError ? true : undefined}
+                      aria-invalid={resolvedZipError ? true : undefined}
                       aria-describedby={
-                        zipError
+                        resolvedZipError
                           ? 'post-zip-error'
-                          : zipPlace
+                          : resolvedZipPlace
                             ? 'post-zip-resolved'
                             : 'post-zip-hint'
                       }
@@ -846,26 +906,28 @@ export function PostRequest() {
                     Use my current location
                   </Button>
                 </div>
-                {zipError ? (
+                {resolvedZipError ? (
                   <span
                     id="post-zip-error"
                     className="mt-1 flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 type-sec text-[#071330]"
                     role="alert"
                     data-testid="post-zip-error"
                   >
-                    {zipError}
+                    {resolvedZipError}
                   </span>
-                ) : zipPlace ? (
+                ) : resolvedZipPlace ? (
                   <span
                     id="post-zip-resolved"
                     className="block type-sec text-beam-muted"
                     data-testid="post-zip-resolved"
                   >
-                    {formatZipPlaceLabel(zipPlace)}
+                    {formatZipPlaceLabel(resolvedZipPlace)}
                   </span>
                 ) : (
                   <span id="post-zip-hint" className="block type-sec text-beam-muted">
-                    5-digit US ZIP. Helpers see the area, not your street.
+                    {zipResolving
+                      ? 'Looking up ZIP…'
+                      : '5-digit US ZIP. Helpers see the area, not your street.'}
                   </span>
                 )}
               </div>
