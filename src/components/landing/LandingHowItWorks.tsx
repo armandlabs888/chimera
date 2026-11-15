@@ -43,17 +43,12 @@ export function LandingHowItWorks() {
           From to-do to done.
         </h2>
         <div
-          className="mt-6 grid items-stretch gap-0 overflow-hidden rounded-lg border border-[#D7E0EC] bg-white shadow-none md:grid-cols-3"
+          className="mt-6 grid items-start gap-8 bg-transparent md:grid-cols-3 md:gap-6"
           data-testid="how-it-works-steps"
         >
-          {STEPS.map((step, i) => (
-            <article
-              key={step.n}
-              className={`flex h-full min-h-0 flex-col ${
-                i < STEPS.length - 1 ? 'border-b border-[#D7E0EC] md:border-b-0 md:border-r' : ''
-              }`}
-            >
-              <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-[#EEF4FF]">
+          {STEPS.map((step) => (
+            <article key={step.n} className="flex h-full min-h-0 flex-col">
+              <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden rounded-lg bg-[#EEF2F7]">
                 <Image
                   src={step.src}
                   alt={step.alt}
@@ -62,8 +57,8 @@ export function LandingHowItWorks() {
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
               </div>
-              <div className="flex flex-1 flex-col p-4">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#EEF4FF] text-[12px] font-bold text-[#1D5CE5]">
+              <div className="mt-4 flex flex-1 flex-col">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#EEF2F7] text-[12px] font-bold text-[#1D5CE5]">
                   {step.n}
                 </span>
                 <h3 className="mt-2.5 text-[15px] font-semibold text-[#071330]">{step.title}</h3>

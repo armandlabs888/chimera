@@ -576,10 +576,18 @@
     color: #ffffff;
   }
 
+  /* Sticky booking / offer / verification action panel only. */
   .hc-rail-card {
     background: #ffffff;
-    border: 1px solid #e3e8ef;
+    border: 1px solid #d7e0ec;
     border-radius: 8px;
+    box-shadow: none;
+  }
+
+  .hc-flat-section {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
     box-shadow: none;
   }
 

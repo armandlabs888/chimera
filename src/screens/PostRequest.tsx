@@ -84,7 +84,7 @@ function firstName(name: string): string {
 }
 
 function cardClass(extra = '') {
-  return `rounded-lg border border-[rgba(7,19,48,0.08)] bg-white p-5 sm:p-6 ${extra}`
+  return `border-0 border-b border-[#E3E8EF] bg-transparent p-5 sm:p-6 last:border-b-0 ${extra}`
 }
 
 /** New post form: only asap | scheduled expose / hide the clock UI. */

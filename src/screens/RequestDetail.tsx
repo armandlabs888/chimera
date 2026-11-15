@@ -53,7 +53,7 @@ import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 
 const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexible'] as const
 
-const cardClass = 'hc-rail-card'
+const actionPanelClass = 'hc-rail-card p-5'
 
 function paramId(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? ''
@@ -310,7 +310,7 @@ export function RequestDetail() {
 
   return (
     <div
-      className="beam-container space-y-5 py-2 pb-16 sm:py-4"
+      className="beam-container space-y-5 py-2 pb-28 sm:py-4 lg:pb-16"
       data-testid="request-detail-root"
     >
       <Link
@@ -327,8 +327,8 @@ export function RequestDetail() {
       >
         {/* Left column - task overview */}
         <div className="space-y-5" data-testid="request-detail-left">
-          <article className={`overflow-hidden ${cardClass}`}>
-            <div className="flex flex-col gap-6 p-5 sm:gap-7 sm:p-6">
+          <article className="overflow-hidden">
+            <div className="flex flex-col gap-6 p-0 sm:gap-7">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-[#EEF2F7] px-3 py-1.5 text-[13px] font-semibold text-[#071330]">
                   {CategoryIcon ? (
@@ -362,7 +362,7 @@ export function RequestDetail() {
               {isOwner && request.isUrgent ? (
                 (request.urgentHelpersNotifiedCount ?? 0) > 0 ? (
                   <p
-                    className="rounded-lg border border-[#D7E0EC] bg-white px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
+                    className="border-0 bg-transparent px-0 py-1 text-[13.5px] font-medium text-[#071330]"
                     data-testid="urgent-texted-helpers"
                   >
                     We texted{' '}
@@ -370,7 +370,7 @@ export function RequestDetail() {
                   </p>
                 ) : (
                   <p
-                    className="rounded-lg border border-[#D7E0EC] bg-white px-3.5 py-2.5 text-[13.5px] font-medium text-[#071330]"
+                    className="border-0 bg-transparent px-0 py-1 text-[13.5px] font-medium text-[#071330]"
                     data-testid="urgent-texted-helpers-pending"
                   >
                     We&apos;ll text helpers nearby as they become available
@@ -472,7 +472,7 @@ export function RequestDetail() {
           {isOwner && request.status === 'open' ? (
             <div
               data-testid="request-suggested-helpers"
-              className={`${cardClass} p-5 sm:p-6 empty:hidden`}
+              className="border-t border-[#E3E8EF] pt-6 empty:hidden"
             >
               <SuggestedHelpersSection jobId={request.id} />
             </div>
@@ -480,28 +480,28 @@ export function RequestDetail() {
 
           {/* Nearby matches for owner - left column */}
           {isOwner && request.status === 'open' ? (
-            <section className={`${cardClass} p-5 sm:p-6`} data-testid="request-nearby-matches">
+            <section className="border-t border-[#E3E8EF] pt-6" data-testid="request-nearby-matches">
               <h2 className="text-[18px] font-bold text-[#071330]">Instant Nearby Matches</h2>
               <p className="mt-1 text-[14px] text-[#4A5568]">
                 Ranked by skill, distance, and availability for this task.
               </p>
 
               {matches.length === 0 ? (
-                <div className="mt-5 rounded-lg bg-white px-4 py-8 text-center">
+                <div className="mt-5 bg-transparent px-0 py-8 text-center">
                   <p className="text-[15px] font-semibold text-[#071330]">No matches in range</p>
                   <p className="mt-1 text-[13px] text-[#4A5568]">
                     Helpers will appear as they come online nearby.
                   </p>
                 </div>
               ) : (
-                <ul className="mt-5 space-y-3">
+                <ul className="mt-5 divide-y divide-[#E3E8EF]">
                   {matches.map((match) => {
                     const { person } = match
                     const invited = invitedHelperIds.has(person.id)
                     return (
                       <li
                         key={person.id}
-                        className="rounded-lg border border-[rgba(7,19,48,0.08)] bg-white p-4"
+                        className="border-0 bg-transparent py-4 first:pt-0"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <Link
@@ -570,9 +570,11 @@ export function RequestDetail() {
           className="mt-5 space-y-4 lg:sticky lg:top-24 lg:mt-0"
           data-testid="request-detail-right"
         >
-          {/* Budget strip card (always) */}
-          <div className={`${cardClass} p-5`} data-testid="request-budget-card">
-            <p className="text-[13.5px] font-semibold text-[#071330]">Budget</p>
+          {/* Budget: plain typography (no box) */}
+          <div className="px-0 pb-2" data-testid="request-budget-card">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[#4A5568]">
+              Budget
+            </p>
             <p
               className={`mt-1 font-display font-bold leading-none text-[#071330] ${
                 isOpenBudget ? 'text-[20px]' : 'text-[28px] tabular-nums'
@@ -587,36 +589,32 @@ export function RequestDetail() {
 
           {justPosted && isOwner && request.status === 'open' ? (
             <div
-              className="rounded-lg border border-[#E3E8EF] bg-white px-4 py-3.5 text-[15px] leading-[1.55] text-[#071330]"
+              className="border-0 bg-transparent px-0 py-2 text-[15px] leading-[1.55] text-[#071330]"
               role="status"
             >
               <p className="font-semibold text-[#071330]">Your request is live nearby.</p>
-              <p className="mt-1">
+              <p className="mt-1 text-[#4A5568]">
                 Nearby helpers can send offers now. Invite strong matches to speed things up.
               </p>
             </div>
           ) : null}
 
-          {/* Owner open - manage listing */}
+          {/* Owner open - single action panel */}
           {isOwner && request.status === 'open' ? (
-            <div className={`${cardClass} p-5`} data-testid="request-owner-controls">
+            <div className={actionPanelClass} data-testid="request-owner-controls">
               <p className="text-[13.5px] font-semibold text-[#071330]">Your listing</p>
               <p className="mt-1 text-[14px] text-[#4A5568]">
                 Cancel anytime before you hire a helper.
               </p>
               <CancelJobAction request={request} fullWidth className="mt-4" />
-            </div>
-          ) : null}
 
-          {/* Owner open - incoming offers */}
-          {isOwner && request.status === 'open' ? (
-            <section className={`${cardClass} p-5`} data-testid="request-incoming-offers">
+              <section className="mt-5 border-t border-[#E3E8EF] pt-5" data-testid="request-incoming-offers">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-[18px] font-bold text-[#071330]">
                   Incoming {pluralNoun(offers.length === 1 ? 1 : 2, 'offer')}
                 </h2>
                 {offers.length > 0 ? (
-                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-[#EEF4FF] px-2 text-[12px] font-bold text-[#1D5CE5]">
+                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-[#EEF2F7] px-2 text-[12px] font-bold text-[#1D5CE5]">
                     {offers.length}
                   </span>
                 ) : null}
@@ -626,21 +624,21 @@ export function RequestDetail() {
               </p>
 
               {offers.length === 0 ? (
-                <div className="mt-5 rounded-lg bg-white px-4 py-8 text-center">
+                <div className="mt-5 bg-transparent px-0 py-6 text-center">
                   <p className="text-[15px] font-semibold text-[#071330]">No offers yet</p>
                   <p className="mt-1 text-[13px] text-[#4A5568]">
-                    Invite nearby matches. They’ll show up here when they name a price.
+                    Invite nearby matches. They&apos;ll show up here when they name a price.
                   </p>
                 </div>
               ) : (
-                <ul className="mt-5 space-y-3">
+                <ul className="mt-5 divide-y divide-[#E3E8EF]">
                   {offers.map((offer) => {
                     const helper = getPerson(offer.helperId)
                     if (!helper) return null
                     return (
                       <li
                         key={offer.id}
-                        className="rounded-lg border border-[rgba(7,19,48,0.08)] bg-white p-4"
+                        className="border-0 bg-transparent py-4 first:pt-0"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <Link
@@ -702,13 +700,14 @@ export function RequestDetail() {
                   Post another task
                 </ButtonLink>
               </div>
-            </section>
+              </section>
+            </div>
           ) : null}
 
           {/* Neighbor open: refer a helper (no offer chrome) */}
           {isNeighborViewer && request.status === 'open' ? (
             <section className="space-y-3" data-testid="request-refer-panel">
-              <div className={`${cardClass} p-5`}>
+              <div className={actionPanelClass}>
                 <ReferHelperButton onClick={() => void referHelper()} />
                 <ReferHelperHint />
               </div>
@@ -720,12 +719,12 @@ export function RequestDetail() {
           {!isOwner && !isNeighborViewer && request.status === 'open' ? (
             <section className="space-y-3" data-testid="request-offer-panel">
               {myInvite ? (
-                <div className="rounded-lg border border-[#D7E0EC] bg-white px-4 py-3 text-[14px] font-semibold text-[#071330]">
+                <div className="border-0 border-b border-[#E3E8EF] bg-transparent px-0 py-3 text-[14px] font-semibold text-[#071330]">
                   You were invited to offer on this task
                 </div>
               ) : null}
 
-              <div className={`${cardClass} p-5`}>
+              <div className={actionPanelClass}>
                 {canMakeOffer(helperVerification) ? (
                   <>
                     <h2 className="text-[18px] font-bold text-[#071330]">
@@ -867,7 +866,7 @@ export function RequestDetail() {
                     <p className="mt-1 text-[14px] text-[#4A5568]">
                       {myOffer?.status === 'pending'
                         ? 'You can cancel this offer anytime. New offers unlock after HouseCall confirms you are at your home address.'
-                        : 'Offering unlocks after HouseCall confirms you&apos;re at your home address.'}
+                        : "Offering unlocks after HouseCall confirms you're at your home address."}
                     </p>
                     {myOffer?.status === 'pending' ? (
                       <div className="mt-4">
@@ -909,10 +908,10 @@ export function RequestDetail() {
 
           {/* Accepted - booked summary */}
           {request.status === 'accepted' && (isOwner || isAcceptedHelper) ? (
-            <section className={`${cardClass} p-5`} data-testid="request-booked-panel">
-              <p className="text-[13.5px] font-semibold text-[#071330]">You’re booked</p>
+            <section className={actionPanelClass} data-testid="request-booked-panel">
+              <p className="text-[13.5px] font-semibold text-[#071330]">You&apos;re booked</p>
               <p className="mt-1 text-[14px] text-[#4A5568]">
-                Coordinate in chat and agree how you’ll pay peer-to-peer.
+                Coordinate in chat and agree how you&apos;ll pay peer-to-peer.
               </p>
 
               <dl className="mt-5 space-y-4">
@@ -953,8 +952,8 @@ export function RequestDetail() {
                 ) : null}
               </dl>
 
-              <div className="mt-5 rounded-lg border border-[#D7E0EC] bg-white px-4 py-3 text-[13.5px] leading-relaxed text-[#071330]">
-                Pay your helper peer-to-peer (Venmo, cash, Zelle, etc.). HouseCall doesn’t process
+              <div className="mt-5 border-0 bg-transparent px-0 py-1 text-[13.5px] leading-relaxed text-[#4A5568]">
+                Pay your helper peer-to-peer (Venmo, cash, Zelle, etc.). HouseCall doesn&apos;t process
                 payments yet. Agree on the method in chat before you start.
               </div>
 
@@ -986,7 +985,7 @@ export function RequestDetail() {
 
           {/* Cancelled */}
           {request.status === 'cancelled' ? (
-            <section className={`${cardClass} p-5`} data-testid="request-cancelled-panel">
+            <section className={actionPanelClass} data-testid="request-cancelled-panel">
               <p className="text-[13.5px] font-semibold text-[#071330]">This job is cancelled</p>
               <p className="mt-1 text-[14px] text-[#4A5568]">
                 {isOwner
@@ -1007,7 +1006,7 @@ export function RequestDetail() {
 
           {/* Completed - mutual review */}
           {request.status === 'completed' ? (
-            <section className={`${cardClass} p-5`} data-testid="request-review-panel">
+            <section className={actionPanelClass} data-testid="request-review-panel">
               <h2 className="text-[18px] font-bold text-[#071330]">Mutual review</h2>
               <p className="mt-1 text-[14px] text-[#4A5568]">
                 Rate your experience so neighbors know who to trust next time.
@@ -1102,6 +1101,49 @@ export function RequestDetail() {
           ) : null}
         </aside>
       </div>
+
+      {/* Mobile sticky action bar (mirrors primary CTAs in the right rail). */}
+      {request.status === 'open' && !isOwner ? (
+        <div
+          className="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-[#E3E8EF] bg-white px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden"
+          data-testid="request-mobile-sticky"
+        >
+          {isNeighborViewer ? (
+            <ReferHelperButton onClick={() => void referHelper()} className="w-full" />
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="secondary"
+                className="h-11 min-w-0 flex-1 rounded-lg"
+                onClick={() => void openThreadWith(request.requesterId)}
+              >
+                <MessageCircle className="h-4 w-4" />
+                Ask a question
+              </Button>
+              {canMakeOffer(helperVerification) ? (
+                <Button
+                  type="button"
+                  className="h-11 min-w-0 flex-[1.15] rounded-lg"
+                  onClick={() => {
+                    document
+                      .querySelector('[data-testid="request-offer-panel"]')
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }}
+                >
+                  {myOffer ? 'Update offer' : 'Make an offer'}
+                </Button>
+              ) : (
+                (() => {
+                  const kind = offerGateKind(helperVerification)
+                  if (kind === 'approved') return null
+                  return <OfferGatePrimaryButton kind={kind} className="!h-11 min-w-0 flex-[1.15]" />
+                })()
+              )}
+            </>
+          )}
+        </div>
+      ) : null}
 
       <ConfirmDialog
         open={Boolean(confirmAcceptOfferId && pendingAcceptOffer)}

@@ -318,10 +318,16 @@
 }
 
 .public-helper-profile .php-review-card {
-  background: #fff;
-  border: 1px solid var(--php-line);
-  border-radius: 8px;
-  padding: 16px 18px;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--php-line);
+  border-radius: 0;
+  padding: 16px 0;
+}
+
+.public-helper-profile .php-review-card:first-child {
+  border-top: 0;
+  padding-top: 0;
 }
 
 .public-helper-profile .php-book-card {

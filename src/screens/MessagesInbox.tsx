@@ -9,8 +9,7 @@ import { formatCategoryLabel } from '@/lib/taxonomy'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import { MessagesThread } from '@/screens/MessagesThread'
 
-const panelSurface =
-  'rounded-lg border border-[#E3E8EF] bg-white shadow-[0_8px_24px_-14px_rgba(12,42,102,0.08)]'
+const panelSurface = 'border-0 bg-white shadow-none'
 
 export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
   const { state, currentUser, getPerson, getRequest } = useBeam()
@@ -59,7 +58,7 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
     <div
       data-testid="messages-workspace"
       className={[
-        'beam-container grid min-h-0 grid-cols-1 gap-5',
+        'beam-container grid min-h-0 grid-cols-1 gap-0',
         hasExplicitThread ? 'h-[calc(100dvh-9.75rem)] min-h-[420px]' : '',
         'lg:h-[calc(100dvh-10rem)] lg:min-h-[560px] lg:max-h-[840px]',
         'lg:grid-cols-[minmax(280px,348px)_minmax(0,1fr)]',
@@ -70,7 +69,7 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
         data-testid="messages-inbox-rail"
         className={[
           panelSurface,
-          'min-h-0 flex-col overflow-hidden',
+          'min-h-0 flex-col overflow-hidden lg:border-r lg:border-[#E3E8EF]',
           hasExplicitThread ? 'hidden lg:flex' : 'flex',
         ].join(' ')}
       >
@@ -125,8 +124,10 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
                         openThread(thread.id)
                       }}
                       data-testid={`messages-thread-row-${thread.id}`}
-                      className={`flex gap-3 px-4 py-3.5 transition ${
-                        selected ? 'bg-[#EFF6FF]/75' : 'bg-white hover:bg-white'
+                      className={`relative flex gap-3 px-4 py-3.5 transition ${
+                        selected
+                          ? 'bg-[#EEF2F7] before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-[#1D5CE5]'
+                          : 'bg-white hover:bg-white'
                       }`}
                     >
                       <Avatar src={other?.avatar} name={other?.name ?? 'Neighbor'} size={40} />

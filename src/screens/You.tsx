@@ -295,7 +295,7 @@ export function You() {
         ) : (
           <section className="mt-10" data-testid="you-become-helper">
             <h2 className="font-display text-[22px] font-bold text-[#071330]">Become a helper</h2>
-            <div className="mt-4 rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-6 py-7">
+            <div className="mt-4 border-0 border-t border-[#E3E8EF] bg-transparent px-0 py-7">
               <h3 className="font-display text-[22px] font-bold text-[#071330]">Become a helper</h3>
               <p className="mt-2 max-w-[42ch] text-[14px] text-[#48556A]">
                 Set your skills, service area, and rate. Then start browsing open requests nearby.

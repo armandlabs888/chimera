@@ -22,7 +22,7 @@ export function HelperProfileReviews({
             return (
               <li
                 key={review.id}
-                className="rounded-lg border border-[rgba(7,19,48,0.08)] bg-white px-4 py-4"
+                className="border-0 border-t border-[#E3E8EF] bg-transparent px-0 py-4 first:border-t-0 first:pt-0"
               >
                 <div className="flex items-center gap-2 text-[14px]">
                   <Star className="h-4 w-4 fill-[#071330] text-[#071330]" aria-hidden />

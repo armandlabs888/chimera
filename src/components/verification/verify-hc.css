@@ -41,10 +41,11 @@
 
 .account-hc-verify-banner {
   margin-bottom: 16px;
-  padding: 14px 16px;
-  border: 1px solid #d6e2f5;
-  border-radius: 12px;
-  background: var(--hc-tint);
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid var(--hc-line);
+  border-radius: 0;
+  background: transparent;
 }
 
 .account-hc-verify-banner .t {
@@ -140,10 +141,10 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 10px 14px;
-  border: 1px solid var(--hc-line);
-  border-radius: 12px;
-  background: var(--hc-tint);
+  padding: 10px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .account-hc-verify-info-ico {
