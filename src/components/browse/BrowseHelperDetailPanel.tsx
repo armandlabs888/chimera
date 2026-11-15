@@ -156,7 +156,7 @@ export function BrowseHelperDetailPanel({
         <div className="browse-hc-detail-actions browse-hc-helper-preview-actions">
           <Link
             href={profileHref}
-            className="browse-hc-helper-action browse-hc-helper-action--outline"
+            className="browse-hc-helper-action hc-btn-navy"
             data-testid="browse-helper-detail-profile"
           >
             View profile

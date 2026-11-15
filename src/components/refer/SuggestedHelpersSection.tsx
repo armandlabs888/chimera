@@ -130,7 +130,7 @@ export function SuggestedHelpersSection({
             <div className="rh-suggested-actions">
               <Link
                 href={`/people/${helper.id}`}
-                className="rh-suggested-btn"
+                className="rh-suggested-btn hc-btn-navy"
                 data-testid={`suggested-view-profile-${helper.id}`}
               >
                 View profile

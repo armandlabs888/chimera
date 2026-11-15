@@ -29,6 +29,14 @@ export const secondaryPillClass =
 export const outlinePillClass =
   'inline-flex min-h-[40px] items-center justify-center rounded-full border border-[#D7E0EC] bg-white px-4 text-[14px] font-semibold text-[#071330] hover:bg-white'
 
+/**
+ * Dark navy CTA surface matching the landing floating-header Sign up button.
+ * Color / hover / focus only. Pair with existing size, radius, and font classes.
+ * Prefer the shared `.hc-btn-navy` class when the host already uses CSS sizing.
+ */
+export const navyButtonClass =
+  'border border-[#071330] bg-[#071330] text-white transition-colors hover:border-[#142450] hover:bg-[#142450] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2'
+
 function Spinner() {
   return (
     <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>

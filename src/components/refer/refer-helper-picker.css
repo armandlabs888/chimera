@@ -560,6 +560,25 @@
   background: #ffffff;
 }
 
+/* Win over .rh-suggested-btn white fill when paired with shared .hc-btn-navy. */
+.rh-suggested-btn.hc-btn-navy {
+  border-color: #071330;
+  background: #071330;
+  color: #ffffff;
+}
+
+.rh-suggested-btn.hc-btn-navy:hover {
+  background: #142450;
+  border-color: #142450;
+}
+
+.rh-suggested-btn.hc-btn-navy:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px rgba(147, 197, 253, 0.7);
+}
+
 .rh-suggested-btn-primary {
   border-color: #1d5ce5;
   background: #1d5ce5;
