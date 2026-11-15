@@ -1,129 +1,55 @@
 'use client'
 
-import { Eye, Heart, Settings } from 'lucide-react'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import Link from 'next/link'
+import { useEffect, useMemo } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import {
-  AccountDemoReset,
-  AccountQuickLinksCard,
-  AccountSignOutButton,
-  type AccountQuickLink,
-} from '@/components/account/AccountSidebar'
-import { HelperUrgentSmsSettings } from '@/components/account/HelperUrgentSmsSettings'
-import { YouHelperDetailsForm } from '@/components/account/YouHelperDetailsForm'
-import { YouProfileForm } from '@/components/account/YouProfileForm'
-import { PersonCard } from '@/components/PersonCard'
-import {
-  ProfileHeader,
-  ProfileHeaderIcons,
-  buildHelperStats,
-  buildNeighborStats,
-  buildRoleMeta,
-  formatMemberSince,
-  shareProfileLink,
-  type ProfileHeaderOverflowItem,
-} from '@/components/profile/ProfileHeader'
-import { HelperProfileReviews } from '@/components/profile/HelperProfileReviews'
-import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
-import { RequestCard } from '@/components/RequestCard'
-import { Button, ButtonLink } from '@/components/ui'
+import { HelperProfileBody } from '@/components/profile/HelperProfileBody'
 import { useBeam } from '@/context/BeamContext'
-import { isHelperPerson } from '@/lib/roles'
-import '@/components/account/account-hc.css'
 
 const ACTIVITY_TABS = ['requests', 'offers', 'saved'] as const
-type ActivityTab = (typeof ACTIVITY_TABS)[number]
-function scrollToId(id: string) {
-  if (typeof window === 'undefined') return
-  const run = () => {
-    const el = document.getElementById(id)
-    if (!el) return false
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    return true
-  }
-  requestAnimationFrame(() => {
-    if (run()) return
-    window.setTimeout(run, 50)
-  })
-}
 
+/**
+ * Signed-in own profile: same structure neighbors see on /people/[id],
+ * plus the preview bar and disabled Request / Message actions.
+ * Edit forms, notifications, and activity live on separate routes.
+ */
 export function You() {
-  const {
-    state,
-    currentUser,
-    getRequest,
-    getPerson,
-    mode,
-    authUser,
-    toggleSavedHelper,
-    helperVerification,
-  } = useBeam()
+  const { state, currentUser } = useBeam()
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
   const rawTab = params.get('tab')
-  const activityTab: ActivityTab = ACTIVITY_TABS.includes(rawTab as ActivityTab)
-    ? (rawTab as ActivityTab)
-    : 'requests'
-  const verificationStatus = helperVerification?.status
 
-  function setActivityTab(next: ActivityTab) {
-    const nextParams = new URLSearchParams(params.toString())
-    if (next === 'requests') nextParams.delete('tab')
-    else nextParams.set('tab', next)
-    const qs = nextParams.toString()
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
-  }
-
-  const isHelper = isHelperPerson(currentUser)
-
+  // Keep old deep links working.
   useEffect(() => {
-    if (rawTab === 'notifications' || (rawTab === 'helper' && !isHelper)) {
-      const nextParams = new URLSearchParams(params.toString())
-      nextParams.delete('tab')
-      const qs = nextParams.toString()
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
-    }
-  }, [rawTab, params, pathname, router, isHelper])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    if (rawTab === 'helper' && !isHelper) return
-    const hash = window.location.hash
-    if (hash === '#helper-urgent-sms' || (rawTab === 'helper' && hash === '#helper-urgent-sms')) {
-      scrollToId('helper-urgent-sms')
+    if (!rawTab) return
+    if (rawTab === 'profile') {
+      router.replace('/settings/profile')
       return
     }
     if (rawTab === 'helper') {
-      scrollToId('you-helper')
+      router.replace('/settings/profile#services')
       return
     }
-    if (rawTab === 'profile') {
-      scrollToId('you-profile')
+    if (rawTab === 'notifications') {
+      router.replace('/settings/account#notifications')
       return
     }
-    if (rawTab === 'offers' || rawTab === 'saved') {
-      scrollToId('you-activity')
+    if (ACTIVITY_TABS.includes(rawTab as (typeof ACTIVITY_TABS)[number])) {
+      const next = new URLSearchParams()
+      next.set('tab', rawTab)
+      router.replace(`/home?${next.toString()}`)
+      return
     }
-  }, [rawTab, state, isHelper])
+    // Unknown tab: strip it.
+    const nextParams = new URLSearchParams(params.toString())
+    nextParams.delete('tab')
+    const qs = nextParams.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }, [rawTab, params, pathname, router])
 
   const myRequests = useMemo(
     () => state.requests.filter((r) => r.requesterId === currentUser.id),
     [state.requests, currentUser.id],
-  )
-
-  const myOffers = useMemo(
-    () => state.offers.filter((o) => o.helperId === currentUser.id),
-    [state.offers, currentUser.id],
-  )
-
-  const savedHelpers = useMemo(
-    () =>
-      (state.savedHelperIds ?? [])
-        .map((id) => state.people.find((p) => p.id === id))
-        .filter(Boolean),
-    [state.savedHelperIds, state.people],
   )
 
   const reviews = useMemo(
@@ -134,346 +60,28 @@ export function You() {
     [state.reviews, currentUser.id],
   )
 
-  const [shareToast, setShareToast] = useState('')
-
-  const headerStats = useMemo(() => {
-    if (isHelper) return buildHelperStats(currentUser)
-    return buildNeighborStats({
-      jobsPosted: myRequests.length,
-      memberSinceLabel: formatMemberSince(currentUser.onboardingCompletedAt),
-    })
-  }, [isHelper, currentUser, myRequests.length])
-
-  const headerMeta = useMemo(
-    () => buildRoleMeta(isHelper ? 'helper' : 'neighbor', currentUser),
-    [isHelper, currentUser],
-  )
-
-  const overflowItems = useMemo((): ProfileHeaderOverflowItem[] => {
-    const items: ProfileHeaderOverflowItem[] = [
-      {
-        key: 'settings',
-        label: 'Settings',
-        icon: <Settings className="h-4 w-4" strokeWidth={2} aria-hidden />,
-        href: '/settings',
-        testId: 'you-hero-settings',
-      },
-    ]
-    if (isHelper) {
-      items.push({
-        key: 'public',
-        label: 'View public profile',
-        icon: <Eye className="h-4 w-4" strokeWidth={2} aria-hidden />,
-        href: `/people/${currentUser.id}`,
-        testId: 'you-view-public-profile',
-      })
-    }
-    return items
-  }, [isHelper, currentUser.id])
-
-  async function onShareProfile() {
-    const path = isHelper ? `/people/${currentUser.id}` : '/you'
-    const url =
-      typeof window !== 'undefined' ? `${window.location.origin}${path}` : path
-    const result = await shareProfileLink({
-      title: `${currentUser.name} on HouseCall`,
-      url,
-    })
-    if (result === 'copied') {
-      setShareToast('Link copied')
-      window.setTimeout(() => setShareToast(''), 1600)
-    } else if (result === 'failed') {
-      setShareToast('Could not copy link')
-      window.setTimeout(() => setShareToast(''), 1600)
-    }
+  // While redirecting old tabs, avoid flashing the profile.
+  if (
+    rawTab === 'profile' ||
+    rawTab === 'helper' ||
+    rawTab === 'notifications' ||
+    ACTIVITY_TABS.includes(rawTab as (typeof ACTIVITY_TABS)[number])
+  ) {
+    return (
+      <div className="beam-container pb-10 pt-6 sm:pt-8" data-testid="you-page-redirecting">
+        <p className="text-[14px] text-[#4A5568]">Opening…</p>
+      </div>
+    )
   }
 
-  const showGetVerified = isHelper && verificationStatus !== 'approved'
-
-  const quickLinks = useMemo((): AccountQuickLink[] => {
-    const links: AccountQuickLink[] = [
-      { kind: 'href', href: '/settings', label: 'Settings', testId: 'you-link-settings' },
-      { kind: 'messages', label: 'Messages', testId: 'you-link-messages' },
-      {
-        kind: 'href',
-        href: '/onboarding?edit=1',
-        label: 'Change city',
-        testId: 'you-link-change-city',
-      },
-    ]
-    if (showGetVerified) {
-      links.push({
-        kind: 'href',
-        href: '/verify',
-        label: 'Get verified',
-        testId: 'you-link-get-verified',
-      })
-    }
-    if (isHelper) {
-      links.push({
-        kind: 'href',
-        href: '/you?tab=helper',
-        label: 'Helper profile',
-        testId: 'you-link-helper-profile',
-      })
-    }
-    return links
-  }, [showGetVerified, isHelper])
-
-  const activityItems = (
-    [
-      ['requests', 'My requests'],
-      ['offers', 'My offers'],
-      ['saved', 'Saved helpers'],
-    ] as const
-  )
-
   return (
-    <div className="account-hc account-hc-you-page" data-testid="you-page">
-      <div className="beam-container pb-10 pt-6 sm:pt-8" data-testid="you-page-shell">
-        <ProfileHeader
-          person={currentUser}
-          stats={headerStats}
-          meta={headerMeta}
-          primaryAction={{
-            key: 'edit',
-            label: 'Edit profile',
-            icon: ProfileHeaderIcons.edit,
-            href: '#you-profile',
-            onClick: (event) => {
-              event.preventDefault()
-              scrollToId('you-profile')
-            },
-            testId: 'you-edit-profile',
-          }}
-          secondaryActions={[
-            {
-              key: 'share',
-              label: 'Share',
-              icon: ProfileHeaderIcons.share,
-              onClick: () => void onShareProfile(),
-              testId: 'you-share-profile',
-            },
-          ]}
-          overflowItems={overflowItems}
-        />
-
-        {shareToast ? (
-          <p className="mt-3 text-[13px] font-medium text-[#4A5568]" role="status">
-            {shareToast}
-          </p>
-        ) : null}
-
-        {isHelper ? <HelperProfileReviews reviews={reviews} getPerson={getPerson} /> : null}
-
-        <section id="you-profile" className="mt-10 scroll-mt-24">
-          <h2 className="font-display text-[22px] font-bold text-[#071330]">Your profile</h2>
-          <div className="mt-4">
-            <YouProfileForm />
-          </div>
-        </section>
-
-        {isHelper ? (
-          <section id="you-helper" className="mt-10 scroll-mt-24" data-testid="you-helper-section">
-            <h2 className="font-display text-[22px] font-bold text-[#071330]">Helper details</h2>
-            <div className="mt-4">
-              <YouHelperDetailsForm />
-            </div>
-          </section>
-        ) : null}
-
-        {isHelper ? (
-          <section className="mt-10 scroll-mt-24">
-            <h2 className="font-display text-[22px] font-bold text-[#071330]">Urgent job texts</h2>
-            <div className="mt-4">
-              <HelperUrgentSmsSettings
-                userId={authUser?.id || currentUser.id}
-                localOnly={mode !== 'live'}
-              />
-            </div>
-          </section>
-        ) : (
-          <section className="mt-10" data-testid="you-become-helper">
-            <h2 className="font-display text-[22px] font-bold text-[#071330]">Become a helper</h2>
-            <div className="mt-4 border-0 border-t border-[#E3E8EF] bg-transparent px-0 py-7">
-              <h3 className="font-display text-[22px] font-bold text-[#071330]">Become a helper</h3>
-              <p className="mt-2 max-w-[42ch] text-[14px] text-[#48556A]">
-                Set your skills, service area, and rate. Then start browsing open requests nearby.
-              </p>
-              <div className="mt-4">
-                <HelperCta />
-              </div>
-            </div>
-          </section>
-        )}
-
-        <section id="you-activity" className="mt-10 scroll-mt-24">
-          <h2 className="font-display text-[22px] font-bold text-[#071330]">Your activity</h2>
-          <div className="account-hc-tabs-wrap mt-4">
-            <div className="account-hc-tabs" role="tablist" aria-label="Account sections">
-              {activityItems.map(([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activityTab === id}
-                  onClick={() => setActivityTab(id)}
-                  className={`account-hc-tab ${activityTab === id ? 'is-active' : ''}`}
-                  data-testid={`you-tab-${id}`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-4">
-            {activityTab === 'requests' ? (
-              myRequests.length ? (
-                <div className="account-hc-job-grid">
-                  {myRequests.map((r) => (
-                    <RequestCard key={r.id} request={r} />
-                  ))}
-                </div>
-              ) : (
-                <div className="account-hc-card account-hc-empty">
-                  <h3>No requests yet</h3>
-                  <p>
-                    Post something you need done nearby. Neighbors reply with a time and price.
-                  </p>
-                  <div className="actions">
-                    <Link href="/post" className="account-hc-btn">
-                      Post a task
-                    </Link>
-                  </div>
-                </div>
-              )
-            ) : null}
-
-            {activityTab === 'offers' ? (
-              myOffers.length ? (
-                <ul className="account-hc-card account-hc-list">
-                  {myOffers.map((offer) => {
-                    const request = getRequest(offer.requestId)
-                    if (!request) return null
-                    return (
-                      <li key={offer.id}>
-                        <div className="account-hc-list-row">
-                          <Link href={`/requests/${request.id}`} className="min-w-0 flex-1 text-inherit no-underline">
-                            <p className="title truncate">{request.title}</p>
-                            <p className="meta">
-                              Your offer ${Math.round(offer.price)} · {offer.eta}
-                            </p>
-                          </Link>
-                          <div className="flex shrink-0 flex-col items-end gap-2">
-                            <span
-                              className={`account-hc-badge ${
-                                offer.status === 'accepted' ? 'accepted' : ''
-                              }`}
-                            >
-                              {offer.status}
-                            </span>
-                            {offer.status === 'pending' ? (
-                              <CancelOfferAction
-                                offerId={offer.id}
-                                testId={`you-cancel-offer-${offer.id}`}
-                              />
-                            ) : null}
-                          </div>
-                        </div>
-                      </li>
-                    )
-                  })}
-                </ul>
-              ) : (
-                <div className="account-hc-card account-hc-empty">
-                  <h3>No offers yet</h3>
-                  <p>Browse open requests and name a price when you can help.</p>
-                  <div className="actions">
-                    <Link href="/browse" className="account-hc-btn">
-                      Browse requests
-                    </Link>
-                  </div>
-                </div>
-              )
-            ) : null}
-
-            {activityTab === 'saved' ? (
-              savedHelpers.length ? (
-                <div>
-                  <p className="account-hc-saved-intro">
-                    Book again from people you liked working with.
-                  </p>
-                  <div className="account-hc-job-grid">
-                    {savedHelpers.map((person) =>
-                      person ? (
-                        <div key={person.id} className="relative">
-                          <PersonCard person={person} />
-                          <div className="mt-3 flex gap-2">
-                            <ButtonLink
-                              href={
-                                person.skills[0]
-                                  ? `/post?rebook=${person.id}&category=${person.skills[0]}`
-                                  : `/post?rebook=${person.id}`
-                              }
-                              size="sm"
-                              className="flex-1"
-                            >
-                              Book again
-                            </ButtonLink>
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              size="sm"
-                              aria-label="Remove saved helper"
-                              onClick={() => void toggleSavedHelper(person.id)}
-                            >
-                              <Heart className="h-4 w-4 fill-[#1D5CE5] text-[#1D5CE5]" />
-                            </Button>
-                          </div>
-                        </div>
-                      ) : null,
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="account-hc-card account-hc-empty">
-                  <h3>No saved helpers</h3>
-                  <p>Tap the heart on a helper profile to save them for next time.</p>
-                  <div className="actions">
-                    <Link href="/browse?tab=people" className="account-hc-btn">
-                      Meet helpers
-                    </Link>
-                  </div>
-                </div>
-              )
-            ) : null}
-          </div>
-        </section>
-
-        <section className="mt-10">
-          <h2 className="font-display text-[22px] font-bold text-[#071330]">Quick links</h2>
-          <div className="mt-4 flex flex-col gap-3">
-            <AccountQuickLinksCard links={quickLinks} title="" />
-            <AccountSignOutButton />
-            <AccountDemoReset />
-          </div>
-        </section>
-
-      </div>
+    <div className="beam-container pb-10 pt-6 sm:pt-8" data-testid="you-page-shell">
+      <HelperProfileBody
+        person={currentUser}
+        reviews={reviews}
+        variant="own"
+        jobsPosted={myRequests.length}
+      />
     </div>
-  )
-}
-
-function HelperCta(): ReactNode {
-  const { authUser, mode } = useBeam()
-  const href =
-    mode === 'live' && !authUser
-      ? '/auth?mode=signup&next=%2Fonboarding%2Fhelper'
-      : '/onboarding/helper'
-  return (
-    <Link href={href} className="account-hc-btn" data-testid="you-become-helper-cta">
-      Become a helper
-    </Link>
   )
 }

@@ -17,7 +17,13 @@ export function isPublicAppPath(pathname: string): boolean {
 
 /** Live-guest write / account routes that must never show inline auth chrome. */
 export function isProtectedAppPath(pathname: string): boolean {
-  if (pathname === '/home' || pathname === '/post' || pathname === '/you' || pathname === '/settings')
+  if (
+    pathname === '/home' ||
+    pathname === '/post' ||
+    pathname === '/you' ||
+    pathname === '/settings' ||
+    pathname.startsWith('/settings/')
+  )
     return true
   if (pathname === '/messages' || pathname.startsWith('/messages/')) return true
   if (pathname === '/onboarding/helper' || pathname.startsWith('/onboarding/helper/')) return true

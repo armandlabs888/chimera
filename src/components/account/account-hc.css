@@ -1855,15 +1855,23 @@
   border-bottom: 1px solid var(--hc-line, #e3e8ef);
 }
 
+.hc-menu-head-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .hc-menu-head .name {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--hc-navy, #071330);
+  font-family: var(--font-display, inherit);
+  line-height: 1.2;
 }
 
 .hc-menu-head .loc {
   margin-top: 2px;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--hc-muted, #48556a);
 }
@@ -1875,15 +1883,17 @@
 }
 
 .hc-menu-list a,
-.hc-menu-list button.hc-menu-item {
+.hc-menu-list button.hc-menu-item,
+.hc-menu-list button {
   display: flex;
   align-items: center;
+  gap: 12px;
   width: 100%;
   height: 44px;
-  padding: 0 10px;
+  padding: 0 12px;
   border-radius: 8px;
-  font-size: 14px;
-  font-weight: 550;
+  font-size: 14.5px;
+  font-weight: 500;
   color: var(--hc-navy, #071330);
   text-align: left;
   text-decoration: none;
@@ -1893,8 +1903,15 @@
   font-family: inherit;
 }
 
+.hc-menu-list a svg,
+.hc-menu-list button svg {
+  color: var(--hc-muted, #4a5568);
+  flex: none;
+}
+
 .hc-menu-list a:hover,
-.hc-menu-list button.hc-menu-item:hover {
+.hc-menu-list button.hc-menu-item:hover,
+.hc-menu-list button:hover {
   background: var(--hc-tint-2, #eef2f7);
 }
 
@@ -1910,12 +1927,16 @@
 }
 
 .hc-menu-list .sign-out {
-  color: var(--hc-red, #dc2626);
+  color: #c8102e;
   font-weight: 600;
 }
 
+.hc-menu-list .sign-out svg {
+  color: #c8102e !important;
+}
+
 .hc-menu-list .sign-out:hover {
-  background: var(--hc-red-hover, #fef2f2);
+  background: #fef2f2;
 }
 
 .hc-account-desktop {

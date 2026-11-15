@@ -33,7 +33,7 @@ const SLOTS: { id: AvailabilitySlot; label: string }[] = [
 
 const RADIUS_OPTIONS = [3, 5, 10, 15, 25] as const
 
-const SMS_SETTINGS_HREF = '/you?tab=helper#helper-urgent-sms'
+const SMS_SETTINGS_HREF = '/settings/account#notifications'
 
 const inputClass = 'account-hc-input'
 

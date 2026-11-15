@@ -216,7 +216,7 @@ export function PublicHelperProfileView({
         {
           key: 'edit-helper',
           label: 'Edit helper details',
-          href: '/you#you-helper',
+          href: '/settings/profile#services',
           testId: 'public-helper-edit-helper',
         },
       ]
@@ -241,7 +241,7 @@ export function PublicHelperProfileView({
         key: 'edit',
         label: 'Edit profile',
         icon: ProfileHeaderIcons.edit,
-        href: '/you#you-profile',
+        href: '/settings/profile',
         testId: 'public-helper-edit',
       }
     : {
@@ -611,7 +611,7 @@ export function PublicHelperProfileView({
             ) : (
               <div className="php-book-card">
                 <p className="php-fee-note">This is how neighbors see your public helper profile.</p>
-                <ButtonLink href="/you#you-helper" className="mt-3 w-full justify-center">
+                <ButtonLink href="/settings/profile#services" className="mt-3 w-full justify-center">
                   Edit helper details
                 </ButtonLink>
               </div>
