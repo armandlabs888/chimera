@@ -606,6 +606,7 @@
   min-height: 100%;
   margin-left: 32px;
   padding-left: 32px;
+  padding-right: 32px;
   background: #f7f9fc;
   border-left: 1px solid #e3e8ef;
   box-sizing: border-box;
@@ -1773,6 +1774,7 @@
   .browse-hc-detail-col {
     margin-left: 0;
     padding-left: 0;
+    padding-right: 0;
     background: transparent;
     border-left: 0;
   }
