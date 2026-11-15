@@ -214,6 +214,17 @@ export function ReferHelperPickerDialog({
                     data-testid="refer-helper-search"
                     autoComplete="off"
                   />
+                  {query ? (
+                    <button
+                      type="button"
+                      className="rh-picker-search-clear"
+                      aria-label="Clear search"
+                      data-testid="refer-helper-search-clear"
+                      onClick={() => setQuery('')}
+                    >
+                      <X className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                    </button>
+                  ) : null}
                 </div>
 
                 {selectedHelpers.length > 0 ? (

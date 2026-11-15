@@ -147,6 +147,31 @@
   }
 }
 
+/*
+  Hide native search clear / decoration so only the app clear control shows.
+  Kept outside @layer: Lightning CSS drops -webkit-appearance inside layers,
+  and Chromium needs the vendor-prefixed pseudo rules (display:none alone is not enough).
+*/
+input[type='search'] {
+  -webkit-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type='search']::-webkit-search-cancel-button,
+input[type='search']::-webkit-search-decoration,
+input[type='search']::-webkit-search-results-button,
+input[type='search']::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+input[type='search']::-ms-clear {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 @layer utilities {
   .font-display,
   .font-serif {
