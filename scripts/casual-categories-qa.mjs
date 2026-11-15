@@ -39,26 +39,20 @@ async function main() {
   const summary = { checks: [] }
 
   try {
-    // Desktop hero + browse parents
+    // Desktop hero ZIP (neighborhood picker removed; category parents live on Browse)
     {
       const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
       await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
-      await page.getByTestId('hero-category-trigger').click()
-      const list = page.getByTestId('hero-category-listbox')
-      await list.waitFor({ state: 'visible' })
-      const text = await list.innerText()
-      for (const label of ['All categories', 'Home', 'Auto', 'Junk Removal', 'Pets', 'Other']) {
-        assert.match(text, new RegExp(label))
-      }
-      for (const bad of ['Moving & lifting', 'Handyman', 'Tutoring', 'Home cleaning']) {
-        assert.equal(text.includes(bad), false, `hero still shows ${bad}`)
-      }
-      const shot = '/tmp/casual-hero-categories-desktop.png'
+      assert.equal(await page.getByTestId('hero-neighborhood-trigger').count(), 0)
+      const zip = page.getByTestId('hero-zip-input')
+      await zip.waitFor({ state: 'visible' })
+      assert.equal(await zip.getAttribute('placeholder'), 'ZIP code')
+      const shot = '/tmp/casual-hero-zip-desktop.png'
       await page.screenshot({ path: shot, fullPage: false })
       summary.checks.push({
-        name: 'hero-parents-desktop',
+        name: 'hero-zip-desktop',
         ok: true,
-        artifact: saveShot(shot, 'casual-hero-categories-desktop.png'),
+        artifact: saveShot(shot, 'casual-hero-zip-desktop.png'),
       })
       await page.close()
     }

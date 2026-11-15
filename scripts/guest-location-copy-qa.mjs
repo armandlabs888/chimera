@@ -64,42 +64,29 @@ try {
     if ((await page.getByTestId('hero-neighborhood-trigger').count()) > 0) {
       throw new Error(`Guest hero still exposes Austin neighborhood trigger @ ${vp.name}`)
     }
-    const trigger = page.getByTestId('hero-category-trigger')
-    const triggerLabel = (await trigger.innerText()).trim()
-    assertNoAustin(`guest search trigger @ ${vp.name}`, triggerLabel)
-    if (!/All categories/i.test(triggerLabel)) {
-      throw new Error(`Guest trigger expected All categories, got "${triggerLabel}"`)
+    if ((await page.getByTestId('hero-neighborhood-listbox').count()) > 0) {
+      throw new Error(`Guest hero still exposes neighborhood listbox @ ${vp.name}`)
     }
-
-    await trigger.click()
-    const listbox = page.getByTestId('hero-category-listbox')
-    await listbox.waitFor({ state: 'visible', timeout: 10000 })
-    const listText = await listbox.innerText()
+    const zip = page.getByTestId('hero-zip-input')
+    await zip.waitFor({ state: 'visible', timeout: 10000 })
+    const placeholder = (await zip.getAttribute('placeholder')) || ''
+    assertNoAustin(`guest ZIP placeholder @ ${vp.name}`, placeholder)
+    if (placeholder !== 'ZIP code') {
+      throw new Error(`Guest ZIP placeholder expected "ZIP code", got "${placeholder}"`)
+    }
+    const searchPill = page.getByTestId('hero-search-pill')
+    const searchText = await searchPill.innerText()
     for (const name of [
       'East Austin',
       'Hyde Park',
       'Mueller',
-      'Zilker',
-      'South Congress',
-      'Travis Heights',
-      'Clarksville',
-      'The Domain',
+      'All neighborhoods',
+      'Select neighborhood',
     ]) {
-      if (listText.includes(name)) {
-        throw new Error(`Guest hero category listbox includes Austin neighborhood "${name}" @ ${vp.name}`)
+      if (searchText.includes(name)) {
+        throw new Error(`Hero search still shows Austin neighborhood copy "${name}" @ ${vp.name}`)
       }
     }
-    const allOption = listbox.locator('button').first()
-    const allText = (await allOption.innerText()).trim()
-    assertNoAustin(`guest all-option @ ${vp.name}`, allText)
-    if (!/All categories/i.test(allText)) {
-      throw new Error(`Guest all-option expected "All categories", got "${allText}"`)
-    }
-    if (!/Home/i.test(listText) || !/Pets/i.test(listText) || !/Other/i.test(listText)) {
-      throw new Error(`Guest category listbox missing casual parents @ ${vp.name}`)
-    }
-    await page.keyboard.press('Escape')
-    await listbox.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
 
     const title = await page.title()
     assertNoAustin(`guest document title @ ${vp.name}`, title)
@@ -115,7 +102,7 @@ try {
       name: `guest-home-${vp.name}`,
       ok: true,
       h1,
-      triggerLabel,
+      zipPlaceholder: placeholder,
       title,
       artifact: heroArtifact,
     })

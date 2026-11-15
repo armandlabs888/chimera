@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { HelpRequest, HelperVerification, Person } from '@/types'
 import {
   pinFromZipPlace,
@@ -94,18 +94,32 @@ export function useBrowseHome(input: {
     }
   }, [input.person, input.helperVerification, input.requests, pin])
 
-  return {
-    home,
-    pin,
-    ready,
-    setFromZipPlace: (place) => {
+  const setFromZipPlace = useCallback(
+    (place: {
+      zip: string
+      city: string
+      stateCode: string
+      lat: number
+      lng: number
+      label: string
+    }) => {
       const next = pinFromZipPlace(place)
       writeBrowseLocationPin(next)
       setPin(next)
     },
-    clearPin: () => {
-      writeBrowseLocationPin(null)
-      setPin(null)
-    },
+    [],
+  )
+
+  const clearPin = useCallback(() => {
+    writeBrowseLocationPin(null)
+    setPin(null)
+  }, [])
+
+  return {
+    home,
+    pin,
+    ready,
+    setFromZipPlace,
+    clearPin,
   }
 }

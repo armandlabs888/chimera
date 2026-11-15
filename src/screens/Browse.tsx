@@ -154,7 +154,7 @@ export function Browse() {
   const { state, currentUser, authUser, mode, ready, helperVerification } = useBeam()
   const isGuest = mode === 'live' && !authUser
   const isLive = mode === 'live'
-  const { home: browseHome, ready: homeReady } = useBrowseHome({
+  const { home: browseHome, ready: homeReady, setFromZipPlace } = useBrowseHome({
     person: currentUser,
     helperVerification,
     requests: state.requests,
@@ -182,6 +182,7 @@ export function Browse() {
   const pay = parsePay(params.get('pay'))
   const avail = hidePeerDiscovery ? 'all' : parseAvail(params.get('avail'))
   const qParam = params.get('q') ?? ''
+  const zipParam = params.get('zip') ?? ''
   const freeOnly = hidePeerDiscovery ? false : params.get('free') === '1'
   const sortParam = params.get('sort') as SortMode | null
   const sort: SortMode =
@@ -206,6 +207,71 @@ export function Browse() {
   useEffect(() => {
     setQDraft(qParam)
   }, [qParam])
+
+  // Hero / deep-link ?zip= sets the browse-only area pin (same path as "Set your area").
+  useEffect(() => {
+    const raw = zipParam.trim()
+    if (!raw) return
+    const normalized = raw.replace(/\D/g, '').slice(0, 5)
+    if (normalized.length !== 5) {
+      const nextParams = new URLSearchParams(params.toString())
+      nextParams.delete('zip')
+      nextParams.delete('neighborhood')
+      const qs = nextParams.toString()
+      startTransition(() => {
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+      })
+      return
+    }
+
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetch(`/api/zip?zip=${encodeURIComponent(normalized)}`)
+        const data = (await res.json()) as {
+          error?: string
+          zip?: string
+          lat?: number
+          lng?: number
+          city?: string
+          stateCode?: string
+          label?: string
+        }
+        if (
+          cancelled ||
+          !res.ok ||
+          !data.zip ||
+          data.lat == null ||
+          data.lng == null
+        ) {
+          return
+        }
+        setFromZipPlace({
+          zip: data.zip,
+          city: data.city || '',
+          stateCode: data.stateCode || '',
+          lat: data.lat,
+          lng: data.lng,
+          label: data.label || `${data.city}, ${data.stateCode}`,
+        })
+      } catch {
+        // Keep browsing; area pin stays unchanged if lookup fails.
+      } finally {
+        if (cancelled) return
+        const nextParams = new URLSearchParams(params.toString())
+        nextParams.delete('zip')
+        nextParams.delete('neighborhood')
+        const qs = nextParams.toString()
+        startTransition(() => {
+          router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+        })
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [zipParam, params, pathname, router, startTransition, setFromZipPlace])
 
   useEffect(() => {
     if (!hidePeerDiscovery) return
