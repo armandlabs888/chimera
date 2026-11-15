@@ -3,7 +3,7 @@
 import { Bookmark, Clock, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import {
   OfferGateNotice,
@@ -12,8 +12,6 @@ import {
 import { useBeam } from '@/context/BeamContext'
 import { JobTitleText } from '@/lib/displayTitle'
 import {
-  formatBudget,
-  formatPriceCaption,
   hasListedPrice,
   relativeTime,
   requestAcceptsOffers,
@@ -28,6 +26,7 @@ import { CancelJobAction } from '@/components/jobs/CancelJobAction'
 import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
+import { JobDetailPriceLine } from '@/components/jobs/JobDetailPriceLine'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { formatJobAreaCaption } from '@/lib/location'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
@@ -112,8 +111,6 @@ export function BrowseJobDetailPanel({
   const listedPrice = hasListedPrice(request)
   const firmPrice = listedPrice && !requestAcceptsOffers(request)
   const firmPriceAmount = listedPrice ? Math.round(request.budget) : 0
-  const budgetLabel = formatBudget(request)
-  const priceCaption = formatPriceCaption(request)
   const posted = relativeTime(request.createdAt)
   const jobAreaCaption = formatJobAreaCaption(request)
   // Job area only; never fall back to the viewer browse city (guest "you").
@@ -133,24 +130,6 @@ export function BrowseJobDetailPanel({
   const timingValue =
     request.when === 'asap' ? 'As soon as possible' : request.whenLabel || 'Flexible'
   const fullHref = `/requests/${request.id}`
-
-  const priceBlock = useMemo(() => {
-    if (!listedPrice) {
-      return (
-        <>
-          <div className="browse-hc-detail-price" style={{ fontSize: 22 }}>
-            Open to offers
-          </div>
-        </>
-      )
-    }
-    return (
-      <>
-        <div className="browse-hc-detail-price">{budgetLabel}</div>
-        {priceCaption ? <div className="browse-hc-detail-pay">{priceCaption}</div> : null}
-      </>
-    )
-  }, [budgetLabel, listedPrice, priceCaption])
 
   async function requireAuth(run: () => Promise<void> | void) {
     if (isGuest) {
@@ -296,12 +275,10 @@ export function BrowseJobDetailPanel({
             <h2 id={titleId} className="browse-hc-detail-title">
               <JobTitleText title={request.title} />
             </h2>
-            {request.isUrgent ? (
-              <div className="mb-2">
-                <NeedsHelpNowLabel />
-              </div>
-            ) : null}
-            <div className="browse-hc-detail-price-block">{priceBlock}</div>
+            {request.isUrgent ? <NeedsHelpNowLabel /> : null}
+            <div className="browse-hc-detail-price-block">
+              <JobDetailPriceLine request={request} testId="browse-job-detail-price" />
+            </div>
           </div>
 
           <div className="browse-hc-info-card">

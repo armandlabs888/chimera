@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  Banknote,
   Calendar,
   ExternalLink,
   MapPin,
@@ -20,8 +19,7 @@ import {
 import { useBeam } from '@/context/BeamContext'
 import { JobTitleText } from '@/lib/displayTitle'
 import {
-  formatBudget,
-  formatPriceCaption,
+  formatMoney,
   hasListedPrice,
   relativeTime,
   requestAcceptsOffers,
@@ -35,6 +33,7 @@ import { CancelJobAction } from '@/components/jobs/CancelJobAction'
 import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
+import { JobDetailPriceLine } from '@/components/jobs/JobDetailPriceLine'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { formatJobAreaCaption } from '@/lib/location'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
@@ -111,8 +110,6 @@ export function BrowseJobDrawer({
   const images = normalizeListingImages(request.images, request.image)
   const cover = listingCoverImage(images)
   const categoryLabel = formatCategoryLabel(request.category, request.categoryCustom)
-  const budgetLabel = formatBudget(request)
-  const priceCaption = formatPriceCaption(request)
   const listedPrice = hasListedPrice(request)
   const firmPrice = listedPrice && !requestAcceptsOffers(request)
   const firmPriceAmount = listedPrice ? Math.round(request.budget) : 0
@@ -206,12 +203,6 @@ export function BrowseJobDrawer({
   const facts = useMemo(
     () => [
       {
-        label: 'Price',
-        icon: Banknote,
-        value: budgetLabel,
-        detail: priceCaption ?? (listedPrice ? '' : 'Helpers name their price'),
-      },
-      {
         label: 'When',
         icon: Calendar,
         value: request.whenLabel || 'Flexible',
@@ -224,7 +215,7 @@ export function BrowseJobDrawer({
         detail: place,
       },
     ],
-    [budgetLabel, listedPrice, milesLabel, place, priceCaption, request.when, request.whenLabel],
+    [milesLabel, place, request.when, request.whenLabel],
   )
 
   const body = (
@@ -259,6 +250,11 @@ export function BrowseJobDrawer({
           >
             <JobTitleText title={request.title} />
           </h2>
+          <JobDetailPriceLine
+            request={request}
+            className="mt-2"
+            testId="browse-drawer-job-price"
+          />
           <p className="mt-2 text-[14px] text-[#273449]">
             Posted {posted} by {firstName} · {place}
           </p>
@@ -499,15 +495,29 @@ export function BrowseJobDrawer({
     />
   ) : null
 
+  const footerPrice = listedPrice ? (
+    <div className="flex flex-wrap items-center gap-2">
+      <b className="text-[18px] font-bold tracking-[-0.03em] text-[#071330] tabular-nums">
+        {formatMoney(request.budget)}
+      </b>
+      {requestAcceptsOffers(request) ? (
+        <span className="inline-flex items-center rounded-md bg-[#EEF2F7] px-2 py-0.5 text-[12px] font-semibold text-[#071330]">
+          Open to offers
+        </span>
+      ) : (
+        <span className="text-[12px] font-medium text-[#3D4A5F]">Firm price</span>
+      )}
+    </div>
+  ) : (
+    <span className="inline-flex items-center rounded-md bg-[#EEF2F7] px-2 py-0.5 text-[12px] font-semibold text-[#071330]">
+      Open to offers
+    </span>
+  )
+
   const actions = narrow ? (
     <div className="flex shrink-0 flex-col gap-2 border-t border-[#E3E8EF] bg-white px-4 pb-4 pt-2.5">
       {gateNotice}
-      <div className="flex items-baseline gap-2">
-        <b className="text-[18px] font-bold tracking-[-0.03em] text-[#071330]">{budgetLabel}</b>
-        <span className="text-[13px] font-medium text-[#3D4A5F]">
-          {priceCaption ?? 'Price'}
-        </span>
-      </div>
+      {footerPrice}
       {canOffer && isNeighborViewer ? (
         referActions
       ) : showHelperOfferChrome ? (
@@ -538,14 +548,7 @@ export function BrowseJobDrawer({
           className="flex items-center gap-2.5 px-5 py-3.5 pl-6"
           data-testid={ownerCanCancel ? 'browse-owner-controls' : undefined}
         >
-          <div className="min-w-0 shrink leading-tight">
-            <b className="block truncate text-[18px] font-bold tracking-[-0.03em] text-[#071330]">
-              {budgetLabel}
-            </b>
-            <span className="block whitespace-nowrap text-[12px] font-medium text-[#3D4A5F]">
-              {priceCaption ?? 'Price'}
-            </span>
-          </div>
+          <div className="min-w-0 shrink leading-tight">{footerPrice}</div>
           <div className="min-w-2 flex-1" />
           {ownerCanCancel ? ownerCancelButton : askButton}
           {primaryButton}

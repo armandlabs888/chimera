@@ -925,9 +925,9 @@
 
 .browse-hc-detail-head {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
 }
 
 .browse-hc-detail-title {
@@ -941,6 +941,8 @@
   overflow-wrap: normal;
   word-break: normal;
   hyphens: none;
+  width: 100%;
+  min-width: 0;
 }
 
 .job-title-nobreak {
@@ -948,16 +950,18 @@
 }
 
 .browse-hc-detail-price-block {
-  text-align: right;
+  text-align: left;
   flex: none;
+  /* Match the breathing room before Timing / Area rows below. */
+  margin-bottom: 4px;
 }
 
 .browse-hc-detail-price {
   font-family: var(--font-display);
-  font-size: 30px;
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: -0.035em;
-  color: var(--hc-navy);
+  letter-spacing: -0.02em;
+  color: #071330;
   line-height: 1;
 }
 
