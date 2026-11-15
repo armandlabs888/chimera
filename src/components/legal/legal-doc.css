@@ -1,0 +1,183 @@
+/* Legal policy reading column: shared shell width, ~720px prose. */
+
+.account-hc-policy-page {
+  padding-bottom: 64px;
+}
+
+.legal-doc {
+  max-width: 720px;
+  margin-top: 8px;
+  color: #071330;
+  background: #ffffff;
+}
+
+.legal-doc-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #071330;
+}
+
+.legal-doc-meta {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #4a5568;
+}
+
+.legal-doc-meta strong {
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.legal-doc-p {
+  margin: 1.1em 0 0;
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: #071330;
+}
+
+.legal-doc-conspicuous {
+  margin-top: 1.35em;
+  padding: 14px 0;
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+  color: #071330;
+  border-top: 1px solid rgba(7, 19, 48, 0.12);
+  border-bottom: 1px solid rgba(7, 19, 48, 0.12);
+}
+
+.legal-doc-h2 {
+  margin: 2.25em 0 0;
+  scroll-margin-top: 5.5rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #071330;
+}
+
+.legal-doc-h3 {
+  margin: 1.5em 0 0;
+  scroll-margin-top: 5.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #071330;
+}
+
+.legal-doc-ul {
+  margin: 0.75em 0 0;
+  padding-left: 1.25em;
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: #071330;
+}
+
+.legal-doc-ul li {
+  margin-top: 0.4em;
+}
+
+.legal-doc-ul li::marker {
+  color: #4a5568;
+}
+
+.legal-doc-link {
+  color: #1649bd;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.legal-doc-link:hover {
+  color: #0f3a96;
+}
+
+.legal-doc-toc {
+  margin: 1.75em 0 0;
+  padding: 16px 0 4px;
+  border-top: 1px solid rgba(7, 19, 48, 0.1);
+  border-bottom: 1px solid rgba(7, 19, 48, 0.1);
+}
+
+.legal-doc-toc-label {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #4a5568;
+}
+
+.legal-doc-toc-list {
+  margin: 0;
+  padding: 0 0 12px;
+  list-style: none;
+  columns: 1;
+}
+
+@media (min-width: 640px) {
+  .legal-doc-toc-list {
+    columns: 2;
+    column-gap: 28px;
+  }
+}
+
+.legal-doc-toc-list li {
+  break-inside: avoid;
+  margin: 0;
+  padding: 3px 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.legal-doc-toc-num {
+  color: #4a5568;
+  font-variant-numeric: tabular-nums;
+}
+
+.legal-doc-table-wrap {
+  margin: 1em 0 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.legal-doc-table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #071330;
+}
+
+.legal-doc-table th,
+.legal-doc-table td {
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+  border: 1px solid rgba(7, 19, 48, 0.12);
+}
+
+.legal-doc-table th {
+  background: #f7f9fc;
+  font-weight: 600;
+  color: #071330;
+}
+
+.legal-doc-table td {
+  background: #ffffff;
+}
+
+.legal-doc strong {
+  font-weight: 700;
+}
+
+/* Remove old placeholder card chrome when present */
+.account-hc-policy-page .account-hc-policy-card {
+  display: none;
+}

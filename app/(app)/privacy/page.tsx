@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
-import { PolicyPlaceholder } from '@/screens/PolicyPlaceholder'
+import { LegalDocumentView } from '@/components/legal/LegalDocumentView'
+import { loadLegalDocument } from '@/lib/legal/loadLegalDocument'
 import { pageMetadata } from '@/lib/seo/site'
+import { PolicyPlaceholder } from '@/screens/PolicyPlaceholder'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Privacy Policy',
@@ -9,5 +11,10 @@ export const metadata: Metadata = pageMetadata({
 })
 
 export default function PrivacyPage() {
-  return <PolicyPlaceholder title="Privacy Policy" testId="privacy-page" />
+  const doc = loadLegalDocument('privacy')
+  return (
+    <PolicyPlaceholder title="Privacy Policy" testId="privacy-page">
+      <LegalDocumentView doc={doc} />
+    </PolicyPlaceholder>
+  )
 }
