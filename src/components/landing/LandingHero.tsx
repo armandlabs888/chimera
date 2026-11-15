@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Check, ChevronDown, MapPin, Search } from 'lucide-react'
@@ -24,6 +25,8 @@ function knownClientZip(input: {
   return fromLabel ? fromLabel[1] : ''
 }
 
+type MenuPos = { top: number; left: number; width: number; maxHeight: number }
+
 /**
  * Landing v2 hero. Full-bleed neighbor photo with navy overlays; search-first.
  * Live guests: category picker. Signed-in / demo: ZIP for Browse distance origin.
@@ -38,7 +41,10 @@ export function LandingHero() {
   const [zipError, setZipError] = useState(false)
   const [category, setCategory] = useState<BrowseParentId | 'all'>('all')
   const [locOpen, setLocOpen] = useState(false)
+  const [menuPos, setMenuPos] = useState<MenuPos | null>(null)
   const locRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLUListElement>(null)
 
   const CategoryIcon =
     category === 'all' ? ALL_CATEGORY_ICON : PARENT_ICONS[category] ?? ALL_CATEGORY_ICON
@@ -67,9 +73,64 @@ export function LandingHero() {
     if (prefillZip) setZip(prefillZip)
   }, [zipPrefillReady, isLiveGuest, prefillZip, zip])
 
+  useLayoutEffect(() => {
+    if (!locOpen) {
+      setMenuPos(null)
+      return
+    }
+
+    function placeMenu() {
+      const trigger = triggerRef.current
+      if (!trigger) return
+      const rect = trigger.getBoundingClientRect()
+      const minWidth = Math.min(window.innerWidth - 16, Math.max(rect.width, 256))
+      let left = rect.left
+      if (left + minWidth > window.innerWidth - 8) {
+        left = Math.max(8, window.innerWidth - 8 - minWidth)
+      }
+      if (left < 8) left = 8
+
+      // Prefer below the trigger; flip above when the list would leave the viewport.
+      const gap = 8
+      const chrome = 16 // list padding
+      const estimatedHeight = chrome + 44 * (1 + BROWSE_PARENTS.length)
+      const spaceBelow = Math.max(0, window.innerHeight - rect.bottom - gap)
+      const spaceAbove = Math.max(0, rect.top - gap)
+      const openUp = estimatedHeight > spaceBelow && spaceAbove > spaceBelow
+      const available = openUp ? spaceAbove : spaceBelow
+      const maxHeight = Math.max(
+        44 * 3,
+        Math.min(16 * 16, 0.45 * window.innerHeight, available),
+      )
+      const top = openUp
+        ? Math.max(gap, rect.top - gap - maxHeight)
+        : rect.bottom + gap
+
+      setMenuPos({
+        top,
+        left,
+        width: minWidth,
+        maxHeight,
+      })
+    }
+
+    placeMenu()
+    window.addEventListener('resize', placeMenu)
+    // Capture scroll from nested containers too; menu is fixed to the viewport.
+    window.addEventListener('scroll', placeMenu, true)
+    return () => {
+      window.removeEventListener('resize', placeMenu)
+      window.removeEventListener('scroll', placeMenu, true)
+    }
+  }, [locOpen])
+
   useEffect(() => {
+    if (!locOpen) return
     function onDoc(e: MouseEvent) {
-      if (!locRef.current?.contains(e.target as Node)) setLocOpen(false)
+      const target = e.target as Node
+      if (locRef.current?.contains(target)) return
+      if (menuRef.current?.contains(target)) return
+      setLocOpen(false)
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setLocOpen(false)
@@ -80,7 +141,7 @@ export function LandingHero() {
       document.removeEventListener('mousedown', onDoc)
       document.removeEventListener('keydown', onKey)
     }
-  }, [])
+  }, [locOpen])
 
   function onSearch(e: FormEvent) {
     e.preventDefault()
@@ -102,8 +163,80 @@ export function LandingHero() {
     router.push(qs ? `/browse?${qs}` : '/browse')
   }
 
+  const categoryMenu =
+    locOpen && menuPos && typeof document !== 'undefined'
+      ? createPortal(
+          <ul
+            ref={menuRef}
+            id="hero-category-listbox"
+            role="listbox"
+            data-testid="hero-category-listbox"
+            className="fixed z-[80] overflow-y-auto overscroll-contain rounded-[10px] border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35)]"
+            style={{
+              top: menuPos.top,
+              left: menuPos.left,
+              width: menuPos.width,
+              maxHeight: menuPos.maxHeight,
+            }}
+          >
+            <li>
+              <button
+                type="button"
+                role="option"
+                aria-selected={category === 'all'}
+                className={`flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-white ${
+                  category === 'all'
+                    ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
+                    : 'text-[#071330]'
+                }`}
+                onClick={() => {
+                  setCategory('all')
+                  setLocOpen(false)
+                }}
+              >
+                All categories
+                {category === 'all' ? (
+                  <Check className="h-4 w-4 shrink-0" aria-hidden />
+                ) : null}
+              </button>
+            </li>
+            {BROWSE_PARENTS.map((p) => {
+              const Icon = PARENT_ICONS[p.id]
+              return (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={category === p.id}
+                    className={`flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-white ${
+                      category === p.id
+                        ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
+                        : 'text-[#4A5568]'
+                    }`}
+                    onClick={() => {
+                      setCategory(p.id)
+                      setLocOpen(false)
+                    }}
+                  >
+                    <span className="inline-flex min-w-0 items-center gap-2.5">
+                      <Icon className="h-4 w-4 shrink-0 text-[#1D5CE5]" aria-hidden />
+                      <span className="truncate">{p.label}</span>
+                    </span>
+                    {category === p.id ? (
+                      <Check className="h-4 w-4 shrink-0" aria-hidden />
+                    ) : null}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>,
+          document.body,
+        )
+      : null
+
   return (
-    <section className="landing-hero-photo relative isolate min-h-[100svh] overflow-x-clip rounded-none pb-0 pt-0 mb-0">
+    <section className="landing-hero-photo relative isolate min-h-[100svh] rounded-none pb-0 pt-0 mb-0">
+      {/* Clip the photo/overlays only; keep content overflow visible for popovers. */}
       <div
         className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-none"
         aria-hidden="true"
@@ -123,7 +256,7 @@ export function LandingHero() {
       </div>
 
       <div
-        className="landing-hero-content relative z-20 overflow-x-clip"
+        className="landing-hero-content relative z-20"
         data-testid="landing-hero"
       >
         <div className="beam-container relative z-10 text-center">
@@ -166,6 +299,7 @@ export function LandingHero() {
                 {isLiveGuest ? (
                   <>
                     <button
+                      ref={triggerRef}
                       type="button"
                       className="flex min-h-11 w-full items-center gap-2.5 rounded-[8px] px-3 py-2.5 text-left"
                       aria-expanded={locOpen}
@@ -188,65 +322,7 @@ export function LandingHero() {
                         }`}
                       />
                     </button>
-                    {locOpen ? (
-                      <ul
-                        id="hero-category-listbox"
-                        role="listbox"
-                        data-testid="hero-category-listbox"
-                        className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(16rem,45vh)] overflow-y-auto overscroll-contain rounded-[10px] border border-[rgba(7,19,48,0.12)] bg-white py-1.5 shadow-[0_18px_40px_-12px_rgba(12,42,102,0.35)] sm:min-w-[16rem]"
-                      >
-                        <li>
-                          <button
-                            type="button"
-                            role="option"
-                            aria-selected={category === 'all'}
-                            className={`flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-white ${
-                              category === 'all'
-                                ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
-                                : 'text-[#071330]'
-                            }`}
-                            onClick={() => {
-                              setCategory('all')
-                              setLocOpen(false)
-                            }}
-                          >
-                            All categories
-                            {category === 'all' ? (
-                              <Check className="h-4 w-4 shrink-0" aria-hidden />
-                            ) : null}
-                          </button>
-                        </li>
-                        {BROWSE_PARENTS.map((p) => {
-                          const Icon = PARENT_ICONS[p.id]
-                          return (
-                            <li key={p.id}>
-                              <button
-                                type="button"
-                                role="option"
-                                aria-selected={category === p.id}
-                                className={`flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-white ${
-                                  category === p.id
-                                    ? 'bg-[#EEF4FF] font-semibold text-[#1D5CE5]'
-                                    : 'text-[#4A5568]'
-                                }`}
-                                onClick={() => {
-                                  setCategory(p.id)
-                                  setLocOpen(false)
-                                }}
-                              >
-                                <span className="inline-flex min-w-0 items-center gap-2.5">
-                                  <Icon className="h-4 w-4 shrink-0 text-[#1D5CE5]" aria-hidden />
-                                  <span className="truncate">{p.label}</span>
-                                </span>
-                                {category === p.id ? (
-                                  <Check className="h-4 w-4 shrink-0" aria-hidden />
-                                ) : null}
-                              </button>
-                            </li>
-                          )
-                        })}
-                      </ul>
-                    ) : null}
+                    {categoryMenu}
                   </>
                 ) : (
                   <div className="w-full">
