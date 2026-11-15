@@ -3,6 +3,8 @@
 import { ChevronDown, MapPin } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, useTransition } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { BrowseDistanceEmpty } from '@/components/browse/BrowseDistanceEmpty'
+import { BrowseDistanceToggle } from '@/components/browse/BrowseDistanceToggle'
 import { BrowseFilteredEmpty } from '@/components/browse/BrowseFilteredEmpty'
 import { BrowseFreshEmpty } from '@/components/browse/BrowseFreshEmpty'
 import { BrowseHelperDetailPanel } from '@/components/browse/BrowseHelperDetailPanel'
@@ -16,10 +18,21 @@ import type { FilterOption } from '@/components/browse/BrowseFilterBar'
 import { WhileYouWait } from '@/components/browse/WhileYouWait'
 import { useBeam } from '@/context/BeamContext'
 import { WHEN_OPTIONS } from '@/data/categories'
-import { useBrowseLocation } from '@/hooks/useBrowseLocation'
+import { useBrowseHome } from '@/hooks/useBrowseHome'
 import { helperProfileProgress } from '@/lib/helperProfileProgress'
 import { readJobAlertsPreference, writeJobAlertsPreference } from '@/lib/jobAlerts'
-import { distanceBetween, formatLocation } from '@/lib/location'
+import {
+  formatBrowseMiles,
+  formatBrowseMilesAway,
+  nextBrowseRadius,
+  parseBrowseRadius,
+  radiusPhrase,
+  type BrowseRadiusId,
+  distanceMapForEntities,
+} from '@/lib/browseDistance'
+import { fetchBrowseMarketplaceDistances } from '@/lib/browseDistancesLive'
+import { requestBrowseLocationPicker } from '@/lib/browseLocationPreference'
+import { formatLocation } from '@/lib/location'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { formatBudget, formatRate, relativeTime } from '@/lib/matching'
 import { formatPublicRating } from '@/lib/ratingDisplay'
@@ -35,7 +48,6 @@ import type { AvailabilitySlot, HelpRequest, Person, WhenOption } from '@/types'
 import '@/components/browse/browse-hc.css'
 
 type SortMode = 'nearest' | 'newest' | 'budget'
-type RadiusMiles = 'all' | '3' | '5' | '10' | '25'
 type PayFilter = 'all' | 'fixed' | 'open'
 
 const PAGE_SIZE = 20
@@ -71,14 +83,6 @@ const AVAIL_FILTER_OPTIONS: FilterOption[] = [
   { id: 'weekends', label: 'Weekends' },
 ]
 
-const RADIUS_FILTER_OPTIONS: FilterOption[] = [
-  { id: 'all', label: 'Any distance' },
-  { id: '3', label: 'Within 3 mi' },
-  { id: '5', label: 'Within 5 mi' },
-  { id: '10', label: 'Within 10 mi' },
-  { id: '25', label: 'Within 25 mi' },
-]
-
 function parseWhen(value: string | null): WhenOption | 'all' {
   if (value === 'asap' || value === 'today' || value === 'tomorrow' || value === 'this-week') {
     return value
@@ -98,11 +102,6 @@ function parseAvail(value: string | null): AvailabilitySlot | 'all' {
   return 'all'
 }
 
-function parseRadius(value: string | null): RadiusMiles {
-  if (value === '3' || value === '5' || value === '10' || value === '25') return value
-  return 'all'
-}
-
 function parsePay(value: string | null): PayFilter {
   if (value === 'fixed' || value === 'open') return value
   return 'all'
@@ -115,19 +114,6 @@ function isBlankZeroCard(person: Person): boolean {
 
 function isBrowseHelper(person: Person): boolean {
   return Boolean(person.isHelper || person.skills.length > 0) && !isBlankZeroCard(person)
-}
-
-function milesTo(
-  entity: { lat?: number | null; lng?: number | null; neighborhood?: string },
-  origin: { lat?: number | null; lng?: number | null; neighborhood?: string },
-) {
-  return distanceBetween(origin, entity)
-}
-
-function formatMiles(miles: number | null): string | null {
-  if (miles == null || !Number.isFinite(miles)) return null
-  if (miles < 0.1) return '0.1 mi'
-  return `${miles < 10 ? miles.toFixed(1) : String(Math.round(miles))} mi`
 }
 
 function oneLine(value: string): string {
@@ -158,18 +144,21 @@ function narrowSnapshot() {
 }
 
 export function Browse() {
-  const { state, currentUser, authUser, mode, ready } = useBeam()
+  const { state, currentUser, authUser, mode, ready, helperVerification } = useBeam()
   const isGuest = mode === 'live' && !authUser
-  const { origin: browseOrigin } = useBrowseLocation(currentUser)
+  const isLive = mode === 'live'
+  const { home: browseHome, ready: homeReady } = useBrowseHome({
+    person: currentUser,
+    helperVerification,
+    requests: state.requests,
+  })
+  const hasHome = browseHome.hasOrigin
   const browseAnchor = useMemo(
-    () => ({
-      lat: browseOrigin.lat,
-      lng: browseOrigin.lng,
-      locationLabel: browseOrigin.locationLabel,
-      city: browseOrigin.city,
-      stateCode: browseOrigin.stateCode,
-    }),
-    [browseOrigin],
+    () =>
+      hasHome
+        ? { lat: browseHome.lat, lng: browseHome.lng }
+        : { lat: null as number | null, lng: null as number | null },
+    [hasHome, browseHome.lat, browseHome.lng],
   )
   const router = useRouter()
   const pathname = usePathname()
@@ -181,7 +170,7 @@ export function Browse() {
   const urlTab = params.get('tab') === 'people' ? 'people' : 'requests'
   const tab = hidePeerDiscovery ? 'requests' : urlTab
   const category = params.get('category') ?? 'all'
-  const radius = parseRadius(params.get('radius'))
+  const radius = parseBrowseRadius(params.get('radius'), hasHome)
   const when = parseWhen(params.get('when'))
   const pay = parsePay(params.get('pay'))
   const avail = hidePeerDiscovery ? 'all' : parseAvail(params.get('avail'))
@@ -199,6 +188,12 @@ export function Browse() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [alertsEnabled, setAlertsEnabled] = useState(
     () => (typeof window === 'undefined' ? false : readJobAlertsPreference().enabled),
+  )
+  const [liveRequestMiles, setLiveRequestMiles] = useState<Map<string, number | null> | null>(
+    null,
+  )
+  const [liveProfileMiles, setLiveProfileMiles] = useState<Map<string, number | null> | null>(
+    null,
   )
 
   useEffect(() => {
@@ -271,6 +266,33 @@ export function Browse() {
     return () => window.clearTimeout(handle)
   }, [qDraft, qParam, params, pathname, router, startTransition])
 
+  // Prefer server-side distances in live mode when a home origin is known.
+  useEffect(() => {
+    if (!isLive || !hasHome || browseHome.lat == null || browseHome.lng == null) {
+      setLiveRequestMiles(null)
+      setLiveProfileMiles(null)
+      return
+    }
+    let cancelled = false
+    void fetchBrowseMarketplaceDistances({
+      originLat: browseHome.lat,
+      originLng: browseHome.lng,
+      radius,
+    }).then((result) => {
+      if (cancelled) return
+      if (!result) {
+        setLiveRequestMiles(null)
+        setLiveProfileMiles(null)
+        return
+      }
+      setLiveRequestMiles(result.requestMiles)
+      setLiveProfileMiles(result.profileMiles)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [isLive, hasHome, browseHome.lat, browseHome.lng, radius, state.requests, state.people])
+
   const replaceQuery = useCallback(
     (nextParams: URLSearchParams) => {
       const qs = nextParams.toString()
@@ -280,33 +302,39 @@ export function Browse() {
   )
 
   const q = qParam.toLowerCase().trim()
-  const radiusMiles = radius === 'all' ? null : Number(radius)
-  const cityName = (() => {
-    const label = browseOrigin.locationLabel?.trim() || ''
-    if (label && label.toLowerCase() !== 'nearby') {
-      return label.split(',')[0]?.trim() || browseOrigin.city?.trim() || 'you'
-    }
-    return browseOrigin.city?.trim() || 'you'
-  })()
-  const areaLine = (() => {
-    const label = browseOrigin.locationLabel?.trim() || ''
-    if (label && label.toLowerCase() !== 'nearby') return label
-    const city = browseOrigin.city?.trim()
-    const state = browseOrigin.stateCode?.trim()
-    if (city && state) return `${city}, ${state}`
-    return city || 'your area'
-  })()
+
+  const openBase = useMemo(
+    () => state.requests.filter((r) => r.status === 'open'),
+    [state.requests],
+  )
+  const helperBase = useMemo(
+    () =>
+      state.people.filter(
+        (p) => isBrowseHelper(p) && !(p.isCurrentUser || p.id === currentUser.id),
+      ),
+    [state.people, currentUser.id],
+  )
+
+  const localRequestDistances = useMemo(
+    () =>
+      distanceMapForEntities(openBase, hasHome ? browseAnchor : null, radius, (r) => r),
+    [openBase, hasHome, browseAnchor, radius],
+  )
+  const localProfileDistances = useMemo(
+    () =>
+      distanceMapForEntities(helperBase, hasHome ? browseAnchor : null, radius, (p) => p),
+    [helperBase, hasHome, browseAnchor, radius],
+  )
+
+  const requestMilesById = liveRequestMiles ?? localRequestDistances.milesById
+  const profileMilesById = liveProfileMiles ?? localProfileDistances.milesById
+  const requestAllowed = liveRequestMiles ?? localRequestDistances.ids
+  const profileAllowed = liveProfileMiles ?? localProfileDistances.ids
 
   const openRequests = useMemo(() => {
-    let list = state.requests
-      .filter((r) => r.status === 'open')
+    let list = openBase
+      .filter((r) => requestAllowed.has(r.id))
       .filter((r) => matchesBrowseCategory(r.category, category))
-      .filter((r) => {
-        if (radiusMiles == null) return true
-        const d = milesTo(r, browseAnchor)
-        if (d == null) return true
-        return d <= radiusMiles
-      })
       .filter((r) => (when === 'all' ? true : r.when === when))
       .filter((r) => {
         if (pay === 'all') return true
@@ -329,31 +357,34 @@ export function Browse() {
       if (sort === 'newest' || isGuest) {
         return +new Date(b.createdAt) - +new Date(a.createdAt)
       }
-      const da = milesTo(a, browseAnchor)
-      const db = milesTo(b, browseAnchor)
+      const da = requestMilesById.get(a.id)
+      const db = requestMilesById.get(b.id)
       return (
         (da ?? Number.POSITIVE_INFINITY) - (db ?? Number.POSITIVE_INFINITY) ||
         +new Date(b.createdAt) - +new Date(a.createdAt)
       )
     })
     return list
-  }, [state.requests, category, radiusMiles, when, pay, q, sort, browseAnchor, isGuest])
+  }, [
+    openBase,
+    requestAllowed,
+    category,
+    when,
+    pay,
+    q,
+    sort,
+    isGuest,
+    requestMilesById,
+  ])
 
   const people = useMemo(() => {
-    let list = state.people
-      .filter((p) => isBrowseHelper(p))
-      .filter((p) => !(p.isCurrentUser || p.id === currentUser.id))
+    let list = helperBase
+      .filter((p) => profileAllowed.has(p.id))
       .filter((p) => {
         if (category === 'all') return true
         const expanded = expandBrowseFilter(category)
         if (!expanded) return true
         return p.skills.some((s) => expanded.includes(s))
-      })
-      .filter((p) => {
-        if (radiusMiles == null) return true
-        const d = milesTo(p, browseAnchor)
-        if (d == null) return true
-        return d <= radiusMiles
       })
       .filter((p) => (avail === 'all' ? true : p.availability.includes(avail)))
       .filter((p) => {
@@ -372,38 +403,28 @@ export function Browse() {
     list = [...list].sort((a, b) => {
       if (sort === 'newest' || (isGuest && sort !== 'budget')) return b.rating - a.rating
       if (sort === 'budget') return a.hourlyRate - b.hourlyRate
-      const da = milesTo(a, browseAnchor)
-      const db = milesTo(b, browseAnchor)
+      const da = profileMilesById.get(a.id)
+      const db = profileMilesById.get(b.id)
       return (
         (da ?? Number.POSITIVE_INFINITY) - (db ?? Number.POSITIVE_INFINITY) || b.rating - a.rating
       )
     })
     return list
   }, [
-    state.people,
+    helperBase,
+    profileAllowed,
     category,
-    radiusMiles,
     avail,
     q,
     freeOnly,
     sort,
-    browseAnchor,
-    currentUser.id,
     isGuest,
+    profileMilesById,
   ])
 
   const profileProgress = useMemo(() => helperProfileProgress(currentUser), [currentUser])
-  const jobsTabCount = useMemo(
-    () => state.requests.filter((r) => r.status === 'open').length,
-    [state.requests],
-  )
-  const helpersTabCount = useMemo(
-    () =>
-      state.people.filter(
-        (p) => isBrowseHelper(p) && !(p.isCurrentUser || p.id === currentUser.id),
-      ).length,
-    [state.people, currentUser.id],
-  )
+  const jobsTabCount = openRequests.length
+  const helpersTabCount = people.length
   const showProfileWaitCard =
     hidePeerDiscovery &&
     (currentUser.accountRole === 'helper' || Boolean(currentUser.isHelper)) &&
@@ -411,7 +432,7 @@ export function Browse() {
   const showHelperBanner =
     ready && !isGuest && currentUser.accountRole === 'helper' && !currentUser.isHelper
 
-  const filterKey = `${tab}|${category}|${radius}|${when}|${pay}|${avail}|${qParam}|${sort}|${freeOnly}|${cityName}`
+  const filterKey = `${tab}|${category}|${radius}|${when}|${pay}|${avail}|${qParam}|${sort}|${freeOnly}|${browseHome.source}`
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
   }, [filterKey])
@@ -439,8 +460,10 @@ export function Browse() {
 
   function setRadius(id: string) {
     const nextParams = new URLSearchParams(params.toString())
-    if (id === 'all') nextParams.delete('radius')
-    else nextParams.set('radius', id)
+    const next = id as BrowseRadiusId
+    // Always persist explicit radius so Any is not confused with the 1 mi default.
+    if (next === '1' && hasHome) nextParams.delete('radius')
+    else nextParams.set('radius', next)
     nextParams.delete('neighborhood')
     replaceQuery(nextParams)
   }
@@ -477,6 +500,11 @@ export function Browse() {
   function clearFilters() {
     const nextParams = new URLSearchParams()
     if (tab === 'people') nextParams.set('tab', 'people')
+    if (hasHome) {
+      // Keep default 1 mi (omit radius param).
+    } else {
+      nextParams.set('radius', 'all')
+    }
     replaceQuery(nextParams)
     setQDraft('')
   }
@@ -494,6 +522,10 @@ export function Browse() {
 
   function toggleAlerts() {
     setAlertsEnabled(writeJobAlertsPreference(!alertsEnabled).enabled)
+  }
+
+  function widenDistance() {
+    setRadius(nextBrowseRadius(radius))
   }
 
   const openJob = useCallback(
@@ -558,21 +590,36 @@ export function Browse() {
   const payLabel = PAY_FILTER_OPTIONS.find((o) => o.id === pay)?.label ?? 'All types'
   const availLabel = AVAIL_FILTER_OPTIONS.find((o) => o.id === avail)?.label ?? 'Any'
   const categoryLabel = category === 'all' ? null : formatCategoryLabel(category)
-  const radiusChipLabel =
-    RADIUS_FILTER_OPTIONS.find((o) => o.id === radius)?.label ?? 'Any distance'
-  const locRadiusLabel = radius === 'all' ? 'Any distance' : radiusChipLabel
 
-  const hasActiveFilters =
+  const hasNonDistanceFilters =
     category !== 'all' ||
     !!qParam ||
     freeOnly ||
     when !== 'all' ||
     pay !== 'all' ||
-    avail !== 'all' ||
-    radius !== 'all'
+    avail !== 'all'
 
-  const showFreshMarketplace = tab === 'requests' && !hasActiveFilters && openRequests.length === 0
-  const showFilteredRequestsEmpty = tab === 'requests' && hasActiveFilters && openRequests.length === 0
+  const hasActiveFilters = hasNonDistanceFilters || (hasHome && radius !== 'all')
+
+  const showDistanceEmpty =
+    tab === 'requests' &&
+    hasHome &&
+    radius !== 'all' &&
+    openRequests.length === 0 &&
+    !hasNonDistanceFilters
+
+  const showFreshMarketplace =
+    tab === 'requests' &&
+    !hasNonDistanceFilters &&
+    (radius === 'all' || !hasHome) &&
+    openRequests.length === 0
+
+  const showFilteredRequestsEmpty =
+    tab === 'requests' &&
+    openRequests.length === 0 &&
+    !showDistanceEmpty &&
+    !showFreshMarketplace
+
   const showHelpersEmpty = !hidePeerDiscovery && tab === 'people' && people.length === 0
   const showWhileYouWait = showFreshMarketplace && (hidePeerDiscovery || isGuest === false)
 
@@ -587,7 +634,9 @@ export function Browse() {
 
   const suggestions = [
     category !== 'all' ? { label: 'All categories', onClick: () => setCategory('all') } : null,
-    radius !== 'all' ? { label: 'Any distance', onClick: () => setRadius('all') } : null,
+    hasHome && radius !== 'all'
+      ? { label: 'Any distance', onClick: () => setRadius('all') }
+      : null,
     tab === 'requests' && when !== 'all' ? { label: 'Anytime', onClick: () => setWhen('all') } : null,
     tab === 'requests' && pay !== 'all' ? { label: 'All pay types', onClick: () => setPay('all') } : null,
     tab === 'people' && avail !== 'all'
@@ -595,26 +644,48 @@ export function Browse() {
       : null,
   ].filter((item): item is { label: string; onClick: () => void } => Boolean(item))
 
-  const selectedMiles = selectedRequest ? formatMiles(milesTo(selectedRequest, browseAnchor)) : null
+  function milesForRequest(id: string): number | null {
+    if (!hasHome) return null
+    const v = requestMilesById.get(id)
+    return v == null ? null : v
+  }
+
+  function milesForPerson(id: string): number | null {
+    if (!hasHome) return null
+    const v = profileMilesById.get(id)
+    return v == null ? null : v
+  }
+
+  const selectedMilesValue = selectedRequest ? milesForRequest(selectedRequest.id) : null
+  const selectedMilesAway =
+    selectedMilesValue != null ? formatBrowseMilesAway(selectedMilesValue) : null
+  const selectedMilesShort =
+    selectedMilesValue != null ? formatBrowseMiles(selectedMilesValue) : null
   const selectedArea = selectedRequest ? publicArea(selectedRequest) : ''
   const showDesktopDetail = Boolean(selectedRequest) && !narrow && tab === 'requests'
   const showDesktopHelperDetail = Boolean(selectedHelper) && !narrow && tab === 'people'
-  const selectedHelperMiles = selectedHelper
-    ? formatMiles(milesTo(selectedHelper, browseAnchor))
-    : null
+  const selectedHelperMilesValue = selectedHelper ? milesForPerson(selectedHelper.id) : null
+  const selectedHelperMiles =
+    selectedHelperMilesValue != null ? formatBrowseMiles(selectedHelperMilesValue) : null
   const selectedHelperSkill = selectedHelper
     ? selectedHelper.skills[0]
       ? formatCategoryLabel(skillId(selectedHelper), selectedHelper.otherSkillLabel)
       : 'Local help'
     : ''
 
-  const heroTitle = tab === 'people' ? 'Helpers near your area' : `Jobs near ${cityName}`
+  const heroTitle = tab === 'people' ? 'Helpers near you' : 'Jobs near you'
   const subline =
     tab === 'requests'
-      ? radius === 'all'
-        ? `${liveCount} ${taskNoun} near ${areaLine}`
-        : `${liveCount} ${taskNoun} within ${radius} mi of ${areaLine}`
+      ? !hasHome
+        ? `${liveCount} ${taskNoun} nearby`
+        : liveCount === 0
+          ? `No tasks within ${radiusPhrase(radius)}`
+          : radius === 'all'
+            ? `${liveCount} ${taskNoun} at any distance`
+            : `${liveCount} ${taskNoun} within ${radiusPhrase(radius)}`
       : null
+
+  const distanceToggleDisabled = !hasHome
 
   return (
     <div
@@ -622,6 +693,8 @@ export function Browse() {
       data-testid="browse-v3"
       data-browse-layout={hidePeerDiscovery ? 'helper-jobs' : 'discovery'}
       data-browse-tab={tab}
+      data-browse-radius={radius}
+      data-browse-home={browseHome.source}
     >
       <div className="browse-hc-wrap browse-hc-page">
         <div
@@ -664,19 +737,30 @@ export function Browse() {
               {heroTitle}
             </h1>
             {subline ? <p className="browse-hc-hero-sub">{subline}</p> : null}
+            {!hasHome && homeReady ? (
+              <button
+                type="button"
+                className="browse-hc-set-area-link"
+                data-testid="browse-set-area-link"
+                onClick={() => requestBrowseLocationPicker()}
+              >
+                Set your area to see distances
+              </button>
+            ) : null}
           </div>
 
-          <BrowseLocationTrigger label={areaLine} className="browse-hc-loc-pill">
-            <MapPin className="pin h-4 w-4" strokeWidth={2} aria-hidden />
-            <span className="browse-hc-loc-label">{areaLine}</span>
-            <span className="divider" aria-hidden>
-              ·
-            </span>
-            <span className="radius">
-              {locRadiusLabel}
-              <ChevronDown className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-            </span>
-          </BrowseLocationTrigger>
+          <div className="browse-hc-title-controls">
+            <BrowseLocationTrigger label="your area" className="browse-hc-loc-pill is-area-only">
+              <MapPin className="pin h-4 w-4" strokeWidth={2} aria-hidden />
+              <span className="browse-hc-loc-label">your area</span>
+              <ChevronDown className="h-3.5 w-3.5 shrink-0 text-[#3D4A5F]" strokeWidth={2} aria-hidden />
+            </BrowseLocationTrigger>
+            <BrowseDistanceToggle
+              value={hasHome ? radius : 'all'}
+              onChange={setRadius}
+              disabled={distanceToggleDisabled}
+            />
+          </div>
         </section>
 
         <div className="browse-hc-tabs-wrap">
@@ -747,20 +831,22 @@ export function Browse() {
           />
         )}
 
-        {showFreshMarketplace ? (
+        {showDistanceEmpty ? (
+          <BrowseDistanceEmpty radius={radius} onWiden={widenDistance} />
+        ) : showFreshMarketplace ? (
           <>
             <BrowseFreshEmpty
               hidePeerDiscovery={hidePeerDiscovery}
-              cityLabel={cityName}
+              cityLabel="your area"
               onEnableAlerts={enableAlerts}
               alertsEnabled={alertsEnabled}
-              onWidenRadius={() => setRadius('25')}
+              onWidenRadius={hasHome ? widenDistance : undefined}
             />
             {showWhileYouWait ? (
               <WhileYouWait
                 alertsEnabled={alertsEnabled}
                 onToggleAlerts={toggleAlerts}
-                onWidenRadius={() => setRadius('25')}
+                onWidenRadius={hasHome ? widenDistance : undefined}
                 profileProgress={profileProgress}
                 showProfileCard={showProfileWaitCard}
               />
@@ -789,6 +875,7 @@ export function Browse() {
                   const imageSrc = listingCoverImage(photos)
                   const openBudget = isOpenBudget(request)
                   const budget = formatBudget(request)
+                  const miles = milesForRequest(request.id)
                   return (
                     <BrowseJobRow
                       key={request.id}
@@ -796,6 +883,7 @@ export function Browse() {
                       title={request.title}
                       categoryLabel={formatCategoryLabel(request.category, request.categoryCustom)}
                       areaLabel={area}
+                      distanceLabel={miles != null ? formatBrowseMilesAway(miles) : null}
                       timingLabel={
                         request.when === 'asap'
                           ? 'ASAP'
@@ -832,8 +920,9 @@ export function Browse() {
             {showDesktopDetail && selectedRequest ? (
               <BrowseJobDetailPanel
                 request={selectedRequest}
-                areaLabel={selectedArea || cityName}
-                cityName={cityName}
+                areaLabel={selectedArea}
+                milesLabel={selectedMilesShort}
+                cityName="your area"
                 authHref={authHref}
               />
             ) : null}
@@ -862,12 +951,13 @@ export function Browse() {
                   const skill = person.skills[0]
                     ? formatCategoryLabel(skillId(person), person.otherSkillLabel)
                     : 'Local help'
+                  const miles = milesForPerson(person.id)
                   return (
                     <BrowseHelperRow
                       key={person.id}
                       person={person}
                       skillLabel={skill}
-                      milesLabel={formatMiles(milesTo(person, browseAnchor))}
+                      milesLabel={miles != null ? formatBrowseMiles(miles) : null}
                       rateLabel={formatRate(person)}
                       ratingLabel={formatPublicRating(person)}
                       reviewCount={person.reviewCount ?? 0}
@@ -906,9 +996,9 @@ export function Browse() {
         <BrowseJobDrawer
           request={selectedRequest}
           narrow
-          milesLabel={selectedMiles}
-          areaLabel={selectedArea || cityName}
-          cityName={cityName}
+          milesLabel={selectedMilesAway}
+          areaLabel={selectedArea}
+          cityName="your area"
           authHref={authHref}
           onClose={closeJob}
         />

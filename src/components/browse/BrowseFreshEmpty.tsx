@@ -88,7 +88,7 @@ export function BrowseFreshEmpty({
                     className="inline-flex h-9 items-center justify-center rounded-lg px-2 text-[12.5px] font-semibold text-white underline-offset-2 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:h-10 sm:px-3 sm:text-[13px]"
                     data-testid="browse-empty-widen"
                   >
-                    Widen to 25 mi
+                    Show jobs farther away
                   </button>
                 ) : null}
               </>

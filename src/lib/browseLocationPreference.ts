@@ -11,6 +11,8 @@ export type BrowseLocationPin = {
   lat: number
   lng: number
   label: string
+  /** Optional 5-digit ZIP when set via the area picker. */
+  zip?: string
 }
 
 export type BrowseOrigin = {
@@ -29,6 +31,10 @@ function canUseStorage(): boolean {
 function isValidPin(value: unknown): value is BrowseLocationPin {
   if (!value || typeof value !== 'object') return false
   const v = value as Record<string, unknown>
+  const zipOk =
+    v.zip === undefined ||
+    v.zip === null ||
+    (typeof v.zip === 'string' && /^\d{5}$/.test(v.zip.trim()))
   return (
     typeof v.city === 'string' &&
     v.city.trim().length > 0 &&
@@ -39,7 +45,8 @@ function isValidPin(value: unknown): value is BrowseLocationPin {
     typeof v.lat === 'number' &&
     Number.isFinite(v.lat) &&
     typeof v.lng === 'number' &&
-    Number.isFinite(v.lng)
+    Number.isFinite(v.lng) &&
+    zipOk
   )
 }
 
@@ -91,6 +98,7 @@ export function pinFromUsCity(city: {
   lat: number
   lng: number
   label: string
+  zip?: string
 }): BrowseLocationPin {
   return {
     city: city.name,
@@ -98,6 +106,26 @@ export function pinFromUsCity(city: {
     lat: city.lat,
     lng: city.lng,
     label: city.label,
+    ...(city.zip ? { zip: city.zip } : {}),
+  }
+}
+
+/** Browse-only pin from a ZIP centroid (/api/zip). Never written to profile. */
+export function pinFromZipPlace(place: {
+  zip: string
+  city: string
+  stateCode: string
+  lat: number
+  lng: number
+  label: string
+}): BrowseLocationPin {
+  return {
+    city: place.city,
+    stateCode: place.stateCode,
+    lat: place.lat,
+    lng: place.lng,
+    label: place.label,
+    zip: place.zip,
   }
 }
 

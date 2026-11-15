@@ -33,10 +33,13 @@ const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexibl
 export function BrowseJobDetailPanel({
   request,
   areaLabel,
+  milesLabel,
   authHref,
 }: {
   request: HelpRequest
   areaLabel: string
+  /** Rounded miles only, e.g. "0.4 mi". */
+  milesLabel?: string | null
   /** Viewer browse city; kept for Browse callers, not used for job captions. */
   cityName: string
   authHref: string
@@ -105,10 +108,16 @@ export function BrowseJobDetailPanel({
   const posted = relativeTime(request.createdAt)
   const jobAreaCaption = formatJobAreaCaption(request)
   // Job area only; never fall back to the viewer browse city (guest "you").
-  const place =
+  const placeBase =
     areaLabel && areaLabel.toLowerCase() !== 'you' && areaLabel.toLowerCase() !== 'your area'
       ? areaLabel
       : jobAreaCaption.split(',')[0]?.trim() || jobAreaCaption || 'Nearby'
+  const place =
+    milesLabel && placeBase
+      ? `${placeBase} · ${milesLabel}`
+      : milesLabel
+        ? milesLabel
+        : placeBase
   const canOffer = !isOwner && request.status === 'open'
   const pendingOffer =
     canOffer && !isGuest && myOffer?.status === 'pending' ? myOffer : undefined

@@ -1,80 +1,45 @@
 'use client'
 
-import { ChevronDown, MapPin, X } from 'lucide-react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { ChevronDown, Loader2, MapPin, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
-import {
-  UsCityCombobox,
-  type UsCityComboboxHandle,
-} from '@/components/onboarding/UsCityCombobox'
-import { useBrowseLocation } from '@/hooks/useBrowseLocation'
+import { useBeam } from '@/context/BeamContext'
+import { useBrowseHome } from '@/hooks/useBrowseHome'
 import {
   requestBrowseLocationPicker,
   subscribeBrowseLocationPickerOpen,
 } from '@/lib/browseLocationPreference'
-import { formatLocationLabel } from '@/lib/location'
-import { loadUsPlacesIndex, searchUsCities, type UsCity } from '@/lib/usPlaces'
-import { useBeam } from '@/context/BeamContext'
+import { normalizeZipInput } from '@/lib/zip/format'
 
 /**
- * App-shell host: listens for open requests from the topnav / Browse eyebrow.
- * Persists a browse-only pin — does not mutate profile city.
+ * App-shell host: listens for open requests from the Browse "your area" pill.
+ * Persists a browse-only ZIP pin in localStorage — does not mutate profile.
  */
-const RADIUS_OPTIONS = [
-  { id: 'all', label: 'Any distance' },
-  { id: '3', label: 'Within 3 mi' },
-  { id: '5', label: 'Within 5 mi' },
-  { id: '10', label: 'Within 10 mi' },
-  { id: '25', label: 'Within 25 mi' },
-] as const
-
 export function BrowseLocationDialogHost() {
-  const { currentUser } = useBeam()
-  const { origin, setCity, clearPin, isOverridden } = useBrowseLocation(currentUser)
-  const router = useRouter()
-  const pathname = usePathname()
-  const params = useSearchParams()
+  const { currentUser, helperVerification, state } = useBeam()
+  const { home, setFromZipPlace, clearPin, pin } = useBrowseHome({
+    person: currentUser,
+    helperVerification,
+    requests: state.requests,
+  })
   const [open, setOpen] = useState(false)
-  const [radiusDraft, setRadiusDraft] = useState('all')
 
   useEffect(() => {
-    return subscribeBrowseLocationPickerOpen(() => {
-      const r = params.get('radius')
-      setRadiusDraft(r === '3' || r === '5' || r === '10' || r === '25' ? r : 'all')
-      setOpen(true)
-    })
-  }, [params])
-
-  function applyRadius(next: string) {
-    const nextParams = new URLSearchParams(params.toString())
-    if (next === 'all') nextParams.delete('radius')
-    else nextParams.set('radius', next)
-    nextParams.delete('neighborhood')
-    const qs = nextParams.toString()
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
-  }
+    return subscribeBrowseLocationPickerOpen(() => setOpen(true))
+  }, [])
 
   return (
     <BrowseLocationDialog
       open={open}
       onClose={() => setOpen(false)}
-      currentLabel={origin.locationLabel}
-      homeLabel={formatLocationLabel(currentUser)}
-      hasHomeLocation={Boolean(
-        (currentUser.locationLabel && currentUser.locationLabel.trim()) ||
-          (currentUser.city && currentUser.city.trim()),
-      )}
-      isOverridden={isOverridden}
-      radius={radiusDraft}
-      onRadiusChange={setRadiusDraft}
-      onApply={(city) => {
-        setCity(city)
-        applyRadius(radiusDraft)
+      currentLabel={home.label}
+      hasLocalPin={pin != null}
+      homeLocked={home.source !== 'none' && home.source !== 'local'}
+      onApplyZip={async (place) => {
+        setFromZipPlace(place)
         setOpen(false)
       }}
-      onUseHome={() => {
+      onClearLocal={() => {
         clearPin()
-        applyRadius(radiusDraft)
         setOpen(false)
       }}
     />
@@ -99,9 +64,9 @@ export function BrowseLocationTrigger({
     <button
       type="button"
       className={className}
-      title="Change browse location"
+      title="Set your area"
       aria-haspopup="dialog"
-      aria-label={typeof label === 'string' ? `Browse location: ${label}` : 'Change browse location'}
+      aria-label={typeof label === 'string' ? `Browse area: ${label}` : 'Set your area'}
       data-testid="topnav-location"
       onClick={() => requestBrowseLocationPicker()}
     >
@@ -124,62 +89,44 @@ function BrowseLocationDialog({
   open,
   onClose,
   currentLabel,
-  homeLabel,
-  hasHomeLocation,
-  isOverridden,
-  radius,
-  onRadiusChange,
-  onApply,
-  onUseHome,
+  hasLocalPin,
+  homeLocked,
+  onApplyZip,
+  onClearLocal,
 }: {
   open: boolean
   onClose: () => void
   currentLabel: string
-  homeLabel: string
-  hasHomeLocation: boolean
-  isOverridden: boolean
-  radius: string
-  onRadiusChange: (id: string) => void
-  onApply: (city: UsCity) => void
-  onUseHome: () => void
+  hasLocalPin: boolean
+  /** True when home comes from verification / profile / recent job (not localStorage). */
+  homeLocked: boolean
+  onApplyZip: (place: {
+    zip: string
+    city: string
+    stateCode: string
+    lat: number
+    lng: number
+    label: string
+  }) => void | Promise<void>
+  onClearLocal: () => void
 }) {
   const titleId = useId()
   const descId = useId()
-  const panelRef = useRef<HTMLDivElement>(null)
-  const cityRef = useRef<UsCityComboboxHandle>(null)
-  const [draft, setDraft] = useState<UsCity | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [zipInput, setZipInput] = useState('')
   const [error, setError] = useState('')
-  const [hydrating, setHydrating] = useState(false)
+  const [pending, setPending] = useState(false)
+  const [geoPending, setGeoPending] = useState(false)
 
   useEffect(() => {
     if (!open) return
     setError('')
-    setDraft(null)
-    setHydrating(true)
-    let cancelled = false
-    void loadUsPlacesIndex()
-      .then(() => {
-        if (cancelled) return
-        const match =
-          searchUsCities(currentLabel, 8).find(
-            (c) => c.label.toLowerCase() === currentLabel.toLowerCase(),
-          ) ?? null
-        setDraft(match)
-        setHydrating(false)
-        // Prefill when we can resolve the current browse city; otherwise open search.
-        if (!match) {
-          requestAnimationFrame(() => cityRef.current?.focusAndOpen())
-        }
-      })
-      .catch(() => {
-        if (cancelled) return
-        setHydrating(false)
-        setError('Could not load US cities. Try again.')
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [open, currentLabel])
+    setZipInput('')
+    setPending(false)
+    setGeoPending(false)
+    const t = window.setTimeout(() => inputRef.current?.focus(), 50)
+    return () => window.clearTimeout(t)
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -200,14 +147,88 @@ function BrowseLocationDialog({
 
   if (!open) return null
 
-  function submit() {
-    const committed = draft ?? cityRef.current?.tryCommitQuery() ?? null
-    if (!committed) {
-      setError('Select a US city to update browse results.')
-      cityRef.current?.focusAndOpen()
+  async function resolveZip(zip: string) {
+    const normalized = normalizeZipInput(zip)
+    if (!normalized) {
+      setError('Enter a 5-digit US ZIP code.')
       return
     }
-    onApply(committed)
+    setPending(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/zip?zip=${encodeURIComponent(normalized)}`)
+      const data = (await res.json()) as {
+        error?: string
+        zip?: string
+        lat?: number
+        lng?: number
+        city?: string
+        stateCode?: string
+        label?: string
+      }
+      if (!res.ok || !data.zip || data.lat == null || data.lng == null) {
+        setError(data.error || 'We could not find that ZIP code.')
+        return
+      }
+      await onApplyZip({
+        zip: data.zip,
+        city: data.city || '',
+        stateCode: data.stateCode || '',
+        lat: data.lat,
+        lng: data.lng,
+        label: data.label || `${data.city}, ${data.stateCode}`,
+      })
+    } catch {
+      setError('Could not look up that ZIP. Try again.')
+    } finally {
+      setPending(false)
+    }
+  }
+
+  async function useCurrentLocation() {
+    if (!navigator.geolocation) {
+      setError('Location is not available in this browser.')
+      return
+    }
+    setGeoPending(true)
+    setError('')
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: false,
+          timeout: 15000,
+          maximumAge: 60_000,
+        })
+      })
+      const res = await fetch(
+        `/api/zip?lat=${encodeURIComponent(String(pos.coords.latitude))}&lng=${encodeURIComponent(String(pos.coords.longitude))}`,
+      )
+      const data = (await res.json()) as {
+        error?: string
+        zip?: string
+        lat?: number
+        lng?: number
+        city?: string
+        stateCode?: string
+        label?: string
+      }
+      if (!res.ok || !data.zip || data.lat == null || data.lng == null) {
+        setError(data.error || 'Could not resolve your current location.')
+        return
+      }
+      await onApplyZip({
+        zip: data.zip,
+        city: data.city || '',
+        stateCode: data.stateCode || '',
+        lat: data.lat,
+        lng: data.lng,
+        label: data.label || `${data.city}, ${data.stateCode}`,
+      })
+    } catch {
+      setError('Could not read your current location. Check permissions, or enter a ZIP.')
+    } finally {
+      setGeoPending(false)
+    }
   }
 
   return (
@@ -219,7 +240,6 @@ function BrowseLocationDialog({
       }}
     >
       <div
-        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -230,11 +250,12 @@ function BrowseLocationDialog({
         <div className="flex items-start justify-between gap-3 border-b border-[#E3E8EF] px-5 py-4">
           <div className="min-w-0">
             <h2 id={titleId} className="text-[17px] font-bold tracking-[-0.02em] text-[#071330]">
-              Change browse location
+              Set your area
             </h2>
             <p id={descId} className="mt-1 text-[13px] leading-snug text-[#4A5568]">
-              Updates nearby jobs and helpers here. Your profile city stays{' '}
-              <span className="font-semibold text-[#4A5568]">{homeLabel}</span>.
+              {homeLocked
+                ? `Distances use your home area (${currentLabel}). A ZIP saved here is only used when no home is on file.`
+                : 'Enter a ZIP or use your current location. Saved on this device only.'}
             </p>
           </div>
           <button
@@ -249,21 +270,30 @@ function BrowseLocationDialog({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-          {hydrating ? (
-            <p className="text-[13.5px] text-[#4A5568]" role="status">
-              Loading cities…
-            </p>
-          ) : (
-            <UsCityCombobox
-              ref={cityRef}
-              value={draft}
-              onChange={(next) => {
-                setDraft(next)
-                if (next) setError('')
+          <label className="block">
+            <span className="text-[13px] font-semibold text-[#071330]">ZIP code</span>
+            <input
+              ref={inputRef}
+              type="text"
+              inputMode="numeric"
+              autoComplete="postal-code"
+              maxLength={10}
+              value={zipInput}
+              onChange={(e) => {
+                setZipInput(e.target.value)
+                if (error) setError('')
               }}
-              error={error}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  void resolveZip(zipInput)
+                }
+              }}
+              placeholder="e.g. 95125"
+              data-testid="browse-location-zip"
+              className="mt-2 h-11 w-full rounded-[10px] border border-[#D7E0EC] bg-white px-3 text-[15px] text-[#071330] outline-none placeholder:text-[#5B6576] focus:border-[#1D5CE5] focus:shadow-[0_0_0_3px_rgba(29,92,229,0.14)]"
             />
-          )}
+          </label>
 
           {error ? (
             <p
@@ -275,37 +305,29 @@ function BrowseLocationDialog({
             </p>
           ) : null}
 
-          <div className="mt-5">
-            <p className="text-[13px] font-semibold text-[#071330]">Distance</p>
-            <div className="mt-2 flex flex-wrap gap-2" role="listbox" aria-label="Distance">
-              {RADIUS_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  role="option"
-                  aria-selected={radius === opt.id}
-                  data-testid={`browse-location-radius-${opt.id}`}
-                  onClick={() => onRadiusChange(opt.id)}
-                  className={`inline-flex h-9 items-center rounded-full border px-3.5 text-[13px] font-semibold transition ${
-                    radius === opt.id
-                      ? 'border-[#1D5CE5] bg-white text-[#1D5CE5]'
-                      : 'border-[#E3E8EF] bg-white text-[#071330] hover:bg-white'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={() => void useCurrentLocation()}
+            disabled={geoPending || pending}
+            data-testid="browse-location-geolocate"
+            className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] border border-[#D7E0EC] bg-[#EEF2F7] px-4 text-[14px] font-semibold text-[#071330] transition hover:bg-[#E3E8EF] disabled:opacity-60"
+          >
+            {geoPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <MapPin className="h-4 w-4 text-[#1D5CE5]" strokeWidth={2} aria-hidden />
+            )}
+            Use my current location
+          </button>
 
-          {hasHomeLocation && isOverridden ? (
+          {hasLocalPin && !homeLocked ? (
             <button
               type="button"
-              onClick={onUseHome}
-              data-testid="browse-location-use-home"
-              className="mt-3 text-[13px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/30"
+              onClick={onClearLocal}
+              data-testid="browse-location-clear"
+              className="mt-3 text-[13px] font-semibold text-[#1649BD] transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/30"
             >
-              Reset to home · {homeLabel}
+              Clear saved area
             </button>
           ) : null}
         </div>
@@ -321,11 +343,13 @@ function BrowseLocationDialog({
           </button>
           <button
             type="button"
-            onClick={submit}
+            onClick={() => void resolveZip(zipInput)}
+            disabled={pending || geoPending}
             data-testid="browse-location-apply"
-            className="inline-flex h-9 items-center justify-center rounded-lg bg-[#1D5CE5] px-3.5 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 focus-visible:ring-offset-2"
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[#1D5CE5] px-3.5 text-[13.5px] font-semibold text-white transition hover:bg-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40 focus-visible:ring-offset-2 disabled:opacity-60"
           >
-            Update browse area
+            {pending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+            Save area
           </button>
         </div>
       </div>

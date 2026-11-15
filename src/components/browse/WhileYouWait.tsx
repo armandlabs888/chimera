@@ -16,7 +16,7 @@ export function WhileYouWait({
 }: {
   alertsEnabled: boolean
   onToggleAlerts: () => void
-  onWidenRadius: () => void
+  onWidenRadius?: () => void
   profileProgress: HelperProfileProgress
   showProfileCard: boolean
 }) {
@@ -78,14 +78,16 @@ export function WhileYouWait({
           <p className="mt-1 text-[13px] leading-[1.45] text-[#4A5568]">
             Expand the browse travel distance to catch open jobs a bit farther from your pin.
           </p>
-          <button
-            type="button"
-            onClick={onWidenRadius}
-            className="mt-3 inline-flex rounded-lg text-[13px] font-bold text-[#1D5CE5] transition hover:text-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/45"
-            data-testid="browse-widen-radius"
-          >
-            Set to 25 mi →
-          </button>
+          {onWidenRadius ? (
+            <button
+              type="button"
+              onClick={onWidenRadius}
+              className="mt-3 inline-flex rounded-lg text-[13px] font-bold text-[#1D5CE5] transition hover:text-[#1649BD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/45"
+              data-testid="browse-widen-radius"
+            >
+              Show jobs farther away
+            </button>
+          ) : null}
         </article>
 
         {showProfileCard ? (

@@ -267,6 +267,149 @@
   padding-right: 6px;
 }
 
+.browse-hc-title-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+.browse-hc-loc-pill.is-area-only {
+  background: #eef2f7;
+  border-color: transparent;
+  padding-right: 14px;
+}
+
+.browse-hc-loc-pill.is-area-only .browse-hc-loc-label {
+  max-width: 10rem;
+}
+
+.browse-hc-distance-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  flex: none;
+  height: 40px;
+  min-height: 40px;
+  padding: 3px;
+  border-radius: 9999px;
+  background: #eef2f7;
+  gap: 2px;
+}
+
+.browse-hc-distance-seg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  height: 100%;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: #071330;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.browse-hc-distance-seg.is-selected {
+  background: #1d5ce5;
+  color: #fff;
+}
+
+.browse-hc-distance-toggle[data-disabled='true'] {
+  opacity: 0.55;
+}
+
+.browse-hc-distance-toggle[data-disabled='true'] .browse-hc-distance-seg {
+  cursor: not-allowed;
+}
+
+.browse-hc-set-area-link {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1649bd;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.browse-hc-set-area-link:hover {
+  text-decoration: underline;
+}
+
+.browse-hc-distance-empty {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 280px;
+  padding: 40px 24px;
+  border: 1px solid #d7e0ec;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.browse-hc-distance-empty-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #071330;
+}
+
+.browse-hc-distance-empty-body {
+  margin: 10px 0 0;
+  font-size: 15px;
+  color: #4a5568;
+}
+
+.browse-hc-distance-empty-cta {
+  margin-top: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  min-height: 48px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 9999px;
+  background: #1d5ce5;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.browse-hc-distance-empty-cta:hover {
+  background: #1649bd;
+}
+
+.browse-hc-distance-mob {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  color: #4a5568;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.browse-hc-distance-mob svg {
+  color: #1d5ce5;
+  flex: none;
+}
+
+
 /* ---- Category tabs (Yelp chip rhythm; same tab structure) ---- */
 .browse-hc-tabs-wrap {
   margin-top: 24px;
@@ -1390,12 +1533,23 @@
     font-size: 26px;
   }
 
+  .browse-hc-title-controls {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
   .browse-hc-loc-pill {
     width: 100%;
     height: 40px;
     font-size: 13px;
     justify-content: flex-start;
     background: var(--hc-tint);
+  }
+
+  .browse-hc-loc-pill.is-area-only {
+    background: #eef2f7;
   }
 
   .browse-hc-loc-pill .browse-hc-loc-label {
@@ -1406,6 +1560,36 @@
 
   .browse-hc-loc-pill .radius {
     margin-left: auto;
+  }
+
+  .browse-hc-distance-toggle {
+    width: 100%;
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .browse-hc-distance-seg {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  .browse-hc-distance-desk {
+    display: none !important;
+  }
+
+  .browse-hc-distance-mob {
+    display: inline-flex;
+  }
+
+  .browse-hc-distance-empty {
+    min-height: 240px;
+    padding: 32px 18px;
+  }
+
+  .browse-hc-distance-empty-title {
+    font-size: 18px;
   }
 
   /* Helpers mode: location pill stays content-sized, left-aligned. */
