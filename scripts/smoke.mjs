@@ -1815,8 +1815,8 @@ async function checkMarketplaceFlows() {
       }
     } else {
       assert.match(postBody, /Draft with AI|Describe what you need/i)
-      assert.match(postBody, /Open to offers/i)
-      assert.match(postBody, /Within 5 mi|5 mi/i)
+      assert.match(postBody, /Your price \(USD\)|Open to offers/i)
+      assert.match(postBody, /Price/i)
       const draftBtn = page.getByRole('button', { name: /Draft with AI/i })
       if ((await draftBtn.count()) > 0) {
         const prompt = page.getByPlaceholder(/Describe what you need|sentence/i).first()
@@ -1830,9 +1830,8 @@ async function checkMarketplaceFlows() {
       const titleInput = page.locator('input[name="title"], input[placeholder*="title" i], textarea').first()
       const postBtn = page.getByRole('button', { name: /Post request/i })
       if ((await postBtn.count()) > 0 && (await postBtn.isEnabled().catch(() => false))) {
-        // Prefer filling minimal required fields if empty
-        const openOffers = page.getByRole('button', { name: /Open to offers/i })
-        if ((await openOffers.count()) > 0) await openOffers.first().click()
+        const openOffers = page.locator('[data-testid="post-accepts-offers-checkbox"]')
+        if ((await openOffers.count()) > 0) await openOffers.first().check()
       }
       assert.ok(await page.getByText(/Invite to offer|matched|preview|Post request/i).count() >= 1)
     }

@@ -167,7 +167,7 @@ export function MessagesChatPanel({
   const neighborhood = formatLocation(other)
   const firstName = other.name.split(' ')[0] || other.name
   const budgetLabel = request ? formatBudget(request) : ''
-  const budgetText = budgetLabel.startsWith('$') ? `${budgetLabel} budget` : budgetLabel
+  const budgetText = budgetLabel.startsWith('$') ? `${budgetLabel} price` : budgetLabel
   const status = request ? statusText(request.status) : ''
   const statusLive = request
     ? request.status === 'open' || request.status === 'accepted'

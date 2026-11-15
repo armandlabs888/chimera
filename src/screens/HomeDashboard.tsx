@@ -8,7 +8,7 @@ import { BrowseCategoryThumb } from '@/components/browse/BrowseCategoryThumb'
 import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
 import { Avatar, Button } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import { formatBudget } from '@/lib/matching'
+import { formatBudget, formatPriceCaption, hasListedPrice } from '@/lib/matching'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import type { HelpRequest, Offer, Person, RequestStatus } from '@/types'
 import './my-activity.css'
@@ -288,10 +288,8 @@ export function HomeDashboard() {
 
 function RequestActivityRow({ request }: { request: HelpRequest }) {
   const budget = formatBudget(request)
-  const budgetNum =
-    request.budgetType === 'open' || request.budget === 0
-      ? null
-      : `$${Math.round(request.budget)}`
+  const listed = hasListedPrice(request)
+  const caption = formatPriceCaption(request)
 
   return (
     <Link href={`/requests/${request.id}`} className="ma-act-row" data-testid={`activity-request-${request.id}`}>
@@ -312,8 +310,8 @@ function RequestActivityRow({ request }: { request: HelpRequest }) {
         </div>
       </span>
       <span className="ma-act-right">
-        <div className="ma-act-price">{budgetNum ?? 'Open'}</div>
-        <div className="ma-act-price-label">{budgetNum ? 'Budget' : budget}</div>
+        <div className="ma-act-price">{listed ? budget : 'Open'}</div>
+        <div className="ma-act-price-label">{listed ? caption ?? 'Price' : budget}</div>
       </span>
     </Link>
   )

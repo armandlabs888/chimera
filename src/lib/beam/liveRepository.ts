@@ -304,6 +304,8 @@ export type CreateRequestInput = {
   radiusMiles?: number
   exactAddress?: string
   budgetType?: BudgetType
+  /** When false, helpers must offer exactly budget (firm price). */
+  acceptsOffers?: boolean
   scheduledFor?: string | null
   scheduledEnd?: string | null
   preferredHelperId?: string | null
@@ -340,7 +342,15 @@ export async function createLiveRequest(
   userId: string,
   input: CreateRequestInput,
 ): Promise<HelpRequest> {
-  const budgetType = input.budgetType ?? (input.budget === 0 ? 'open' : 'fixed')
+  const acceptsOffers =
+    typeof input.acceptsOffers === 'boolean'
+      ? input.acceptsOffers
+      : input.budgetType === 'open' || input.budget === 0
+  // Keep budget_type derived for older clients: firm -> fixed, negotiable -> open.
+  // Price always lives in budget (including when open to offers).
+  const budgetType: BudgetType =
+    input.budgetType ?? (acceptsOffers ? 'open' : 'fixed')
+  const budget = Number(input.budget) > 0 ? Number(input.budget) : 0
   const owned = assertOwnedListingPhotoUrls(input.images ?? [], userId)
   if (!owned.ok) throw new Error(owned.error)
   const images = owned.urls
@@ -375,8 +385,9 @@ export async function createLiveRequest(
       neighborhood: input.neighborhood ?? '',
       when_option: input.when,
       when_label: input.whenLabel,
-      budget: budgetType === 'open' ? 0 : input.budget,
+      budget,
       budget_type: budgetType,
+      accepts_offers: acceptsOffers,
       status: 'open',
       requester_id: userId,
       image: cover,
@@ -459,6 +470,20 @@ export async function createLiveOffer(
 ): Promise<Offer> {
   await assertHelperCanOffer(client, userId)
 
+  const job = await client
+    .from('help_requests')
+    .select('budget, accepts_offers, budget_type')
+    .eq('id', input.requestId)
+    .maybeSingle()
+  throwOnError(job.error, 'Lookup job for offer')
+  if (!job.data) throw new Error('Job not found')
+  const acceptsOffers =
+    typeof job.data.accepts_offers === 'boolean' ? job.data.accepts_offers : true
+  const jobBudget = Number(job.data.budget)
+  if (!acceptsOffers && jobBudget > 0 && Math.round(input.price) !== Math.round(jobBudget)) {
+    throw new Error(`This job has a firm price of $${Math.round(jobBudget)}. Offer amount must match.`)
+  }
+
   const existing = await client
     .from('offers')
     .select('id')
@@ -468,7 +493,7 @@ export async function createLiveOffer(
   throwOnError(existing.error, 'Lookup offer')
 
   const payload = {
-    price: input.price,
+    price: !acceptsOffers && jobBudget > 0 ? Math.round(jobBudget) : input.price,
     note: input.note.trim(),
     eta: input.eta.trim() || 'Flexible',
     status: 'pending' as const,

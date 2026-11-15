@@ -19,7 +19,13 @@ import {
 } from '@/components/verification/OfferGateFooter'
 import { useBeam } from '@/context/BeamContext'
 import { JobTitleText } from '@/lib/displayTitle'
-import { formatBudget, relativeTime } from '@/lib/matching'
+import {
+  formatBudget,
+  formatPriceCaption,
+  hasListedPrice,
+  relativeTime,
+  requestAcceptsOffers,
+} from '@/lib/matching'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
 import { isHelperPerson } from '@/lib/roles'
 import { formatCategoryLabel } from '@/lib/taxonomy'
@@ -106,7 +112,10 @@ export function BrowseJobDrawer({
   const cover = listingCoverImage(images)
   const categoryLabel = formatCategoryLabel(request.category, request.categoryCustom)
   const budgetLabel = formatBudget(request)
-  const openBudget = request.budgetType === 'open' || request.budget === 0
+  const priceCaption = formatPriceCaption(request)
+  const listedPrice = hasListedPrice(request)
+  const firmPrice = listedPrice && !requestAcceptsOffers(request)
+  const firmPriceAmount = listedPrice ? Math.round(request.budget) : 0
   const firstName = requester?.name?.split(/\s+/)[0] || 'a neighbor'
   const posted = relativeTime(request.createdAt)
   const jobAreaCaption = formatJobAreaCaption(request)
@@ -147,9 +156,14 @@ export function BrowseJobDrawer({
 
   async function submitOffer() {
     await requireAuth(async () => {
-      const priceNum = Number(offerPrice)
+      const priceNum = firmPrice ? firmPriceAmount : Number(offerPrice)
       if (!Number.isFinite(priceNum) || priceNum < 5) {
         setOfferError('Name a real price before you show up.')
+        setOfferOpen(true)
+        return
+      }
+      if (firmPrice && Math.round(priceNum) !== firmPriceAmount) {
+        setOfferError(`This job has a firm price of $${firmPriceAmount}.`)
         setOfferOpen(true)
         return
       }
@@ -192,10 +206,10 @@ export function BrowseJobDrawer({
   const facts = useMemo(
     () => [
       {
-        label: 'Budget',
+        label: 'Price',
         icon: Banknote,
         value: budgetLabel,
-        detail: openBudget ? 'Open to offers' : 'Customer budget',
+        detail: priceCaption ?? (listedPrice ? '' : 'Helpers name their price'),
       },
       {
         label: 'When',
@@ -210,7 +224,7 @@ export function BrowseJobDrawer({
         detail: place,
       },
     ],
-    [budgetLabel, milesLabel, openBudget, place, request.when, request.whenLabel],
+    [budgetLabel, listedPrice, milesLabel, place, priceCaption, request.when, request.whenLabel],
   )
 
   const body = (
@@ -321,22 +335,33 @@ export function BrowseJobDrawer({
             <p className="text-[15px] font-bold text-[#071330]">
               {myOffer ? 'Update your offer' : 'Your offer'}
             </p>
-            <label className="block text-[13px] font-semibold text-[#071330]" htmlFor="browse-offer-price">
-              Price
-            </label>
-            <div className="flex h-11 items-center rounded-[10px] border border-[#D7E0EC] px-3 focus-within:border-[#1D5CE5] focus-within:ring-[3px] focus-within:ring-[#1D5CE5]/15">
-              <span className="text-[15px] font-semibold text-[#3D4A5F]" aria-hidden>
-                $
-              </span>
-              <input
-                id="browse-offer-price"
-                inputMode="numeric"
-                value={offerPrice}
-                onChange={(e) => setOfferPrice(e.target.value.replace(/[^\d]/g, '').slice(0, 5))}
-                className="h-full w-full bg-transparent px-2 text-[15px] font-semibold text-[#071330] outline-none"
-                data-testid="browse-offer-price"
-              />
-            </div>
+            {firmPrice ? (
+              <div
+                className="flex h-11 items-center rounded-[10px] border border-[#D7E0EC] bg-[#F7F9FC] px-3 text-[15px] font-semibold tabular-nums text-[#071330]"
+                data-testid="browse-offer-firm-price"
+              >
+                Firm price ${firmPriceAmount}
+              </div>
+            ) : (
+              <>
+                <label className="block text-[13px] font-semibold text-[#071330]" htmlFor="browse-offer-price">
+                  Price
+                </label>
+                <div className="flex h-11 items-center rounded-[10px] border border-[#D7E0EC] px-3 focus-within:border-[#1D5CE5] focus-within:ring-[3px] focus-within:ring-[#1D5CE5]/15">
+                  <span className="text-[15px] font-semibold text-[#3D4A5F]" aria-hidden>
+                    $
+                  </span>
+                  <input
+                    id="browse-offer-price"
+                    inputMode="numeric"
+                    value={offerPrice}
+                    onChange={(e) => setOfferPrice(e.target.value.replace(/[^\d]/g, '').slice(0, 5))}
+                    className="h-full w-full bg-transparent px-2 text-[15px] font-semibold text-[#071330] outline-none"
+                    data-testid="browse-offer-price"
+                  />
+                </div>
+              </>
+            )}
             <div className="flex flex-wrap gap-2">
               {ETA_CHIPS.map((chip) => (
                 <button
@@ -479,7 +504,9 @@ export function BrowseJobDrawer({
       {gateNotice}
       <div className="flex items-baseline gap-2">
         <b className="text-[18px] font-bold tracking-[-0.03em] text-[#071330]">{budgetLabel}</b>
-        <span className="text-[13px] font-medium text-[#3D4A5F]">Customer budget</span>
+        <span className="text-[13px] font-medium text-[#3D4A5F]">
+          {priceCaption ?? 'Price'}
+        </span>
       </div>
       {canOffer && isNeighborViewer ? (
         referActions
@@ -516,7 +543,7 @@ export function BrowseJobDrawer({
               {budgetLabel}
             </b>
             <span className="block whitespace-nowrap text-[12px] font-medium text-[#3D4A5F]">
-              Customer budget
+              {priceCaption ?? 'Price'}
             </span>
           </div>
           <div className="min-w-2 flex-1" />
