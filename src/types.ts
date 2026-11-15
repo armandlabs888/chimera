@@ -194,10 +194,12 @@ export interface HelpRequest {
   acceptedOfferId?: string
   helperId?: string
   locationLabel?: string
-  /** Optional structured city when known. */
+  /** Optional structured city when known (from poster ZIP). */
   city?: string | null
-  /** Optional 2-letter state when known. */
+  /** Optional 2-letter state when known (from poster ZIP). */
   stateCode?: string | null
+  /** Optional 5-digit US ZIP for the job area. Legacy posts may omit this. */
+  zip?: string | null
   exactAddress?: string
   lat?: number | null
   lng?: number | null

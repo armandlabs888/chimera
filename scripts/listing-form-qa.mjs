@@ -22,6 +22,7 @@ async function main() {
       photoCount: (document.querySelector('[data-testid="post-photo-count"]')?.textContent || '').trim(),
       titleDetails: /Title\s*&\s*Details/i.test(text),
       locationCopy: /Where will the job take place\?/i.test(text),
+      zipField: !!document.querySelector('[data-testid="post-zip"]'),
       searchRadius: /Search radius/i.test(text),
       templates: /Use a template|Quick templates|Start from a template/i.test(text),
       asap: !!document.querySelector('[data-testid="post-when-asap"]'),
@@ -38,6 +39,7 @@ async function main() {
   assert.match(post.photoCount, /0\/5/)
   assert.equal(post.titleDetails, true)
   assert.equal(post.locationCopy, true)
+  assert.equal(post.zipField, true)
   assert.equal(post.searchRadius, false)
   assert.equal(post.templates, false)
   assert.equal(post.asap, true)

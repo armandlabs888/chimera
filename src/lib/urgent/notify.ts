@@ -196,7 +196,7 @@ async function sendMatchWave(
   return { sent, skipped }
 }
 
-/** Initial urgent wave (default 3 mi). Safe to call when Twilio is unset. */
+/** Initial urgent wave (default 5 mi around the job ZIP center). Safe when Twilio is unset. */
 export async function notifyUrgentJobCreated(
   admin: Admin,
   requestId: string,

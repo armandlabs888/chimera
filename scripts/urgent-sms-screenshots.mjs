@@ -32,6 +32,7 @@ async function capture(context, suffix) {
     .fill(
       'Need two people to move a sofa downstairs this afternoon. Stairs and parking available.',
     )
+  await page.getByTestId('post-zip').fill('95124')
   const submit = page.locator('form[data-testid="post-request-form"] button[type="submit"]')
   await submit.scrollIntoViewIfNeeded()
   await submit.click()

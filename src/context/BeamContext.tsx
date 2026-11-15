@@ -79,6 +79,9 @@ export type PostRequestInput = {
   whenLabel?: string
   budget: number
   locationLabel?: string
+  city?: string | null
+  stateCode?: string | null
+  zip?: string | null
   lat?: number | null
   lng?: number | null
   radiusMiles?: number
@@ -608,22 +611,32 @@ export function BeamProvider({
       const label = input.whenLabel ?? whenLabel(input.when)
       const snap = stateRef.current
       const poster = snap?.people.find((p) => p.id === snap.currentUserId)
+      // Prefer explicit ZIP-center coords from the posting form. Fall back to
+      // area centroids only when lat/lng were not provided (legacy paths).
       const resolvedCoords =
-        resolveAreaCentroid({
-          lat: input.lat,
-          lng: input.lng,
-          locationLabel: input.locationLabel,
-          neighborhood: input.neighborhood,
-        }) ??
-        resolveAreaCentroid({
-          lat: poster?.lat,
-          lng: poster?.lng,
-          locationLabel: poster?.locationLabel,
-          neighborhood: poster?.neighborhood,
-          city: poster?.city,
-        })
+        typeof input.lat === 'number' &&
+        typeof input.lng === 'number' &&
+        Number.isFinite(input.lat) &&
+        Number.isFinite(input.lng)
+          ? { lat: input.lat, lng: input.lng }
+          : resolveAreaCentroid({
+              lat: input.lat,
+              lng: input.lng,
+              locationLabel: input.locationLabel,
+              neighborhood: input.neighborhood,
+            }) ??
+            resolveAreaCentroid({
+              lat: poster?.lat,
+              lng: poster?.lng,
+              locationLabel: poster?.locationLabel,
+              neighborhood: poster?.neighborhood,
+              city: poster?.city,
+            })
       const resolvedLat = resolvedCoords?.lat ?? null
       const resolvedLng = resolvedCoords?.lng ?? null
+      const resolvedZip = input.zip?.trim() || null
+      const resolvedCity = input.city?.trim() || null
+      const resolvedState = input.stateCode?.trim()?.toUpperCase() || null
 
       if (mode === 'live') {
         return (async () => {
@@ -642,6 +655,9 @@ export function BeamProvider({
               image,
               images,
               locationLabel: input.locationLabel,
+              city: resolvedCity,
+              stateCode: resolvedState,
+              zip: resolvedZip,
               lat: resolvedLat,
               lng: resolvedLng,
               radiusMiles: input.radiusMiles,
@@ -682,6 +698,9 @@ export function BeamProvider({
           images,
           createdAt: new Date().toISOString(),
           locationLabel: input.locationLabel?.trim() || '',
+          city: resolvedCity,
+          stateCode: resolvedState,
+          zip: resolvedZip,
           exactAddress: input.exactAddress?.trim() || undefined,
           lat: resolvedLat,
           lng: resolvedLng,

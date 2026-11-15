@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { mapHelperVerification } from '@/lib/beam/mappers'
+import { deriveZipForNewVerification, normalizeZipInput } from '@/lib/zip/server'
 
 export const runtime = 'nodejs'
 
@@ -35,12 +36,12 @@ export async function POST(req: Request) {
   const apt = body.apt != null ? String(body.apt).trim() : ''
   const city = String(body.city ?? '').trim()
   const stateCode = String(body.stateCode ?? '').trim()
-  const zip = String(body.zip ?? '').trim()
+  const zipRaw = String(body.zip ?? '').trim()
   const deviceLat = Number(body.deviceLat)
   const deviceLng = Number(body.deviceLng)
   const deviceAccuracyM = Number(body.deviceAccuracyM)
 
-  if (!email || !street || !city || !stateCode || !zip) {
+  if (!email || !street || !city || !stateCode) {
     return NextResponse.json({ error: 'Fill in your email and home address.' }, { status: 400 })
   }
   if (
@@ -52,6 +53,22 @@ export async function POST(req: Request) {
       { error: 'Location reading was incomplete. Try again on your phone.' },
       { status: 400 },
     )
+  }
+
+  // New verifications only: normalize ZIP, or derive nearest ZCTA when ZIP is missing.
+  // Do not backfill existing helper_verifications rows.
+  const normalizedZip = normalizeZipInput(zipRaw)
+  const derived =
+    normalizedZip != null
+      ? null
+      : deriveZipForNewVerification({
+          zip: zipRaw,
+          lat: deviceLat,
+          lng: deviceLng,
+        })
+  const zip = normalizedZip ?? derived?.zip ?? ''
+  if (!zip) {
+    return NextResponse.json({ error: 'Enter a valid 5-digit US ZIP code.' }, { status: 400 })
   }
 
   const supabase = await createClient()

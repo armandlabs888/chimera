@@ -129,6 +129,7 @@ async function main() {
   await page.locator('[data-testid="post-details"]').fill(
     'Demo-only listing for photo/schedule verification. Do not treat as production.',
   )
+  await page.locator('[data-testid="post-zip"]').fill('95124')
   await page.getByRole('button', { name: /^Post request$/i }).click()
   await page.waitForSelector('[data-testid="post-error"]', { timeout: 5000 })
   assert.match(
