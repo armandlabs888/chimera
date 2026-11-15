@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useBeam } from '@/context/BeamContext'
 
 /**
- * Surfaces live-mode action failures (accept, complete, save, invite, withdraw)
+ * Surfaces live-mode action failures (accept, complete, cancel, save, invite, withdraw)
  * next to the chrome where the user acted. Auth screens still show backendError inline.
  */
 export function BackendErrorToast() {

@@ -20,6 +20,7 @@ import { resolveBeamMode, type BeamMode } from '@/lib/config'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import {
   acceptLiveOffer,
+  cancelLiveHelpRequest,
   completeLiveRequest,
   createLiveOffer,
   withdrawLiveOffer,
@@ -139,6 +140,8 @@ interface BeamContextValue {
   withdrawOffer: (offerId: string) => void | Promise<void>
   acceptOffer: (offerId: string) => void | Promise<void>
   markComplete: (requestId: string) => void | Promise<void>
+  /** Requester cancels an open or accepted job. */
+  cancelHelpRequest: (requestId: string) => void | Promise<void>
   addReview: (input: {
     requestId: string
     toId: string
@@ -1018,6 +1021,69 @@ export function BeamProvider({
             r.id === requestId ? { ...r, status: 'completed' as const } : r,
           ),
           notifications: notif ? [notif, ...prev.notifications] : prev.notifications,
+        }
+      })
+    },
+    [authUser, mode, refreshLive, reportError],
+  )
+
+  const cancelHelpRequest = useCallback(
+    (requestId: string) => {
+      if (mode === 'live') {
+        return (async () => {
+          try {
+            if (!authUser) throw new Error('Not signed in')
+            const client = createClient()
+            await cancelLiveHelpRequest(client, requestId)
+            await refreshLive(authUser.id)
+          } catch (err) {
+            reportError(err, 'Cancel job failed')
+            throw err
+          }
+        })()
+      }
+      withState(setState, (prev) => {
+        const req = prev.requests.find((r) => r.id === requestId)
+        if (!req || (req.status !== 'open' && req.status !== 'accepted')) {
+          return prev
+        }
+        if (req.requesterId !== prev.currentUserId) return prev
+
+        const pendingHelpers = prev.offers
+          .filter((o) => o.requestId === requestId && o.status === 'pending')
+          .map((o) => o.helperId)
+        const notifyIds = new Set(pendingHelpers)
+        if (req.status === 'accepted' && req.helperId) {
+          notifyIds.add(req.helperId)
+        }
+
+        const now = new Date().toISOString()
+        const notifs: BeamNotification[] = [...notifyIds].map((helperId) => ({
+          id: uid('notif'),
+          userId: helperId,
+          kind: 'job_cancelled' as const,
+          title: 'Job cancelled',
+          body:
+            req.status === 'accepted' && helperId === req.helperId
+              ? `The neighbor cancelled "${req.title}". The booking is no longer active.`
+              : `The neighbor cancelled "${req.title}". Your pending offer is no longer active.`,
+          href: `/requests/${requestId}`,
+          requestId,
+          readAt: null,
+          createdAt: now,
+        }))
+
+        return {
+          ...prev,
+          requests: prev.requests.map((r) =>
+            r.id === requestId ? { ...r, status: 'cancelled' as const } : r,
+          ),
+          offers: prev.offers.map((o) =>
+            o.requestId === requestId && o.status === 'pending'
+              ? { ...o, status: 'declined' as const }
+              : o,
+          ),
+          notifications: [...notifs, ...prev.notifications],
         }
       })
     },
@@ -1988,6 +2054,7 @@ export function BeamProvider({
     withdrawOffer,
     acceptOffer,
     markComplete,
+    cancelHelpRequest,
     addReview,
     ensureThread,
     ensureDirectThread,
