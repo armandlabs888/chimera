@@ -51,31 +51,37 @@ export function SettingsNav({
         <UserRound className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
         Edit profile
       </Link>
-      <Link
-        href={isHelper ? '/settings/profile#services' : '/onboarding/helper'}
-        className={active === 'helper-details' ? 'is-on' : undefined}
-        data-testid="settings-nav-helper-details"
-      >
-        <Wrench className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
-        Helper details
-      </Link>
+      {isHelper ? (
+        <Link
+          href="/settings/profile#services"
+          className={active === 'helper-details' ? 'is-on' : undefined}
+          data-testid="settings-nav-helper-details"
+        >
+          <Wrench className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
+          Helper details
+        </Link>
+      ) : null}
       <div className="settings-grp">ACCOUNT</div>
-      <Link
-        href="/settings/account#notifications"
-        className={active === 'notifications' ? 'is-on' : undefined}
-        data-testid="settings-nav-notifications"
-      >
-        <Bell className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
-        Notifications
-      </Link>
-      <Link
-        href="/settings/account#verification"
-        className={active === 'verification' ? 'is-on' : undefined}
-        data-testid="settings-nav-verification"
-      >
-        <ShieldCheck className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
-        Verification
-      </Link>
+      {isHelper ? (
+        <>
+          <Link
+            href="/settings/account#notifications"
+            className={active === 'notifications' ? 'is-on' : undefined}
+            data-testid="settings-nav-notifications"
+          >
+            <Bell className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
+            Notifications
+          </Link>
+          <Link
+            href="/settings/account#verification"
+            className={active === 'verification' ? 'is-on' : undefined}
+            data-testid="settings-nav-verification"
+          >
+            <ShieldCheck className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
+            Verification
+          </Link>
+        </>
+      ) : null}
       <Link
         href="/settings/account#legal"
         className={active === 'legal' ? 'is-on' : undefined}
