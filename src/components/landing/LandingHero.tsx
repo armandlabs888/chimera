@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Check, ChevronDown, MapPin, Search } from 'lucide-react'
-import { LandingNav } from './LandingNav'
 import { useBeam } from '@/context/BeamContext'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { ALL_CATEGORY_ICON, PARENT_ICONS } from '@/lib/categoryIcons'
@@ -86,8 +85,6 @@ export function LandingHero() {
         <div className="landing-hero-overlay absolute inset-0" />
         <div className="landing-hero-overlay-mute absolute inset-0" />
       </div>
-
-      <LandingNav variant="float" />
 
       <div
         className="landing-hero-content relative z-20 overflow-x-clip"
