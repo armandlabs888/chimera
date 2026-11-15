@@ -173,13 +173,13 @@ export function BrowseFloatHeader({
               <div className="hc-account-desktop relative" ref={accountRef}>
                 <AccountMenuTrigger open={accountOpen} onToggle={() => setAccountOpen((o) => !o)}>
                   {ready ? (
-                    <Avatar src={currentUser.avatar} name={currentUser.name} size={28} />
+                    <Avatar src={currentUser.avatar} name={currentUser.name} size={24} />
                   ) : (
-                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#071330] text-white">
-                      <UserRound className="h-3.5 w-3.5" />
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#071330] text-white">
+                      <UserRound className="h-3 w-3" />
                     </span>
                   )}
-                  <ChevronDown className="chev h-3.5 w-3.5" aria-hidden />
+                  <ChevronDown className="chev h-3 w-3" aria-hidden />
                 </AccountMenuTrigger>
                 {accountOpen ? (
                   <AccountMenuPanel
