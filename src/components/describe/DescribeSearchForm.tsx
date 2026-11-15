@@ -16,9 +16,7 @@ import {
   detectDescribeIntent,
   formatIntentChip,
   resolveDescribeZip,
-  softCategoryLabel,
   type DescribeRoleHint,
-  type ExampleRequest,
   type MatchIntent,
   type MatchedCategory,
 } from '@/lib/describeIntent'
@@ -41,6 +39,10 @@ export const DESCRIBE_CHIPS = [
 ] as const
 
 type MenuPos = { top: number; left: number; width: number; maxHeight: number }
+
+type FlatOption =
+  | { kind: 'category'; cat: MatchedCategory }
+  | { kind: 'searchAll' }
 
 export type DescribeSearchSubmit = {
   q: string
@@ -104,34 +106,31 @@ export function DescribeSearchForm({
   const displayZip = resolveDescribeZip(zipDigits, query)
   const chip = formatIntentChip({
     intent: detection.intent,
-    categoryLabel: detection.category
-      ? softCategoryLabel(detection.category.label)
-      : null,
+    categoryLabel: null,
     zip: displayZip,
   })
 
-  const options = useMemo(() => {
+  const categories = useMemo(() => {
     const cats: MatchedCategory[] = []
     if (detection.category) cats.push(detection.category)
-    for (const r of detection.related) cats.push(r)
-    return {
-      categories: cats,
-      examples: detection.exampleRequests,
+    for (const r of detection.related) {
+      if (cats.length >= 3) break
+      cats.push(r)
     }
+    return cats
   }, [detection])
 
   const flatOptions = useMemo(() => {
-    const rows: Array<
-      | { kind: 'category'; cat: MatchedCategory }
-      | { kind: 'example'; example: ExampleRequest }
-    > = []
-    for (const cat of options.categories) rows.push({ kind: 'category', cat })
-    for (const example of options.examples) rows.push({ kind: 'example', example })
+    const rows: FlatOption[] = []
+    for (const cat of categories) rows.push({ kind: 'category', cat })
+    rows.push({ kind: 'searchAll' })
     return rows
-  }, [options])
+  }, [categories])
 
-  const showSuggest = open && query.trim().length > 0 && flatOptions.length > 0
+  const showSuggest = open && query.trim().length > 0
   const showIntentChip = query.trim().length > 0
+  const isHero = variant === 'hero'
+  const typedQuery = query.trim()
 
   // Rotating placeholder (paused while focused or when query has text).
   useEffect(() => {
@@ -288,29 +287,16 @@ export function DescribeSearchForm({
   function selectOption(index: number) {
     const row = flatOptions[index]
     if (!row) return
-    if (row.kind === 'category') {
-      setQuery((prev) => prev || row.cat.label)
-      submitSearch({
-        q: query.trim() || row.cat.label,
-        categoryId: row.cat.id,
-        intent: detection.intent,
-      })
+    if (row.kind === 'searchAll') {
+      submitSearch({ q: typedQuery, intent: detection.intent })
       return
     }
-    // Suggestions put only the request text into q; location stays in the ZIP field.
-    // Example rows are neighbor-style requests; only use jobs when the example text
-    // itself is a clear job-seeking phrase (role tiebreak must not flip them).
-    const fromExample = detectDescribeIntent(row.example.text, {
-      zip: zipDigits,
-      city: cityLabel,
-      roleHint,
-      intentOverride: null,
+    setQuery((prev) => prev || row.cat.label)
+    submitSearch({
+      q: query.trim() || row.cat.label,
+      categoryId: row.cat.id,
+      intent: detection.intent,
     })
-    const exampleIntent: MatchIntent =
-      fromExample.intent === 'jobs' && !fromExample.ambiguous ? 'jobs' : 'helpers'
-    setIntentOverride(null)
-    setQuery(row.example.text)
-    submitSearch({ q: row.example.text, intent: exampleIntent })
   }
 
   function onQueryKeyDown(e: KeyboardEvent<HTMLInputElement>) {
@@ -348,7 +334,7 @@ export function DescribeSearchForm({
             role="listbox"
             aria-label="Suggestions"
             data-testid="describe-suggest-listbox"
-            className="describe-suggest fixed"
+            className={`describe-suggest fixed${isHero ? ' describe-suggest--glass' : ''}`}
             style={{
               top: menuPos.top,
               left: menuPos.left,
@@ -356,77 +342,53 @@ export function DescribeSearchForm({
               maxHeight: menuPos.maxHeight,
             }}
           >
-            <div className="describe-suggest-intent">
-              <span>
-                We understood this as a{' '}
-                {detection.intent === 'jobs' ? 'helper looking for work' : 'neighbor request'}
-                {detection.category ? (
-                  <>
-                    {' '}
-                    for <b>{softCategoryLabel(detection.category.label)}</b>
-                  </>
-                ) : null}
-                {displayZip.length === 5 ? (
-                  <>
-                    {' '}
-                    near <b>{displayZip}</b>
-                  </>
-                ) : null}
-                .
+            {categories.map((cat, index) => {
+              const Icon = getBrowseCategoryIcon(cat.id)
+              return (
+                <button
+                  key={`cat-${cat.id}`}
+                  type="button"
+                  role="option"
+                  aria-selected={activeIndex === index}
+                  className={`describe-suggest-item describe-suggest-item--cat${
+                    activeIndex === index ? ' is-active' : ''
+                  }`}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  onClick={() => selectOption(index)}
+                >
+                  <span className="describe-cat-ico" aria-hidden>
+                    <Icon width={18} height={18} />
+                  </span>
+                  <span className="describe-cat-text">
+                    <span className="describe-cat-name">{cat.label}</span>
+                    <span className="describe-cat-desc">{cat.description}</span>
+                  </span>
+                </button>
+              )
+            })}
+
+            {categories.length > 0 ? <div className="describe-suggest-sep" aria-hidden /> : null}
+
+            <button
+              type="button"
+              role="option"
+              aria-selected={activeIndex === categories.length}
+              className={`describe-suggest-item describe-suggest-item--search${
+                activeIndex === categories.length ? ' is-active' : ''
+              }`}
+              onMouseEnter={() => setActiveIndex(categories.length)}
+              onClick={() => selectOption(categories.length)}
+            >
+              <span className="describe-cat-ico plain" aria-hidden>
+                <Search width={18} height={18} />
               </span>
-              <button type="button" className="switch" onClick={toggleIntent}>
-                {chip.toggleLabel}
-              </button>
-            </div>
-
-            {options.categories.length > 0 ? (
-              <>
-                <p className="describe-suggest-label">Matching categories</p>
-                {options.categories.map((cat, i) => {
-                  const Icon = getBrowseCategoryIcon(cat.id)
-                  const index = i
-                  return (
-                    <button
-                      key={`cat-${cat.id}`}
-                      type="button"
-                      role="option"
-                      aria-selected={activeIndex === index}
-                      className={`describe-suggest-item${activeIndex === index ? ' is-active' : ''}`}
-                      onMouseEnter={() => setActiveIndex(index)}
-                      onClick={() => selectOption(index)}
-                    >
-                      <Icon width={16} height={16} aria-hidden />
-                      {cat.label}
-                      <span className="meta">{cat.meta}</span>
-                    </button>
-                  )
-                })}
-              </>
-            ) : null}
-
-            {options.examples.length > 0 ? (
-              <>
-                <p className="describe-suggest-label">Try a request</p>
-                {options.examples.map((example, ei) => {
-                  const index = options.categories.length + ei
-                  return (
-                    <button
-                      key={`ex-${example.text}`}
-                      type="button"
-                      role="option"
-                      aria-selected={activeIndex === index}
-                      className={`describe-suggest-item${activeIndex === index ? ' is-active' : ''}`}
-                      onMouseEnter={() => setActiveIndex(index)}
-                      onClick={() => selectOption(index)}
-                    >
-                      <Search width={18} height={18} aria-hidden />
-                      <span className="describe-suggest-request">{example.text}</span>
-                      <span className="meta">{example.locationMeta}</span>
-                    </button>
-                  )
-                })}
-              </>
-            ) : null}
+              <span className="describe-cat-text">
+                <span className="describe-cat-name">
+                  Search for &ldquo;{typedQuery}&rdquo;
+                </span>
+              </span>
+              <kbd className="describe-enter-hint">Enter</kbd>
+            </button>
           </div>,
           document.body,
         )
@@ -436,7 +398,7 @@ export function DescribeSearchForm({
     <form
       ref={formRef}
       onSubmit={onFormSubmit}
-      className={`describe-search${variant === 'results' ? ' describe-search--results' : ''}`}
+      className={`describe-search${isHero ? ' describe-search--hero' : ' describe-search--results'}`}
       data-testid={variant === 'hero' ? 'hero-search' : 'match-search'}
     >
       <div ref={anchorRef}>
@@ -507,24 +469,19 @@ export function DescribeSearchForm({
 
         {showIntentChip ? (
           <div
-            className={`describe-intent-chip${variant === 'results' ? ' on-light' : ''}`}
+            className={`describe-intent-chip${!isHero ? ' on-light' : ''}`}
             data-testid="intent-chip"
           >
             <span className="understood">
               {detection.intent === 'jobs' ? (
                 <>
-                  Showing new jobs near{' '}
-                  <b>{displayZip.length === 5 ? displayZip : 'your area'}</b>
-                </>
-              ) : detection.category ? (
-                <>
-                  Finding helpers for <b>{softCategoryLabel(detection.category.label)}</b> near{' '}
-                  <b>{displayZip.length === 5 ? displayZip : 'your area'}</b>
+                  Showing jobs near{' '}
+                  <b>{displayZip.length === 5 ? displayZip : 'you'}</b>
                 </>
               ) : (
                 <>
-                  Finding helpers near{' '}
-                  <b>{displayZip.length === 5 ? displayZip : 'your area'}</b>
+                  Showing helpers near{' '}
+                  <b>{displayZip.length === 5 ? displayZip : 'you'}</b>
                 </>
               )}
             </span>
@@ -546,7 +503,7 @@ export function DescribeSearchForm({
             <button
               key={label}
               type="button"
-              className={`describe-chip${variant === 'results' ? ' on-light' : ''}`}
+              className={`describe-chip${!isHero ? ' on-light' : ''}`}
               data-testid="describe-chip"
               onClick={() => applyChip(label)}
             >

@@ -26,8 +26,22 @@ function knownClientZip(input: {
   return fromLabel ? fromLabel[1] : ''
 }
 
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const sync = () => setReduced(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+
+  return reduced
+}
+
 /**
- * Landing hero: full-bleed neighbor photo with Thumbtack-style describe search.
+ * Landing hero: full-bleed neighbor video with Thumbtack-style describe search.
  * Guests and signed-in users share one describe + ZIP + Search control.
  */
 export function LandingHero() {
@@ -35,6 +49,7 @@ export function LandingHero() {
   const { authUser, mode, helperVerification, currentUser } = useBeam()
   const [zipPrefillReady, setZipPrefillReady] = useState(false)
   const [zip, setZip] = useState('')
+  const prefersReducedMotion = usePrefersReducedMotion()
 
   const roleHint: DescribeRoleHint = useMemo(() => {
     if (mode === 'live' && !authUser) return 'guest'
@@ -75,21 +90,36 @@ export function LandingHero() {
 
   return (
     <section className="landing-hero-photo relative isolate min-h-[100svh] rounded-none pb-0 pt-0 mb-0">
-      {/* Clip the photo/overlays only; keep content overflow visible for popovers. */}
+      {/* Clip the media/overlays only; keep content overflow visible for popovers. */}
       <div
         className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-none"
         aria-hidden="true"
         data-testid="landing-hero-photo"
       >
-        <Image
-          src="/images/landing/hero-moving-neighbors.jpg"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          quality={85}
-          className="landing-hero-photo-img rounded-none object-cover"
-        />
+        {prefersReducedMotion ? (
+          <Image
+            src="/hero/hero-poster.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            quality={85}
+            className="landing-hero-photo-img rounded-none object-cover"
+          />
+        ) : (
+          <video
+            className="landing-hero-photo-img landing-hero-video absolute inset-0 h-full w-full rounded-none object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster="/hero/hero-poster.jpg"
+            data-testid="landing-hero-video"
+          >
+            <source src="/hero/hero-loop.mp4" type="video/mp4" />
+          </video>
+        )}
         <div className="landing-hero-overlay absolute inset-0" />
         <div className="landing-hero-overlay-mute absolute inset-0" />
       </div>
