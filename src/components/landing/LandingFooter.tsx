@@ -75,8 +75,9 @@ export function LandingFooter({
             href: '/onboarding/helper',
             label: helperLinkLabel,
           },
-          { href: '/you', label: 'Profile & account' },
+          { href: '/you', label: 'Your profile' },
           { href: '/home', label: 'My activity' },
+          { href: '/settings', label: 'Settings' },
         ]
       : [
           { href: '/post', label: 'Post a task' },

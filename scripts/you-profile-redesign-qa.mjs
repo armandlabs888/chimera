@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 /**
- * /you Profile & account redesign screenshots.
- * Seeds a demo helper and demo neighbor, captures 1280x800 and 390-wide viewports
- * (viewport crops, not full-page).
+ * Own-profile redesign screenshots (helper).
+ * Captures 1440 and 390 viewports for profile, edit, settings, activity, menu.
  */
 import { mkdirSync, copyFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -24,52 +23,39 @@ async function shot(page, name) {
   console.log('wrote', join(OUT, name))
 }
 
-async function seedRole(page, role) {
+async function seedHelper(page) {
   await page.goto(`${BASE}/browse?demo=1`, { waitUntil: 'domcontentloaded', timeout: 60000 })
   await page.waitForFunction((key) => !!localStorage.getItem(key), STORAGE_KEY, { timeout: 20000 })
-  await page.evaluate(
-    ({ key, role: nextRole }) => {
-      const state = JSON.parse(localStorage.getItem(key) || '{}')
-      const me = state.currentUserId || 'user-you'
-      for (const p of state.people || []) {
-        if (p.id !== me) continue
-        if (nextRole === 'helper') {
-          p.accountRole = 'helper'
-          p.isHelper = true
-          p.skills = p.skills?.length ? p.skills : ['junk-removal', 'house-cleaning']
-          p.hourlyRate = p.hourlyRate || 35
-          p.rateType = p.rateType || 'hourly'
-          p.serviceRadiusMiles = p.serviceRadiusMiles || 5
-          p.availableNow = true
-          p.availability = p.availability?.length ? p.availability : ['afternoons', 'evenings']
-        } else {
-          p.accountRole = 'customer'
-          p.isHelper = false
-          p.skills = []
-          p.availableNow = false
-          p.availability = []
-          p.hourlyRate = 0
-        }
-      }
-      localStorage.setItem(key, JSON.stringify(state))
-    },
-    { key: STORAGE_KEY, role },
-  )
+  await page.evaluate((key) => {
+    const state = JSON.parse(localStorage.getItem(key) || '{}')
+    const me = state.currentUserId || 'user-you'
+    for (const p of state.people || []) {
+      if (p.id !== me) continue
+      p.accountRole = 'helper'
+      p.isHelper = true
+      p.name = p.name || 'Kuni'
+      p.bio = ''
+      p.skills = ['moving']
+      p.hourlyRate = 35
+      p.rateType = 'hourly'
+      p.serviceRadiusMiles = 5
+      p.availableNow = false
+      p.availability = []
+      p.rating = 5
+      p.reviewCount = 1
+      p.jobsCompleted = 1
+      p.locationLabel = 'San Jose, CA'
+      p.city = 'San Jose'
+      p.stateCode = 'CA'
+    }
+    localStorage.setItem(key, JSON.stringify(state))
+  }, STORAGE_KEY)
 }
 
-async function setDemoVerification(page, status) {
-  await page.evaluate((s) => {
-    const fn = window.__BEAM_SET_DEMO_VERIFICATION__
-    if (typeof fn !== 'function') throw new Error('Demo verification hook missing')
-    fn(s)
-  }, status)
-  await page.waitForTimeout(150)
-}
-
-async function captureVariant(browser, role, prefix) {
+async function capture(browser, path, testId, prefix) {
   for (const vp of [
-    { name: 'desk', width: 1280, height: 800 },
-    { name: 'mob', width: 390, height: 844, isMobile: true },
+    { name: '1440', width: 1440, height: 900 },
+    { name: '390', width: 390, height: 844, isMobile: true },
   ]) {
     const context = await browser.newContext({
       viewport: { width: vp.width, height: vp.height },
@@ -78,17 +64,13 @@ async function captureVariant(browser, role, prefix) {
       hasTouch: Boolean(vp.isMobile),
     })
     const page = await context.newPage()
-    await seedRole(page, role)
-    await page.goto(`${BASE}/you?demo=1`, { waitUntil: 'networkidle', timeout: 60000 })
-    await page.getByTestId('you-page').waitFor({ state: 'visible', timeout: 20000 })
-    await page.getByTestId('profile-header').waitFor({ state: 'visible' })
-    if (role === 'helper') {
-      await setDemoVerification(page, 'unverified')
-      await page.getByTestId('you-link-get-verified').waitFor({ state: 'visible' })
-    } else {
-      await page.getByTestId('you-become-helper').waitFor({ state: 'visible' })
-    }
-    await page.waitForTimeout(250)
+    await seedHelper(page)
+    await page.goto(`${BASE}${path}${path.includes('?') ? '&' : '?'}demo=1`, {
+      waitUntil: 'networkidle',
+      timeout: 60000,
+    })
+    await page.getByTestId(testId).waitFor({ state: 'visible', timeout: 20000 })
+    await page.waitForTimeout(300)
     await shot(page, `${prefix}-${vp.name}.png`)
     await context.close()
   }
@@ -97,8 +79,42 @@ async function captureVariant(browser, role, prefix) {
 async function main() {
   const browser = await chromium.launch({ headless: true })
   try {
-    await captureVariant(browser, 'helper', 'you-helper')
-    await captureVariant(browser, 'neighbor', 'you-neighbor')
+    await capture(browser, '/you', 'you-page', 'profile')
+    await capture(browser, '/settings/profile', 'edit-profile-form', 'edit')
+    await capture(browser, '/settings/account', 'settings-page', 'settings')
+    await capture(browser, '/home', 'my-activity-page', 'activity')
+    // Mobile settings hub only (desktop /settings shows account settings).
+    {
+      const context = await browser.newContext({
+        viewport: { width: 390, height: 844 },
+        deviceScaleFactor: 1,
+        isMobile: true,
+        hasTouch: true,
+      })
+      const page = await context.newPage()
+      await seedHelper(page)
+      await page.goto(`${BASE}/settings?demo=1`, { waitUntil: 'networkidle', timeout: 60000 })
+      await page.getByTestId('you-settings-menu').waitFor({ state: 'visible', timeout: 20000 })
+      await page.waitForTimeout(300)
+      await shot(page, 'settings-menu-390.png')
+      await context.close()
+    }
+    // Desktop account menu
+    {
+      const context = await browser.newContext({
+        viewport: { width: 1440, height: 900 },
+        deviceScaleFactor: 1,
+      })
+      const page = await context.newPage()
+      await seedHelper(page)
+      await page.goto(`${BASE}/you?demo=1`, { waitUntil: 'networkidle', timeout: 60000 })
+      await page.getByTestId('you-page').waitFor({ state: 'visible' })
+      await page.getByTestId('account-menu-trigger').click()
+      await page.getByTestId('account-menu').waitFor({ state: 'visible' })
+      await page.waitForTimeout(200)
+      await shot(page, 'account-menu-1440.png')
+      await context.close()
+    }
   } finally {
     await browser.close()
   }

@@ -1,0 +1,156 @@
+.settings-root-mobile {
+  display: none;
+}
+
+.settings-root-desktop {
+  display: block;
+}
+
+@media (max-width: 860px) {
+  .settings-root-mobile {
+    display: block;
+  }
+
+  .settings-root-desktop {
+    display: none;
+  }
+}
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+  margin-top: 28px;
+}
+
+.settings-side {
+  position: sticky;
+  top: 93px;
+}
+
+.settings-side a,
+.settings-side button.settings-signout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: #4a5568;
+  border-left: 3px solid transparent;
+  text-decoration: none;
+  background: none;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.settings-side a.is-on {
+  color: #071330;
+  font-weight: 600;
+  border-left-color: #1d5ce5;
+}
+
+.settings-grp {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #4a5568;
+  padding: 18px 17px 6px;
+}
+
+.settings-grp:first-child {
+  padding-top: 0;
+}
+
+.settings-signout {
+  color: #c8102e !important;
+}
+
+.settings-back,
+.settings-mobile-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #1649bd;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 16px;
+  text-decoration: none;
+}
+
+.settings-mobile-back {
+  display: none;
+}
+
+.settings-desk-back {
+  display: inline-flex;
+}
+
+@media (max-width: 860px) {
+  .settings-mobile-back {
+    display: inline-flex;
+  }
+
+  .settings-desk-back {
+    display: none;
+  }
+}
+
+.settings-h1 {
+  font-family: var(--font-display, inherit);
+  font-weight: 700;
+  font-size: 30px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: #071330;
+}
+
+.settings-sub {
+  color: #4a5568;
+  font-size: 15px;
+  margin-top: 6px;
+}
+
+.settings-link {
+  color: #1649bd;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.settings-link:hover {
+  text-decoration: underline;
+}
+
+.settings-content {
+  max-width: 720px;
+  min-width: 0;
+}
+
+@media (max-width: 860px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-top: 16px;
+  }
+
+  .settings-side-wrap {
+    display: none;
+  }
+
+  .settings-h1 {
+    font-size: 26px;
+  }
+}
+
+@media (min-width: 861px) {
+  .settings-side-wrap {
+    display: block;
+  }
+}

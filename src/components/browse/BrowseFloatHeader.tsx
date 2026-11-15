@@ -37,8 +37,8 @@ export function BrowseFloatHeader({
   const [mobileOpen, setMobileOpen] = useState(false)
   const accountRef = useRef<HTMLDivElement>(null)
 
-  const savedHref = guest ? '/auth?next=%2Fyou%3Ftab%3Dsaved' : '/you?tab=saved'
-  const offersHref = guest ? '/auth?next=%2Fyou%3Ftab%3Doffers' : '/you?tab=offers'
+  const savedHref = guest ? '/auth?next=%2Fhome%3Ftab%3Dsaved' : '/home?tab=saved'
+  const offersHref = guest ? '/auth?next=%2Fhome%3Ftab%3Doffers' : '/home?tab=offers'
   const postHref = guest ? '/auth?next=%2Fpost' : '/post'
   const browseActive = pathname === '/browse' || pathname.startsWith('/browse/')
 

@@ -1,52 +1,72 @@
 'use client'
 
+import {
+  List,
+  LogOut,
+  MessageSquare,
+  Settings,
+  UserRound,
+} from 'lucide-react'
 import Link from 'next/link'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
+import { Avatar } from '@/components/ui'
+import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import { useBeam } from '@/context/BeamContext'
+import { formatLocation } from '@/lib/location'
 import { isHelperPerson } from '@/lib/roles'
 import './account-hc.css'
 
 export type AccountMenuLink = {
   href: string
   label: string
-  match: (path: string, search: string) => boolean
+  match: (path: string) => boolean
+  icon: ReactNode
+  testId?: string
+  kind?: 'link' | 'messages'
 }
 
-/** Base account menu entries. Helper/neighbor label is applied in getAccountMenuLinks. */
 export const ACCOUNT_MENU_LINKS: AccountMenuLink[] = [
-  { href: '/you', label: 'Profile & account', match: (path: string) => path === '/you' },
-  { href: '/home', label: 'My activity', match: (path: string) => path === '/home' },
   {
-    href: '/onboarding/helper',
-    label: 'Helper profile',
-    match: (path: string) => path.startsWith('/onboarding/helper'),
+    href: '/you',
+    label: 'Your profile',
+    match: (path) => path === '/you',
+    icon: <UserRound className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />,
+    testId: 'account-menu-profile',
   },
   {
-    href: '/onboarding?edit=1',
-    label: 'Change city',
-    match: (path: string, search: string) =>
-      path === '/onboarding' && new URLSearchParams(search).get('edit') === '1',
+    href: '/home',
+    label: 'My activity',
+    match: (path) => path === '/home',
+    icon: <List className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />,
+    testId: 'account-menu-activity',
+  },
+  {
+    href: '/messages',
+    label: 'Messages',
+    match: (path) => path === '/messages' || path.startsWith('/messages/'),
+    icon: <MessageSquare className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />,
+    testId: 'account-menu-messages',
+    kind: 'messages',
+  },
+  {
+    href: '/settings/account',
+    label: 'Settings',
+    match: (path) => path === '/settings' || path.startsWith('/settings/'),
+    icon: <Settings className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />,
+    testId: 'account-menu-settings',
   },
 ]
 
-export function getAccountMenuLinks(isHelper: boolean): AccountMenuLink[] {
-  return ACCOUNT_MENU_LINKS.map((item) => {
-    if (item.href !== '/onboarding/helper') return item
-    return {
-      ...item,
-      label: isHelper ? 'Helper profile' : 'Become a helper',
-    }
-  })
+export function getAccountMenuLinks(_isHelper: boolean): AccountMenuLink[] {
+  return ACCOUNT_MENU_LINKS
 }
 
 export function useAccountMenuCurrent() {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const search = searchParams.toString()
   return (href: string) => {
     const item = ACCOUNT_MENU_LINKS.find((l) => l.href === href)
-    return item ? item.match(pathname, search) : false
+    return item ? item.match(pathname) : false
   }
 }
 
@@ -72,6 +92,12 @@ export function AccountMenuPanel({
 }) {
   const isCurrent = useAccountMenuCurrent()
   const links = useAccountMenuItems()
+  const { openList, isGuest } = useMessagesDrawer()
+  const { currentUser } = useBeam()
+  const isHelper = isHelperPerson(currentUser)
+  const roleLabel = isHelper ? 'Helper' : 'Neighbor'
+  const place = formatLocation(currentUser) || locationText
+
   if (!open) return null
 
   return (
@@ -81,26 +107,56 @@ export function AccountMenuPanel({
       aria-label="Account"
       data-testid="account-menu"
     >
-      <div className="hc-menu-head">
-        <p className="name truncate">{name}</p>
-        <p className="loc truncate">{locationText}</p>
+      <div className="hc-menu-head hc-menu-head-row">
+        <Avatar src={currentUser.avatar} name={name} size={36} />
+        <div className="min-w-0">
+          <p className="name truncate">{name}</p>
+          <p className="loc truncate">
+            {roleLabel}
+            {place ? ` · ${place}` : ''}
+          </p>
+        </div>
       </div>
       <ul className="hc-menu-list">
-        {links.map((item) => (
-          <li key={item.href}>
-            <Link
-              href={item.href}
-              role="menuitem"
-              className={isCurrent(item.href) ? 'is-current' : undefined}
-              onClick={onNavigate}
-              data-testid={
-                item.href === '/onboarding/helper' ? 'account-menu-helper-link' : undefined
-              }
-            >
-              {item.label}
-            </Link>
-          </li>
-        ))}
+        {links.map((item) => {
+          if (item.kind === 'messages') {
+            return (
+              <li key={item.href}>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={isCurrent(item.href) ? 'is-current' : undefined}
+                  data-testid={item.testId}
+                  onClick={() => {
+                    onNavigate()
+                    if (isGuest) {
+                      window.location.href = '/auth?next=%2Fmessages'
+                      return
+                    }
+                    openList()
+                  }}
+                >
+                  {item.icon}
+                  {item.label}
+                </button>
+              </li>
+            )
+          }
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                role="menuitem"
+                className={isCurrent(item.href) ? 'is-current' : undefined}
+                onClick={onNavigate}
+                data-testid={item.testId}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            </li>
+          )
+        })}
         {canSignOut ? (
           <>
             <li className="hc-menu-sep" aria-hidden />
@@ -112,6 +168,7 @@ export function AccountMenuPanel({
                 className="hc-menu-item sign-out"
                 onClick={onSignOut}
               >
+                <LogOut className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
                 Sign out
               </button>
             </li>
@@ -137,24 +194,52 @@ export function MobileAccountLinks({
 }) {
   const isCurrent = useAccountMenuCurrent()
   const links = useAccountMenuItems()
+  const { openList, isGuest } = useMessagesDrawer()
+  const { currentUser } = useBeam()
+  const isHelper = isHelperPerson(currentUser)
+  const roleLabel = isHelper ? 'Helper' : 'Neighbor'
+  const place = formatLocation(currentUser) || locationText
 
   return (
     <div className="hc-mobile-account" data-testid="mobile-account-links">
       <p className="name truncate">{name}</p>
-      <p className="loc truncate">{locationText}</p>
-      {links.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={isCurrent(item.href) ? 'is-current' : undefined}
-          onClick={onNavigate}
-          data-testid={
-            item.href === '/onboarding/helper' ? 'account-menu-helper-link' : undefined
-          }
-        >
-          {item.label}
-        </Link>
-      ))}
+      <p className="loc truncate">
+        {roleLabel}
+        {place ? ` · ${place}` : ''}
+      </p>
+      {links.map((item) => {
+        if (item.kind === 'messages') {
+          return (
+            <button
+              key={item.href}
+              type="button"
+              className={isCurrent(item.href) ? 'is-current' : undefined}
+              data-testid={item.testId}
+              onClick={() => {
+                onNavigate()
+                if (isGuest) {
+                  window.location.href = '/auth?next=%2Fmessages'
+                  return
+                }
+                openList()
+              }}
+            >
+              {item.label}
+            </button>
+          )
+        }
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={isCurrent(item.href) ? 'is-current' : undefined}
+            onClick={onNavigate}
+            data-testid={item.testId}
+          >
+            {item.label}
+          </Link>
+        )
+      })}
       {canSignOut ? (
         <button
           type="button"

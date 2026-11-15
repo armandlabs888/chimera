@@ -66,7 +66,7 @@ const primaryBtnClass =
   'inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-[#1D5CE5] px-3.5 text-[14px] font-semibold text-white transition hover:bg-[#1649BD] disabled:opacity-40 sm:flex-none sm:min-h-[40px] sm:shrink-0 sm:px-3.5'
 
 const secondaryBtnClass =
-  'inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-[#EEF2F7] px-3.5 text-[14px] font-semibold text-[#071330] transition hover:bg-[#E3E8EF] disabled:opacity-40 sm:flex-none sm:min-h-[40px] sm:shrink-0 sm:px-3.5'
+  'inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-[#D7E0EC] bg-white px-3.5 text-[14px] font-semibold text-[#071330] transition hover:bg-[#EEF2F7] disabled:opacity-40 sm:flex-none sm:min-h-[40px] sm:shrink-0 sm:px-3.5'
 
 const overflowBtnClass =
   'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-[#EEF2F7] text-[#071330] transition hover:bg-[#E3E8EF]'

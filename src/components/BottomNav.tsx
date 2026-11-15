@@ -6,17 +6,27 @@ import { usePathname } from 'next/navigation'
 import type { MouseEvent } from 'react'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 
-const tabs = [
+const tabs: {
+  href: string
+  label: string
+  icon: typeof Home
+  end?: boolean
+  matchPrefix?: string
+}[] = [
   { href: '/home', label: 'Home', icon: Home, end: true },
   { href: '/browse', label: 'Browse', icon: Compass },
   { href: '/post', label: 'Post', icon: PlusCircle },
   { href: '/messages', label: 'Messages', icon: MessageCircle },
-  { href: '/you', label: 'You', icon: UserRound },
+  // Mobile You tab opens the settings-menu hub (profile, activity, settings).
+  { href: '/settings', label: 'You', icon: UserRound, matchPrefix: '/settings' },
 ]
 
 export function BottomNav() {
   const pathname = usePathname()
   const { open: messagesOpen, toggle, isGuest } = useMessagesDrawer()
+
+  // Sticky save bar on edit profile replaces the dock (matches approved mock).
+  if (pathname === '/settings/profile') return null
 
   return (
     <nav
@@ -25,13 +35,20 @@ export function BottomNav() {
       data-testid="bottom-dock"
     >
       <ul className="bottom-dock safe-bottom mx-auto grid max-w-lg grid-cols-5 px-1 pt-1">
-        {tabs.map(({ href, label, icon: Icon, end }) => {
+        {tabs.map(({ href, label, icon: Icon, end, matchPrefix }) => {
           const isMessages = href === '/messages'
+          const isYou = href === '/settings'
           const isActive = isMessages
             ? messagesOpen || pathname === '/messages' || pathname.startsWith('/messages/')
-            : end
-              ? pathname === href
-              : pathname === href || pathname.startsWith(`${href}/`)
+            : isYou
+              ? pathname === '/you' ||
+                pathname === '/settings' ||
+                pathname.startsWith('/settings/')
+              : end
+                ? pathname === href
+                : pathname === href ||
+                  pathname.startsWith(`${href}/`) ||
+                  (matchPrefix ? pathname.startsWith(matchPrefix) : false)
           function onClick(event: MouseEvent<HTMLAnchorElement>) {
             if (!isMessages || isGuest) return
             if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey || event.button !== 0) return

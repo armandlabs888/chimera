@@ -3,8 +3,8 @@ import { You } from '@/screens/You'
 import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
-  title: 'Profile',
-  description: 'Your HouseCall profile and helper details.',
+  title: 'Your profile',
+  description: 'How neighbors see your HouseCall profile.',
   path: '/you',
   noindex: true,
 })
