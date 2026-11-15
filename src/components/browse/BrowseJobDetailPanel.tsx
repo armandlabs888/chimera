@@ -11,7 +11,13 @@ import {
 } from '@/components/verification/OfferGateFooter'
 import { useBeam } from '@/context/BeamContext'
 import { JobTitleText } from '@/lib/displayTitle'
-import { formatBudget, relativeTime } from '@/lib/matching'
+import {
+  formatBudget,
+  formatPriceCaption,
+  hasListedPrice,
+  relativeTime,
+  requestAcceptsOffers,
+} from '@/lib/matching'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
 import { isHelperPerson } from '@/lib/roles'
 import { formatCategoryLabel } from '@/lib/taxonomy'
@@ -103,8 +109,11 @@ export function BrowseJobDetailPanel({
   const images = normalizeListingImages(request.images, request.image)
   const cover = listingCoverImage(images)
   const categoryLabel = formatCategoryLabel(request.category, request.categoryCustom)
-  const openBudget = request.budgetType === 'open' || request.budget === 0
+  const listedPrice = hasListedPrice(request)
+  const firmPrice = listedPrice && !requestAcceptsOffers(request)
+  const firmPriceAmount = listedPrice ? Math.round(request.budget) : 0
   const budgetLabel = formatBudget(request)
+  const priceCaption = formatPriceCaption(request)
   const posted = relativeTime(request.createdAt)
   const jobAreaCaption = formatJobAreaCaption(request)
   // Job area only; never fall back to the viewer browse city (guest "you").
@@ -126,23 +135,22 @@ export function BrowseJobDetailPanel({
   const fullHref = `/requests/${request.id}`
 
   const priceBlock = useMemo(() => {
-    if (openBudget) {
+    if (!listedPrice) {
       return (
         <>
           <div className="browse-hc-detail-price" style={{ fontSize: 22 }}>
-            Open
+            Open to offers
           </div>
-          <div className="browse-hc-detail-pay">Accepting offers</div>
         </>
       )
     }
     return (
       <>
         <div className="browse-hc-detail-price">{budgetLabel}</div>
-        <div className="browse-hc-detail-pay">Fixed budget</div>
+        {priceCaption ? <div className="browse-hc-detail-pay">{priceCaption}</div> : null}
       </>
     )
-  }, [budgetLabel, openBudget])
+  }, [budgetLabel, listedPrice, priceCaption])
 
   async function requireAuth(run: () => Promise<void> | void) {
     if (isGuest) {
@@ -166,9 +174,14 @@ export function BrowseJobDetailPanel({
 
   async function submitOffer() {
     await requireAuth(async () => {
-      const priceNum = Number(offerPrice)
+      const priceNum = firmPrice ? firmPriceAmount : Number(offerPrice)
       if (!Number.isFinite(priceNum) || priceNum < 5) {
         setOfferError('Name a real price before you show up.')
+        setOfferOpen(true)
+        return
+      }
+      if (firmPrice && Math.round(priceNum) !== firmPriceAmount) {
+        setOfferError(`This job has a firm price of $${firmPriceAmount}.`)
         setOfferOpen(true)
         return
       }
@@ -344,22 +357,33 @@ export function BrowseJobDetailPanel({
               <p className="text-[15px] font-bold text-[#071330]">
                 {myOffer ? 'Update your offer' : 'Your offer'}
               </p>
-              <label className="block text-[13px] font-semibold text-[#071330]" htmlFor="browse-panel-offer-price">
-                Price
-              </label>
-              <div className="flex h-11 items-center rounded-[10px] border border-[#D7E0EC] px-3 focus-within:border-[#1D5CE5]">
-                <span className="text-[15px] font-semibold text-[#3D4A5F]" aria-hidden>
-                  $
-                </span>
-                <input
-                  id="browse-panel-offer-price"
-                  inputMode="numeric"
-                  value={offerPrice}
-                  onChange={(e) => setOfferPrice(e.target.value.replace(/[^\d]/g, '').slice(0, 5))}
-                  className="h-full w-full bg-transparent px-2 text-[15px] font-semibold text-[#071330] outline-none"
-                  data-testid="browse-offer-price"
-                />
-              </div>
+              {firmPrice ? (
+                <div
+                  className="flex h-11 items-center rounded-[10px] border border-[#D7E0EC] bg-[#F7F9FC] px-3 text-[15px] font-semibold tabular-nums text-[#071330]"
+                  data-testid="browse-offer-firm-price"
+                >
+                  Firm price ${firmPriceAmount}
+                </div>
+              ) : (
+                <>
+                  <label className="block text-[13px] font-semibold text-[#071330]" htmlFor="browse-panel-offer-price">
+                    Price
+                  </label>
+                  <div className="flex h-11 items-center rounded-[10px] border border-[#D7E0EC] px-3 focus-within:border-[#1D5CE5]">
+                    <span className="text-[15px] font-semibold text-[#3D4A5F]" aria-hidden>
+                      $
+                    </span>
+                    <input
+                      id="browse-panel-offer-price"
+                      inputMode="numeric"
+                      value={offerPrice}
+                      onChange={(e) => setOfferPrice(e.target.value.replace(/[^\d]/g, '').slice(0, 5))}
+                      className="h-full w-full bg-transparent px-2 text-[15px] font-semibold text-[#071330] outline-none"
+                      data-testid="browse-offer-price"
+                    />
+                  </div>
+                </>
+              )}
               <div className="flex flex-wrap gap-2">
                 {ETA_CHIPS.map((chip) => (
                   <button

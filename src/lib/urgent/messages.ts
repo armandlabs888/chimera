@@ -14,7 +14,7 @@ export function formatUrgentMatchSms(input: {
   const category = formatCategoryLabel(input.category, input.categoryCustom)
   const miles = Math.max(0, input.distanceMiles).toFixed(1)
   const price =
-    input.budgetType === 'open' || input.budget <= 0
+    input.budget <= 0
       ? 'Open to offers'
       : `$${Math.round(input.budget)}`
   const link = `${URGENT_JOB_PUBLIC_ORIGIN}/requests/${input.requestId}`

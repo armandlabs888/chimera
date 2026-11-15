@@ -17,6 +17,7 @@ export type Database = {
       help_requests: {
         Row: {
           accepted_offer_id: string | null
+          accepts_offers: boolean
           budget: number
           budget_type: string
           category: string
@@ -50,6 +51,7 @@ export type Database = {
         }
         Insert: {
           accepted_offer_id?: string | null
+          accepts_offers?: boolean
           budget: number
           budget_type?: string
           category: string
@@ -83,6 +85,7 @@ export type Database = {
         }
         Update: {
           accepted_offer_id?: string | null
+          accepts_offers?: boolean
           budget?: number
           budget_type?: string
           category?: string

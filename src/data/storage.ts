@@ -48,6 +48,10 @@ function normalizeRequest(r: HelpRequest): HelpRequest {
     lng: r.lng ?? null,
     radiusMiles: r.radiusMiles ?? 5,
     budgetType: r.budgetType ?? (r.budget === 0 ? 'open' : 'fixed'),
+    acceptsOffers:
+      typeof r.acceptsOffers === 'boolean'
+        ? r.acceptsOffers
+        : true,
     scheduledFor: r.scheduledFor ?? null,
     scheduledEnd: r.scheduledEnd ?? null,
     preferredHelperId: r.preferredHelperId ?? null,

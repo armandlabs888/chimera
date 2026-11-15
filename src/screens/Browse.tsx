@@ -34,7 +34,14 @@ import { fetchBrowseMarketplaceDistances } from '@/lib/browseDistancesLive'
 import { requestBrowseLocationPicker } from '@/lib/browseLocationPreference'
 import { formatLocation } from '@/lib/location'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
-import { formatBudget, formatRate, relativeTime } from '@/lib/matching'
+import {
+  formatBudget,
+  formatPriceCaption,
+  formatRate,
+  hasListedPrice,
+  relativeTime,
+  requestAcceptsOffers,
+} from '@/lib/matching'
 import { formatPublicRating } from '@/lib/ratingDisplay'
 import { hidesPeerHelperDiscovery, stripHelperDiscoveryParams } from '@/lib/roles'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
@@ -55,7 +62,7 @@ const PAGE_SIZE = 20
 const REQUEST_SORT_OPTIONS: FilterOption[] = [
   { id: 'nearest', label: 'Nearest' },
   { id: 'newest', label: 'Newest first' },
-  { id: 'budget', label: 'Highest budget' },
+  { id: 'budget', label: 'Highest price' },
 ]
 
 const PEOPLE_SORT_OPTIONS: FilterOption[] = [
@@ -71,8 +78,8 @@ const WHEN_FILTER_OPTIONS: FilterOption[] = [
 
 const PAY_FILTER_OPTIONS: FilterOption[] = [
   { id: 'all', label: 'All types' },
-  { id: 'fixed', label: 'Fixed budget' },
-  { id: 'open', label: 'Accepting offers' },
+  { id: 'fixed', label: 'Firm price' },
+  { id: 'open', label: 'Open to offers' },
 ]
 
 const AVAIL_FILTER_OPTIONS: FilterOption[] = [
@@ -129,8 +136,8 @@ function publicArea(request: HelpRequest): string {
   return first
 }
 
-function isOpenBudget(request: HelpRequest): boolean {
-  return request.budgetType === 'open' || request.budget === 0
+function isOpenPay(request: HelpRequest): boolean {
+  return requestAcceptsOffers(request) || !hasListedPrice(request)
 }
 
 function subscribeNarrow(onChange: () => void) {
@@ -338,7 +345,7 @@ export function Browse() {
       .filter((r) => (when === 'all' ? true : r.when === when))
       .filter((r) => {
         if (pay === 'all') return true
-        const open = isOpenBudget(r)
+        const open = isOpenPay(r)
         return pay === 'open' ? open : !open
       })
       .filter((r) => {
@@ -873,8 +880,9 @@ export function Browse() {
                   const area = publicArea(request)
                   const photos = normalizeListingImages(request.images, request.image)
                   const imageSrc = listingCoverImage(photos)
-                  const openBudget = isOpenBudget(request)
+                  const listed = hasListedPrice(request)
                   const budget = formatBudget(request)
+                  const caption = formatPriceCaption(request)
                   const miles = milesForRequest(request.id)
                   return (
                     <BrowseJobRow
@@ -891,9 +899,9 @@ export function Browse() {
                       }
                       asap={request.when === 'asap'}
                       excerpt={oneLine(request.details)}
-                      priceLabel={openBudget ? 'Open' : budget}
-                      priceCaption={openBudget ? 'Accepting offers' : 'Fixed budget'}
-                      openBudget={openBudget}
+                      priceLabel={listed ? budget : 'Open to offers'}
+                      priceCaption={caption ?? ''}
+                      openBudget={!listed}
                       imageSrc={imageSrc}
                       selected={request.id === jobId}
                       onOpen={openJob}

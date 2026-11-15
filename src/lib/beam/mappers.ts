@@ -101,6 +101,7 @@ export function mapRequest(
     lng: row.lng,
     radiusMiles: row.radius_miles ?? 5,
     budgetType: (row.budget_type as BudgetType) || (Number(row.budget) === 0 ? 'open' : 'fixed'),
+    acceptsOffers: typeof row.accepts_offers === 'boolean' ? row.accepts_offers : true,
     scheduledFor: row.scheduled_for,
     scheduledEnd: row.scheduled_end ?? null,
     preferredHelperId: row.preferred_helper_id,
@@ -260,6 +261,10 @@ export function mapPublicRequest(row: Record<string, unknown>): HelpRequest {
     lng: (row.lng as number | null) ?? null,
     radiusMiles: Number(row.radius_miles ?? 5),
     budgetType: (row.budget_type as BudgetType) || (budget === 0 ? 'open' : 'fixed'),
+    acceptsOffers:
+      typeof row.accepts_offers === 'boolean'
+        ? Boolean(row.accepts_offers)
+        : true,
     scheduledFor: (row.scheduled_for as string | null) ?? null,
     scheduledEnd: (row.scheduled_end as string | null) ?? null,
     publicOfferCount: Number(row.offer_count ?? 0),

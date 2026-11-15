@@ -47,7 +47,7 @@ const ROLES: {
 ]
 
 const NEIGHBOR_POINTS = [
-  'Create a job request and set your budget.',
+  'Create a job request and set your price.',
   'Review offers from people who live nearby.',
   "Coordinate in Messages and hire when you're ready.",
   'No address verification is needed to post a job.',

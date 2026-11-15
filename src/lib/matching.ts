@@ -112,9 +112,39 @@ export function formatMoney(n: number): string {
   return `$${Math.round(n)}`
 }
 
-export function formatBudget(request: Pick<HelpRequest, 'budget' | 'budgetType'>): string {
-  if (request.budgetType === 'open' || request.budget === 0) return 'Open to offers'
+/** True when helpers may propose a different amount than the listed price. */
+export function requestAcceptsOffers(
+  request: Pick<HelpRequest, 'acceptsOffers' | 'budgetType' | 'budget'>,
+): boolean {
+  if (typeof request.acceptsOffers === 'boolean') return request.acceptsOffers
+  // Pre-column rows: fixed and open both allowed custom offers historically.
+  return true
+}
+
+/** Legacy open / no-price jobs, or a set dollar amount. */
+export function hasListedPrice(request: Pick<HelpRequest, 'budget'>): boolean {
+  return Number(request.budget) > 0
+}
+
+/**
+ * Primary price line: "$80", or "Open to offers" when there is no listed amount.
+ */
+export function formatBudget(
+  request: Pick<HelpRequest, 'budget' | 'budgetType' | 'acceptsOffers'>,
+): string {
+  if (!hasListedPrice(request)) return 'Open to offers'
   return formatMoney(request.budget)
+}
+
+/**
+ * Small label under the amount: "Firm price" / "Open to offers".
+ * Null when the primary line already says "Open to offers" (no price).
+ */
+export function formatPriceCaption(
+  request: Pick<HelpRequest, 'budget' | 'budgetType' | 'acceptsOffers'>,
+): string | null {
+  if (!hasListedPrice(request)) return null
+  return requestAcceptsOffers(request) ? 'Open to offers' : 'Firm price'
 }
 
 export function formatRate(person: Pick<Person, 'hourlyRate' | 'rateType'>): string {

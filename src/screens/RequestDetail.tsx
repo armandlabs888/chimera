@@ -42,6 +42,9 @@ import {
 } from '@/lib/taxonomy'
 import {
   formatBudget,
+  formatPriceCaption,
+  hasListedPrice,
+  requestAcceptsOffers,
   formatLocation,
   formatMoney,
   formatRate,
@@ -213,10 +216,13 @@ export function RequestDetail() {
 
   const activeRequest = request
   const budgetLabel = formatBudget(request)
+  const priceCaption = formatPriceCaption(request)
+  const listedPrice = hasListedPrice(request)
+  const firmPrice = listedPrice && !requestAcceptsOffers(request)
+  const firmPriceAmount = listedPrice ? Math.round(request.budget) : 0
   const locationLabel = formatLocation(request)
   const listingImages = normalizeListingImages(request.images, request.image)
   const coverImage = listingCoverImage(listingImages, request.image)
-  const isOpenBudget = request.budgetType === 'open' || request.budget === 0
   const pendingAcceptOffer = confirmAcceptOfferId
     ? offers.find((o) => o.id === confirmAcceptOfferId)
     : undefined
@@ -234,9 +240,13 @@ export function RequestDetail() {
 
   async function submitOffer(e: FormEvent) {
     e.preventDefault()
-    const priceNum = Number(offerPrice)
+    const priceNum = firmPrice ? firmPriceAmount : Number(offerPrice)
     if (!Number.isFinite(priceNum) || priceNum < 5) {
       setOfferError('Name a real price before you show up.')
+      return
+    }
+    if (firmPrice && Math.round(priceNum) !== firmPriceAmount) {
+      setOfferError(`This job has a firm price of $${firmPriceAmount}.`)
       return
     }
     setOfferPending(true)
@@ -570,18 +580,21 @@ export function RequestDetail() {
           className="mt-5 space-y-4 lg:sticky lg:top-24 lg:mt-0"
           data-testid="request-detail-right"
         >
-          {/* Budget: plain typography (no box) */}
+          {/* Price: plain typography (no box) */}
           <div className="px-0 pb-2" data-testid="request-budget-card">
             <p className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[#4A5568]">
-              Budget
+              Price
             </p>
             <p
               className={`mt-1 font-display font-bold leading-none text-[#071330] ${
-                isOpenBudget ? 'text-[20px]' : 'text-[28px] tabular-nums'
+                listedPrice ? 'text-[28px] tabular-nums' : 'text-[20px]'
               }`}
             >
               {budgetLabel}
             </p>
+            {priceCaption ? (
+              <p className="mt-1.5 text-[13px] font-semibold text-[#4A5568]">{priceCaption}</p>
+            ) : null}
             <p className="mt-2 text-[13px] leading-[1.45] text-[#4A5568]">
               No lead fees · Agree in chat
             </p>
@@ -731,36 +744,60 @@ export function RequestDetail() {
                       {myOffer ? 'Update your offer' : 'Send an offer'}
                     </h2>
                     <p className="mt-1 text-[14px] text-[#4A5568]">
-                      Name a price and ETA before you show up.
+                      {firmPrice
+                        ? 'Confirm the firm price and ETA before you show up.'
+                        : 'Name a price and ETA before you show up.'}
                     </p>
 
                     <form className="mt-5 space-y-4" onSubmit={(e) => void submitOffer(e)}>
                       <div>
-                        <label
-                          htmlFor="offer-price"
-                          className="mb-2 block text-[13.5px] font-semibold text-[#071330]"
-                        >
-                          Your offer
-                        </label>
-                        <div className="relative flex h-12 items-center rounded-lg border border-[#E3E8EF] bg-white focus-within:border-[#1D5CE5] focus-within:ring-4 focus-within:ring-[#1D5CE5]/15">
-                          <span className="pl-3.5 text-[15px] font-semibold text-[#4A5568]" aria-hidden>
-                            $
-                          </span>
-                          <input
-                            id="offer-price"
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            value={offerPrice}
-                            onChange={(e) =>
-                              setOfferPrice(e.target.value.replace(/[^\d]/g, '').slice(0, 5))
-                            }
-                            placeholder="60"
-                            required
-                            data-testid="offer-price-input"
-                            className="h-full w-full min-w-0 bg-transparent px-2 pr-3.5 text-[15px] font-semibold tabular-nums text-[#071330] outline-none placeholder:font-normal placeholder:text-[#5B6576]"
-                          />
-                        </div>
+                        {firmPrice ? (
+                          <>
+                            <p className="mb-2 text-[13.5px] font-semibold text-[#071330]">
+                              Your offer
+                            </p>
+                            <div
+                              className="flex h-12 items-center rounded-lg border border-[#E3E8EF] bg-[#F7F9FC] px-3.5 text-[15px] font-semibold tabular-nums text-[#071330]"
+                              data-testid="offer-firm-price"
+                            >
+                              Firm price ${firmPriceAmount}
+                            </div>
+                            <input
+                              type="hidden"
+                              value={firmPriceAmount}
+                              data-testid="offer-price-input"
+                              readOnly
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <label
+                              htmlFor="offer-price"
+                              className="mb-2 block text-[13.5px] font-semibold text-[#071330]"
+                            >
+                              Your offer
+                            </label>
+                            <div className="relative flex h-12 items-center rounded-lg border border-[#E3E8EF] bg-white focus-within:border-[#1D5CE5] focus-within:ring-4 focus-within:ring-[#1D5CE5]/15">
+                              <span className="pl-3.5 text-[15px] font-semibold text-[#4A5568]" aria-hidden>
+                                $
+                              </span>
+                              <input
+                                id="offer-price"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                value={offerPrice}
+                                onChange={(e) =>
+                                  setOfferPrice(e.target.value.replace(/[^\d]/g, '').slice(0, 5))
+                                }
+                                placeholder="60"
+                                required
+                                data-testid="offer-price-input"
+                                className="h-full w-full min-w-0 bg-transparent px-2 pr-3.5 text-[15px] font-semibold tabular-nums text-[#071330] outline-none placeholder:font-normal placeholder:text-[#5B6576]"
+                              />
+                            </div>
+                          </>
+                        )}
                       </div>
 
                       <div>

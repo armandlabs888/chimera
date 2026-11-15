@@ -10,7 +10,7 @@ async function main() {
   const browser = await chromium.launch({ headless: true })
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
 
-  await page.goto(`${BASE}/post?demo=1`, { waitUntil: 'networkidle' })
+  await page.goto(`${BASE}/post?demo=1`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('[data-testid="post-photos-section"], form', { timeout: 15000 })
 
   const post = await page.evaluate(() => {
@@ -54,10 +54,30 @@ async function main() {
   assert.match(post.urgentLabel, /Text nearby helpers/)
   assert.equal(post.timeHidden, true)
 
+  const price = await page.evaluate(() => {
+    const section = document.querySelector('[data-testid="post-price-section"]')
+    const text = section?.textContent || ''
+    return {
+      section: !!section,
+      heading: /(?:^|\n)\s*Price\s*(?:\n|$)/.test(text) || text.includes('Your price (USD)'),
+      label: /Your price \(USD\)/.test(text),
+      chips: !!document.querySelector('[data-testid="post-price-chips"]'),
+      checkbox: !!document.querySelector('[data-testid="post-accepts-offers-checkbox"]'),
+      checked: document.querySelector('[data-testid="post-accepts-offers-checkbox"]')?.checked === true,
+      noSetBudget: !/Set a budget/i.test(document.body.innerText || ''),
+    }
+  })
+  assert.equal(price.section, true)
+  assert.equal(price.label, true)
+  assert.equal(price.chips, true)
+  assert.equal(price.checkbox, true)
+  assert.equal(price.checked, false, 'Open to offers unchecked by default')
+  assert.equal(price.noSetBudget, true)
+
   await page.locator('[data-testid="post-when-scheduled"]').click()
   assert.equal(await page.locator('[data-testid="post-start-time"]').count(), 1)
 
-  await page.goto(`${BASE}/browse?demo=1`, { waitUntil: 'networkidle' })
+  await page.goto(`${BASE}/browse?demo=1`, { waitUntil: 'domcontentloaded' })
   assert.equal(await page.locator('[data-testid="notifications-bell"]').count(), 0)
   assert.ok(
     await page.evaluate(() =>

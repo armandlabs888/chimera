@@ -50,7 +50,6 @@ import {
   type ZipPlace,
 } from '@/lib/zip/format'
 import type {
-  BudgetType,
   CategoryId,
   HelpRequest,
   WhenOption,
@@ -61,7 +60,7 @@ const INK = '#071330'
 const MUTED = '#4A5568'
 const NOTICE_BG = '#EEF2F7'
 
-const BUDGET_PRESETS = [40, 60, 80, 100, 120] as const
+const PRICE_PRESETS = [40, 60, 80, 100, 120] as const
 const TITLE_MAX = 70
 const DETAILS_MAX = 1200
 const DEFAULT_START: ClockTime = { hours: 14, minutes: 0 }
@@ -169,15 +168,15 @@ export function PostRequest() {
   })
   const [endTime, setEndTime] = useState('')
 
-  const [budgetType, setBudgetType] = useState<BudgetType>(() => {
-    if (budgetTypeParam === 'open') return 'open'
-    if (budgetTypeParam === 'fixed') return 'fixed'
-    if (Number.isFinite(budgetParam) && budgetParam > 0) return 'fixed'
-    return 'fixed'
-  })
   const [budget, setBudget] = useState(() => {
     if (Number.isFinite(budgetParam) && budgetParam >= 10) return Math.round(budgetParam)
     return 60
+  })
+  /** Unchecked = firm price; checked = helpers may propose a different amount. */
+  const [acceptsOffers, setAcceptsOffers] = useState(() => {
+    if (budgetTypeParam === 'open') return true
+    if (budgetTypeParam === 'fixed') return false
+    return false
   })
   /** Optional SMS urgency flag; regular ASAP/scheduled posts stay unchanged when false. */
   const [needsHelpNow, setNeedsHelpNow] = useState(false)
@@ -242,8 +241,9 @@ export function PostRequest() {
       neighborhood: '',
       when,
       whenLabel: computedWhenLabel,
-      budget: budgetType === 'open' ? 0 : budget || 0,
-      budgetType,
+      budget: budget || 0,
+      budgetType: acceptsOffers ? 'open' : 'fixed',
+      acceptsOffers,
       status: 'open',
       requesterId: currentUser.id,
       image: coverImage,
@@ -270,7 +270,7 @@ export function PostRequest() {
       category,
       when,
       computedWhenLabel,
-      budgetType,
+      acceptsOffers,
       budget,
       currentUser.id,
       coverImage,
@@ -497,7 +497,6 @@ export function PostRequest() {
       }
       if (typeof data.suggestedBudget === 'number' && data.suggestedBudget >= 10) {
         setBudget(data.suggestedBudget)
-        setBudgetType('fixed')
       }
     } catch {
       setAiBlocked('Could not reach the drafting service. Try again.')
@@ -545,8 +544,8 @@ export function PostRequest() {
       }
       customValue = normalized.value
     }
-    if (budgetType === 'fixed' && budget < 10) {
-      setError('Budget should be at least $10.')
+    if (budget < 10) {
+      setError('Price should be at least $10.')
       return
     }
     if (isScheduledMode(when)) {
@@ -595,8 +594,9 @@ export function PostRequest() {
         neighborhood: '',
         when,
         whenLabel: computedWhenLabel,
-        budget: budgetType === 'open' ? 0 : budget,
-        budgetType,
+        budget,
+        budgetType: acceptsOffers ? 'open' : 'fixed',
+        acceptsOffers,
         locationLabel: formatZipLocationLabel(resolvedZipPlace),
         city: resolvedZipPlace.city,
         stateCode: resolvedZipPlace.stateCode,
@@ -660,7 +660,7 @@ export function PostRequest() {
                 Describe it in one sentence
               </h2>
               <p className="mb-3 text-[13px]" style={{ color: MUTED }}>
-                Describe the job in a sentence. We’ll draft title, details, and a budget hint.
+                Describe the job in a sentence. We’ll draft title, details, and a price hint.
               </p>
               <label htmlFor="post-draft-prompt" className="sr-only">
                 Describe the job in one sentence
@@ -1055,85 +1055,70 @@ export function PostRequest() {
               </label>
             </section>
 
-            {/* Budget */}
-            <section className={cardClass()}>
+            {/* Price */}
+            <section className={cardClass()} data-testid="post-price-section">
               <h2 className="mb-4 text-[16px] font-semibold" style={{ color: INK }}>
-                Budget
+                Price
               </h2>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setBudgetType('fixed')}
-                  className={`rounded-md px-3.5 py-2 text-[13px] font-semibold transition ${
-                    budgetType === 'fixed'
-                      ? 'bg-[#1D5CE5] text-white'
-                      : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330] hover:bg-white'
-                  }`}
-                >
-                  Set a budget
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBudgetType('open')
-                    setBudget(0)
-                  }}
-                  className={`rounded-md px-3.5 py-2 text-[13px] font-semibold transition ${
-                    budgetType === 'open'
-                      ? 'bg-[#1D5CE5] text-white'
-                      : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330] hover:bg-white'
-                  }`}
-                >
-                  Open to offers
-                </button>
+              <div className="space-y-3">
+                <Field label="Your price (USD)">
+                  <div className="relative">
+                    <span
+                      className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] font-semibold"
+                      style={{ color: MUTED }}
+                    >
+                      $
+                    </span>
+                    <TextInput
+                      type="number"
+                      min={10}
+                      step={5}
+                      value={budget || ''}
+                      onChange={(e) => setBudget(Number(e.target.value) || 0)}
+                      className="pl-8 tabular-nums"
+                      required
+                      data-testid="post-price-input"
+                    />
+                  </div>
+                </Field>
+                <div className="flex flex-wrap gap-2" data-testid="post-price-chips">
+                  {PRICE_PRESETS.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setBudget(p)}
+                      className={`rounded-md px-3 py-1.5 text-[13px] font-semibold transition ${
+                        budget === p
+                          ? 'bg-[#EEF4FF] text-[#1D5CE5] ring-1 ring-[#1D5CE5]/40'
+                          : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330]'
+                      }`}
+                    >
+                      ${p}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {budgetType === 'fixed' ? (
-                <div className="mt-4 space-y-3">
-                  <Field
-                    label="Budget (USD)"
-                    hint="Helpers still name their price. This sets expectations."
-                  >
-                    <div className="relative">
-                      <span
-                        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] font-semibold"
-                        style={{ color: MUTED }}
-                      >
-                        $
-                      </span>
-                      <TextInput
-                        type="number"
-                        min={10}
-                        step={5}
-                        value={budget || ''}
-                        onChange={(e) => setBudget(Number(e.target.value) || 0)}
-                        className="pl-8 tabular-nums"
-                        required
-                      />
-                    </div>
-                  </Field>
-                  <div className="flex flex-wrap gap-2">
-                    {BUDGET_PRESETS.map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => setBudget(p)}
-                        className={`rounded-md px-3 py-1.5 text-[13px] font-semibold transition ${
-                          budget === p
-                            ? 'bg-[#EEF4FF] text-[#1D5CE5] ring-1 ring-[#1D5CE5]/40'
-                            : 'border border-[rgba(7,19,48,0.1)] bg-white text-[#071330]'
-                        }`}
-                      >
-                        ${p}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <p className="mt-3 text-[13px]" style={{ color: MUTED }}>
-                  Helpers will propose prices. You choose the offer that fits.
-                </p>
-              )}
+              <label
+                className="mt-4 flex cursor-pointer items-start gap-3 border-t border-[#E3E8EF] pt-4"
+                data-testid="post-accepts-offers"
+              >
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 accent-[#1D5CE5]"
+                  checked={acceptsOffers}
+                  onChange={(e) => setAcceptsOffers(e.target.checked)}
+                  data-testid="post-accepts-offers-checkbox"
+                />
+                <span>
+                  <span className="block text-[15px] font-semibold text-[#071330]">
+                    Open to offers
+                  </span>
+                  <span className="mt-0.5 block text-[13px] leading-snug text-[#4A5568]">
+                    Helpers can suggest a different price. Leave unchecked if your price is firm.
+                  </span>
+                </span>
+              </label>
             </section>
 
             {error ? (

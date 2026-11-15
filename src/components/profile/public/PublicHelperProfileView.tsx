@@ -557,7 +557,7 @@ export function PublicHelperProfileView({
                       </div>
                     </div>
                     <span className="php-hint">
-                      Suggests a fixed budget of ${hourly} times these hours.
+                      Suggests a price of ${hourly} times these hours.
                     </span>
                   </div>
                 ) : null}

@@ -207,6 +207,11 @@ export interface HelpRequest {
   /** Legacy helper-match radius; not set by new listing UI. */
   radiusMiles?: number
   budgetType?: BudgetType
+  /**
+   * When false, helpers must offer exactly `budget` (firm price).
+   * When true (default / legacy), helpers may propose a different amount.
+   */
+  acceptsOffers?: boolean
   scheduledFor?: string | null
   /** Optional end of requester time window. */
   scheduledEnd?: string | null

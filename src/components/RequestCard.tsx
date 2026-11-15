@@ -6,7 +6,13 @@ import { MapPin } from 'lucide-react'
 import { useMemo } from 'react'
 import { Avatar } from './ui'
 import { useBeam } from '@/context/BeamContext'
-import { formatLocation, relativeTime } from '../lib/matching'
+import {
+  formatBudget,
+  formatPriceCaption,
+  hasListedPrice,
+  relativeTime,
+  formatLocation,
+} from '../lib/matching'
 import { formatPublicRating } from '@/lib/ratingDisplay'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
@@ -45,7 +51,9 @@ export function RequestCard({
   const timingLabel =
     request.whenLabel?.trim() ||
     (isAsap ? 'As soon as possible' : request.when)
-  const isOpenBudget = request.budgetType === 'open' || !request.budget || request.budget <= 0
+  const priceLabel = formatBudget(request)
+  const priceCaption = formatPriceCaption(request)
+  const listed = hasListedPrice(request)
   const ratingLabel = requester ? formatPublicRating(requester) : null
   const neighborhood = location.split(',')[0]?.trim() || location
 
@@ -124,14 +132,21 @@ export function RequestCard({
               </span>
             )}
           </div>
-          <div className="shrink-0">
-            {isOpenBudget ? (
+          <div className="shrink-0 text-right">
+            {listed ? (
+              <>
+                <span className="block font-display text-[16px] font-bold tabular-nums leading-none text-[#071330]">
+                  {priceLabel}
+                </span>
+                {priceCaption ? (
+                  <span className="mt-0.5 block text-[11px] font-semibold text-[#4A5568]">
+                    {priceCaption}
+                  </span>
+                ) : null}
+              </>
+            ) : (
               <span className="inline-flex rounded-md border border-[#D7E0EC] bg-white px-2 py-0.5 text-[12px] font-bold text-[#1D5CE5]">
                 Open to offers
-              </span>
-            ) : (
-              <span className="font-display text-[16px] font-bold tabular-nums text-[#071330]">
-                ${Math.round(request.budget)}
               </span>
             )}
           </div>

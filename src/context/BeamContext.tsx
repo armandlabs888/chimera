@@ -88,6 +88,8 @@ export type PostRequestInput = {
   radiusMiles?: number
   exactAddress?: string
   budgetType?: BudgetType
+  /** When false, helpers must offer exactly budget (firm price). */
+  acceptsOffers?: boolean
   scheduledFor?: string | null
   scheduledEnd?: string | null
   preferredHelperId?: string | null
@@ -606,7 +608,13 @@ export function BeamProvider({
 
   const postRequest = useCallback(
     (input: PostRequestInput) => {
-      const budgetType = input.budgetType ?? (input.budget === 0 ? 'open' : 'fixed')
+      const acceptsOffers =
+        typeof input.acceptsOffers === 'boolean'
+          ? input.acceptsOffers
+          : input.budgetType === 'open' || input.budget === 0
+      const budgetType: BudgetType =
+        input.budgetType ?? (acceptsOffers ? 'open' : 'fixed')
+      const budget = Number(input.budget) > 0 ? Number(input.budget) : 0
       const images = (input.images ?? [])
         .filter((u) => typeof u === 'string' && u.trim().length > 0)
         .slice(0, 5)
@@ -654,7 +662,7 @@ export function BeamProvider({
               neighborhood: input.neighborhood ?? '',
               when: input.when,
               whenLabel: label,
-              budget: budgetType === 'open' ? 0 : input.budget,
+              budget,
               image,
               images,
               locationLabel: input.locationLabel,
@@ -666,6 +674,7 @@ export function BeamProvider({
               radiusMiles: input.radiusMiles,
               exactAddress: input.exactAddress,
               budgetType,
+              acceptsOffers,
               scheduledFor: input.scheduledFor,
               scheduledEnd: input.scheduledEnd,
               preferredHelperId: input.preferredHelperId,
@@ -693,8 +702,9 @@ export function BeamProvider({
           neighborhood: input.neighborhood ?? '',
           when: input.when,
           whenLabel: label,
-          budget: budgetType === 'open' ? 0 : input.budget,
+          budget,
           budgetType,
+          acceptsOffers,
           status: 'open',
           requesterId: prev.currentUserId,
           image,
@@ -807,11 +817,23 @@ export function BeamProvider({
         throw err
       }
 
+      const job = stateRef.current?.requests.find((r) => r.id === input.requestId)
+      const acceptsOffers =
+        typeof job?.acceptsOffers === 'boolean' ? job.acceptsOffers : true
+      const jobBudget = Number(job?.budget ?? 0)
+      if (!acceptsOffers && jobBudget > 0 && Math.round(input.price) !== Math.round(jobBudget)) {
+        const message = `This job has a firm price of $${Math.round(jobBudget)}. Offer amount must match.`
+        setBackendError(message)
+        throw new Error(message)
+      }
+      const lockedPrice =
+        !acceptsOffers && jobBudget > 0 ? Math.round(jobBudget) : input.price
+
       const offer: Offer = {
         id: uid('off'),
         requestId: input.requestId,
         helperId: '',
-        price: input.price,
+        price: lockedPrice,
         note: input.note.trim(),
         eta: input.eta.trim() || 'Flexible',
         status: 'pending',
