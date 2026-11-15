@@ -1206,7 +1206,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 16px;
-  align-items: start;
+  align-items: center;
   min-width: 0;
 }
 
@@ -1291,10 +1291,10 @@
 .browse-hc-helper-side {
   text-align: right;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
-  padding-top: 2px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
 }
 
 .browse-hc-helper-rate {
