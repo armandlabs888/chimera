@@ -23,15 +23,15 @@ export function OfferGateNotice({
 
   return (
     <div
-      className={`flex items-start gap-2.5 rounded-[10px] border border-[#E3E8EF] bg-white ${
-        narrow ? 'px-3.5 py-3' : 'px-4 py-3'
+      className={`flex items-start gap-2.5 bg-transparent ${
+        narrow ? 'px-0 py-2' : 'px-0 py-2.5'
       }`}
       data-testid="offer-gate-notice"
       data-gate={kind === 'pending' ? 'unverified' : kind}
       role="status"
     >
       <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#1D5CE5]" strokeWidth={2.25} aria-hidden />
-      <p className="text-[13.5px] leading-[1.45] text-[#273449]">{reason}</p>
+      <p className="text-[13.5px] leading-[1.45] text-[#4A5568]">{reason}</p>
     </div>
   )
 }

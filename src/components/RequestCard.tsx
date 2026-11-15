@@ -52,7 +52,7 @@ export function RequestCard({
   return (
     <Link
       href={`/requests/${request.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-[#E3E8EF] bg-white transition-[border-color] duration-150 hover:border-[#D7E0EC] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1D5CE5]"
+      className="group flex flex-col overflow-hidden border-0 border-b border-[#E3E8EF] bg-transparent pb-4 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1D5CE5]"
     >
       <div className="relative aspect-[16/9] max-h-[140px] w-full overflow-hidden bg-[#E3E8EF]">
         {cover ? (

@@ -4,8 +4,7 @@ import Link from 'next/link'
 import { Bell, MapPinned, UserRound } from 'lucide-react'
 import type { HelperProfileProgress } from '@/lib/helperProfileProgress'
 
-const cardClass =
-  'rounded-lg border border-[#E3E8EF] bg-white p-4 shadow-none'
+const cardClass = 'border-0 border-t border-[#E3E8EF] bg-transparent p-4 pt-5 shadow-none first:border-t-0 first:pt-4 md:border-t-0 md:border-l md:pt-4 md:first:border-l-0 md:pl-4 md:first:pl-0'
 
 export function WhileYouWait({
   alertsEnabled,

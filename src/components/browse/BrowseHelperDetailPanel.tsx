@@ -1,5 +1,6 @@
 'use client'
 
+import { MapPin, MapPinned } from 'lucide-react'
 import Link from 'next/link'
 import { useId, useMemo } from 'react'
 import { useBeam } from '@/context/BeamContext'
@@ -80,13 +81,23 @@ export function BrowseHelperDetailPanel({
         </div>
 
         <div className="browse-hc-helper-info-card">
-          <div>
-            <div className="browse-hc-info-k">Distance</div>
-            <div className="browse-hc-info-v">{milesLabel ?? 'Nearby'}</div>
+          <div className="browse-hc-info-item">
+            <span className="browse-hc-info-icon">
+              <MapPin className="h-4 w-4" strokeWidth={2} aria-hidden />
+            </span>
+            <div>
+              <div className="browse-hc-info-k">Distance</div>
+              <div className="browse-hc-info-v">{milesLabel ?? 'Nearby'}</div>
+            </div>
           </div>
-          <div>
-            <div className="browse-hc-info-k">Serves</div>
-            <div className="browse-hc-info-v">{serves}</div>
+          <div className="browse-hc-info-item">
+            <span className="browse-hc-info-icon">
+              <MapPinned className="h-4 w-4" strokeWidth={2} aria-hidden />
+            </span>
+            <div>
+              <div className="browse-hc-info-k">Serves</div>
+              <div className="browse-hc-info-v">{serves}</div>
+            </div>
           </div>
         </div>
 

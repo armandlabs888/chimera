@@ -393,9 +393,16 @@
 }
 
 .account-hc-card {
-  background: var(--hc-white);
-  border: 1px solid var(--hc-line);
-  border-radius: 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.account-hc-card + .account-hc-card {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--hc-line);
 }
 
 .account-hc-identity {
@@ -490,6 +497,8 @@
 .account-hc-empty {
   padding: 48px 24px;
   text-align: center;
+  border: 0;
+  background: transparent;
 }
 
 .account-hc-empty h3 {
@@ -1696,10 +1705,11 @@
 
 .account-hc-verify-box {
   margin-top: 22px;
-  padding: 18px;
-  border-radius: 8px;
-  border: 1px solid var(--hc-line-2);
-  background: #fff;
+  padding: 18px 0;
+  border-radius: 0;
+  border: 0;
+  border-top: 1px solid var(--hc-line);
+  background: transparent;
 }
 
 .account-hc-verify-box h3 {
@@ -1746,10 +1756,11 @@
 
 .account-hc-rules-callout {
   margin-top: 24px;
-  padding: 20px;
-  border-radius: 8px;
-  background: var(--hc-tint-2);
-  border: 1px solid var(--hc-line);
+  padding: 20px 0 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--hc-line);
 }
 
 .account-hc-rules-callout .t {

@@ -32,7 +32,7 @@ export function EmptyState({
   titleAs?: 'h1' | 'h2' | 'h3'
 }) {
   return (
-    <div className="rounded-[10px] border border-[#E3E8EF] bg-white px-6 py-12 text-center">
+    <div className="bg-transparent px-6 py-12 text-center">
       <TitleTag className="type-h3 text-[#071330]">{title}</TitleTag>
       <p className="mx-auto mt-2 max-w-sm type-sec text-beam-muted">{body}</p>
       {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
@@ -101,7 +101,7 @@ export function Card({
 }) {
   return (
     <Tag
-      className={`rounded-lg border border-[#E3E8EF] bg-white p-5 ${hover ? 'elevated-hover' : ''} ${className}`}
+      className={`border-0 bg-transparent p-5 ${hover ? '' : ''} ${className}`}
     >
       {children}
     </Tag>

@@ -334,7 +334,7 @@ export function BrowseJobDetailPanel({
           {offerOpen && showHelperOfferChrome && verified ? (
             <form
               ref={offerFormRef}
-              className="space-y-3 rounded-[12px] border border-[#E3E8EF] p-4"
+              className="space-y-3 border-0 border-t border-[#E3E8EF] p-0 pt-4"
               data-testid="browse-drawer-offer"
               onSubmit={(e) => {
                 e.preventDefault()

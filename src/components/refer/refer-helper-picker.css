@@ -441,14 +441,20 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 14px;
-  border: 1px solid #e3e8ef;
-  border-radius: 12px;
-  background: #ffffff;
+  padding: 14px 0;
+  border: 0;
+  border-top: 1px solid #e3e8ef;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rh-suggested-card:first-child {
+  border-top: 0;
+  padding-top: 0;
 }
 
 .rh-suggested-card + .rh-suggested-card {
-  margin-top: 10px;
+  margin-top: 0;
 }
 
 .rh-suggested-top {
@@ -491,10 +497,10 @@
 
 .rh-suggested-by {
   margin: 0;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: #ffffff;
-  border: 1px solid #e3e8ef;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
   font-size: 13px;
   line-height: 1.45;
   color: #071330;
@@ -566,9 +572,10 @@
 }
 
 .rh-inbox-card {
-  border: 1px solid #e3e8ef;
-  border-radius: 14px;
-  background: #ffffff;
+  border: 0;
+  border-bottom: 1px solid #e3e8ef;
+  border-radius: 0;
+  background: transparent;
   overflow: hidden;
 }
 

@@ -1063,8 +1063,8 @@ async function checkLandingBrowser() {
           `browse column width (got ${col.columnWidth})`,
         )
         assert.ok(
-          col.rowRadius > 0 && col.rowRadius <= 12,
-          `job row radius <= 12px (got ${col.rowRadius})`,
+          col.rowRadius === 0,
+          `job row is flat (radius 0), got ${col.rowRadius}`,
         )
         assert.notEqual(col.mainOverflow, 'hidden', 'browse main is not overflow-locked')
         assert.match(col.whenText, /Any timing/i, 'when control defaults to Any timing')
@@ -1870,19 +1870,32 @@ async function checkMarketplaceFlows() {
     assert.equal(twoCol.bothVisible, true, 'both columns visible above the fold')
 
     const cardRadii = await page.evaluate(() => {
-      const cards = [
+      const flat = [
         ...document.querySelectorAll(
-          '[data-testid="request-budget-card"], [data-testid="request-detail-left"] article, [data-testid="request-offer-panel"] > div, [data-testid="request-incoming-offers"]',
+          '[data-testid="request-budget-card"], [data-testid="request-detail-left"] article',
         ),
       ]
-      return cards.map((el) => {
-        const r = getComputedStyle(el).borderTopLeftRadius
-        const n = parseFloat(r)
-        return { tag: el.getAttribute('data-testid') || el.tagName, px: n, raw: r }
-      })
+      const boxed = [
+        ...document.querySelectorAll(
+          '[data-testid="request-offer-panel"] .hc-rail-card, [data-testid="request-owner-controls"].hc-rail-card, [data-testid="request-booked-panel"], [data-testid="request-cancelled-panel"], [data-testid="request-review-panel"]',
+        ),
+      ]
+      return {
+        flat: flat.map((el) => {
+          const r = getComputedStyle(el).borderTopLeftRadius
+          return { tag: el.getAttribute('data-testid') || el.tagName, px: parseFloat(r) || 0, raw: r }
+        }),
+        boxed: boxed.map((el) => {
+          const r = getComputedStyle(el).borderTopLeftRadius
+          return { tag: el.getAttribute('data-testid') || el.tagName, px: parseFloat(r) || 0, raw: r }
+        }),
+      }
     })
-    for (const c of cardRadii) {
-      assert.ok(c.px > 0 && c.px <= 10, `request card radius subtle (<=10px), got ${c.raw} on ${c.tag}`)
+    for (const c of cardRadii.flat) {
+      assert.equal(c.px, 0, `request flat section radius 0, got ${c.raw} on ${c.tag}`)
+    }
+    for (const c of cardRadii.boxed) {
+      assert.ok(c.px > 0 && c.px <= 10, `request action panel radius subtle (<=10px), got ${c.raw} on ${c.tag}`)
     }
 
     // Open-budget request must not prefill literal "0" in offer price.
@@ -1901,9 +1914,9 @@ async function checkMarketplaceFlows() {
       const cards = [...document.querySelectorAll('[data-testid="browse-job-row"]')].slice(0, 4)
       return cards.map((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius))
     })
-    assert.ok(browseRadii.length > 0, 'browse request cards present')
+    assert.ok(browseRadii.length > 0, 'browse job rows present')
     for (const px of browseRadii) {
-      assert.ok(px > 0 && px <= 12, `browse card radius subtle (<=12px Paper), got ${px}`)
+      assert.equal(px, 0, `browse job row is flat (radius 0), got ${px}`)
     }
 
     // Messages drawer — list over the current page, thread is a connected left pane.
@@ -2248,9 +2261,10 @@ async function checkSubtleRadii() {
       )
       if (pathName === '/browse?tab=people') {
         assert.ok(probe.peopleEmpty, 'people tab EmptyState found')
-        assert.ok(
-          probe.peopleEmpty.px > 0 && probe.peopleEmpty.px <= 12,
-          `EmptyState radius <=12 (got ${probe.peopleEmpty.px})`,
+        assert.equal(
+          probe.peopleEmpty.px,
+          0,
+          `EmptyState is flat (radius 0), got ${probe.peopleEmpty.px}`,
         )
         assert.ok(probe.becomeHelper, 'helper setup CTA found')
         assert.match(

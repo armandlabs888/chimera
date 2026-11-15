@@ -109,7 +109,7 @@ async function main() {
         m.barWidth && m.listWidth && Math.abs(m.barWidth - m.listWidth) <= 48,
         `bar/list widths ${m.barWidth}/${m.listWidth}`,
       )
-      assert.ok(m.rowRadius > 0 && m.rowRadius <= 12, `radius ${m.rowRadius}`)
+      assert.equal(m.rowRadius, 0, `flat row radius ${m.rowRadius}`)
       await shot(page, 'browse-v3-requests-1440x900.png')
       summary.checks.push({ name: 'requests-1440', ok: true, metrics: m })
 
