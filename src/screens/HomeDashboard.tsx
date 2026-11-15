@@ -9,6 +9,7 @@ import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
 import { Avatar, Button } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { formatBudget, formatPriceCaption, hasListedPrice } from '@/lib/matching'
+import { filterMyOffers } from '@/lib/myOffers'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import type { HelpRequest, Offer, Person, RequestStatus } from '@/types'
 import './my-activity.css'
@@ -33,7 +34,6 @@ function statusPillLabel(status: RequestStatus | Offer['status']): string {
   if (status === 'open') return 'Open'
   if (status === 'pending') return 'Pending'
   if (status === 'declined') return 'Declined'
-  if (status === 'withdrawn') return 'Withdrawn'
   return status
 }
 
@@ -86,8 +86,8 @@ export function HomeDashboard() {
   }, [myRequests, statusFilter])
 
   const myOffers = useMemo(
-    () => state.offers.filter((o) => o.helperId === currentUser.id),
-    [state.offers, currentUser.id],
+    () => filterMyOffers(state.offers, currentUser.id, state.requests),
+    [state.offers, state.requests, currentUser.id],
   )
 
   const savedHelpers = useMemo(
@@ -209,9 +209,9 @@ export function HomeDashboard() {
         ) : (
           <div className="ma-empty" data-testid="activity-offers-empty">
             <h3>No offers yet</h3>
-            <p>Browse open requests and name a price when you can help.</p>
+            <p>Browse open jobs and name a price when you can help.</p>
             <Link href="/browse" className="ma-link">
-              Browse requests
+              Browse jobs
             </Link>
           </div>
         )
