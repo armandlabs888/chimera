@@ -352,6 +352,7 @@ export function Match() {
   )
 
   const top3 = rankedHelpers.slice(0, 3)
+  const topCount = Math.min(3, top3.length)
   const more = rankedHelpers.slice(3)
   const postHref = postJobHref(qForHeading || qParam, categoryId, zipParam)
   const postAuthHref = isLiveGuest ? `/auth?next=${encodeURIComponent(postHref)}` : postHref
@@ -403,22 +404,30 @@ export function Match() {
 
         {intent === 'helpers' ? (
           <>
-            <h1 className="match-title">{formatHelpersHeading(categoryLabel)}</h1>
-            <Link
-              href={intentSwitchHref}
-              className="match-intent-switch"
-              data-testid="match-intent-switch"
-            >
-              {intentSwitch.toggleLabel}
-            </Link>
-
             {!ready ? (
-              <p className="match-note">Loading helpers…</p>
+              <>
+                <h1 className="match-title">{formatHelpersHeading(categoryLabel)}</h1>
+                <Link
+                  href={intentSwitchHref}
+                  className="match-intent-switch"
+                  data-testid="match-intent-switch"
+                >
+                  {intentSwitch.toggleLabel}
+                </Link>
+                <p className="match-note">Loading helpers…</p>
+              </>
             ) : rankedHelpers.length === 0 ? (
               <div className="match-empty" data-testid="match-helpers-empty">
-                <h2>
+                <h1 className="match-title">
                   No {helpersEmptyNoun} near {nearLabel} yet
-                </h2>
+                </h1>
+                <Link
+                  href={intentSwitchHref}
+                  className="match-intent-switch"
+                  data-testid="match-intent-switch"
+                >
+                  {intentSwitch.toggleLabel}
+                </Link>
                 <p>Post it as a job and helpers nearby can send you offers.</p>
                 <div className="match-empty-actions">
                   <Link href={postAuthHref} className="match-empty-primary">
@@ -431,6 +440,14 @@ export function Match() {
               </div>
             ) : (
               <>
+                <h1 className="match-title">{formatHelpersHeading(categoryLabel)}</h1>
+                <Link
+                  href={intentSwitchHref}
+                  className="match-intent-switch"
+                  data-testid="match-intent-switch"
+                >
+                  {intentSwitch.toggleLabel}
+                </Link>
                 <p className="match-sub">
                   <MapPin width={18} height={18} strokeWidth={2.2} aria-hidden />
                   {cityName ? `Helpers serving ${cityName}` : 'Helpers near you'}
@@ -453,7 +470,9 @@ export function Match() {
                 </aside>
 
                 <section className="match-top" aria-label="Top matches">
-                  <p className="match-top-label">Top {Math.min(3, top3.length)} matches</p>
+                  <p className="match-top-label">
+                    {topCount === 1 ? 'Top match' : `Top ${topCount} matches`}
+                  </p>
                   <div className="match-top-grid">
                     {top3.map(({ person, miles }) => {
                       const rating = formatPublicRating(person)
@@ -646,26 +665,34 @@ export function Match() {
           </>
         ) : (
           <>
-            <h1 className="match-title">
-              New jobs near {zipParam || 'you'}
-            </h1>
-            <Link
-              href={intentSwitchHref}
-              className="match-intent-switch"
-              data-testid="match-intent-switch"
-            >
-              {intentSwitch.toggleLabel}
-            </Link>
-
             {!ready ? (
-              <p className="match-note">Loading jobs…</p>
+              <>
+                <h1 className="match-title">
+                  New jobs near {zipParam || 'you'}
+                </h1>
+                <Link
+                  href={intentSwitchHref}
+                  className="match-intent-switch"
+                  data-testid="match-intent-switch"
+                >
+                  {intentSwitch.toggleLabel}
+                </Link>
+                <p className="match-note">Loading jobs…</p>
+              </>
             ) : openJobs.length === 0 ? (
               <div className="match-empty" data-testid="match-jobs-empty">
-                <h2>
+                <h1 className="match-title">
                   {jobsEmptyCategory
                     ? `No ${jobsEmptyCategory} jobs near ${nearLabel} yet`
                     : `No jobs near ${nearLabel} yet`}
-                </h2>
+                </h1>
+                <Link
+                  href={intentSwitchHref}
+                  className="match-intent-switch"
+                  data-testid="match-intent-switch"
+                >
+                  {intentSwitch.toggleLabel}
+                </Link>
                 <p>Try another request, or browse open jobs nearby.</p>
                 <div className="match-empty-actions">
                   <Link href={browseJobsHref} className="match-empty-secondary">
@@ -675,6 +702,16 @@ export function Match() {
               </div>
             ) : (
               <>
+                <h1 className="match-title">
+                  New jobs near {zipParam || 'you'}
+                </h1>
+                <Link
+                  href={intentSwitchHref}
+                  className="match-intent-switch"
+                  data-testid="match-intent-switch"
+                >
+                  {intentSwitch.toggleLabel}
+                </Link>
                 <p className="match-sub">
                   <MapPin width={18} height={18} strokeWidth={2.2} aria-hidden />
                   {cityName

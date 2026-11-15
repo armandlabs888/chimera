@@ -411,20 +411,16 @@
 }
 
 .match-empty {
-  margin-top: 28px;
-  padding: 28px 0;
-  border-top: 1px solid #e3e8ef;
+  margin-top: 0;
+  padding: 0;
 }
 
-.match-empty h2 {
-  font-size: 22px;
-  font-weight: 700;
-  color: #071330;
-  letter-spacing: -0.03em;
+.match-empty .match-title {
+  margin-top: 0;
 }
 
 .match-empty p {
-  margin-top: 8px;
+  margin-top: 12px;
   font-size: 15px;
   line-height: 1.5;
   color: #4a5568;
