@@ -295,6 +295,9 @@ export type CreateRequestInput = {
   image: string
   images?: string[]
   locationLabel?: string
+  city?: string | null
+  stateCode?: string | null
+  zip?: string | null
   lat?: number | null
   lng?: number | null
   radiusMiles?: number
@@ -342,6 +345,9 @@ export async function createLiveRequest(
       image: cover,
       images,
       location_label: input.locationLabel?.trim() || '',
+      city: input.city?.trim() || null,
+      state_code: input.stateCode?.trim()?.toUpperCase() || null,
+      zip: input.zip?.trim() || null,
       lat: input.lat ?? null,
       lng: input.lng ?? null,
       // Legacy column kept for schema compatibility. Matching uses helper travel

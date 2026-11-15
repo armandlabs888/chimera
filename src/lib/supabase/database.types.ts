@@ -31,6 +31,9 @@ export type Database = {
           lat: number | null
           lng: number | null
           location_label: string
+          city: string | null
+          state_code: string | null
+          zip: string | null
           neighborhood: string
           preferred_helper_id: string | null
           radius_miles: number
@@ -61,6 +64,9 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           location_label?: string
+          city?: string | null
+          state_code?: string | null
+          zip?: string | null
           neighborhood?: string
           preferred_helper_id?: string | null
           radius_miles?: number
@@ -91,6 +97,9 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           location_label?: string
+          city?: string | null
+          state_code?: string | null
+          zip?: string | null
           neighborhood?: string
           preferred_helper_id?: string | null
           radius_miles?: number

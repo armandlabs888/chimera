@@ -3,8 +3,6 @@
 import {
   AlertCircle,
   Camera,
-  ChevronDown,
-  Lock,
   MapPin,
   X,
 } from 'lucide-react'
@@ -47,6 +45,12 @@ import {
   normalizeOtherCustom,
   type ServiceCategoryId,
 } from '@/lib/taxonomy'
+import {
+  formatZipLocationLabel,
+  formatZipPlaceLabel,
+  lookupZip,
+  type ZipPlace,
+} from '@/lib/zip/lookup'
 import type {
   BudgetType,
   CategoryId,
@@ -63,12 +67,6 @@ const BUDGET_PRESETS = [40, 60, 80, 100, 120] as const
 const TITLE_MAX = 70
 const DETAILS_MAX = 1200
 const DEFAULT_START: ClockTime = { hours: 14, minutes: 0 }
-
-type GeocodeSuggestion = {
-  label: string
-  lat: number | null
-  lng: number | null
-}
 
 type DraftAiResponse = {
   blocked?: boolean
@@ -123,7 +121,7 @@ export function PostRequest() {
       : 'house-cleaning'
   const dateParam = (params.get('date') || params.get('scheduledDate') || '').trim()
   const timeParam = (params.get('time') || params.get('start') || '').trim()
-  const locationParam = (params.get('location') || params.get('city') || '').trim()
+  const zipParam = (params.get('zip') || '').trim()
   const detailsParam = (params.get('details') || '').trim()
   const budgetParamRaw = (params.get('budget') || '').trim()
   const budgetParam = Number(budgetParamRaw)
@@ -133,7 +131,7 @@ export function PostRequest() {
     Boolean(helperId) &&
     (Boolean(dateParam) ||
       Boolean(timeParam) ||
-      Boolean(locationParam) ||
+      Boolean(zipParam) ||
       Boolean(detailsParam) ||
       Number.isFinite(budgetParam))
 
@@ -149,16 +147,28 @@ export function PostRequest() {
   const [photoPending, setPhotoPending] = useState(false)
   const [photoError, setPhotoError] = useState('')
 
-  const [locationLabel, setLocationLabel] = useState(
-    () => locationParam || currentUser.locationLabel?.trim() || '',
-  )
-  const [lat, setLat] = useState<number | null>(currentUser.lat ?? null)
-  const [lng, setLng] = useState<number | null>(currentUser.lng ?? null)
-  const [exactAddress, setExactAddress] = useState('')
-  const [showExact, setShowExact] = useState(false)
+  const [zipInput, setZipInput] = useState(() => {
+    const fromParam = zipParam.match(/^\d{5}/)?.[0]
+    if (fromParam) return fromParam
+    return ''
+  })
+  /** Set when "Use my current location" resolves a ZIP that may differ from typed input. */
+  const [geoZipPlace, setGeoZipPlace] = useState<ZipPlace | null>(null)
   const [geoPending, setGeoPending] = useState(false)
-  const [suggestions, setSuggestions] = useState<GeocodeSuggestion[]>([])
-  const [showSuggestions, setShowSuggestions] = useState(false)
+
+  const [zipSubmitAttempted, setZipSubmitAttempted] = useState(false)
+  const zipDigits = zipInput.replace(/\D/g, '').slice(0, 5)
+  const zipPlace: ZipPlace | null = useMemo(() => {
+    if (geoZipPlace && geoZipPlace.zip === zipDigits) return geoZipPlace
+    if (zipDigits.length !== 5) return null
+    return lookupZip(zipDigits)
+  }, [zipDigits, geoZipPlace])
+  const zipError =
+    zipDigits.length === 5 && !zipPlace
+      ? 'We could not find that ZIP code'
+      : zipSubmitAttempted && zipDigits.length !== 5
+        ? 'Enter a 5-digit US ZIP code'
+        : ''
 
   const [nowTick, setNowTick] = useState(() => Date.now())
   // Prefill scheduled mode when request-to-book sent a date; otherwise ASAP.
@@ -193,7 +203,6 @@ export function PostRequest() {
   const [pending, setPending] = useState(false)
 
   const fileRef = useRef<HTMLInputElement>(null)
-  const locationWrapRef = useRef<HTMLDivElement>(null)
   const titleInputRef = useRef<HTMLInputElement>(null)
   const detailsInputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -246,10 +255,12 @@ export function PostRequest() {
       image: coverImage,
       images: photoUrls,
       createdAt: new Date().toISOString(),
-      locationLabel: locationLabel.trim() || undefined,
-      exactAddress: exactAddress.trim() || undefined,
-      lat,
-      lng,
+      locationLabel: zipPlace ? formatZipLocationLabel(zipPlace) : undefined,
+      city: zipPlace?.city ?? null,
+      stateCode: zipPlace?.stateCode ?? null,
+      zip: zipPlace?.zip ?? null,
+      lat: zipPlace?.lat ?? null,
+      lng: zipPlace?.lng ?? null,
       radiusMiles: 5,
       scheduledFor,
       scheduledEnd,
@@ -268,10 +279,7 @@ export function PostRequest() {
       currentUser.id,
       coverImage,
       photoUrls,
-      locationLabel,
-      exactAddress,
-      lat,
-      lng,
+      zipPlace,
       scheduledFor,
       scheduledEnd,
       preferredHelper?.id,
@@ -290,35 +298,6 @@ export function PostRequest() {
     return () => window.clearInterval(id)
   }, [])
 
-  useEffect(() => {
-    const q = locationLabel.trim()
-    if (q.length < 2) {
-      setSuggestions([])
-      return
-    }
-    const handle = window.setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`)
-        if (!res.ok) return
-        const data = (await res.json()) as GeocodeSuggestion[]
-        setSuggestions(Array.isArray(data) ? data.slice(0, 5) : [])
-      } catch {
-        /* ignore */
-      }
-    }, 280)
-    return () => window.clearTimeout(handle)
-  }, [locationLabel])
-
-  useEffect(() => {
-    function onDocClick(e: MouseEvent) {
-      if (!locationWrapRef.current?.contains(e.target as Node)) {
-        setShowSuggestions(false)
-      }
-    }
-    document.addEventListener('mousedown', onDocClick)
-    return () => document.removeEventListener('mousedown', onDocClick)
-  }, [])
-
   async function onUseMyLocation() {
     if (!navigator.geolocation) {
       setError('Geolocation is not available in this browser.')
@@ -334,29 +313,30 @@ export function PostRequest() {
         }),
       )
       const res = await fetch(
-        `/api/geocode?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`,
+        `/api/zip?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`,
       )
-      if (!res.ok) throw new Error('Could not reverse-geocode')
-      const data = (await res.json()) as GeocodeSuggestion
-      setLocationLabel(
-        data.label ||
-          `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`,
-      )
-      setLat(typeof data.lat === 'number' ? data.lat : pos.coords.latitude)
-      setLng(typeof data.lng === 'number' ? data.lng : pos.coords.longitude)
-      setShowSuggestions(false)
+      if (!res.ok) throw new Error('Could not resolve ZIP')
+      const data = (await res.json()) as {
+        zip: string
+        lat: number
+        lng: number
+        city: string
+        stateCode: string
+      }
+      const place: ZipPlace = {
+        zip: data.zip,
+        lat: data.lat,
+        lng: data.lng,
+        city: data.city,
+        stateCode: data.stateCode,
+      }
+      setGeoZipPlace(place)
+      setZipInput(data.zip)
     } catch {
-      setError('Could not detect your location. Enter a city or ZIP instead.')
+      setError('Could not detect your location. Enter a 5-digit ZIP instead.')
     } finally {
       setGeoPending(false)
     }
-  }
-
-  function pickSuggestion(s: GeocodeSuggestion) {
-    setLocationLabel(s.label)
-    setLat(s.lat)
-    setLng(s.lng)
-    setShowSuggestions(false)
   }
 
   async function onPhotosSelected(fileList: FileList | null) {
@@ -538,6 +518,15 @@ export function PostRequest() {
       setError(`You can add up to ${LISTING_PHOTO_MAX} photos.`)
       return
     }
+    setZipSubmitAttempted(true)
+    if (zipDigits.length !== 5 || !zipPlace || zipPlace.zip !== zipDigits) {
+      const message =
+        zipDigits.length === 5 && !zipPlace
+          ? 'We could not find that ZIP code'
+          : 'Enter a 5-digit US ZIP code'
+      setError(message)
+      return
+    }
     setPending(true)
     setError('')
     setTitleError('')
@@ -555,10 +544,12 @@ export function PostRequest() {
         whenLabel: computedWhenLabel,
         budget: budgetType === 'open' ? 0 : budget,
         budgetType,
-        locationLabel: locationLabel.trim() || undefined,
-        lat,
-        lng,
-        exactAddress: exactAddress.trim() || undefined,
+        locationLabel: formatZipLocationLabel(zipPlace),
+        city: zipPlace.city,
+        stateCode: zipPlace.stateCode,
+        zip: zipPlace.zip,
+        lat: zipPlace.lat,
+        lng: zipPlace.lng,
         scheduledFor,
         scheduledEnd,
         preferredHelperId: preferredHelper?.id ?? null,
@@ -809,92 +800,74 @@ export function PostRequest() {
                 Location
               </h2>
               <p className="mb-4 text-[13px]" style={{ color: MUTED }}>
-                Where will the job take place?
+                Where will the job take place? We use your ZIP center for nearby matching, not a street address.
               </p>
 
-              <div ref={locationWrapRef} className="relative">
-                <Field label="City / neighborhood / ZIP">
-                  <div className="flex gap-2">
-                    <div className="relative min-w-0 flex-1">
-                      <MapPin
-                        className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2"
-                        style={{ color: MUTED }}
-                        aria-hidden
-                      />
-                      <TextInput
-                        value={locationLabel}
-                        onChange={(e) => {
-                          setLocationLabel(e.target.value)
-                          setShowSuggestions(true)
-                          setLat(null)
-                          setLng(null)
-                        }}
-                        onFocus={() => setShowSuggestions(true)}
-                        placeholder="e.g. Seattle, WA or 98101"
-                        className="pl-10"
-                        autoComplete="off"
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => void onUseMyLocation()}
-                      loading={geoPending}
-                      className="shrink-0 whitespace-nowrap"
-                    >
-                      Use my location
-                    </Button>
-                  </div>
-                </Field>
-
-                {showSuggestions && suggestions.length > 0 ? (
-                  <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-[rgba(7,19,48,0.1)] bg-white py-1 shadow-[0_12px_28px_-10px_rgba(12,42,102,0.18)]">
-                    {suggestions.map((s) => (
-                      <li key={`${s.label}-${s.lat}-${s.lng}`}>
-                        <button
-                          type="button"
-                          className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-[14px] hover:bg-white"
-                          style={{ color: INK }}
-                          onClick={() => pickSuggestion(s)}
-                        >
-                          <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: MUTED }} aria-hidden />
-                          {s.label}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
-
-              <div className="mt-4 border-t border-[rgba(7,19,48,0.06)] pt-3">
-                <button
-                  type="button"
-                  onClick={() => setShowExact((v) => !v)}
-                  className="flex w-full items-center justify-between gap-2 text-left"
-                >
-                  <span className="text-[14px] font-semibold" style={{ color: INK }}>
-                    Exact address (optional)
-                  </span>
-                  <ChevronDown
-                    className={`h-4 w-4 transition ${showExact ? 'rotate-180' : ''}`}
-                    style={{ color: MUTED }}
-                    aria-hidden
-                  />
-                </button>
-                {showExact ? (
-                  <div className="mt-3 space-y-2">
-                    <TextInput
-                      value={exactAddress}
-                      onChange={(e) => setExactAddress(e.target.value)}
-                      placeholder="Street address, shared only after you accept an offer"
-                      autoComplete="street-address"
+              <div className="space-y-1.5">
+                <span className="type-meta text-beam-muted">ZIP code</span>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <div className="relative min-w-0 flex-1">
+                    <MapPin
+                      className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2"
+                      style={{ color: MUTED }}
+                      aria-hidden
                     />
-                    <p className="flex items-start gap-1.5 text-[12.5px]" style={{ color: MUTED }}>
-                      <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-                      Locked until you accept a helper. Never shown on the public card.
-                    </p>
+                    <TextInput
+                      value={zipInput}
+                      onChange={(e) => {
+                        const next = e.target.value.replace(/\D/g, '').slice(0, 5)
+                        setZipInput(next)
+                        setGeoZipPlace(null)
+                      }}
+                      placeholder="95124"
+                      className="pl-10"
+                      inputMode="numeric"
+                      autoComplete="postal-code"
+                      maxLength={5}
+                      aria-invalid={zipError ? true : undefined}
+                      aria-describedby={
+                        zipError
+                          ? 'post-zip-error'
+                          : zipPlace
+                            ? 'post-zip-resolved'
+                            : 'post-zip-hint'
+                      }
+                      data-testid="post-zip"
+                    />
                   </div>
-                ) : null}
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => void onUseMyLocation()}
+                    loading={geoPending}
+                    className="shrink-0 whitespace-nowrap"
+                    data-testid="post-use-location"
+                  >
+                    Use my current location
+                  </Button>
+                </div>
+                {zipError ? (
+                  <span
+                    id="post-zip-error"
+                    className="mt-1 flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 type-sec text-[#071330]"
+                    role="alert"
+                    data-testid="post-zip-error"
+                  >
+                    {zipError}
+                  </span>
+                ) : zipPlace ? (
+                  <span
+                    id="post-zip-resolved"
+                    className="block type-sec text-beam-muted"
+                    data-testid="post-zip-resolved"
+                  >
+                    {formatZipPlaceLabel(zipPlace)}
+                  </span>
+                ) : (
+                  <span id="post-zip-hint" className="block type-sec text-beam-muted">
+                    5-digit US ZIP. Helpers see the area, not your street.
+                  </span>
+                )}
               </div>
             </section>
 

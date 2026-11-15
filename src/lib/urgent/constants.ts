@@ -1,8 +1,8 @@
-/** Default match radius for urgent SMS (miles). */
-export const URGENT_MATCH_RADIUS_MILES = 3
+/** Default match radius for urgent SMS against a job ZIP center (miles). */
+export const URGENT_MATCH_RADIUS_MILES = 5
 
-/** Escalation radius after no offers (miles). */
-export const URGENT_ESCALATION_RADIUS_MILES = 5
+/** Escalation radius after no offers (miles). Wider because ZIP centers are approximate. */
+export const URGENT_ESCALATION_RADIUS_MILES = 8
 
 /** Minutes after post before escalation wave. */
 export const URGENT_ESCALATION_MINUTES = 10
