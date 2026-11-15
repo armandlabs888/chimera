@@ -528,6 +528,11 @@ export async function completeLiveRequest(client: Client, requestId: string): Pr
   throwOnError(error, 'Complete request')
 }
 
+export async function cancelLiveHelpRequest(client: Client, requestId: string): Promise<void> {
+  const { error } = await client.rpc('cancel_help_request', { p_request_id: requestId })
+  throwOnError(error, 'Cancel job')
+}
+
 export async function submitLiveReview(
   client: Client,
   input: { requestId: string; toId: string; rating: number; comment: string },

@@ -18,6 +18,7 @@ import {
   useReferHelperShare,
 } from '@/components/browse/ReferHelperActions'
 import { SuggestedHelpersSection } from '@/components/refer/SuggestedHelpersSection'
+import { CancelJobAction } from '@/components/jobs/CancelJobAction'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
@@ -593,6 +594,17 @@ export function RequestDetail() {
             </div>
           ) : null}
 
+          {/* Owner open - manage listing */}
+          {isOwner && request.status === 'open' ? (
+            <div className={`${cardClass} p-5`} data-testid="request-owner-controls">
+              <p className="text-[13.5px] font-semibold text-[#071330]">Your listing</p>
+              <p className="mt-1 text-[14px] text-[#4A5568]">
+                Cancel anytime before you hire a helper.
+              </p>
+              <CancelJobAction request={request} fullWidth className="mt-4" />
+            </div>
+          ) : null}
+
           {/* Owner open - incoming offers */}
           {isOwner && request.status === 'open' ? (
             <section className={`${cardClass} p-5`} data-testid="request-incoming-offers">
@@ -920,7 +932,29 @@ export function RequestDetail() {
                   <CheckCircle2 className="h-4 w-4" />
                   Mark job complete
                 </Button>
+                {isOwner ? <CancelJobAction request={request} fullWidth /> : null}
               </div>
+            </section>
+          ) : null}
+
+          {/* Cancelled */}
+          {request.status === 'cancelled' ? (
+            <section className={`${cardClass} p-5`} data-testid="request-cancelled-panel">
+              <p className="text-[13.5px] font-semibold text-[#071330]">This job is cancelled</p>
+              <p className="mt-1 text-[14px] text-[#4A5568]">
+                {isOwner
+                  ? 'Helpers with pending offers were told. It no longer appears in Browse.'
+                  : 'The neighbor cancelled this job. It is no longer open for offers.'}
+              </p>
+              {isOwner ? (
+                <ButtonLink href="/post" className="mt-5 w-full">
+                  Post a new job
+                </ButtonLink>
+              ) : (
+                <ButtonLink href="/browse" variant="secondary" className="mt-5 w-full">
+                  Back to Browse
+                </ButtonLink>
+              )}
             </section>
           ) : null}
 

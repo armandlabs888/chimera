@@ -25,6 +25,7 @@ import { isHelperPerson } from '@/lib/roles'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 import type { HelpRequest } from '@/types'
+import { CancelJobAction } from '@/components/jobs/CancelJobAction'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
@@ -112,6 +113,8 @@ export function BrowseJobDrawer({
       ? areaLabel
       : jobAreaCaption.split(',')[0]?.trim() || jobAreaCaption || 'Nearby'
   const canOffer = !isOwner && request.status === 'open'
+  const ownerCanCancel =
+    isOwner && (request.status === 'open' || request.status === 'accepted')
   /** Source of truth for the sent-offer footer: a pending offer from this helper on an open job. */
   const pendingOffer =
     canOffer && !isGuest && myOffer?.status === 'pending' ? myOffer : undefined
@@ -466,6 +469,17 @@ export function BrowseJobDrawer({
     </div>
   )
 
+  const ownerCancelButton = ownerCanCancel ? (
+    <CancelJobAction
+      request={request}
+      className={narrow ? 'w-full' : 'min-w-0 shrink-0'}
+      buttonClassName={`inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg border border-[#D7E0EC] bg-white px-4 text-[14px] font-semibold tracking-[-0.01em] text-[#071330] hover:bg-[#EEF2F7] disabled:opacity-60 ${
+        narrow ? 'w-full' : 'shrink-0'
+      }`}
+      onCancelled={onClose}
+    />
+  ) : null
+
   const actions = narrow ? (
     <div className="flex shrink-0 flex-col gap-2 border-t border-[#E3E8EF] bg-white px-4 pb-4 pt-2.5">
       {gateNotice}
@@ -478,6 +492,11 @@ export function BrowseJobDrawer({
       ) : showHelperOfferChrome ? (
         <div className="grid grid-cols-2 gap-2">
           {askButton}
+          {primaryButton}
+        </div>
+      ) : ownerCanCancel ? (
+        <div className="grid grid-cols-2 gap-2" data-testid="browse-owner-controls">
+          {ownerCancelButton}
           {primaryButton}
         </div>
       ) : (
@@ -494,7 +513,10 @@ export function BrowseJobDrawer({
           {referDialog}
         </div>
       ) : (
-        <div className="flex items-center gap-2.5 px-5 py-3.5 pl-6">
+        <div
+          className="flex items-center gap-2.5 px-5 py-3.5 pl-6"
+          data-testid={ownerCanCancel ? 'browse-owner-controls' : undefined}
+        >
           <div className="min-w-0 shrink leading-tight">
             <b className="block truncate text-[18px] font-bold tracking-[-0.03em] text-[#071330]">
               {budgetLabel}
@@ -504,7 +526,7 @@ export function BrowseJobDrawer({
             </span>
           </div>
           <div className="min-w-2 flex-1" />
-          {askButton}
+          {ownerCanCancel ? ownerCancelButton : askButton}
           {primaryButton}
         </div>
       )}

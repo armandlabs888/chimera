@@ -27,6 +27,7 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel = 'Cancel',
   pending = false,
+  destructive = false,
   onConfirm,
   onClose,
   testId = 'confirm-dialog',
@@ -37,6 +38,8 @@ export function ConfirmDialog({
   confirmLabel: string
   cancelLabel?: string
   pending?: boolean
+  /** Red confirm button for destructive actions. */
+  destructive?: boolean
   onConfirm: () => void
   onClose: () => void
   testId?: string
@@ -97,7 +100,7 @@ export function ConfirmDialog({
           <button
             ref={confirmRef}
             type="button"
-            className="account-hc-btn"
+            className={destructive ? 'account-hc-btn-danger' : 'account-hc-btn'}
             onClick={onConfirm}
             disabled={pending}
             data-testid={`${testId}-confirm`}

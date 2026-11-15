@@ -37,6 +37,7 @@ export type NotificationKind =
   | 'verification_approved'
   | 'verification_needs_resubmission'
   | 'job_referral'
+  | 'job_cancelled'
 
 export type JobReferralStatus = 'pending' | 'viewed' | 'dismissed'
 

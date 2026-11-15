@@ -18,6 +18,7 @@ import { formatCategoryLabel } from '@/lib/taxonomy'
 import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 import type { HelpRequest } from '@/types'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
+import { CancelJobAction } from '@/components/jobs/CancelJobAction'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
@@ -193,6 +194,9 @@ export function BrowseJobDetailPanel({
   }
 
   const showHelperOfferChrome = canOffer && !isNeighborViewer
+
+  const ownerCanCancel =
+    isOwner && (request.status === 'open' || request.status === 'accepted')
 
   const primaryButton =
     pendingOffer && !offerOpen && verified ? (
@@ -420,6 +424,15 @@ export function BrowseJobDetailPanel({
             >
               Ask a question
             </button>
+            {primaryButton}
+          </div>
+        ) : ownerCanCancel ? (
+          <div className="browse-hc-detail-actions" data-testid="browse-owner-controls">
+            <CancelJobAction
+              request={request}
+              className="min-w-0 flex-1"
+              buttonClassName="browse-hc-btn-ask w-full"
+            />
             {primaryButton}
           </div>
         ) : (

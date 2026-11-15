@@ -935,6 +935,39 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      cancel_help_request: {
+        Args: { p_request_id: string }
+        Returns: {
+          accepted_offer_id: string | null
+          budget: number
+          budget_type: string
+          category: string
+          created_at: string
+          details: string
+          helper_id: string | null
+          id: string
+          image: string
+          lat: number | null
+          lng: number | null
+          location_label: string
+          neighborhood: string
+          preferred_helper_id: string | null
+          radius_miles: number
+          requester_id: string
+          scheduled_for: string | null
+          status: string
+          title: string
+          updated_at: string
+          when_label: string
+          when_option: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "help_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       ensure_direct_thread: {
         Args: { p_other_user_id: string }
         Returns: {
