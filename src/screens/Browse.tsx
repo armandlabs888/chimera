@@ -1001,13 +1001,15 @@ export function Browse() {
             </div>
 
             {showDesktopDetail && selectedRequest ? (
-              <BrowseJobDetailPanel
-                request={selectedRequest}
-                areaLabel={selectedArea}
-                milesLabel={selectedMilesShort}
-                cityName="your area"
-                authHref={authHref}
-              />
+              <div className="browse-hc-detail-col">
+                <BrowseJobDetailPanel
+                  request={selectedRequest}
+                  areaLabel={selectedArea}
+                  milesLabel={selectedMilesShort}
+                  cityName="your area"
+                  authHref={authHref}
+                />
+              </div>
             ) : null}
           </div>
         ) : showHelpersEmpty ? (
@@ -1068,11 +1070,13 @@ export function Browse() {
             </div>
 
             {showDesktopHelperDetail && selectedHelper ? (
-              <BrowseHelperDetailPanel
-                person={selectedHelper}
-                skillLabel={selectedHelperSkill}
-                milesLabel={selectedHelperMiles}
-              />
+              <div className="browse-hc-detail-col">
+                <BrowseHelperDetailPanel
+                  person={selectedHelper}
+                  skillLabel={selectedHelperSkill}
+                  milesLabel={selectedHelperMiles}
+                />
+              </div>
             ) : null}
           </div>
         )}

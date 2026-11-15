@@ -585,17 +585,30 @@
   font-weight: 600;
 }
 
-/* ---- Two columns ---- */
+/* ---- Two columns ----
+   Hairline + gray live on .browse-hc-detail-col so they stretch with the
+   list row while .browse-hc-detail stays sticky inside. */
 .browse-hc-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.42fr) minmax(0, 1fr);
-  gap: 24px;
+  gap: 0;
   align-items: start;
   margin-top: 20px;
 }
 
 .browse-hc-layout--solo {
   grid-template-columns: 1fr;
+}
+
+.browse-hc-detail-col {
+  align-self: stretch;
+  min-width: 0;
+  min-height: 100%;
+  margin-left: 32px;
+  padding-left: 32px;
+  background: #f7f9fc;
+  border-left: 1px solid #e3e8ef;
+  box-sizing: border-box;
 }
 
 .browse-hc-job-list {
@@ -794,13 +807,13 @@
 }
 
 /* ---- Detail panel ----
-   Must stay a direct grid child so sticky can travel the full row height.
-   width/justify-self keep even left/right edges inside the column.
-   Panel scrolls internally so the action footer stays visible at 1280x800. */
+   Sticky inside .browse-hc-detail-col (which stretches full row height for
+   the hairline + gray). Panel scrolls internally so the action footer stays
+   visible at 1280x800. */
 .browse-hc-detail {
   position: sticky;
-  /* 56px stuck header + 16px breathing room. */
-  top: 72px;
+  /* Just below the compact 56px app header. */
+  top: 56px;
   width: 100%;
   max-width: 100%;
   margin-inline: 0;
@@ -808,8 +821,9 @@
   align-self: start;
   display: flex;
   flex-direction: column;
-  max-height: calc(100dvh - 87px);
-  background: var(--hc-white);
+  max-height: calc(100vh - 56px);
+  max-height: calc(100dvh - 56px);
+  background: transparent;
   border: 0;
   border-radius: 0;
   overflow: hidden;
@@ -817,8 +831,9 @@
 
 /* When the helper setup banner is stuck with the header, clear it too. */
 [data-testid='browse-hc-header-shell']:has(.browse-hc-helper-banner) ~ main .browse-hc-detail {
-  top: 108px;
-  max-height: calc(100dvh - 123px);
+  top: 92px;
+  max-height: calc(100vh - 92px);
+  max-height: calc(100dvh - 92px);
 }
 
 .browse-hc-detail-scroll {
@@ -833,7 +848,14 @@
   flex: none;
   padding: 12px 20px 16px;
   border-top: 1px solid var(--hc-line);
-  background: var(--hc-white);
+  background: #f7f9fc;
+}
+
+/* Helpers panel has no inner scroll shell; scroll the sticky panel itself. */
+.browse-hc-helper-detail {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .browse-hc-detail-footer .browse-hc-detail-actions {
@@ -1747,8 +1769,20 @@
     grid-template-columns: 1fr;
   }
 
+  /* Single-column / drawer layouts: no hairline or gray detail rail. */
+  .browse-hc-detail-col {
+    margin-left: 0;
+    padding-left: 0;
+    background: transparent;
+    border-left: 0;
+  }
+
   .browse-hc-detail {
     display: none;
+  }
+
+  .browse-hc-detail-footer {
+    background: var(--hc-white);
   }
 
   .browse-hc-job-row {
