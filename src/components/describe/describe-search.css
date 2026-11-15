@@ -125,55 +125,6 @@
   backdrop-filter: none;
 }
 
-.describe-intent-chip {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-  margin-top: 12px;
-  padding: 8px 12px;
-  width: fit-content;
-  max-width: 100%;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(227, 232, 239, 0.9);
-  color: #071330;
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-.describe-intent-chip.on-light {
-  background: #eef2f7;
-  border-color: #d7e0ec;
-  width: 100%;
-  max-width: none;
-}
-
-.describe-intent-chip .understood {
-  color: #4a5568;
-  font-weight: 500;
-}
-
-.describe-intent-chip .understood b {
-  color: #071330;
-  font-weight: 600;
-}
-
-.describe-intent-chip .switch {
-  color: #1649bd;
-  font-weight: 600;
-  margin-left: auto;
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  font: inherit;
-}
-
-.describe-intent-chip .switch:hover {
-  text-decoration: underline;
-}
-
 /* Portal suggestions panel (fixed positioning applied inline). */
 .describe-suggest {
   z-index: 80;
@@ -318,7 +269,6 @@
 /* -------------------------------------------------------------------------- */
 
 .describe-search--hero .describe-search-pill,
-.describe-search--hero .describe-intent-chip,
 .describe-search--hero .describe-chip,
 .describe-suggest--glass {
   background: rgba(255, 255, 255, 0.14) !important;
@@ -352,25 +302,6 @@
 
 .describe-search--hero .describe-search-div {
   background: rgba(255, 255, 255, 0.3) !important;
-}
-
-.describe-search--hero .describe-intent-chip .understood {
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.describe-search--hero .describe-intent-chip .understood b {
-  color: #fff;
-}
-
-.describe-search--hero .describe-intent-chip .switch {
-  color: #fff;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  font-weight: 500;
-}
-
-.describe-search--hero .describe-intent-chip .switch:hover {
-  text-decoration: underline;
 }
 
 .describe-search--hero .describe-chip {
