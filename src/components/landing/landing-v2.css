@@ -7,10 +7,10 @@
   --landing-float-header-offset: calc(
     var(--landing-float-nav-inset) + var(--landing-float-nav-height)
   );
-  --landing-hero-header-gap: 72px; /* mobile ~72 */
-  --landing-hero-content-pad-top: calc(
-    var(--landing-float-header-offset) + var(--landing-hero-header-gap)
-  );
+  /* Reserve only the fixed header; flex centering places the stack in the
+     remaining hero (viewport − header). Extra header→eyebrow gap was pushing
+     the group too low when combined with justify-content: center. */
+  --landing-hero-content-pad-top: var(--landing-float-header-offset);
 
   /* Fill the first viewport so no white strip shows under the photo on load. */
   min-height: 100svh;
@@ -24,13 +24,6 @@
 @media (min-width: 768px) {
   .landing-hero-photo {
     --landing-float-nav-inset: 20px;
-    --landing-hero-header-gap: 96px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .landing-hero-photo {
-    --landing-hero-header-gap: 132px; /* desktop lock */
   }
 }
 
@@ -116,13 +109,21 @@
   align-items: center;
   justify-content: center;
   padding-top: var(--landing-hero-content-pad-top);
-  padding-bottom: 80px;
+  /* Modest bottom pad nudges the stack slightly above the center of the
+     below-header area and leaves room for the describe dropdown. */
+  padding-bottom: 48px;
 }
 
 @media (min-width: 768px) {
   .landing-hero-content {
-    padding-bottom: 120px;
+    padding-bottom: 64px;
   }
+}
+
+/* Hero headline: standard size (~36px @390 → 56px @1280+). */
+.landing-hero-title {
+  font-size: clamp(2.25rem, 2.25vw + 1.7rem, 3.5rem);
+  line-height: 1.08;
 }
 
 /* Hero lede: wrap on mobile; single line on tablet/desktop. */
