@@ -940,19 +940,26 @@
 
 .browse-hc-btn-cancel {
   flex: 1.15;
+  width: 100%;
   height: 44px;
   border-radius: 8px;
-  border: 1.5px solid #071330;
+  border: 1px solid #d7e0ec;
   background: var(--hc-white);
   color: #071330;
-  font-size: 14.5px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   cursor: pointer;
   font-family: inherit;
 }
 
 .browse-hc-btn-cancel:hover {
-  background: #ffffff;
+  background: #eef2f7;
+}
+
+.browse-hc-btn-cancel:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* ---- Helpers list + preview (Direction B) ---- */

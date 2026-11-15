@@ -26,6 +26,7 @@ import { formatCategoryLabel } from '@/lib/taxonomy'
 import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 import type { HelpRequest } from '@/types'
 import { CancelJobAction } from '@/components/jobs/CancelJobAction'
+import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
@@ -65,7 +66,6 @@ export function BrowseJobDrawer({
     mode,
     authUser,
     createOffer,
-    withdrawOffer,
     ensureThread,
     helperVerification,
   } = useBeam()
@@ -79,7 +79,11 @@ export function BrowseJobDrawer({
   const isOwner = request.requesterId === currentUser.id
   const isNeighborViewer = !isGuest && !isOwner && !isHelperPerson(currentUser)
   const myOffer = state.offers.find(
-    (o) => o.requestId === request.id && o.helperId === currentUser.id && o.status !== 'withdrawn',
+    (o) =>
+      o.requestId === request.id &&
+      o.helperId === currentUser.id &&
+      o.status !== 'withdrawn' &&
+      o.status !== 'declined',
   )
   const verified = canMakeOffer(helperVerification)
   const gateKind = offerGateKind(helperVerification)
@@ -96,7 +100,6 @@ export function BrowseJobDrawer({
   const [offerEta, setOfferEta] = useState(myOffer?.eta ?? 'Within 1 hour')
   const [offerError, setOfferError] = useState('')
   const [offerPending, setOfferPending] = useState(false)
-  const [cancelPending, setCancelPending] = useState(false)
   const [askPending, setAskPending] = useState(false)
 
   const images = normalizeListingImages(request.images, request.image)
@@ -167,20 +170,6 @@ export function BrowseJobDrawer({
         setOfferPending(false)
       }
     })
-  }
-
-  async function cancelOffer() {
-    if (!pendingOffer || cancelPending) return
-    setCancelPending(true)
-    setOfferError('')
-    try {
-      await withdrawOffer(pendingOffer.id)
-      setOfferOpen(false)
-    } catch (err) {
-      setOfferError(err instanceof Error ? err.message : 'Could not cancel offer')
-    } finally {
-      setCancelPending(false)
-    }
   }
 
   async function share() {
@@ -409,19 +398,24 @@ export function BrowseJobDrawer({
     </button>
   ) : null
 
-  const primaryButton = pendingOffer && !offerOpen && verified ? (
-    <button
-      type="button"
-      data-testid="browse-cancel-offer"
-      disabled={cancelPending}
-      aria-busy={cancelPending || undefined}
-      onClick={() => void cancelOffer()}
-      className={`inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg border-[1.5px] border-[#071330] bg-white px-[18px] text-[14px] font-semibold tracking-[-0.01em] text-[#071330] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 ${
+  const primaryButton = pendingOffer && !offerOpen ? (
+    <CancelOfferAction
+      offerId={pendingOffer.id}
+      testId="browse-cancel-offer"
+      className={narrow ? 'w-full' : 'min-w-0 shrink-0'}
+      buttonClassName={`inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg border border-[#D7E0EC] bg-white px-[18px] text-[14px] font-semibold tracking-[-0.01em] text-[#071330] hover:bg-[#EEF2F7] disabled:cursor-not-allowed disabled:opacity-60 ${
         narrow ? 'w-full' : 'shrink-0'
       }`}
-    >
-      {cancelPending ? 'Canceling…' : 'Cancel offer'}
-    </button>
+      showInlineError={false}
+      onCancelled={() => {
+        setOfferOpen(false)
+        setOfferError('')
+        setOfferPrice(request.budget > 0 ? String(Math.round(request.budget)) : '')
+        setOfferNote('')
+        setOfferEta('Within 1 hour')
+      }}
+      onError={(message) => setOfferError(message)}
+    />
   ) : showHelperOfferChrome && !isGuest && !verified && gateKind !== 'approved' ? (
     <OfferGatePrimaryButton kind={gateKind} narrow={narrow} />
   ) : showHelperOfferChrome ? (
