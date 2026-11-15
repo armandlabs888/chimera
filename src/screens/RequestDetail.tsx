@@ -22,6 +22,7 @@ import { CancelJobAction } from '@/components/jobs/CancelJobAction'
 import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
+import { JobDetailPriceLine } from '@/components/jobs/JobDetailPriceLine'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { formatJobAreaCaption } from '@/lib/location'
@@ -41,8 +42,6 @@ import {
   isServiceCategoryId,
 } from '@/lib/taxonomy'
 import {
-  formatBudget,
-  formatPriceCaption,
   hasListedPrice,
   requestAcceptsOffers,
   formatLocation,
@@ -215,8 +214,6 @@ export function RequestDetail() {
   }
 
   const activeRequest = request
-  const budgetLabel = formatBudget(request)
-  const priceCaption = formatPriceCaption(request)
   const listedPrice = hasListedPrice(request)
   const firmPrice = listedPrice && !requestAcceptsOffers(request)
   const firmPriceAmount = listedPrice ? Math.round(request.budget) : 0
@@ -391,6 +388,11 @@ export function RequestDetail() {
               <h1 className="font-display text-[22px] font-bold leading-[1.25] tracking-[-0.015em] text-[#071330] [text-wrap:balance] sm:text-[24px]">
                 <JobTitleText title={request.title} />
               </h1>
+
+              <JobDetailPriceLine
+                request={request}
+                testId="request-budget-card"
+              />
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[14px] font-medium text-[#4A5568]">
                 <span className="inline-flex items-center gap-1.5 font-medium text-[#071330]">
@@ -580,25 +582,9 @@ export function RequestDetail() {
           className="mt-5 space-y-4 lg:sticky lg:top-24 lg:mt-0"
           data-testid="request-detail-right"
         >
-          {/* Price: plain typography (no box) */}
-          <div className="px-0 pb-2" data-testid="request-budget-card">
-            <p className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[#4A5568]">
-              Price
-            </p>
-            <p
-              className={`mt-1 font-display font-bold leading-none text-[#071330] ${
-                listedPrice ? 'text-[28px] tabular-nums' : 'text-[20px]'
-              }`}
-            >
-              {budgetLabel}
-            </p>
-            {priceCaption ? (
-              <p className="mt-1.5 text-[13px] font-semibold text-[#4A5568]">{priceCaption}</p>
-            ) : null}
-            <p className="mt-2 text-[13px] leading-[1.45] text-[#4A5568]">
-              No lead fees · Agree in chat
-            </p>
-          </div>
+          <p className="px-0 pb-1 text-[13px] leading-[1.45] text-[#4A5568]">
+            No lead fees · Agree in chat
+          </p>
 
           {justPosted && isOwner && request.status === 'open' ? (
             <div
