@@ -1333,7 +1333,6 @@
 .browse-hc-helper-preview-head {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
   gap: 12px;
 }
 
@@ -1342,6 +1341,7 @@
   align-items: center;
   gap: 14px;
   min-width: 0;
+  flex: 1;
 }
 
 .browse-hc-helper-preview-id .browse-hc-helper-photo,
@@ -1363,26 +1363,6 @@
   font-size: 15px;
   font-weight: 500;
   color: var(--hc-muted);
-}
-
-.browse-hc-helper-preview-rate {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  text-align: right;
-  color: var(--hc-navy);
-  flex: none;
-}
-
-.browse-hc-helper-preview-rate span {
-  display: block;
-  margin-top: 4px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--hc-muted-2);
 }
 
 .browse-hc-helper-info-card {

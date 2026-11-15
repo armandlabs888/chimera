@@ -1,6 +1,6 @@
 'use client'
 
-import { MapPin, MapPinned } from 'lucide-react'
+import { MapPin, MapPinned, Tag } from 'lucide-react'
 import Link from 'next/link'
 import { useId, useMemo } from 'react'
 import { useBeam } from '@/context/BeamContext'
@@ -10,6 +10,11 @@ import { formatPublicRating, hasPublicRating } from '@/lib/ratingDisplay'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import type { Person } from '@/types'
 import { BrowseHelperPhoto } from './BrowseHelperPhoto'
+
+function hasHelperRate(person: Pick<Person, 'hourlyRate' | 'rateType'>): boolean {
+  if (person.rateType === 'quote') return true
+  return (person.hourlyRate ?? 0) > 0
+}
 
 export function BrowseHelperDetailPanel({
   person,
@@ -22,7 +27,8 @@ export function BrowseHelperDetailPanel({
 }) {
   const { state, getPerson } = useBeam()
   const titleId = useId()
-  const rateLabel = formatRate(person)
+  const showRate = hasHelperRate(person)
+  const rateLabel = showRate ? formatRate(person) : null
   const ratingLabel = formatPublicRating(person)
   const serves = useMemo(() => {
     const area = formatLocation(person)
@@ -74,13 +80,20 @@ export function BrowseHelperDetailPanel({
               </p>
             </div>
           </div>
-          <div className="browse-hc-helper-preview-rate">
-            {rateLabel}
-            <span>Rate</span>
-          </div>
         </div>
 
         <div className="browse-hc-helper-info-card">
+          {showRate && rateLabel ? (
+            <div className="browse-hc-info-item">
+              <span className="browse-hc-info-icon">
+                <Tag className="h-4 w-4" strokeWidth={2} aria-hidden />
+              </span>
+              <div>
+                <div className="browse-hc-info-k">Rate</div>
+                <div className="browse-hc-info-v">{rateLabel}</div>
+              </div>
+            </div>
+          ) : null}
           <div className="browse-hc-info-item">
             <span className="browse-hc-info-icon">
               <MapPin className="h-4 w-4" strokeWidth={2} aria-hidden />
