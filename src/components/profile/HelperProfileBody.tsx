@@ -16,7 +16,6 @@ import {
   buildHelperStats,
   buildNeighborStats,
   buildRoleMeta,
-  formatMemberSince,
   shareProfileLink,
 } from '@/components/profile/ProfileHeader'
 import { Avatar } from '@/components/ui'
@@ -80,10 +79,7 @@ export function HelperProfileBody({
 
   const headerStats = useMemo(() => {
     if (helper) return buildHelperStats(person)
-    return buildNeighborStats({
-      jobsPosted,
-      memberSinceLabel: formatMemberSince(person.onboardingCompletedAt),
-    })
+    return buildNeighborStats({ jobsPosted })
   }, [helper, person, jobsPosted])
 
   const headerMeta = useMemo(

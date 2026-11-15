@@ -171,6 +171,8 @@ export interface Person {
   onboardingCompletedAt?: string | null
   safetyDisclaimerAcceptedAt?: string | null
   safetyDisclaimerVersion?: string | null
+  /** Account creation time from profiles.created_at. Optional when not exposed. */
+  createdAt?: string | null
 }
 
 export interface HelpRequest {

@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  Calendar,
   ChevronDown,
   GraduationCap,
   Home,
@@ -360,6 +361,21 @@ export function buildRoleMeta(
       key: 'location',
       icon: <MapPin className="h-3.5 w-3.5 shrink-0 text-[#5B6576]" strokeWidth={2.25} aria-hidden />,
       label: locationLabel,
+    })
+  }
+
+  const joinedLabel = formatMemberSince(person.createdAt)
+  if (joinedLabel) {
+    items.push({
+      key: 'joined',
+      icon: (
+        <Calendar
+          className="h-3.5 w-3.5 shrink-0 text-[#4A5568]"
+          strokeWidth={2.25}
+          aria-hidden
+        />
+      ),
+      label: `Joined ${joinedLabel}`,
     })
   }
 

@@ -1,8 +1,9 @@
 'use client'
 
-import { MapPin, MapPinned, Tag } from 'lucide-react'
+import { Calendar, MapPin, MapPinned, Tag } from 'lucide-react'
 import Link from 'next/link'
 import { useId, useMemo } from 'react'
+import { formatMemberSince } from '@/components/profile/ProfileHeader'
 import { useBeam } from '@/context/BeamContext'
 import { formatLocation } from '@/lib/location'
 import { formatRate, relativeTime } from '@/lib/matching'
@@ -60,6 +61,7 @@ export function BrowseHelperDetailPanel({
   const reviewNoun = reviewCount === 1 ? 'review' : 'reviews'
   const jobsNoun = jobsCompleted === 1 ? 'job completed' : 'jobs completed'
   const hasRating = hasPublicRating(person)
+  const joinedLabel = formatMemberSince(person.createdAt)
 
   return (
     <aside
@@ -129,6 +131,15 @@ export function BrowseHelperDetailPanel({
                   </span>
                 </>
               ) : null}
+              {joinedLabel ? (
+                <>
+                  <span aria-hidden>·</span>
+                  <span className="inline-flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5 shrink-0 text-[#4A5568]" strokeWidth={2.25} aria-hidden />
+                    Joined {joinedLabel}
+                  </span>
+                </>
+              ) : null}
             </>
           ) : (
             <>
@@ -137,6 +148,12 @@ export function BrowseHelperDetailPanel({
                 <span className="browse-hc-avail">
                   <span className="dot" aria-hidden />
                   Available now
+                </span>
+              ) : null}
+              {joinedLabel ? (
+                <span className="inline-flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5 shrink-0 text-[#4A5568]" strokeWidth={2.25} aria-hidden />
+                  Joined {joinedLabel}
                 </span>
               ) : null}
             </>
