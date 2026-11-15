@@ -29,7 +29,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const onboardingEdit = pathname === '/onboarding' && searchParams.get('edit') === '1'
   const { currentUser, mode, ready, authUser } = useBeam()
   const hideChrome = shouldHideAppChrome(pathname, onboardingEdit)
-  const isMatch = pathname === '/match'
   // Live guests get marketing chrome on public discovery routes.
   // Demo mode always uses the authenticated marketplace top nav.
   const isLiveGuest = mode === 'live' && !authUser
@@ -46,20 +45,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="app-shell relative min-h-dvh text-[#071330]">
         {children}
         <BackendErrorToast />
-      </div>
-    )
-  }
-
-  // /match owns its compact search header; keep footer + toast hosts.
-  if (isMatch) {
-    return (
-      <div className="app-shell relative flex min-h-dvh flex-col bg-white text-[#071330]">
-        <main className="relative flex-1">{children}</main>
-        <LandingFooter dockPadding={!isLiveGuest} />
-        <BrowseLocationDialogHost />
-        <MessagesDrawerHost />
-        <BackendErrorToast />
-        {isLiveGuest ? null : <BottomNav />}
       </div>
     )
   }

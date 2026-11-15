@@ -84,8 +84,10 @@ export const CATEGORY_SYNONYMS: SynonymRule[] = [
     terms: [
       'house cleaner',
       'house cleaning',
+      'house clean',
       'home cleaner',
       'home cleaning',
+      'home clean',
       'housekeeping',
       'housekeeper',
       'maid service',
@@ -103,7 +105,19 @@ export const CATEGORY_SYNONYMS: SynonymRule[] = [
     weight: 10,
   },
   {
-    terms: ['carpet cleaning', 'carpet cleaner', 'carpet', 'rug cleaning', 'rugs', 'rug'],
+    terms: [
+      'carpet cleaning',
+      'carpet cleaner',
+      'carpet clean',
+      'carpet steam clean',
+      'steam clean carpet',
+      'carpet',
+      'rug cleaning',
+      'rug cleaner',
+      'rug clean',
+      'rugs',
+      'rug',
+    ],
     categoryId: 'carpet-cleaning',
     weight: 10,
   },
@@ -300,7 +314,45 @@ function termMatches(haystack: string, term: string): boolean {
   if (!t) return false
   // Word-boundary match so "maid" does not hit "mermaid".
   const re = new RegExp(`(?:^|[^a-z0-9])${escapeRegExp(t)}(?:[^a-z0-9]|$)`, 'i')
-  return re.test(haystack)
+  if (re.test(haystack)) return true
+
+  // Stem the last token so "house clean" matches "house cleaner" / "house cleaning".
+  // Only for multi-word clean* stems (avoids bare "clean" stealing carpet queries).
+  const parts = t.split(/\s+/).filter(Boolean)
+  if (parts.length < 2) return false
+  const last = parts[parts.length - 1]
+  if (!last.startsWith('clean') || last.length > 8) return false
+  const head = parts.slice(0, -1).map(escapeRegExp).join('\\s+')
+  const stemRe = new RegExp(
+    `(?:^|[^a-z0-9])${head}\\s+clean[a-z]{0,6}(?:[^a-z0-9]|$)`,
+    'i',
+  )
+  return stemRe.test(haystack)
+}
+
+/** Extra ranking so house clean* beats carpet-cleaning; carpet/rug clean* stays carpet. */
+function applyCleaningStemBoosts(normalized: string, scores: Map<string, number>) {
+  const hasHouseClean = /\b(?:house|home)\s+clean[a-z]*/i.test(normalized)
+  const hasCarpetOrRug = /\b(?:carpet|rugs?)\b/i.test(normalized)
+  const hasCarpetClean =
+    /\b(?:carpet|rugs?)\s+clean[a-z]*/i.test(normalized) ||
+    /\bclean[a-z]*\s+(?:the\s+)?(?:carpet|rugs?)\b/i.test(normalized) ||
+    /\bcarpet\s+steam\s+clean/i.test(normalized) ||
+    /\bsteam\s+clean(?:ing)?\s+(?:the\s+)?(?:carpet|rugs?)\b/i.test(normalized)
+
+  if (hasHouseClean && !hasCarpetOrRug) {
+    scores.set('house-cleaning', (scores.get('house-cleaning') ?? 0) + 30)
+    // Do not let a weak carpet residual outrank house clean* on a tiebreak.
+    if ((scores.get('carpet-cleaning') ?? 0) > 0) {
+      scores.set(
+        'carpet-cleaning',
+        Math.min(scores.get('carpet-cleaning') ?? 0, (scores.get('house-cleaning') ?? 0) - 1),
+      )
+    }
+  }
+  if (hasCarpetClean || (hasCarpetOrRug && /\bclean/i.test(normalized))) {
+    scores.set('carpet-cleaning', (scores.get('carpet-cleaning') ?? 0) + 30)
+  }
 }
 
 function labelForCategoryId(id: string): string {
@@ -357,6 +409,8 @@ function scoreCategories(normalized: string): MatchedCategory[] {
       scores.set(leaf, (scores.get(leaf) ?? 0) + 8)
     }
   }
+
+  applyCleaningStemBoosts(normalized, scores)
 
   return [...scores.entries()]
     .map(([id, score]) => toMatchedCategory(id, score))
@@ -577,10 +631,48 @@ export function formatHelpersHeading(categoryLabel: string | null): string {
   return `Best ${lower} helpers for you`
 }
 
+/**
+ * Plural helper noun for empty states: "house cleaners", "carpet cleaners", "movers".
+ * Never uses em/en dashes.
+ */
+export function formatHelpersEmptyNoun(
+  categoryLabel: string | null,
+  categoryId: string | null = null,
+): string {
+  const id = categoryId || ''
+  const lower = (categoryLabel || '').toLowerCase()
+  if (id === 'house-cleaning' || lower === 'house cleaning') return 'house cleaners'
+  if (id === 'carpet-cleaning' || lower === 'carpet cleaning') return 'carpet cleaners'
+  if (id === 'auto-detailing' || lower === 'auto detailing') return 'auto detailers'
+  if (id === 'junk-removal' || lower === 'junk removal') return 'junk removal helpers'
+  if (id === 'pet-sitting' || lower === 'pet sitting') return 'pet sitters'
+  if (id === 'grooming' || lower === 'grooming') return 'groomers'
+  if (id === 'moving' || lower === 'moving & lifting' || lower === 'moving') return 'movers'
+  if (id === 'handyman' || lower.includes('handyman')) return 'handyman helpers'
+  if (lower.includes('cleaning')) {
+    const base = lower.replace(/\s*cleaning\s*$/i, '').trim()
+    return base ? `${base} cleaners` : 'cleaners'
+  }
+  if (lower) return `${lower} helpers`
+  return 'helpers'
+}
+
 /** Soft display label for chips (House Cleaning → House cleaning). */
 export function softCategoryLabel(label: string): string {
   if (!label) return label
   return label.charAt(0).toUpperCase() + label.slice(1).toLowerCase()
+}
+
+/** Jobs empty-state category phrase: "house cleaning", "moving". */
+export function formatJobsEmptyCategory(
+  categoryLabel: string | null,
+  categoryId: string | null = null,
+): string {
+  if (categoryId === 'moving' || (categoryLabel || '').toLowerCase().includes('moving')) {
+    return 'moving'
+  }
+  if (categoryLabel) return categoryLabel.toLowerCase()
+  return ''
 }
 
 export type { ServiceCategoryId, LegacyCategoryId, BrowseParentId }
