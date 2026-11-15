@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createElement, useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { MapPin } from 'lucide-react'
 import { BrowseJobRow } from '@/components/browse/BrowseJobRow'
@@ -37,7 +37,8 @@ import {
 } from '@/lib/matching'
 import { formatPublicRating } from '@/lib/ratingDisplay'
 import { listingCoverImage, normalizeListingImages } from '@/lib/listingPhotos'
-import { formatCategoryLabel, isServiceCategoryId } from '@/lib/taxonomy'
+import { formatCategoryLabel, isServiceCategoryId, SERVICE_CATEGORIES } from '@/lib/taxonomy'
+import { getBrowseCategoryIcon } from '@/lib/categoryIcons'
 import { navyButtonClass } from '@/components/ui/button'
 import { normalizeZipInput } from '@/lib/zip/format'
 import type { Person, Review } from '@/types'
@@ -367,6 +368,19 @@ export function Match() {
   const helpersEmptyNoun = formatHelpersEmptyNoun(categoryLabel, categoryId)
   const jobsEmptyCategory = formatJobsEmptyCategory(categoryLabel, categoryId)
   const nearLabel = zipParam || 'you'
+  const emptyCategoryIcon = getBrowseCategoryIcon(categoryId)
+
+  /** Categories that have at least one helper in the marketplace pool (excludes current empty category). */
+  const nearbyOfferCategories = useMemo(() => {
+    return SERVICE_CATEGORIES.filter((cat) => {
+      if (cat.id === 'other') return false
+      if (categoryId && cat.id === categoryId) return false
+      return helperBase.some((person) => matchSkillAgainstCategory(person.skills, cat.id))
+    }).map((cat) => ({
+      id: cat.id,
+      label: softCategoryLabel(cat.label),
+    }))
+  }, [helperBase, categoryId])
 
   const intentSwitch = formatIntentChip({
     intent,
@@ -378,6 +392,15 @@ export function Match() {
     next.set('intent', intent === 'jobs' ? 'helpers' : 'jobs')
     return `/match?${next.toString()}`
   }, [params, intent])
+
+  function categoryOfferHref(catId: string, label: string): string {
+    const next = new URLSearchParams()
+    next.set('q', label)
+    if (zipParam) next.set('zip', zipParam)
+    next.set('intent', 'helpers')
+    next.set('category', catId)
+    return `/match?${next.toString()}`
+  }
 
   return (
     <div className="match-page" data-testid="match-page">
@@ -418,25 +441,54 @@ export function Match() {
               </>
             ) : rankedHelpers.length === 0 ? (
               <div className="match-empty" data-testid="match-helpers-empty">
-                <h1 className="match-title">
-                  No {helpersEmptyNoun} near {nearLabel} yet
-                </h1>
-                <Link
-                  href={intentSwitchHref}
-                  className="match-intent-switch"
-                  data-testid="match-intent-switch"
-                >
-                  {intentSwitch.toggleLabel}
-                </Link>
-                <p>Post it as a job and helpers nearby can send you offers.</p>
-                <div className="match-empty-actions">
-                  <Link href={postAuthHref} className="match-empty-primary">
-                    Post this as a job
-                  </Link>
-                  <Link href={browseHelpersHref} className="match-empty-secondary">
-                    Browse all helpers
+                <div className="match-empty-panel">
+                  <span className="match-empty-icon" aria-hidden>
+                    {createElement(emptyCategoryIcon, {
+                      width: 28,
+                      height: 28,
+                      strokeWidth: 1.85,
+                    })}
+                  </span>
+                  <h1 className="match-title">
+                    No {helpersEmptyNoun} near {nearLabel} yet
+                  </h1>
+                  <p className="match-empty-body">
+                    Post your request as a job. Helpers nearby will see it and can send you
+                    offers.
+                  </p>
+                  <div className="match-empty-actions">
+                    <Link href={postAuthHref} className="match-empty-primary">
+                      Post this as a job
+                    </Link>
+                    <Link href={browseHelpersHref} className="match-empty-secondary">
+                      Browse all helpers
+                    </Link>
+                  </div>
+                  <Link
+                    href={intentSwitchHref}
+                    className="match-intent-switch"
+                    data-testid="match-intent-switch"
+                  >
+                    {intentSwitch.toggleLabel}
                   </Link>
                 </div>
+                {nearbyOfferCategories.length > 0 ? (
+                  <div className="match-empty-offers" data-testid="match-helpers-nearby-offers">
+                    <p className="match-empty-offers-label">Helpers nearby offer</p>
+                    <ul className="match-empty-offer-chips">
+                      {nearbyOfferCategories.map((cat) => (
+                        <li key={cat.id}>
+                          <Link
+                            href={categoryOfferHref(cat.id, cat.label)}
+                            className="match-empty-offer-chip"
+                          >
+                            {cat.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
               </div>
             ) : (
               <>

@@ -411,28 +411,63 @@
 }
 
 .match-empty {
-  margin-top: 0;
+  margin-top: 8px;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.match-empty-panel {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 36px 28px 28px;
+  background: #f7f9fc;
+  border: 1px solid #e3e8ef;
+  border-radius: 12px;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.match-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #e3e8ef;
+  color: #1d5ce5;
+  margin-bottom: 18px;
 }
 
 .match-empty .match-title {
   margin-top: 0;
+  max-width: 22ch;
+  text-wrap: balance;
 }
 
-.match-empty p {
+.match-empty-body {
   margin-top: 12px;
   font-size: 15px;
   line-height: 1.5;
   color: #4a5568;
-  max-width: 48ch;
+  max-width: 40ch;
 }
 
 .match-empty-actions {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 14px;
-  margin-top: 20px;
+  align-items: stretch;
+  gap: 10px;
+  margin-top: 22px;
+  width: 100%;
+  max-width: 420px;
 }
 
 .match-empty-primary {
@@ -441,12 +476,13 @@
   justify-content: center;
   height: 44px;
   padding: 0 18px;
-  border-radius: 9999px;
+  border-radius: 10px;
   background: #1d5ce5;
   color: #fff;
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .match-empty-primary:hover {
@@ -454,13 +490,106 @@
 }
 
 .match-empty-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 10px;
+  border: 1px solid #d7e0ec;
+  background: #fff;
+  color: #071330;
   font-size: 14px;
   font-weight: 600;
-  color: #1649bd;
+  white-space: nowrap;
   text-decoration: none;
 }
 
 .match-empty-secondary:hover {
+  background: #eef2f7;
+  text-decoration: none;
+}
+
+.match-empty-panel .match-intent-switch {
+  margin-top: 16px;
+}
+
+.match-empty-offers {
+  width: 100%;
+  max-width: 640px;
+  margin: 28px auto 0;
+  text-align: center;
+}
+
+.match-empty-offers-label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.match-empty-offer-chips {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.match-empty-offer-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  background: #eef2f7;
+  color: #071330;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.match-empty-offer-chip:hover {
+  background: #e3e8ef;
+}
+
+/* Jobs empty keeps a simpler left-aligned block */
+.match-empty[data-testid='match-jobs-empty'] {
+  align-items: flex-start;
+}
+
+.match-empty[data-testid='match-jobs-empty'] .match-title {
+  max-width: none;
+}
+
+.match-empty[data-testid='match-jobs-empty'] p {
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #4a5568;
+  max-width: 48ch;
+  text-align: left;
+}
+
+.match-empty[data-testid='match-jobs-empty'] .match-empty-actions {
+  align-items: flex-start;
+  max-width: none;
+}
+
+.match-empty[data-testid='match-jobs-empty'] .match-empty-secondary {
+  width: auto;
+  background: transparent;
+  border: 0;
+  color: #1649bd;
+  height: auto;
+  padding: 0;
+  border-radius: 0;
+}
+
+.match-empty[data-testid='match-jobs-empty'] .match-empty-secondary:hover {
+  background: transparent;
   text-decoration: underline;
 }
 
@@ -471,6 +600,23 @@
 
   .match-title {
     font-size: 36px;
+  }
+
+  .match-empty-panel {
+    padding: 44px 40px 32px;
+  }
+
+  .match-empty-actions {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .match-empty-primary,
+  .match-empty-secondary {
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   .match-top-grid {
@@ -519,5 +665,14 @@
 
   .match-title {
     font-size: 26px;
+  }
+
+  .match-empty-panel {
+    padding: 28px 18px 22px;
+  }
+
+  .match-empty .match-title {
+    font-size: 24px;
+    max-width: 16ch;
   }
 }
