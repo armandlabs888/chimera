@@ -612,6 +612,9 @@ const demoCurrentVerification: HelperVerification = {
   city: 'Austin',
   stateCode: 'TX',
   zip: '78702',
+  // East Austin ZIP center so demo Browse defaults to 1 mi with distances.
+  addressLat: 30.2672,
+  addressLng: -97.7205,
   lastCheckResult: 'matched',
   lastDistanceM: 18,
   lastDeviceAccuracyM: 22,

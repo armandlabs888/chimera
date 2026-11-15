@@ -58,6 +58,7 @@ async function measure(page) {
       document.querySelector('[data-testid="browse-command-bar"] > div') ||
       document.querySelector('[data-testid="browse-command-bar"]')
     const radius =
+      document.querySelector('[data-testid="browse-distance-toggle"]') ||
       document.querySelector('[data-testid="browse-radius-trigger"]') ||
       document.querySelector('[data-testid="browse-when-trigger"]') ||
       document.querySelector('[data-testid="browse-availability-trigger"]')

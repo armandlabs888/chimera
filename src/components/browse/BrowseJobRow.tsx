@@ -1,6 +1,6 @@
 'use client'
 
-import { Clock } from 'lucide-react'
+import { Clock, MapPin } from 'lucide-react'
 import type { HelpRequest } from '@/types'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
@@ -10,6 +10,7 @@ export function BrowseJobRow({
   title,
   categoryLabel,
   areaLabel,
+  distanceLabel,
   timingLabel,
   asap,
   excerpt,
@@ -24,6 +25,8 @@ export function BrowseJobRow({
   title: string
   categoryLabel: string
   areaLabel: string
+  /** e.g. "0.4 mi away" — shown in desktop meta and under time on mobile. */
+  distanceLabel: string | null
   timingLabel: string
   asap: boolean
   excerpt: string
@@ -73,14 +76,30 @@ export function BrowseJobRow({
                 <span>{areaLabel}</span>
               </>
             ) : null}
+            {distanceLabel ? (
+              <>
+                <span className="browse-hc-dot browse-hc-distance-desk" aria-hidden>
+                  ·
+                </span>
+                <span className="browse-hc-distance-desk">{distanceLabel}</span>
+              </>
+            ) : null}
           </span>
           {excerpt ? <span className="browse-hc-row-desc">{excerpt}</span> : null}
-          {timingLabel ? (
+          {timingLabel || distanceLabel ? (
             <span className="browse-hc-row-foot">
-              <span className={`browse-hc-when ${asap ? 'browse-hc-asap' : ''}`}>
-                <Clock className="h-[13px] w-[13px]" strokeWidth={2} aria-hidden />
-                {asap ? 'ASAP' : timingLabel}
-              </span>
+              {timingLabel ? (
+                <span className={`browse-hc-when ${asap ? 'browse-hc-asap' : ''}`}>
+                  <Clock className="h-[13px] w-[13px]" strokeWidth={2} aria-hidden />
+                  {asap ? 'ASAP' : timingLabel}
+                </span>
+              ) : null}
+              {distanceLabel ? (
+                <span className="browse-hc-distance-mob">
+                  <MapPin className="h-[13px] w-[13px]" strokeWidth={2} aria-hidden />
+                  {distanceLabel}
+                </span>
+              ) : null}
             </span>
           ) : null}
         </span>

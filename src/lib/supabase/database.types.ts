@@ -1003,6 +1003,22 @@ export type Database = {
         }
       }
       get_public_marketplace: { Args: never; Returns: Json }
+      browse_marketplace_distances: {
+        Args: {
+          p_origin_lat?: number
+          p_origin_lng?: number
+          p_radius_miles?: number
+        }
+        Returns: {
+          entity_type: string
+          entity_id: string
+          distance_miles: number | null
+        }[]
+      }
+      round_browse_miles: {
+        Args: { p_miles: number }
+        Returns: number
+      }
       haversine_miles: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
