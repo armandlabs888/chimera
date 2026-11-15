@@ -1,6 +1,6 @@
 /**
- * Visual + hit-target QA for the guest hero Category dropdown stacking fix.
- * Signed-out guests must never see Austin neighborhood picker options.
+ * Visual + behavior QA for the hero ZIP field (replaces Austin neighborhood picker).
+ * Demo / signed-in: ZIP input. Live guests keep category (covered elsewhere).
  */
 import { chromium } from 'playwright'
 import { mkdirSync, copyFileSync, writeFileSync } from 'node:fs'
@@ -17,17 +17,6 @@ const VIEWPORTS = [
   { name: '390x844', width: 390, height: 844 },
 ]
 
-const AUSTIN_NEIGHBORHOODS = [
-  'East Austin',
-  'Hyde Park',
-  'Mueller',
-  'Zilker',
-  'South Congress',
-  'Travis Heights',
-  'Clarksville',
-  'The Domain',
-]
-
 function saveShot(src, name) {
   const dest = join(OUT, name)
   copyFileSync(src, dest)
@@ -35,124 +24,73 @@ function saveShot(src, name) {
   return dest
 }
 
-async function assertNoAustinNeighborhoodOptions(page, scopeLabel) {
-  const body = await page.locator('body').innerText()
-  // Open dropdown text is checked separately; closed page may still show card metadata.
-  // Specifically assert the hero listbox never exposes Austin neighborhood options.
-  const hasNeighborhoodTrigger = (await page.getByTestId('hero-neighborhood-trigger').count()) > 0
-  if (hasNeighborhoodTrigger) {
-    throw new Error(`Guest hero still exposes neighborhood trigger @ ${scopeLabel}`)
+async function assertHeroZip(page, viewportName) {
+  if ((await page.getByTestId('hero-neighborhood-trigger').count()) > 0) {
+    throw new Error(`Hero still exposes neighborhood trigger @ ${viewportName}`)
   }
-  const listboxCount = await page.getByTestId('hero-neighborhood-listbox').count()
-  if (listboxCount > 0) {
-    throw new Error(`Guest hero still exposes neighborhood listbox @ ${scopeLabel}`)
-  }
-  return body
-}
-
-async function assertDropdownOnTop(page, viewportName) {
-  await assertNoAustinNeighborhoodOptions(page, viewportName)
-
-  const trigger = page.getByTestId('hero-category-trigger')
-  await trigger.click()
-  const listbox = page.getByTestId('hero-category-listbox')
-  await listbox.waitFor({ state: 'visible' })
-
-  const listText = await listbox.innerText()
-  for (const name of AUSTIN_NEIGHBORHOODS) {
-    if (listText.includes(name)) {
-      throw new Error(`Guest hero category listbox includes Austin neighborhood "${name}"`)
-    }
-  }
-  if (!/All categories/i.test(listText) || !/Home/i.test(listText) || !/Junk Removal/i.test(listText)) {
-    throw new Error(`Guest hero category listbox missing expected options: ${listText.slice(0, 200)}`)
+  if ((await page.getByTestId('hero-neighborhood-listbox').count()) > 0) {
+    throw new Error(`Hero still exposes neighborhood listbox @ ${viewportName}`)
   }
 
-  const hit = await page.evaluate(() => {
-    const box = document.querySelector('[data-testid="hero-category-listbox"]')
-    if (!box) return { ok: false, reason: 'listbox missing' }
-    const rect = box.getBoundingClientRect()
-    const points = [
-      { label: 'center', x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
-      { label: 'bottom', x: rect.left + rect.width / 2, y: rect.bottom - 8 },
-      { label: 'lower-third', x: rect.left + rect.width / 2, y: rect.top + (rect.height * 2) / 3 },
-    ]
-    const fan = document.querySelector('[data-testid="hero-fan-stack"]')
-    const results = points.map(({ label, x, y }) => {
-      const el = document.elementFromPoint(x, y)
-      const inListbox = !!(el && (el.closest('[data-testid="hero-category-listbox"]') || el === box))
-      const inFan = !!(el && fan && (fan.contains(el) || el.closest('[data-testid="hero-fan-stack"]')))
-      return {
-        label,
-        x,
-        y,
-        tag: el?.tagName?.toLowerCase() ?? null,
-        testId: el?.closest?.('[data-testid]')?.getAttribute('data-testid') ?? null,
-        inListbox,
-        inFan,
-        text: (el?.textContent || '').trim().slice(0, 40),
-      }
-    })
-    return {
-      ok: results.every((r) => r.inListbox && !r.inFan),
-      rect: { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right, height: rect.height },
-      results,
-    }
-  })
+  const zip = page.getByTestId('hero-zip-input')
+  await zip.waitFor({ state: 'visible', timeout: 15000 })
+  const placeholder = await zip.getAttribute('placeholder')
+  if (placeholder !== 'ZIP code') {
+    throw new Error(`ZIP placeholder expected "ZIP code", got "${placeholder}"`)
+  }
+  const inputMode = await zip.getAttribute('inputmode')
+  if (inputMode !== 'numeric') {
+    throw new Error(`ZIP inputMode expected numeric, got "${inputMode}"`)
+  }
+  const maxLength = await zip.getAttribute('maxlength')
+  if (maxLength !== '5') {
+    throw new Error(`ZIP maxLength expected 5, got "${maxLength}"`)
+  }
+
+  await zip.fill('12a3b')
+  const digitsOnly = await zip.inputValue()
+  if (digitsOnly !== '123') {
+    throw new Error(`ZIP should keep digits only, got "${digitsOnly}"`)
+  }
 
   const shotName =
     viewportName === '1440x900'
-      ? 'guest-hero-category-open-1440x900.png'
-      : `guest-hero-category-open-${viewportName}.png`
+      ? 'hero-zip-search-1440x900.png'
+      : `hero-zip-search-${viewportName}.png`
   const tmp = join('/tmp', shotName)
-  await page.screenshot({ path: tmp, fullPage: false })
+  await page.locator('[data-testid="hero-search-pill"]').screenshot({ path: tmp })
   const artifact = saveShot(tmp, shotName)
-
-  if (!hit.ok) {
-    throw new Error(
-      `Category dropdown obstructed @ ${viewportName}: ${JSON.stringify(hit, null, 2)} (shot=${artifact})`,
-    )
-  }
-
-  await listbox.getByRole('option', { name: 'Junk Removal', exact: true }).click()
-  await page.waitForTimeout(150)
-  const label = await trigger.innerText()
-  if (!label.includes('Junk Removal')) {
-    throw new Error(`Trigger label not updated after select: "${label}"`)
-  }
-
-  return { artifact, hit }
+  return { artifact }
 }
 
 async function assertFindHelpNavigation(page) {
   await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
-  const trigger = page.getByTestId('hero-category-trigger')
-  await trigger.click()
-  await page.getByTestId('hero-category-listbox').getByRole('option', { name: 'Home', exact: true }).click()
+  const zip = page.getByTestId('hero-zip-input')
+  await zip.fill('78702')
   await page.getByRole('button', { name: 'Find help' }).click()
-  await page.waitForURL(/\/browse\?.*category=home/, { timeout: 15000 })
+  await page.waitForURL(/\/browse/, { timeout: 15000 })
+  // URL may briefly include zip= before Browse strips it after applying the pin.
+  await page.waitForTimeout(800)
   const url = page.url()
-  if (!url.includes('category=home')) {
-    throw new Error(`Find help did not navigate with category filter: ${url}`)
-  }
   if (/neighborhood=/.test(url)) {
-    throw new Error(`Guest Find help unexpectedly set neighborhood: ${url}`)
+    throw new Error(`Find help unexpectedly set neighborhood: ${url}`)
+  }
+
+  await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
+  await page.getByTestId('hero-zip-input').fill('787')
+  await page.getByRole('button', { name: 'Find help' }).click()
+  await page.getByTestId('hero-zip-error').waitFor({ state: 'visible', timeout: 5000 })
+  const err = await page.getByTestId('hero-zip-error').innerText()
+  if (!/Enter a 5-digit ZIP/.test(err)) {
+    throw new Error(`Expected gentle ZIP error, got "${err}"`)
+  }
+  if (!page.url().includes('/') || /\/browse/.test(page.url().replace(BASE, ''))) {
+    // Still on landing when invalid
+  }
+  if (new URL(page.url()).pathname !== '/') {
+    throw new Error(`Invalid ZIP should stay on landing, got ${page.url()}`)
   }
   return url
-}
-
-async function assertDismissBehaviors(page) {
-  await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
-  const trigger = page.getByTestId('hero-category-trigger')
-  await trigger.click()
-  await page.getByTestId('hero-category-listbox').waitFor({ state: 'visible' })
-  await page.keyboard.press('Escape')
-  await page.getByTestId('hero-category-listbox').waitFor({ state: 'hidden', timeout: 3000 })
-
-  await trigger.click()
-  await page.getByTestId('hero-category-listbox').waitFor({ state: 'visible' })
-  await page.locator('h1').click({ position: { x: 10, y: 10 } })
-  await page.getByTestId('hero-category-listbox').waitFor({ state: 'hidden', timeout: 3000 })
 }
 
 const summary = { ok: true, checks: [] }
@@ -166,14 +104,13 @@ try {
     })
     const page = await context.newPage()
     await page.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout: 60000 })
-    const result = await assertDropdownOnTop(page, vp.name)
+    const result = await assertHeroZip(page, vp.name)
     summary.checks.push({
-      name: `category-dropdown-on-top-${vp.name}`,
+      name: `hero-zip-${vp.name}`,
       ok: true,
       artifact: result.artifact,
-      hit: result.hit,
     })
-    console.log(`PASS category-dropdown-on-top @ ${vp.name} → ${result.artifact}`)
+    console.log(`PASS hero-zip @ ${vp.name} → ${result.artifact}`)
     await context.close()
   }
 
@@ -183,13 +120,9 @@ try {
       deviceScaleFactor: 1,
     })
     const page = await context.newPage()
-    await assertDismissBehaviors(page)
-    summary.checks.push({ name: 'escape-and-outside-click', ok: true })
-    console.log('PASS escape-and-outside-click')
-
     const url = await assertFindHelpNavigation(page)
-    summary.checks.push({ name: 'find-help-navigation', ok: true, url })
-    console.log(`PASS find-help-navigation → ${url}`)
+    summary.checks.push({ name: 'find-help-zip-navigation', ok: true, url })
+    console.log(`PASS find-help-zip-navigation → ${url}`)
     await context.close()
   }
 } catch (err) {
@@ -198,9 +131,7 @@ try {
   console.error('FAIL', err)
 } finally {
   await browser.close()
+  writeFileSync(join(OUT, 'hero-zip-qa.json'), JSON.stringify(summary, null, 2))
+  writeFileSync(join(LOCAL_OUT, 'hero-zip-qa.json'), JSON.stringify(summary, null, 2))
+  if (!summary.ok) process.exit(1)
 }
-
-writeFileSync(join(OUT, 'hero-dropdown-qa-summary.json'), JSON.stringify(summary, null, 2))
-writeFileSync(join(LOCAL_OUT, 'hero-dropdown-qa-summary.json'), JSON.stringify(summary, null, 2))
-console.log('\nSUMMARY', JSON.stringify({ ok: summary.ok, checks: summary.checks.map((c) => c.name) }))
-if (!summary.ok) process.exit(1)
