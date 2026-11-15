@@ -65,6 +65,7 @@ export function mapProfile(row: ProfileRow, currentUserId?: string): Person {
     onboardingCompletedAt: row.onboarding_completed_at,
     safetyDisclaimerAcceptedAt: row.safety_disclaimer_accepted_at,
     safetyDisclaimerVersion: row.safety_disclaimer_version,
+    createdAt: row.created_at ?? null,
   }
 }
 
@@ -229,6 +230,7 @@ export function mapPublicProfile(row: Record<string, unknown>): Person {
     safetyDisclaimerAcceptedAt:
       (row.safety_disclaimer_accepted_at as string | null) ?? null,
     safetyDisclaimerVersion: (row.safety_disclaimer_version as string | null) ?? null,
+    createdAt: (row.created_at as string | null | undefined) ?? null,
   }
 }
 

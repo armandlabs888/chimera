@@ -55,6 +55,7 @@ const people: Person[] = [
     isHelper: true,
     // Explicit role so jobs-only Browse does not rely on legacy isHelper fallback.
     accountRole: 'helper',
+    createdAt: hoursAgo(24 * 120),
   },
   {
     id: 'p-maya',
@@ -73,6 +74,7 @@ const people: Person[] = [
     rateType: 'hourly',
     availableNow: true,
     isHelper: true,
+    createdAt: hoursAgo(24 * 400),
   },
   {
     id: 'p-jordan',
@@ -91,6 +93,7 @@ const people: Person[] = [
     rateType: 'hourly',
     availableNow: false,
     isHelper: true,
+    createdAt: hoursAgo(24 * 280),
   },
   {
     id: 'p-sam',
@@ -110,6 +113,7 @@ const people: Person[] = [
     rateType: 'hourly',
     availableNow: false,
     isHelper: true,
+    createdAt: hoursAgo(24 * 520),
   },
   {
     id: 'p-devon',
@@ -128,6 +132,7 @@ const people: Person[] = [
     rateType: 'hourly',
     availableNow: true,
     isHelper: true,
+    createdAt: hoursAgo(24 * 90),
   },
   {
     id: 'p-riley',
@@ -146,6 +151,7 @@ const people: Person[] = [
     rateType: 'quote',
     availableNow: false,
     isHelper: true,
+    createdAt: hoursAgo(24 * 210),
   },
   {
     id: 'p-casey',
@@ -164,6 +170,7 @@ const people: Person[] = [
     rateType: 'hourly',
     availableNow: false,
     isHelper: true,
+    createdAt: hoursAgo(24 * 150),
   },
   {
     id: 'p-taylor',
@@ -182,6 +189,7 @@ const people: Person[] = [
     rateType: 'hourly',
     availableNow: false,
     isHelper: true,
+    createdAt: hoursAgo(24 * 60),
   },
 ]
 

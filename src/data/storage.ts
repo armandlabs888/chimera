@@ -31,6 +31,7 @@ function normalizePerson(p: Person): Person {
     safetyDisclaimerAcceptedAt: p.safetyDisclaimerAcceptedAt ?? null,
     safetyDisclaimerVersion: p.safetyDisclaimerVersion ?? null,
     otherSkillLabel: p.otherSkillLabel ?? null,
+    createdAt: p.createdAt ?? null,
   }
 }
 
