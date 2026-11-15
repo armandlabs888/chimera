@@ -227,6 +227,15 @@
   color: #4a5568;
 }
 
+.browse-hc-results-count {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: #4a5568;
+  text-align: left;
+}
+
 .browse-hc-loc-pill {
   display: inline-flex;
   align-items: center;
