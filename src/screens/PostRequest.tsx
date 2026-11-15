@@ -26,7 +26,6 @@ import {
   listingCoverImage,
 } from '@/lib/listingPhotos'
 import {
-  ASAP_ARRIVAL_NOTE,
   addLocalDays,
   buildWhenLabel,
   combineLocalDateTime,
@@ -95,13 +94,11 @@ function isScheduledMode(when: WhenOption): boolean {
 const WHEN_MODES = [
   {
     id: 'asap' as const,
-    title: 'As soon as possible',
-    body: 'You’re looking for help now. Helpers respond with their price and timing.',
+    title: 'I need help as soon as possible',
   },
   {
     id: 'scheduled' as const,
-    title: 'Schedule a date',
-    body: 'Pick a date and start time. Optional end time keeps the window clear.',
+    title: 'I need help on this date and time',
   },
 ]
 
@@ -933,7 +930,7 @@ export function PostRequest() {
               </div>
             </section>
 
-            {/* When — exactly two modes; not a pill chip row */}
+            {/* When — two flat radio rows + optional Text nearby helpers */}
             <section className={cardClass()} data-testid="post-when-section">
               <h2
                 id="post-when-heading"
@@ -943,13 +940,13 @@ export function PostRequest() {
                 When
               </h2>
               <p className="mb-4 text-[13px]" style={{ color: MUTED }}>
-                Choose urgency or a specific date. Arrival is still agreed when you accept a helper.
+                Pick when you need help.
               </p>
 
               <div
                 role="radiogroup"
                 aria-labelledby="post-when-heading"
-                className="grid gap-2"
+                className="border-y border-[#E3E8EF]"
                 data-testid="post-when-mode-group"
               >
                 {WHEN_MODES.map((mode) => {
@@ -962,14 +959,18 @@ export function PostRequest() {
                       aria-checked={selected}
                       data-testid={`post-when-${mode.id}`}
                       onClick={() => selectWhenMode(mode.id)}
-                      className={`flex items-start gap-3 rounded-lg border px-4 py-3.5 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
-                        selected
-                          ? 'border-[#1D5CE5] bg-white ring-1 ring-[#1D5CE5]/20'
-                          : 'border-[#E3E8EF] bg-white hover:border-[#CBD5E1] hover:bg-white'
+                      className={`relative flex w-full items-center gap-3 border-b border-[#E3E8EF] py-3.5 pl-3 pr-1 text-left last:border-b-0 transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D5CE5]/25 ${
+                        selected ? 'bg-white' : 'hover:bg-[#F8FAFC]'
                       }`}
                     >
+                      {selected ? (
+                        <span
+                          className="absolute inset-y-0 left-0 w-[3px] bg-[#1D5CE5]"
+                          aria-hidden
+                        />
+                      ) : null}
                       <span
-                        className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                        className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
                           selected
                             ? 'border-[#1D5CE5] bg-[#1D5CE5]'
                             : 'border-[#CBD5E1] bg-white'
@@ -980,53 +981,16 @@ export function PostRequest() {
                           <span className="h-1.5 w-1.5 rounded-full bg-white" />
                         ) : null}
                       </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[15px] font-semibold text-[#071330]">
-                          {mode.title}
-                        </span>
-                        <span className="mt-0.5 block text-[13px] leading-[1.45] text-[#4A5568]">
-                          {mode.body}
-                        </span>
+                      <span className="min-w-0 flex-1 text-[15px] font-semibold text-[#071330]">
+                        {mode.title}
                       </span>
                     </button>
                   )
                 })}
               </div>
 
-              <label
-                className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-[#E3E8EF] bg-white px-4 py-3.5"
-                data-testid="post-needs-help-now"
-              >
-                <input
-                  type="checkbox"
-                  className="mt-1 h-4 w-4 accent-[#1D5CE5]"
-                  checked={needsHelpNow}
-                  onChange={(e) => setNeedsHelpNow(e.target.checked)}
-                  data-testid="post-needs-help-now-checkbox"
-                />
-                <span>
-                  <span className="block text-[15px] font-semibold text-[#071330]">
-                    I need help now
-                  </span>
-                  <span className="mt-0.5 block text-[13px] leading-snug text-[#4A5568]">
-                    Text verified helpers nearby who turned on optional urgent alerts. Regular
-                    posts stay the same when this is off.
-                  </span>
-                </span>
-              </label>
-
-              {when === 'asap' ? (
-                <p
-                  className="mt-4 rounded-lg border border-[#E3E8EF] bg-white px-4 py-3 text-[13.5px] leading-relaxed text-[#4A5568]"
-                  data-testid="post-asap-note"
-                >
-                  {ASAP_ARRIVAL_NOTE}
-                </p>
-              ) : (
-                <div
-                  className="mt-4 space-y-3 rounded-lg border border-[#E3E8EF] bg-white p-4"
-                  data-testid="post-time-window"
-                >
+              {when === 'scheduled' ? (
+                <div className="mt-4 space-y-3" data-testid="post-time-window">
                   <Field label="Date">
                     <TextInput
                       type="date"
@@ -1065,7 +1029,30 @@ export function PostRequest() {
                     </span>
                   </p>
                 </div>
-              )}
+              ) : null}
+
+              <label
+                className="mt-4 flex cursor-pointer items-start gap-3 border-t border-[#E3E8EF] pt-4"
+                data-testid="post-needs-help-now"
+              >
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 accent-[#1D5CE5]"
+                  checked={needsHelpNow}
+                  onChange={(e) => setNeedsHelpNow(e.target.checked)}
+                  data-testid="post-needs-help-now-checkbox"
+                />
+                <span>
+                  <span className="block text-[15px] font-semibold text-[#071330]">
+                    Text nearby helpers
+                  </span>
+                  <span className="mt-0.5 block text-[13px] leading-snug text-[#4A5568]">
+                    Check this if it&apos;s urgent. We&apos;ll text helpers near you who turned on
+                    urgent job alerts, so someone can respond faster. Leave it unchecked for regular
+                    posts.
+                  </span>
+                </span>
+              </label>
             </section>
 
             {/* Budget */}
