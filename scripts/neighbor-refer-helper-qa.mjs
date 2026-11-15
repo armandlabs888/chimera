@@ -179,7 +179,10 @@ async function assertNeighborChrome(page, scope) {
     `${scope}: refer button should flex-center like offer CTAs, not crush via vertical padding`,
   )
   assert.ok(btnMetrics.fontSize >= 14 && btnMetrics.fontSize <= 15, `${scope}: refer font ${btnMetrics.fontSize}`)
-  assert.ok(btnMetrics.radius >= 11.5, `${scope}: refer button radius ${btnMetrics.radius}`)
+  assert.ok(
+    btnMetrics.radius >= 7.5 && btnMetrics.radius <= 10,
+    `${scope}: refer button radius ${btnMetrics.radius} (expected ~8)`,
+  )
   assert.equal(await page.locator('[data-testid="browse-ask-question"]').count(), 0, `${scope}: ask`)
   assert.equal(await page.locator('[data-testid="browse-make-offer"]').count(), 0, `${scope}: offer`)
   assert.equal(await page.locator('[data-testid="browse-offer-gated"]').count(), 0, `${scope}: gated`)
