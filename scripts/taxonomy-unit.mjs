@@ -101,7 +101,6 @@ assert.equal(normalizeOtherCustom('x'.repeat(61)).ok, false)
 // UI surfaces must not advertise removed parents
 for (const file of [
   'src/components/landing/LandingHero.tsx',
-  'src/components/landing/LandingFooter.tsx',
   'src/screens/Browse.tsx',
   'src/components/CategorySelect.tsx',
 ]) {

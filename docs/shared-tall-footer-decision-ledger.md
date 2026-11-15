@@ -1,29 +1,28 @@
-# Shared tall footer across all surfaces
+# Shared slim footer across all surfaces
 
-**Supersedes:** compact Browse/Messages app-footer exception from earlier footer work.  
-**Visual lock:** PR51 `LandingFooter` (tall brand + 4 columns + legal row).  
-**Component:** one shared `LandingFooter` — no parallel compact bars.
+**Supersedes:** tall grouped navy footer (Explore / Services / Get started / Trust + disclaimer).  
+**Visual lock:** white surface, top hairline `#E3E8EF`, logo + © HouseCall left, one link row right (`#4A5568`).  
+**Component:** one shared `LandingFooter` — no parallel compact bars or column lists.
 
 ## Route ownership (one landmark)
 
 | Surface | Footer owner |
 |---|---|
 | `/` marketing | `LandingPage` → `LandingFooter` |
-| Guest `/safety` | `Safety` public chrome → `LandingFooter` |
-| Guest `/browse` (+ other guest public paths except safety) | `AppShell` guest branch → `LandingFooter` |
+| Guest branded 404 / error | `GuestSiteChrome` → `LandingFooter` |
+| Guest `/browse` (+ other guest public paths) | `AppShell` guest branch → `LandingFooter` |
 | Signed-in AppShell (`/browse`, `/messages`, `/post`, `/you`, `/home`, `/safety`, `/people/*`, `/requests/*`, helper onboarding) | `AppShell` → `LandingFooter dockPadding` |
-| `/auth` | `AuthExperience` → `LandingFooter` |
+| `/auth` | inert `LandingPage` under auth modal (includes `LandingFooter`) |
 | `/onboarding` | `Onboarding` → `LandingFooter` |
 
-Removed: compact `app-footer`, guest browse desktop status strip, messages-hidden footer.
+Removed: column lists, tagline, payments/disclaimer legal row, role-aware Meet helpers / Become a helper / auth links in the footer.
 
-## Role-aware links
+## Fixed links
 
-- Helpers (`hidesPeerHelperDiscovery`): no Meet helpers / people tab.
-- Signed-in: Profile & account, My activity; no Sign in / Create account.
-- Guests: Sign in / Create account; Meet helpers allowed.
-- Services: always `/browse?category=<id>` (works off-landing).
+Browse jobs (`/browse`), Post a task (`/post`), How it works (`/#how-it-works`), Safety (`/safety`), Terms (`/terms`), Privacy (`/privacy`).
 
-## Reachability tradeoff
+## Layout notes
 
-Shell no longer uses `xl:h-dvh + overflow-hidden`. Browse/Messages main is viewport-tall with **internal** panel scroll; document scroll reveals the tall footer below. Composer/filters stay inside the workspace panel. Sticky topnav remains available while scrolling to the footer.
+- Same `beam-container` width as the header.
+- Mobile: links wrap onto a second line; compact vertical padding.
+- Signed-in mobile keeps `dockPadding` so the bar clears BottomNav.

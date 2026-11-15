@@ -129,14 +129,20 @@ async function checkLandingMarkup() {
   assert.doesNotMatch(text, /without invented counts/, 'old why body removed')
   assert.doesNotMatch(
     text,
-    /Peer-to-peer everyday local help —/,
-    'footer blurb has no em dash',
+    /Peer-to-peer everyday local help/,
+    'footer tagline removed',
   )
-  assert.match(
+  assert.doesNotMatch(
     text,
-    /Peer-to-peer everyday local help for home, auto, junk removal/,
-    'footer blurb updated',
+    /Payments are arranged directly between neighbors/,
+    'footer payments disclaimer removed',
   )
+  assert.match(text, /© HouseCall/, 'footer copyright')
+  assert.match(text, /href="\/browse"[^>]*>Browse jobs/, 'footer Browse jobs')
+  assert.match(text, /href="\/post"[^>]*>Post a task/, 'footer Post a task')
+  assert.match(text, /href="\/#how-it-works"[^>]*>How it works/, 'footer How it works')
+  assert.match(text, /href="\/terms"[^>]*>Terms/, 'footer Terms')
+  assert.match(text, /href="\/privacy"[^>]*>Privacy/, 'footer Privacy')
   assert.doesNotMatch(text, /Elena R\.\s*·\s*Verified neighbor/, 'no fabricated verified testimonial')
   assert.doesNotMatch(text, /why-beam-live-offers|Trusted across local neighborhoods|hero-fan-stack/, 'no legacy hero/live-proof markup')
   assert.match(text, /href="\/auth\?mode=signin"/, 'landing Log in')
@@ -903,7 +909,7 @@ async function checkLandingBrowser() {
       assert.equal(topnavLinks.browse, true, 'app-topnav contains Browse')
       assert.equal(topnavLinks.messages, true, 'app-topnav contains Messages')
 
-      // Shared tall marketing footer with Safety (replaces compact app-footer)
+      // Shared slim site footer with Safety
       await page.waitForSelector('[data-testid="landing-footer"]', { timeout: 10000 })
       const footer = page.locator('[data-testid="landing-footer"]')
       assert.equal(await footer.count(), 1, 'landing-footer visible on signed-in browse')
@@ -1100,11 +1106,11 @@ async function checkLandingBrowser() {
         assert.equal(locked.scrollY, 0, 'desktop /browse window.scrollY === 0 at load')
         assert.ok(locked.hasSiteFooter, 'desktop /browse includes shared landing-footer')
         assert.ok(
-          locked.footerHeight >= 240 && locked.footerHeight <= 340,
-          `desktop /browse footer height in ~280–340px band (got ${locked.footerHeight})`,
+          locked.footerHeight >= 48 && locked.footerHeight <= 160,
+          `desktop /browse footer height in slim band (got ${locked.footerHeight})`,
         )
         assert.ok(
-          locked.docScrollHeight > locked.docClientHeight + 200,
+          locked.docScrollHeight > locked.docClientHeight + 40,
           `desktop /browse document scrolls to reach footer (scrollHeight=${locked.docScrollHeight}, clientHeight=${locked.docClientHeight})`,
         )
         assert.equal(locked.moved, true, 'job rows move with document scroll')

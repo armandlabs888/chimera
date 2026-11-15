@@ -1,7 +1,7 @@
 # Footer polish — reference lock & decision ledger
 
 **Path:** Direct build against current Beam design system (user authorized; no option matrix).  
-**Scope:** Marketing/`LandingFooter` + restrained shared-app footer consistency. Do not change Browse/Messages full-height chrome, listing radius, location modal, or landing photos.
+**Scope (historical):** Marketing/`LandingFooter` + restrained shared-app footer consistency. Superseded by the slim shared footer in `docs/shared-tall-footer-decision-ledger.md`.
 
 ## Research status
 

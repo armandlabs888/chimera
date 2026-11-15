@@ -14,7 +14,7 @@
 | Drawer | ~500px right panel, navy scrim, focus trap, Escape, full page `/requests/[id]` |
 | Offers | Make an offer / Ask a question call `createOffer` / `ensureThread`. Guests go to `/auth?next=` |
 | Empty | Filtered empty is the mockup card. A truly empty feed keeps the existing fresh-marketplace empty |
-| Footer | Existing navy `LandingFooter` |
+| Footer | Shared slim white `LandingFooter` |
 
 ## Budget
 

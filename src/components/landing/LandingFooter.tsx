@@ -1,49 +1,21 @@
-'use client'
-
 import Link from 'next/link'
-import { useMemo } from 'react'
 import { BeamWordmark } from '@/components/BeamMark'
-import { useBeam } from '@/context/BeamContext'
-import { POPULAR_SERVICES } from '@/lib/popularServices'
-import { hidesPeerHelperDiscovery, isHelperPerson } from '@/lib/roles'
+
+const FOOTER_LINKS = [
+  { href: '/browse', label: 'Browse jobs' },
+  { href: '/post', label: 'Post a task' },
+  { href: '/#how-it-works', label: 'How it works' },
+  { href: '/safety', label: 'Safety' },
+  { href: '/terms', label: 'Terms' },
+  { href: '/privacy', label: 'Privacy' },
+] as const
 
 const linkClass =
-  'inline-flex min-h-[44px] items-center rounded-sm py-2 text-[14px] font-medium leading-snug text-[#CBD5E1] transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330]'
-
-function FooterGroup({
-  id,
-  title,
-  links,
-}: {
-  id: string
-  title: string
-  links: ReadonlyArray<{ href: string; label: string }>
-}) {
-  if (links.length === 0) return null
-  return (
-    <nav aria-labelledby={id} className="min-w-0">
-      <h2
-        id={id}
-        className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white"
-      >
-        {title}
-      </h2>
-      <ul className="mt-3 space-y-2">
-        {links.map((l) => (
-          <li key={`${l.href}-${l.label}`}>
-            <Link href={l.href} className={linkClass}>
-              {l.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  )
-}
+  'inline-flex min-h-[44px] items-center text-[13px] font-medium leading-snug text-[#4A5568] transition hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white'
 
 /**
- * Shared grouped site footer — Paper navy (#071330), compact spacing.
- * Functional groups preserved for marketing + AppShell/auth.
+ * Slim site footer used on every page: logo + copyright, one link row.
+ * White surface with top hairline to match the flat white app chrome.
  */
 export function LandingFooter({
   dockPadding = false,
@@ -51,120 +23,47 @@ export function LandingFooter({
   /** Extra bottom padding when the mobile BottomNav dock is present. */
   dockPadding?: boolean
 }) {
-  const { authUser, mode, currentUser } = useBeam()
-  const isGuest = mode === 'live' && !authUser
-  const signedIn = !isGuest
-  const hidePeerDiscovery = hidesPeerHelperDiscovery(currentUser, isGuest)
-  const canOnboardHelper = Boolean(authUser) || mode === 'demo'
-
-  const groups = useMemo(() => {
-    const explore = [
-      { href: '/browse', label: 'Browse jobs' },
-      ...(!hidePeerDiscovery
-        ? [{ href: '/browse?tab=people', label: 'Meet helpers' as const }]
-        : []),
-      { href: '/#categories', label: 'Popular services' },
-      { href: '/#how-it-works', label: 'How it works' },
-    ]
-
-    const helperLinkLabel = isHelperPerson(currentUser) ? 'Helper profile' : 'Become a helper'
-    const start = signedIn
-      ? [
-          { href: '/post', label: 'Post a task' },
-          {
-            href: '/onboarding/helper',
-            label: helperLinkLabel,
-          },
-          { href: '/you', label: 'Your profile' },
-          { href: '/home', label: 'My activity' },
-          { href: '/settings', label: 'Settings' },
-        ]
-      : [
-          { href: '/post', label: 'Post a task' },
-          {
-            href: canOnboardHelper
-              ? '/onboarding/helper'
-              : '/auth?mode=signup&next=%2Fonboarding%2Fhelper',
-            label: 'Become a helper',
-          },
-          { href: '/auth?mode=signup', label: 'Create account' },
-          { href: '/auth?mode=signin', label: 'Sign in' },
-        ]
-
-    return [
-      { id: 'footer-explore', title: 'Explore', links: explore },
-      {
-        id: 'footer-services',
-        title: 'Services',
-        links: POPULAR_SERVICES.map((p) => ({
-          href: p.href,
-          label: p.label,
-        })),
-      },
-      { id: 'footer-start', title: 'Get started', links: start },
-      {
-        id: 'footer-trust',
-        title: 'Trust',
-        links: [
-          { href: '/safety', label: 'Safety & guidelines' },
-          { href: '/terms', label: 'Terms of Service' },
-          { href: '/privacy', label: 'Privacy Policy' },
-        ],
-      },
-    ]
-  }, [
-    canOnboardHelper,
-    currentUser,
-    hidePeerDiscovery,
-    signedIn,
-  ])
-
   return (
     <footer
-      className={`shrink-0 border-t border-white/10 bg-[#071330] ${
+      className={`shrink-0 border-t border-[#E3E8EF] bg-white ${
         dockPadding ? 'pb-24 md:pb-0' : ''
       }`}
       data-testid="landing-footer"
       data-app-footer="true"
       id="site-footer"
     >
-      <div className="beam-container py-7 sm:py-8">
-        <div className="grid gap-7 lg:grid-cols-12 lg:items-start lg:gap-8">
-          <div className="flex max-w-[32ch] flex-col lg:col-span-4">
-            <Link
-              href="/"
-              className="inline-flex w-fit rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330]"
-              aria-label="HouseCall home"
-            >
-              <BeamWordmark
-                markWidth={24}
-                markHeight={24}
-                wordClassName="text-[22px] tracking-[-0.03em]"
-                tone="onDark"
-              />
-            </Link>
-            <p className="mt-2.5 text-[13.5px] leading-[1.45] text-[#CBD5E1]">
-              Peer-to-peer everyday local help for home, auto, junk removal, pets, and other casual
-              tasks.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4 lg:col-span-8">
-            {groups.map((g) => (
-              <FooterGroup key={g.id} id={g.id} title={g.title} links={g.links} />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="border-t border-white/10" data-testid="footer-legal">
-        <div className="beam-container flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-          <p className="shrink-0 text-[13px] leading-[1.35] text-[#94A3B8]">© HouseCall</p>
-          <p className="max-w-[68ch] text-[13px] leading-[1.45] text-[#94A3B8] sm:text-right">
-            Payments are arranged directly between neighbors. Not for licensed trades, childcare,
-            medical/senior care, or passenger driving.
+      <div className="beam-container flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:py-5">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <Link
+            href="/"
+            className="inline-flex w-fit rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            aria-label="HouseCall home"
+          >
+            <BeamWordmark
+              markWidth={18}
+              markHeight={18}
+              wordClassName="text-[16px] tracking-[-0.03em]"
+              tone="ink"
+            />
+          </Link>
+          <p
+            className="text-[13px] leading-none text-[#4A5568]"
+            data-testid="footer-legal"
+          >
+            © HouseCall
           </p>
         </div>
+
+        <nav
+          aria-label="Footer"
+          className="flex max-w-full flex-wrap items-center gap-x-4 gap-y-0 sm:justify-end"
+        >
+          {FOOTER_LINKS.map((l) => (
+            <Link key={l.href} href={l.href} className={linkClass}>
+              {l.label}
+            </Link>
+          ))}
+        </nav>
       </div>
     </footer>
   )

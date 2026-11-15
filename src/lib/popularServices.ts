@@ -1,8 +1,8 @@
 import { LIFESTYLE } from '@/data/media'
 
 /**
- * Popular services shown on the landing tiles and the site footer Services column.
- * Keep labels in sentence case and in sync across both surfaces.
+ * Popular services shown on the landing tiles.
+ * Keep labels in sentence case.
  */
 export const POPULAR_SERVICES = [
   {
