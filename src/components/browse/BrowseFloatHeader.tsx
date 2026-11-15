@@ -47,7 +47,6 @@ export function BrowseFloatHeader({
     { kind: 'link', href: savedHref, label: 'Saved' },
     { kind: 'link', href: offersHref, label: 'My offers' },
     { kind: 'messages', label: 'Messages' },
-    { kind: 'link', href: '/#how-it-works', label: 'How it works' },
   ]
 
   useEffect(() => {
