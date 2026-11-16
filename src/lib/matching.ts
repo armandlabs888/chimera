@@ -148,8 +148,9 @@ export function formatPriceCaption(
 }
 
 export function formatRate(person: Pick<Person, 'hourlyRate' | 'rateType'>): string {
-  if (person.rateType === 'quote') return 'Contact for quote'
-  return `$${Math.round(person.hourlyRate)}/hr`
+  // All helpers are treated as hourly in the UI. Legacy quote rows keep their
+  // rate_type in the DB; we still display whatever hourly_rate value they have.
+  return `$${Math.round(person.hourlyRate || 0)}/hr`
 }
 
 export function relativeTime(iso: string): string {

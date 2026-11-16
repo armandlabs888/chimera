@@ -301,7 +301,29 @@ export async function updateLiveProfile(
   if (patch.availableNow !== undefined) payload.available_now = patch.availableNow
   if (patch.isHelper !== undefined) payload.is_helper = patch.isHelper
 
+  const hasWorkingHoursPatch =
+    patch.workStart !== undefined ||
+    patch.workEnd !== undefined ||
+    patch.timezone !== undefined
+  if (patch.workStart !== undefined) payload.work_start = patch.workStart
+  if (patch.workEnd !== undefined) payload.work_end = patch.workEnd
+  if (patch.timezone !== undefined) payload.timezone = patch.timezone
+
   const { error } = await client.from('profiles').update(payload).eq('id', userId)
+  if (
+    error &&
+    hasWorkingHoursPatch &&
+    /work_start|work_end|timezone|column/i.test(error.message || '')
+  ) {
+    // Deployed before migration: retry without working-hours columns.
+    delete payload.work_start
+    delete payload.work_end
+    delete payload.timezone
+    if (Object.keys(payload).length === 0) return
+    const retry = await client.from('profiles').update(payload).eq('id', userId)
+    throwOnError(retry.error, 'Update profile')
+    return
+  }
   throwOnError(error, 'Update profile')
 }
 

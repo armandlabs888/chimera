@@ -173,6 +173,12 @@ export interface Person {
   safetyDisclaimerVersion?: string | null
   /** Account creation time from profiles.created_at. Optional when not exposed. */
   createdAt?: string | null
+  /** Optional typical working hours start (HH:MM). Absent until migration is applied. */
+  workStart?: string | null
+  /** Optional typical working hours end (HH:MM). Absent until migration is applied. */
+  workEnd?: string | null
+  /** IANA timezone for live Available status. Absent until migration is applied. */
+  timezone?: string | null
 }
 
 export interface HelpRequest {

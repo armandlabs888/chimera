@@ -2,27 +2,13 @@
 
 import Link from 'next/link'
 import { Heart, MapPin, Star } from 'lucide-react'
+import { HelperAvailabilityStatus } from '@/components/HelperAvailabilityStatus'
 import { useBeam } from '@/context/BeamContext'
 import { formatLocation, formatRate } from '../lib/matching'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import { formatPublicRating } from '@/lib/ratingDisplay'
-import type { AvailabilitySlot, MatchScore, Person } from '../types'
+import type { MatchScore, Person } from '../types'
 import { Avatar } from './ui'
-
-const SLOT_LABELS: Record<AvailabilitySlot, string> = {
-  mornings: 'Mornings',
-  afternoons: 'Afternoons',
-  evenings: 'Evenings',
-  weekends: 'Weekends',
-}
-
-function formatAvailability(slots: AvailabilitySlot[]): string {
-  if (!slots.length) return 'Flexible schedule'
-  return slots
-    .slice(0, 2)
-    .map((s) => SLOT_LABELS[s])
-    .join(' · ')
-}
 
 export function PersonCard({
   person,
@@ -72,7 +58,10 @@ export function PersonCard({
           <div className="min-w-0 flex-1 pr-7">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <h3 className="truncate text-[15px] font-bold text-[#071330]">{person.name}</h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="truncate text-[15px] font-bold text-[#071330]">{person.name}</h3>
+                  <HelperAvailabilityStatus person={person} />
+                </div>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[12.5px] text-[#4A5568]">
                   {ratingLabel ? (
                     <span className="inline-flex items-center gap-1 font-bold text-[#071330]">
@@ -134,13 +123,9 @@ export function PersonCard({
           {person.availableNow ? (
             <span className="inline-flex shrink-0 items-center gap-1 text-[12px] font-bold text-[#1D5CE5]">
               <span className="h-1.5 w-1.5 rounded-full bg-[#1D5CE5]" />
-              Available
+              Same-day
             </span>
-          ) : (
-            <span className="truncate text-[12px] font-semibold text-[#4A5568]">
-              {formatAvailability(person.availability)}
-            </span>
-          )}
+          ) : null}
         </div>
       </Link>
     </div>

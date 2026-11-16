@@ -23,7 +23,8 @@ export function helperProfileProgress(
     | 'hourlyRate'
     | 'rateType'
     | 'bio'
-    | 'availability'
+    | 'workStart'
+    | 'workEnd'
     | 'avatar'
     | 'safetyDisclaimerAcceptedAt'
     | 'isHelper'
@@ -44,13 +45,13 @@ export function helperProfileProgress(
     {
       id: 'rate',
       label: 'Rate',
-      ok: person.rateType === 'quote' || (person.hourlyRate ?? 0) > 0,
+      ok: (person.hourlyRate ?? 0) > 0,
     },
     { id: 'bio', label: 'Bio', ok: Boolean(person.bio?.trim()) },
     {
       id: 'availability',
-      label: 'Availability',
-      ok: (person.availability?.length ?? 0) > 0,
+      label: 'Working hours',
+      ok: Boolean(person.workStart && person.workEnd),
     },
     { id: 'avatar', label: 'Photo', ok: Boolean(person.avatar?.trim()) },
     {

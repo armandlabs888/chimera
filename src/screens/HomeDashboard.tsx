@@ -298,13 +298,9 @@ export function HomeDashboard() {
                         </span>
                         <span className="ma-act-right">
                           <div className="ma-act-price">
-                            {person.rateType === 'quote'
-                              ? 'Quote'
-                              : `$${Math.round(person.hourlyRate || 0)}`}
+                            ${Math.round(person.hourlyRate || 0)}
                           </div>
-                          <div className="ma-act-price-label">
-                            {person.rateType === 'quote' ? 'Rate' : '/hr'}
-                          </div>
+                          <div className="ma-act-price-label">/hr</div>
                         </span>
                       </Link>
                       <div className="ma-offer-actions">

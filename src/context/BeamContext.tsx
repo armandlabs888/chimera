@@ -2363,6 +2363,9 @@ export type ProfileForm = {
   availability: AvailabilitySlot[]
   rateType?: Person['rateType']
   availableNow?: boolean
+  workStart?: string | null
+  workEnd?: string | null
+  timezone?: string | null
   serviceRadiusMiles?: number
   isHelper?: boolean
 }

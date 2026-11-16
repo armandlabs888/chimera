@@ -10,10 +10,10 @@ import { formatRate, relativeTime } from '@/lib/matching'
 import { formatPublicRating, hasPublicRating } from '@/lib/ratingDisplay'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import type { Person } from '@/types'
+import { HelperAvailabilityStatus } from '@/components/HelperAvailabilityStatus'
 import { BrowseHelperPhoto } from './BrowseHelperPhoto'
 
 function hasHelperRate(person: Pick<Person, 'hourlyRate' | 'rateType'>): boolean {
-  if (person.rateType === 'quote') return true
   return (person.hourlyRate ?? 0) > 0
 }
 
@@ -74,9 +74,12 @@ export function BrowseHelperDetailPanel({
           <div className="browse-hc-helper-preview-id">
             <BrowseHelperPhoto src={person.avatar} name={person.name} size={80} />
             <div className="min-w-0">
-              <h2 id={titleId} className="browse-hc-helper-preview-name">
-                {person.name}
-              </h2>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 id={titleId} className="browse-hc-helper-preview-name">
+                  {person.name}
+                </h2>
+                <HelperAvailabilityStatus person={person} />
+              </div>
               <p className="browse-hc-helper-preview-skill">
                 {skillLabel || formatCategoryLabel(person.skills[0] ?? 'other', person.otherSkillLabel)}
               </p>

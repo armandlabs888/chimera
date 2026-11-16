@@ -432,7 +432,10 @@ export type Database = {
           service_radius_miles: number
           skills: string[]
           state_code: string | null
+          timezone: string | null
           updated_at: string
+          work_end: string | null
+          work_start: string | null
         }
         Insert: {
           account_role?: string | null
@@ -465,7 +468,10 @@ export type Database = {
           service_radius_miles?: number
           skills?: string[]
           state_code?: string | null
+          timezone?: string | null
           updated_at?: string
+          work_end?: string | null
+          work_start?: string | null
         }
         Update: {
           account_role?: string | null
@@ -497,6 +503,9 @@ export type Database = {
           safety_disclaimer_version?: string | null
           service_radius_miles?: number
           skills?: string[]
+          timezone?: string | null
+          work_end?: string | null
+          work_start?: string | null
           state_code?: string | null
           updated_at?: string
         }

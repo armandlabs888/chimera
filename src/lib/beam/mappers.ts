@@ -66,7 +66,27 @@ export function mapProfile(row: ProfileRow, currentUserId?: string): Person {
     safetyDisclaimerAcceptedAt: row.safety_disclaimer_accepted_at,
     safetyDisclaimerVersion: row.safety_disclaimer_version,
     createdAt: row.created_at ?? null,
+    workStart: normalizeOptionalTime((row as { work_start?: unknown }).work_start),
+    workEnd: normalizeOptionalTime((row as { work_end?: unknown }).work_end),
+    timezone: normalizeOptionalText((row as { timezone?: unknown }).timezone),
   }
+}
+
+function normalizeOptionalTime(value: unknown): string | null {
+  if (value == null) return null
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  const m = /^(\d{1,2}):(\d{2})/.exec(trimmed)
+  if (!m) return null
+  return `${m[1].padStart(2, '0')}:${m[2]}`
+}
+
+function normalizeOptionalText(value: unknown): string | null {
+  if (value == null) return null
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  return trimmed || null
 }
 
 export function mapRequest(
@@ -232,6 +252,9 @@ export function mapPublicProfile(row: Record<string, unknown>): Person {
       (row.safety_disclaimer_accepted_at as string | null) ?? null,
     safetyDisclaimerVersion: (row.safety_disclaimer_version as string | null) ?? null,
     createdAt: (row.created_at as string | null | undefined) ?? null,
+    workStart: normalizeOptionalTime(row.work_start),
+    workEnd: normalizeOptionalTime(row.work_end),
+    timezone: normalizeOptionalText(row.timezone),
   }
 }
 

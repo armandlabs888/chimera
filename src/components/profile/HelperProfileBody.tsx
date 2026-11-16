@@ -66,7 +66,6 @@ export function HelperProfileBody({
   const locationLabel = formatLocation(person)
   const rateLabel = formatRate(person)
   const helperFirst = firstName(person.name)
-  const isQuote = person.rateType === 'quote'
   const hourly = Math.round(person.hourlyRate || 0)
   const primarySkill = person.skills[0]
   const primarySkillLabel = primarySkill
@@ -200,9 +199,7 @@ export function HelperProfileBody({
           },
         ]
 
-  const priceDisplay = isQuote ? (
-    <div className="hpb-price">Quote</div>
-  ) : (
+  const priceDisplay = (
     <div className="hpb-price">
       ${hourly}
       <small>/hr</small>
@@ -247,9 +244,7 @@ export function HelperProfileBody({
           {helper ? (
             <div className="hpb-mobile-rate" data-testid="you-mobile-rate">
               {priceDisplay}
-              <span className="hpb-mobile-rate-label">
-                {isQuote ? 'Contact for quote' : 'Hourly rate'}
-              </span>
+              <span className="hpb-mobile-rate-label">Hourly rate</span>
             </div>
           ) : null}
 

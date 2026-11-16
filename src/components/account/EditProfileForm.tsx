@@ -17,16 +17,13 @@ import {
   normalizeOtherCustom,
   type ServiceCategoryId,
 } from '@/lib/taxonomy'
-import type { AvailabilitySlot, RateType } from '@/types'
+import {
+  WorkingHoursFields,
+  workingHoursSavePayload,
+} from '@/components/account/WorkingHoursFields'
+import { normalizeWorkTime } from '@/lib/workingHours'
 import '@/components/account/account-hc.css'
 import './edit-profile.css'
-
-const SLOTS: { id: AvailabilitySlot; label: string }[] = [
-  { id: 'mornings', label: 'Mornings' },
-  { id: 'afternoons', label: 'Afternoons' },
-  { id: 'evenings', label: 'Evenings' },
-  { id: 'weekends', label: 'Weekends' },
-]
 
 const RADIUS_OPTIONS = [3, 5, 10, 15, 25] as const
 
@@ -65,16 +62,14 @@ export function EditProfileForm() {
   const [serviceRadiusMiles, setServiceRadiusMiles] = useState(
     currentUser.serviceRadiusMiles ?? 5,
   )
-  const [rateType, setRateType] = useState<RateType>(currentUser.rateType ?? 'hourly')
   const [hourlyRate, setHourlyRate] = useState(
     currentUser.hourlyRate && currentUser.hourlyRate > 0
       ? String(currentUser.hourlyRate)
-      : '35',
+      : '',
   )
   const [availableNow, setAvailableNow] = useState(Boolean(currentUser.availableNow))
-  const [availability, setAvailability] = useState<AvailabilitySlot[]>(
-    currentUser.availability ?? [],
-  )
+  const [workStart, setWorkStart] = useState(normalizeWorkTime(currentUser.workStart) ?? '')
+  const [workEnd, setWorkEnd] = useState(normalizeWorkTime(currentUser.workEnd) ?? '')
   const [uploading, setUploading] = useState(false)
   const [pending, setPending] = useState(false)
   const [savedFlash, setSavedFlash] = useState(false)
@@ -99,14 +94,14 @@ export function EditProfileForm() {
     )
     setOtherSkillLabel(currentUser.otherSkillLabel ?? '')
     setServiceRadiusMiles(currentUser.serviceRadiusMiles ?? 5)
-    setRateType(currentUser.rateType ?? 'hourly')
     setHourlyRate(
       currentUser.hourlyRate && currentUser.hourlyRate > 0
         ? String(currentUser.hourlyRate)
-        : '35',
+        : '',
     )
     setAvailableNow(Boolean(currentUser.availableNow))
-    setAvailability(currentUser.availability ?? [])
+    setWorkStart(normalizeWorkTime(currentUser.workStart) ?? '')
+    setWorkEnd(normalizeWorkTime(currentUser.workEnd) ?? '')
   }, [
     currentUser.avatar,
     currentUser.name,
@@ -117,10 +112,10 @@ export function EditProfileForm() {
     currentUser.skills,
     currentUser.otherSkillLabel,
     currentUser.serviceRadiusMiles,
-    currentUser.rateType,
     currentUser.hourlyRate,
     currentUser.availableNow,
-    currentUser.availability,
+    currentUser.workStart,
+    currentUser.workEnd,
   ])
 
   useEffect(() => {
@@ -156,12 +151,6 @@ export function EditProfileForm() {
   function toggleSkill(id: ServiceCategoryId) {
     setSkills((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]))
     if (id === 'other') setOtherError('')
-  }
-
-  function toggleSlot(id: AvailabilitySlot) {
-    setAvailability((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
-    )
   }
 
   function onSubmit(e: FormEvent) {
@@ -205,18 +194,25 @@ export function EditProfileForm() {
         otherLabel = normalized.value
       }
       const rateNum = Number(hourlyRate)
-      if (rateType === 'hourly' && (!Number.isFinite(rateNum) || rateNum < 10)) {
+      if (!Number.isFinite(rateNum) || rateNum < 10) {
         setError('Hourly rate should be at least $10.')
+        return
+      }
+      const hours = workingHoursSavePayload(workStart, workEnd)
+      if (!hours.ok) {
+        setError(hours.error)
         return
       }
       Object.assign(patch, {
         skills: nextSkills,
         otherSkillLabel: otherLabel,
         serviceRadiusMiles,
-        rateType,
-        hourlyRate: rateType === 'hourly' ? rateNum : 0,
+        rateType: 'hourly',
+        hourlyRate: rateNum,
         availableNow,
-        availability,
+        workStart: hours.workStart,
+        workEnd: hours.workEnd,
+        timezone: hours.timezone ?? currentUser.timezone ?? null,
         isHelper: true,
       })
     }
@@ -413,80 +409,36 @@ export function EditProfileForm() {
               <div className="ep-lbl">Rate</div>
             </div>
             <div>
-              <div
-                className="ep-choice-row"
-                role="radiogroup"
-                aria-label="Rate type"
-                data-testid="you-helper-rate-type"
-              >
-                {(
-                  [
-                    ['hourly', 'Hourly rate'],
-                    ['quote', 'Contact for quote'],
-                  ] as const
-                ).map(([id, label]) => {
-                  const on = rateType === id
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      role="radio"
-                      aria-checked={on}
-                      onClick={() => setRateType(id)}
-                      className={`ep-choice${on ? ' is-on' : ''}`}
-                    >
-                      {label}
-                    </button>
-                  )
-                })}
+              <div className="ep-rate-input" data-testid="you-helper-hourly-rate">
+                <label className="ep-rate-field">
+                  <span className="ep-rate-prefix" aria-hidden>
+                    $
+                  </span>
+                  <input
+                    className="ep-input"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={hourlyRate}
+                    onChange={(e) =>
+                      setHourlyRate(e.target.value.replace(/[^\d]/g, '').slice(0, 4))
+                    }
+                    aria-label="Hourly rate in USD"
+                    placeholder="50"
+                  />
+                </label>
+                <span className="ep-meta">/ hr</span>
               </div>
-              {rateType === 'hourly' ? (
-                <div className="ep-rate-input" data-testid="you-helper-hourly-rate">
-                  <label className="ep-rate-field">
-                    <span className="ep-rate-prefix" aria-hidden>
-                      $
-                    </span>
-                    <input
-                      className="ep-input"
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      value={hourlyRate}
-                      onChange={(e) =>
-                        setHourlyRate(e.target.value.replace(/[^\d]/g, '').slice(0, 4))
-                      }
-                      aria-label="Hourly rate in USD"
-                    />
-                  </label>
-                  <span className="ep-meta">per hour</span>
-                </div>
-              ) : null}
             </div>
           </div>
 
           <div className="ep-field">
             <div>
               <div className="ep-lbl">Availability</div>
-              <div className="ep-hint">When you usually take jobs.</div>
+              <div className="ep-hint">Same-day badge and typical working hours.</div>
             </div>
             <div>
-              <div className="ep-choice-row" data-testid="you-helper-schedule">
-                {SLOTS.map((slot) => {
-                  const on = availability.includes(slot.id)
-                  return (
-                    <button
-                      key={slot.id}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => toggleSlot(slot.id)}
-                      className={`ep-choice${on ? ' is-on' : ''}`}
-                    >
-                      {slot.label}
-                    </button>
-                  )
-                })}
-              </div>
-              <div className="ep-toggle-row mt-[18px]">
+              <div className="ep-toggle-row">
                 <div>
                   <div className="font-semibold text-[#071330]">Available for same-day tasks</div>
                   <div className="ep-hint">Show an Available badge on your profile today.</div>
@@ -502,6 +454,15 @@ export function EditProfileForm() {
                 >
                   <span className="ep-toggle-knob" />
                 </button>
+              </div>
+              <div className="mt-[18px]">
+                <WorkingHoursFields
+                  workStart={workStart}
+                  workEnd={workEnd}
+                  onChangeStart={setWorkStart}
+                  onChangeEnd={setWorkEnd}
+                  testIdPrefix="you-helper-hours"
+                />
               </div>
             </div>
           </div>

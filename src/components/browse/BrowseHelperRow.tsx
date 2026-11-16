@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { HelperAvailabilityStatus } from '@/components/HelperAvailabilityStatus'
 import { BrowseHelperPhoto } from './BrowseHelperPhoto'
 import type { Person } from '@/types'
 
@@ -63,7 +64,10 @@ export function BrowseHelperRow({
         <BrowseHelperPhoto src={person.avatar} name={person.name} size={88} />
         <span className="browse-hc-helper-main">
           <span className="browse-hc-helper-copy">
-            <span className="browse-hc-helper-name">{person.name}</span>
+            <span className="flex flex-wrap items-center gap-2">
+              <span className="browse-hc-helper-name">{person.name}</span>
+              <HelperAvailabilityStatus person={person} />
+            </span>
             <span className="browse-hc-helper-skill">{skillLabel}</span>
             <span className="browse-hc-helper-meta">
               <span className="browse-hc-helper-meta-primary">

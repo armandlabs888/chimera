@@ -57,6 +57,9 @@ async function seedNeighborViewer(page) {
           p.jobsCompleted = Math.max(p.jobsCompleted || 0, 1)
           p.availableNow = true
           p.availability = p.availability?.length ? p.availability : ['mornings', 'afternoons']
+          p.workStart = p.workStart || '00:00'
+          p.workEnd = p.workEnd || '23:30'
+          p.timezone = p.timezone || 'America/Chicago'
           p.serviceRadiusMiles = p.serviceRadiusMiles || 5
           p.rateType = 'hourly'
           p.hourlyRate = p.hourlyRate || 40
@@ -99,6 +102,9 @@ async function seedHelperYou(page) {
       p.serviceRadiusMiles = p.serviceRadiusMiles || 5
       p.availableNow = true
       p.availability = p.availability?.length ? p.availability : ['afternoons', 'evenings']
+      p.workStart = p.workStart || '08:00'
+      p.workEnd = p.workEnd || '17:00'
+      p.timezone = p.timezone || 'America/Chicago'
     }
     localStorage.setItem(key, JSON.stringify(state))
   }, STORAGE_KEY)
