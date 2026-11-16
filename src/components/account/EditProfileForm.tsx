@@ -1,7 +1,6 @@
 'use client'
 
 import { Camera, Info } from 'lucide-react'
-import Link from 'next/link'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { CategorySelect } from '@/components/CategorySelect'
@@ -476,26 +475,7 @@ export function EditProfileForm() {
             </div>
           </div>
         </>
-      ) : (
-        <>
-          <h2 className="ep-group-title">Helper details</h2>
-          <div className="ep-field">
-            <div>
-              <div className="ep-lbl">Become a helper</div>
-              <div className="ep-hint">Offer your skills to neighbors nearby.</div>
-            </div>
-            <div>
-              <Link
-                href="/onboarding/helper"
-                className="ep-btn-outline inline-flex"
-                data-testid="edit-become-helper"
-              >
-                Set up helper profile
-              </Link>
-            </div>
-          </div>
-        </>
-      )}
+      ) : null}
 
       <div className="ep-save-bar" data-testid="edit-profile-save-bar">
         <button
