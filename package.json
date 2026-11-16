@@ -33,7 +33,8 @@
     "test:helper-public-profile": "node scripts/helper-public-profile-qa.mjs",
     "test:batch1-nav-flow": "node scripts/batch1-nav-flow-qa.mjs",
     "test:browse-role-layout-parity": "node scripts/browse-role-layout-parity-qa.mjs",
-    "test:neighbor-refer-helper": "node scripts/neighbor-refer-helper-qa.mjs"
+    "test:neighbor-refer-helper": "node scripts/neighbor-refer-helper-qa.mjs",
+    "test:responsive-audit": "node scripts/responsive-audit.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

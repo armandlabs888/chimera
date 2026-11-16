@@ -57,7 +57,7 @@
   align-items: center;
   gap: 10px;
   justify-self: start;
-  min-height: 32px;
+  min-height: 40px;
 }
 
 .browse-hc-nav {
@@ -112,7 +112,8 @@
 .browse-hc-post {
   display: inline-flex;
   align-items: center;
-  height: 36px;
+  height: 40px;
+  min-height: 40px;
   padding: 0 14px;
   border-radius: 9999px;
   background: var(--hc-blue);
@@ -129,8 +130,10 @@
 
 .browse-hc-menu-btn {
   display: none;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   place-items: center;
   color: var(--hc-navy);
   background: none;
@@ -302,9 +305,9 @@
   display: inline-flex;
   align-items: stretch;
   flex: none;
-  height: 40px;
-  min-height: 40px;
-  padding: 3px;
+  height: 44px;
+  min-height: 44px;
+  padding: 2px;
   border-radius: 9999px;
   background: #eef2f7;
   gap: 2px;
@@ -315,6 +318,7 @@
   align-items: center;
   justify-content: center;
   min-width: 52px;
+  min-height: 40px;
   height: 100%;
   padding: 0 12px;
   border: 0;
@@ -455,8 +459,8 @@
 
 .browse-hc-tab {
   flex: none;
-  height: 36px;
-  min-height: 36px;
+  height: 40px;
+  min-height: 40px;
   padding: 0 16px;
   border-radius: 9999px;
   font-size: 13px;
@@ -1623,8 +1627,9 @@
   }
 
   .browse-hc-post {
-    height: 32px;
-    padding: 0 12px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0 14px;
     font-size: 14px;
   }
 

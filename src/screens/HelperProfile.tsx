@@ -56,7 +56,7 @@ export function HelperProfile() {
 
   if (isHelperPerson(person)) {
     return (
-      <PageContainer className="pb-24 pt-4 sm:pb-10 sm:pt-6 md:pb-10">
+      <PageContainer className="pb-[calc(var(--beam-mobile-dock-clearance)+2rem)] pt-4 sm:pb-10 sm:pt-6 md:pb-10">
         <PublicHelperProfileView person={person} reviews={reviews} />
       </PageContainer>
     )
@@ -65,7 +65,7 @@ export function HelperProfile() {
   const isOwn = person.id === currentUser.id
 
   return (
-    <PageContainer className="pb-24 pt-4 sm:pb-10 sm:pt-6 md:pb-10">
+    <PageContainer className="pb-[calc(var(--beam-mobile-dock-clearance)+2rem)] pt-4 sm:pb-10 sm:pt-6 md:pb-10">
       <HelperProfileBody
         person={person}
         reviews={reviews}

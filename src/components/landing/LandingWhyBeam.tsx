@@ -43,7 +43,7 @@ export function LandingWhyBeam() {
             </p>
             <Link
               href="/safety"
-              className="mt-4 inline-block text-[14px] font-semibold text-[#1D5CE5] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
+              className="mt-4 inline-flex min-h-10 items-center text-[14px] font-semibold text-[#1D5CE5] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
             >
               Read safety &amp; community guidelines →
             </Link>

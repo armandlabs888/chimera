@@ -333,7 +333,7 @@ export function RequestDetail() {
 
   return (
     <div
-      className="beam-container space-y-5 py-2 pb-28 sm:py-4 lg:pb-16"
+      className="beam-container space-y-5 py-2 pb-40 sm:py-4 lg:pb-16"
       data-testid="request-detail-root"
     >
       <Link
@@ -1159,7 +1159,7 @@ export function RequestDetail() {
       {/* Mobile sticky action bar (mirrors primary CTAs in the right rail). */}
       {request.status === 'open' && !isOwner ? (
         <div
-          className="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-[#E3E8EF] bg-white px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden"
+          className="mobile-sticky-above-dock fixed inset-x-0 bottom-0 z-50 flex gap-2 border-t border-[#E3E8EF] bg-white px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden"
           data-testid="request-mobile-sticky"
         >
           {isNeighborViewer ? (

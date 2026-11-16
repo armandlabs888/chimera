@@ -763,10 +763,9 @@ export function PostRequest() {
   const stickyBar =
     step === 'describe' && !aiPending ? (
       <div
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-[#E3E8EF] bg-white px-4 py-3 lg:hidden"
+        className="mobile-sticky-above-dock fixed inset-x-0 bottom-0 z-50 border-t border-[#E3E8EF] bg-white px-4 py-3 lg:hidden"
         style={{
           paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
-          marginBottom: 'calc(3.5rem + env(safe-area-inset-bottom))',
         }}
         data-testid="post-sticky-continue"
       >
@@ -783,10 +782,9 @@ export function PostRequest() {
       </div>
     ) : step === 'review' ? (
       <div
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-[#E3E8EF] bg-white px-4 py-3 lg:hidden"
+        className="mobile-sticky-above-dock fixed inset-x-0 bottom-0 z-50 border-t border-[#E3E8EF] bg-white px-4 py-3 lg:hidden"
         style={{
           paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
-          marginBottom: 'calc(3.5rem + env(safe-area-inset-bottom))',
         }}
         data-testid="post-sticky-submit"
       >
@@ -908,7 +906,7 @@ export function PostRequest() {
                         key={chip}
                         type="button"
                         onClick={() => setAiPrompt(chip)}
-                        className="rounded-md px-3 py-1.5 text-[13px] font-semibold transition hover:bg-[#E3E8EF]"
+                        className="min-h-10 rounded-md px-3 py-2 text-[13px] font-semibold transition hover:bg-[#E3E8EF]"
                         style={{ backgroundColor: PILL, color: INK }}
                       >
                         {chip}

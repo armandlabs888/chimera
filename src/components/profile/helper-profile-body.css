@@ -60,6 +60,9 @@
 }
 
 .hpb-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
   color: #1649bd;
   font-weight: 600;
   text-decoration: none;
