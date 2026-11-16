@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
+import { HouseCallWordmark } from '@/components/HouseCallWordmark'
 import { BeamProvider } from '@/context/BeamContext'
 import { GuestSiteChrome } from '@/components/marketing/GuestSiteChrome'
 
@@ -20,7 +21,7 @@ export default function Error({
     <BeamProvider nonBlocking>
       <GuestSiteChrome>
         <div className="beam-container flex flex-1 flex-col items-center justify-center py-16 text-center sm:py-24">
-          <p className="font-display text-[22px] font-bold tracking-tight text-[#071330]">HouseCall</p>
+          <HouseCallWordmark size={22} />
           <h1 className="mt-4 type-h2 text-[#071330]">Something went wrong</h1>
           <p className="mt-2 max-w-md type-sec text-beam-muted">
             The page hit an unexpected error. You can try again or return to HouseCall home.
