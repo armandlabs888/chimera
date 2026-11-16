@@ -95,40 +95,6 @@
   box-shadow: 0 0 0 3px rgba(29, 92, 229, 0.35);
 }
 
-.describe-chips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.describe-chip {
-  display: inline-flex;
-  align-items: center;
-  min-height: 40px;
-  height: 40px;
-  padding: 0 14px;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(227, 232, 239, 0.9);
-  color: #071330;
-  font-size: 13px;
-  font-weight: 500;
-  backdrop-filter: blur(8px);
-  cursor: pointer;
-}
-
-.describe-chip:hover {
-  background: #fff;
-}
-
-.describe-chip.on-light {
-  background: #eef2f7;
-  border-color: #d7e0ec;
-  backdrop-filter: none;
-}
-
 /* Portal suggestions panel (fixed positioning applied inline). */
 .describe-suggest {
   z-index: 80;
@@ -273,7 +239,6 @@
 /* -------------------------------------------------------------------------- */
 
 .describe-search--hero .describe-search-pill,
-.describe-search--hero .describe-chip,
 .describe-suggest--glass {
   background: rgba(255, 255, 255, 0.14) !important;
   -webkit-backdrop-filter: blur(18px) saturate(1.4);
@@ -306,14 +271,6 @@
 
 .describe-search--hero .describe-search-div {
   background: rgba(255, 255, 255, 0.3) !important;
-}
-
-.describe-search--hero .describe-chip {
-  color: #fff !important;
-}
-
-.describe-search--hero .describe-chip:hover {
-  background: rgba(255, 255, 255, 0.24) !important;
 }
 
 .describe-search--hero .describe-zip-error {

@@ -478,7 +478,6 @@ export function Match() {
             roleHint={roleHint}
             cityLabel={cityName}
             variant="results"
-            showChips={false}
             onSubmit={navigateMatch}
           />
         </div>
