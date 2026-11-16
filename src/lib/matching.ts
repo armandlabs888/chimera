@@ -151,7 +151,7 @@ export function formatRate(person: Pick<Person, 'hourlyRate' | 'rateType'>): str
   const amount = Math.round(person.hourlyRate || 0)
   // Flat rate uses hourly_rate for the amount. Legacy quote rows keep their
   // rate_type in the DB and still display as hourly.
-  if (person.rateType === 'flat') return `$${amount} flat`
+  if (person.rateType === 'flat') return `$${amount} Flat Fee`
   return `$${amount}/hr`
 }
 

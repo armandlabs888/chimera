@@ -27,8 +27,8 @@ export function RateFields({
   variant = 'account',
   testIdPrefix = 'helper-rate',
 }: RateFieldsProps) {
-  const suffix = rateType === 'flat' ? 'flat' : '/hr'
-  const amountLabel = rateType === 'flat' ? 'Flat rate in USD' : 'Hourly rate in USD'
+  const suffix = rateType === 'flat' ? 'Flat Fee' : '/hr'
+  const amountLabel = rateType === 'flat' ? 'Flat Fee in USD' : 'Hourly rate in USD'
   const segClass = variant === 'edit' ? 'ep-seg' : 'account-hc-seg'
   const rateInputClass =
     variant === 'edit' ? 'ep-rate-input' : 'account-hc-rate-input'
@@ -45,7 +45,7 @@ export function RateFields({
         {(
           [
             ['hourly', 'Hourly'],
-            ['flat', 'Flat rate'],
+            ['flat', 'Flat Fee'],
           ] as const
         ).map(([id, label]) => {
           const on = rateType === id

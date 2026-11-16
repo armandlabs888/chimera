@@ -109,7 +109,7 @@ export function YouHelperDetailsForm() {
     if (!Number.isFinite(rateNum) || rateNum < 10) {
       setError(
         rateType === 'flat'
-          ? 'Flat rate should be at least $10.'
+          ? 'Flat Fee should be at least $10.'
           : 'Hourly rate should be at least $10.',
       )
       return

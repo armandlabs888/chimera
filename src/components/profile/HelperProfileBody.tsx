@@ -202,7 +202,7 @@ export function HelperProfileBody({
   const priceDisplay = (
     <div className="hpb-price">
       ${hourly}
-      <small>{isFlatRate(person) ? ' flat' : '/hr'}</small>
+      <small>{isFlatRate(person) ? ' Flat Fee' : '/hr'}</small>
     </div>
   )
 

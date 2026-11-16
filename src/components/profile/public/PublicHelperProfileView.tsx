@@ -581,7 +581,7 @@ export function PublicHelperProfileView({
                   <div className="php-total-row" data-testid="public-helper-total">
                     <span className="php-lbl">
                       {flatRate
-                        ? 'Estimated total (flat rate)'
+                        ? 'Estimated total (Flat Fee)'
                         : `Estimated total ($${hourly} × ${hoursLabel})`}
                     </span>
                     <span className="php-amt">${total}</span>
