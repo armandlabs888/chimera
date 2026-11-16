@@ -14,20 +14,13 @@ function isOnboardingAllowedPath(pathname: string) {
   return pathname === '/onboarding' || pathname === '/safety'
 }
 
-function BootSplash() {
-  return (
-    <div className="flex min-h-dvh items-center justify-center bg-white">
-      <p className="text-[22px] font-semibold tracking-tight text-[#071330]" aria-busy="true">
-        HouseCall
-      </p>
-    </div>
-  )
-}
-
 /**
  * Live-mode gate. Public discovery routes pass through; write / account routes
  * redirect to the canonical `/auth` page (never an inline compact auth UI).
  * Authenticated users missing onboarding are forced to /onboarding.
+ *
+ * Loading / redirect states render nothing in the content area so AppShell
+ * (header/footer) stays visible. No full-screen HouseCall splash.
  */
 export function AuthGate({ children }: { children: ReactNode }) {
   const { mode, authUser, currentUser, ready } = useBeam()
@@ -84,11 +77,16 @@ export function AuthGate({ children }: { children: ReactNode }) {
     router.replace(helperDiscoveryRedirect)
   }, [helperDiscoveryRedirect, router])
 
-  if (!ready) return <BootSplash />
+  // Session still resolving: public discovery may paint; gated routes stay blank
+  // so protected content never flashes for signed-out users.
+  if (!ready) {
+    if (isPublicAppPath(pathname)) return <>{children}</>
+    return null
+  }
 
   if (mode !== 'live' || authUser) {
     if (needsOnboarding && !isOnboardingAllowedPath(pathname)) {
-      return <BootSplash />
+      return null
     }
     return <>{children}</>
   }
@@ -97,6 +95,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
   // screen itself redirects live guests without preview to sign-up.
   if (isPublicAppPath(pathname) && !guestAuthHref) return <>{children}</>
 
-  // Redirecting to /auth — never render secondary compact auth UI.
-  return <BootSplash />
+  // Redirecting to /auth — blank content only; header stays via AppShell.
+  return null
 }

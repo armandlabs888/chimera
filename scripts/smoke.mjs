@@ -823,7 +823,7 @@ async function checkLandingBrowser() {
     // Public browse + safety
     await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body')
-    // Live boot can briefly show the "HouseCall" splash before public marketplace hydrates.
+    // Boot must keep marketplace chrome (no full-screen HouseCall splash takeover).
     await page
       .waitForFunction(
         () =>
@@ -839,6 +839,10 @@ async function checkLandingBrowser() {
       browseBody,
       /Jobs near|Helpers near|Open requests|Local helpers|Welcome back|Continue with Google|Sign in/i,
       'browse reachable',
+    )
+    assert.ok(
+      !/^HouseCall\s*$/.test(browseBody.trim()),
+      'no full-screen HouseCall splash',
     )
     assert.doesNotMatch(browseBody.slice(0, 80), /^HouseCall\nSign in to help nearby$/m)
     assert.doesNotMatch(browseBody, /across Austin neighborhoods/i)

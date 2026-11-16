@@ -146,11 +146,11 @@ export function HelperVerification() {
 
   if (!ready) {
     return (
-      <div className="account-hc" data-testid="verify-loading">
-        <div className="account-hc-wrap account-hc-page account-hc-verify flex items-center justify-center py-24">
-          <p className="text-[22px] font-semibold text-[#071330]" aria-busy="true">
-            HouseCall
-          </p>
+      <div className="account-hc" data-testid="verify-loading" aria-busy="true">
+        <div className="account-hc-wrap account-hc-page account-hc-verify">
+          <div className="h-8 w-48 animate-pulse rounded-md bg-[#E8EEF7]" />
+          <div className="mt-3 h-4 w-72 max-w-full animate-pulse rounded-md bg-[#E8EEF7]" />
+          <div className="mt-8 h-40 w-full animate-pulse rounded-lg bg-[#E8EEF7]" />
         </div>
       </div>
     )

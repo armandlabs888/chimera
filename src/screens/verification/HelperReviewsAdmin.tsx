@@ -60,10 +60,10 @@ export function HelperReviewsAdmin() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-white">
-        <p className="text-[22px] font-semibold text-[#071330]" aria-busy="true">
-          {PRODUCT_NAME}
-        </p>
+      <div className="px-4 py-6" aria-busy="true" aria-label="Loading" data-testid="admin-reviews-loading">
+        <div className="h-8 w-48 animate-pulse rounded-md bg-[#E8EEF7]" />
+        <div className="mt-3 h-4 w-72 max-w-full animate-pulse rounded-md bg-[#E8EEF7]" />
+        <div className="mt-8 h-40 w-full animate-pulse rounded-lg bg-[#E8EEF7]" />
       </div>
     )
   }

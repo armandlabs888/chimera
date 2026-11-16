@@ -3,22 +3,26 @@ import { Suspense } from 'react'
 import { BeamProvider } from '@/context/BeamContext'
 import { AppShell } from '@/components/Layout'
 import { AuthGate } from '@/components/AuthGate'
+import { ContentSkeleton } from '@/components/loading/ContentSkeleton'
+import { RouteProgressBar } from '@/components/loading/RouteProgressBar'
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <BeamProvider>
       <Suspense
         fallback={
-          <div className="flex min-h-dvh items-center justify-center bg-beam-base text-beam-cream">
-            <p className="text-[22px] font-semibold tracking-tight text-[#071330]" aria-busy="true">
-              HouseCall
-            </p>
+          <div className="app-shell relative flex min-h-dvh flex-col bg-white text-[#071330]">
+            <div className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-[2px] bg-[#1D5CE5]" />
+            <main className="relative flex-1">
+              <ContentSkeleton />
+            </main>
           </div>
         }
       >
-        <AuthGate>
-          <AppShell>{children}</AppShell>
-        </AuthGate>
+        <RouteProgressBar />
+        <AppShell>
+          <AuthGate>{children}</AuthGate>
+        </AppShell>
       </Suspense>
     </BeamProvider>
   )
