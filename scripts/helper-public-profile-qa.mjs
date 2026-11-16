@@ -108,9 +108,12 @@ async function assertPublicProfile(page) {
   await page.getByTestId('public-helper-profile').waitFor({ state: 'visible', timeout: 20000 })
   await page.getByTestId('public-helper-estimator').waitFor({ state: 'visible' })
   await page.getByTestId('public-helper-request-book').waitFor({ state: 'visible' })
-  await page.getByTestId('public-helper-save').waitFor({ state: 'visible' })
   await page.getByTestId('public-helper-share').waitFor({ state: 'visible' })
   await page.getByTestId('public-helper-message').waitFor({ state: 'visible' })
+  // Save lives in the overflow menu (not always mounted until opened).
+  await page.getByTestId('profile-header-overflow').click()
+  await page.getByTestId('public-helper-save').waitFor({ state: 'visible' })
+  await page.keyboard.press('Escape')
 
   // Same browse-header shell as /you (not the older AppShell topnav).
   await page.getByTestId('browse-hc-header-shell').waitFor({ state: 'visible' })

@@ -13,7 +13,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (result.status === 'missing') notFound()
 
   if (result.status === 'found') {
-    const { name, categoryLabel, cityLabel } = result.data
+    const { name, categoryLabel, cityLabel, kind } = result.data
+    if (kind === 'neighbor') {
+      return pageMetadata({
+        title: name,
+        description: `${name} on HouseCall.`,
+        path: `/people/${id}`,
+        noindex: true,
+      })
+    }
     const title = `${name}`
     const description = `${name} offers ${categoryLabel} on HouseCall in ${cityLabel}. Compare offers and book trusted local help.`
     return pageMetadata({
