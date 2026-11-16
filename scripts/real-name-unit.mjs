@@ -75,6 +75,33 @@ bad('Bcdfg', 'Smith') // no vowels, 5 letters
 ok('Nguyen', 'Tran') // has vowels
 ok('Lloyd', 'Smith')
 
+// Stricter English-word / phrase rules
+bad('Best', 'Seller')
+bad('Cool', 'Guy')
+bad('Big', 'Mike')
+bad('Top', 'Rated')
+bad('Handy', 'Man')
+bad('Super', 'Star')
+bad('Real', 'Deal')
+bad('Test', 'User')
+bad('asdf', 'qwer')
+bad('John', 'Doe')
+
+// Real people (including English-word given names that are genuine names)
+ok('Maria', 'Lopez')
+ok('Armand', 'Mercado')
+ok('Grace', 'Hope')
+ok('Will', 'Smith')
+ok('Rose', 'Baker')
+ok('Mark', 'Best')
+ok('Li', 'Wu')
+ok('Nguyen', 'Tran')
+ok("Siobhan", "O'Neill")
+ok('Jean-Luc', 'Picard')
+ok('Aarav', 'Patel')
+ok('Oluwaseun', 'Adeyemi')
+ok('Ximena', 'Hernandez')
+
 assert.equal(parseRealName(null, 'x').ok, false)
 assert.equal(parseRealName('Armand', 1).ok, false)
 
@@ -87,5 +114,6 @@ assert.equal(splitValidExistingName('neighbor'), null)
 assert.equal(splitValidExistingName('test user'), null)
 assert.equal(splitValidExistingName('armand@example.com'), null)
 assert.equal(splitValidExistingName('Armand'), null)
+assert.equal(splitValidExistingName('Best Seller'), null)
 
 console.log('real-name-unit PASS')

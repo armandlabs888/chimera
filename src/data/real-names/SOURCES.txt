@@ -1,0 +1,27 @@
+Real-name reference data (public-domain / free-to-use)
+
+1. US SSA Baby Names, national files (yobYYYY.txt), all years.
+   Names with total count >= 5 across years.
+   US government work, public domain.
+   Source mirror: Internet Archive item names_202502 (SSA names.zip).
+   Original: https://www.ssa.gov/oact/babynames/names.zip
+
+2. International given names supplement.
+   smashew/NameDatabases first names/all.txt (free to use).
+   https://github.com/smashew/NameDatabases
+
+3. US Census Bureau 2010 Census surnames (Names_2010Census.csv).
+   US government work, public domain.
+   https://www2.census.gov/topics/genealogy/2010surnames/names.zip
+
+4. Common English words (top ~20k by frequency).
+   first20hours/google-10000-english 20k.txt
+   https://github.com/first20hours/google-10000-english
+
+Runtime validation imports only lexicon.v1.json (english words plus
+english∩given and english∩surname allowlists). Full first-names.v1.json
+and surnames.v1.json are bundled for reference and regeneration; they are
+not imported by the client bundle.
+
+Regenerate with: node scripts/build-real-name-lexicon.mjs
+(Requires the raw source files under /tmp or paths passed via env.)
