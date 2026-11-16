@@ -300,7 +300,9 @@ export function HomeDashboard() {
                           <div className="ma-act-price">
                             ${Math.round(person.hourlyRate || 0)}
                           </div>
-                          <div className="ma-act-price-label">/hr</div>
+                          <div className="ma-act-price-label">
+                            {person.rateType === 'flat' ? 'flat' : '/hr'}
+                          </div>
                         </span>
                       </Link>
                       <div className="ma-offer-actions">

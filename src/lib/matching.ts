@@ -148,9 +148,16 @@ export function formatPriceCaption(
 }
 
 export function formatRate(person: Pick<Person, 'hourlyRate' | 'rateType'>): string {
-  // All helpers are treated as hourly in the UI. Legacy quote rows keep their
-  // rate_type in the DB; we still display whatever hourly_rate value they have.
-  return `$${Math.round(person.hourlyRate || 0)}/hr`
+  const amount = Math.round(person.hourlyRate || 0)
+  // Flat rate uses hourly_rate for the amount. Legacy quote rows keep their
+  // rate_type in the DB and still display as hourly.
+  if (person.rateType === 'flat') return `$${amount} flat`
+  return `$${amount}/hr`
+}
+
+/** True when the helper publishes a flat (per-job) rate. */
+export function isFlatRate(person: Pick<Person, 'rateType'>): boolean {
+  return person.rateType === 'flat'
 }
 
 export function relativeTime(iso: string): string {

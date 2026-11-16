@@ -25,7 +25,7 @@ import {
   parseTimeInput,
 } from '@/lib/listingSchedule'
 import { formatLocation } from '@/lib/location'
-import { formatRate, relativeTime } from '@/lib/matching'
+import { formatRate, isFlatRate, relativeTime } from '@/lib/matching'
 import { hidesPeerHelperDiscovery } from '@/lib/roles'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import type { Person, Review } from '@/types'
@@ -97,6 +97,7 @@ export function PublicHelperProfileView({
   const primarySkill = skills[0]
   const hourly = Math.round(person.hourlyRate || 0)
   const rateLabel = formatRate(person)
+  const flatRate = isFlatRate(person)
   const viewerArea =
     origin.locationLabel?.trim() ||
     currentUser.locationLabel?.trim() ||
@@ -117,7 +118,7 @@ export function PublicHelperProfileView({
   const headerMeta = useMemo(() => buildRoleMeta('helper', person), [person])
   const hasHours = hasWorkingHours(person)
 
-  const total = hourly * hours
+  const total = flatRate ? hourly : hourly * hours
   const hoursLabel = hours === 1 ? '1 hr' : `${hours} hrs`
 
   function requireAuth(): boolean {
@@ -514,7 +515,7 @@ export function PublicHelperProfileView({
                   </div>
                 </div>
 
-                {hourly > 0 ? (
+                {hourly > 0 && !flatRate ? (
                   <div className="php-field">
                     <div className="php-time-row">
                       <span className="php-label" style={{ margin: 0 }}>
@@ -579,7 +580,9 @@ export function PublicHelperProfileView({
                 {hourly > 0 ? (
                   <div className="php-total-row" data-testid="public-helper-total">
                     <span className="php-lbl">
-                      Estimated total (${hourly} × {hoursLabel})
+                      {flatRate
+                        ? 'Estimated total (flat rate)'
+                        : `Estimated total ($${hourly} × ${hoursLabel})`}
                     </span>
                     <span className="php-amt">${total}</span>
                   </div>

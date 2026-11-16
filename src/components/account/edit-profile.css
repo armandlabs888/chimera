@@ -93,11 +93,46 @@
   font-weight: 600;
 }
 
+.ep-seg {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: #eef2f7;
+  gap: 2px;
+}
+
+.ep-seg button {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a5568;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.ep-seg button.is-on {
+  background: #fff;
+  color: #071330;
+  box-shadow: 0 1px 2px rgba(7, 19, 48, 0.08);
+}
+
 .ep-rate-input {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-top: 10px;
+}
+
+.rate-fields .ep-rate-input {
+  margin-top: 12px;
+}
+
+.rate-fields .ep-hint {
+  margin-top: 8px;
 }
 
 .ep-rate-field {

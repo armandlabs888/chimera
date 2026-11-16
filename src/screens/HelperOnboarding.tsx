@@ -21,10 +21,16 @@ import {
   type UsCity,
 } from '@/lib/usPlaces'
 import {
+  RateFields,
+  toEditorRateType,
+  type EditorRateType,
+} from '@/components/account/RateFields'
+import {
   WorkingHoursFields,
   workingHoursSavePayload,
 } from '@/components/account/WorkingHoursFields'
 import { normalizeWorkTime } from '@/lib/workingHours'
+import { formatRate } from '@/lib/matching'
 import '@/components/account/account-hc.css'
 import '@/components/account/helper-profile-hc.css'
 
@@ -67,6 +73,9 @@ export function HelperOnboarding() {
   const [lng, setLng] = useState<number | null>(currentUser.lng ?? null)
   const [serviceRadiusMiles, setServiceRadiusMiles] = useState(
     currentUser.serviceRadiusMiles ?? 5,
+  )
+  const [rateType, setRateType] = useState<EditorRateType>(
+    toEditorRateType(currentUser.rateType),
   )
   const [hourlyRate, setHourlyRate] = useState(
     currentUser.hourlyRate && currentUser.hourlyRate > 0
@@ -330,7 +339,11 @@ export function HelperOnboarding() {
     const rateNum = Number(hourlyRate)
     if (!Number.isFinite(rateNum) || rateNum < 10) {
       setSkillsError('')
-      setError('Hourly rate should be at least $10.')
+      setError(
+        rateType === 'flat'
+          ? 'Flat rate should be at least $10.'
+          : 'Hourly rate should be at least $10.',
+      )
       return
     }
 
@@ -357,7 +370,7 @@ export function HelperOnboarding() {
         lat: resolvedCity?.lat ?? lat,
         lng: resolvedCity?.lng ?? lng,
         serviceRadiusMiles,
-        rateType: 'hourly',
+        rateType,
         hourlyRate: rateNum,
         availableNow,
         workStart: hours.workStart,
@@ -383,7 +396,10 @@ export function HelperOnboarding() {
     currentUser.city ||
     ''
   const previewRate = hourlyRate.trim()
-    ? `$${Math.round(Number(hourlyRate)) || hourlyRate}/hr`
+    ? formatRate({
+        hourlyRate: Number(hourlyRate) || 0,
+        rateType,
+      })
     : ''
   const showRating = currentUser.rating > 0 && currentUser.reviewCount > 0
   const previewSkills = skills.map((skill) =>
@@ -718,27 +734,15 @@ export function HelperOnboarding() {
                 Rate and availability
               </h2>
 
-              <div>
+              <div data-testid="helper-hourly-rate">
                 <p className={labelClass}>Rate</p>
-                <div className="account-hc-rate-input" data-testid="helper-hourly-rate">
-                  <span className="pre" aria-hidden>
-                    $
-                  </span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={hourlyRate}
-                    onChange={(e) =>
-                      setHourlyRate(e.target.value.replace(/[^\d]/g, '').slice(0, 4))
-                    }
-                    aria-label="Hourly rate in USD"
-                    placeholder="50"
-                  />
-                  <span className="post" aria-hidden>
-                    / hr
-                  </span>
-                </div>
+                <RateFields
+                  rateType={rateType}
+                  hourlyRate={hourlyRate}
+                  onChangeRateType={setRateType}
+                  onChangeHourlyRate={setHourlyRate}
+                  testIdPrefix="helper-rate"
+                />
               </div>
 
               <div className="account-hc-toggle-row">

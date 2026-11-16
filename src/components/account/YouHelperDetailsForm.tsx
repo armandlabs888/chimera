@@ -3,6 +3,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { CategorySelect } from '@/components/CategorySelect'
 import {
+  RateFields,
+  toEditorRateType,
+  type EditorRateType,
+} from '@/components/account/RateFields'
+import {
   WorkingHoursFields,
   workingHoursSavePayload,
 } from '@/components/account/WorkingHoursFields'
@@ -36,6 +41,9 @@ export function YouHelperDetailsForm() {
   const [serviceRadiusMiles, setServiceRadiusMiles] = useState(
     currentUser.serviceRadiusMiles ?? 5,
   )
+  const [rateType, setRateType] = useState<EditorRateType>(
+    toEditorRateType(currentUser.rateType),
+  )
   const [hourlyRate, setHourlyRate] = useState(
     currentUser.hourlyRate && currentUser.hourlyRate > 0
       ? String(currentUser.hourlyRate)
@@ -56,6 +64,7 @@ export function YouHelperDetailsForm() {
     )
     setOtherSkillLabel(currentUser.otherSkillLabel ?? '')
     setServiceRadiusMiles(currentUser.serviceRadiusMiles ?? 5)
+    setRateType(toEditorRateType(currentUser.rateType))
     setHourlyRate(
       currentUser.hourlyRate && currentUser.hourlyRate > 0
         ? String(currentUser.hourlyRate)
@@ -68,6 +77,7 @@ export function YouHelperDetailsForm() {
     currentUser.skills,
     currentUser.otherSkillLabel,
     currentUser.serviceRadiusMiles,
+    currentUser.rateType,
     currentUser.hourlyRate,
     currentUser.availableNow,
     currentUser.workStart,
@@ -97,7 +107,11 @@ export function YouHelperDetailsForm() {
     }
     const rateNum = Number(hourlyRate)
     if (!Number.isFinite(rateNum) || rateNum < 10) {
-      setError('Hourly rate should be at least $10.')
+      setError(
+        rateType === 'flat'
+          ? 'Flat rate should be at least $10.'
+          : 'Hourly rate should be at least $10.',
+      )
       return
     }
 
@@ -114,7 +128,7 @@ export function YouHelperDetailsForm() {
         skills,
         otherSkillLabel: otherLabel,
         serviceRadiusMiles,
-        rateType: 'hourly',
+        rateType,
         hourlyRate: rateNum,
         availableNow,
         workStart: hours.workStart,
@@ -196,25 +210,15 @@ export function YouHelperDetailsForm() {
         </div>
       </div>
 
-      <div className="account-hc-field">
+      <div className="account-hc-field" data-testid="you-helper-hourly-rate">
         <p className="account-hc-label">Rate</p>
-        <label className="account-hc-rate-input" data-testid="you-helper-hourly-rate">
-          <span className="pre" aria-hidden>
-            $
-          </span>
-          <input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            value={hourlyRate}
-            onChange={(e) => setHourlyRate(e.target.value.replace(/[^\d]/g, '').slice(0, 4))}
-            aria-label="Hourly rate in USD"
-            placeholder="50"
-          />
-          <span className="post" aria-hidden>
-            / hr
-          </span>
-        </label>
+        <RateFields
+          rateType={rateType}
+          hourlyRate={hourlyRate}
+          onChangeRateType={setRateType}
+          onChangeHourlyRate={setHourlyRate}
+          testIdPrefix="you-helper-rate"
+        />
       </div>
 
       <div className="account-hc-field">

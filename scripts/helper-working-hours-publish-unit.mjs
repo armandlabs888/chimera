@@ -100,6 +100,17 @@ assert.equal(publishPayload.hourly_rate, 45)
 assert.equal(publishPayload.rate_type, 'hourly')
 assert.equal(publishPayload.available_now, true)
 
+// Flat rate publish keeps amount on hourly_rate and sets rate_type
+const flatPayload = buildLiveProfileUpdatePayload({
+  skills: ['junk-removal'],
+  rateType: 'flat',
+  hourlyRate: 120,
+  isHelper: true,
+})
+assert.equal(flatPayload.rate_type, 'flat')
+assert.equal(flatPayload.hourly_rate, 120)
+assert.equal(flatPayload.is_helper, true)
+
 // Clearing hours
 const clearPayload = buildLiveProfileUpdatePayload({
   workStart: null,
