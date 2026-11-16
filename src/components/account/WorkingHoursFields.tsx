@@ -50,7 +50,7 @@ export function WorkingHoursFields({
             Start
           </span>
           <select
-            className="account-hc-input h-11 w-full"
+            className="account-hc-select h-11 w-full"
             value={workStart}
             onChange={(e) => onChangeStart(e.target.value as WorkTimeValue | '')}
             aria-label="Working hours start"
@@ -69,7 +69,7 @@ export function WorkingHoursFields({
             End
           </span>
           <select
-            className="account-hc-input h-11 w-full"
+            className="account-hc-select h-11 w-full"
             value={workEnd}
             onChange={(e) => onChangeEnd(e.target.value as WorkTimeValue | '')}
             aria-label="Working hours end"
