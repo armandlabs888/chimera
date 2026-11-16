@@ -18,6 +18,7 @@ import { loadState, resetState, saveState, uid } from '@/data/storage'
 import { resolveAreaCentroid } from '@/lib/areaCentroids'
 import { resolveBeamMode, type BeamMode } from '@/lib/config'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
+import { parseRealName } from '@/lib/realName'
 import {
   acceptLiveOffer,
   cancelLiveHelpRequest,
@@ -136,6 +137,8 @@ interface BeamContextValue {
     role: AccountRole
     city: string
     stateCode: string
+    firstName: string
+    lastName: string
     safetyVersion?: string
   }) => Promise<void>
   /** @deprecated Prefer postRequest */
@@ -553,38 +556,89 @@ export function BeamProvider({
       role: AccountRole
       city: string
       stateCode: string
+      firstName: string
+      lastName: string
       safetyVersion?: string
     }) => {
       const safetyVersion = input.safetyVersion || 'v1'
       const now = new Date().toISOString()
       const locationLabel = `${input.city}, ${input.stateCode}`
 
+      const parsed = parseRealName(input.firstName, input.lastName)
+      if (!parsed.ok) {
+        throw new Error(parsed.error)
+      }
+
       if (mode === 'live') {
         try {
           if (!authUser) throw new Error('Not signed in')
           const client = createClient()
           await ensureProfile(client, authUser.id, profileSeedFromUser(authUser))
-          const { data, error } = await client.rpc('complete_onboarding', {
-            p_role: input.role,
-            p_city: input.city,
-            p_state_code: input.stateCode,
-            p_accept_safety: true,
-            p_safety_version: safetyVersion,
-          })
-          if (error) throw error
-          if (!data) throw new Error('Onboarding did not return a profile')
 
-          const mapped = mapProfile(data, authUser.id)
-          // Patch BeamContext immediately so AuthGate sees onboardingCompletedAt
-          // before navigation — avoids a redirect loop back to /onboarding.
-          setState((prev) => {
-            if (!prev) return prev
-            const others = prev.people.filter((p) => p.id !== mapped.id)
-            return {
-              ...prev,
-              people: [...others, { ...mapped, isCurrentUser: true }],
-            }
+          const res = await fetch('/api/onboarding/complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              role: input.role,
+              city: input.city,
+              stateCode: input.stateCode,
+              safetyVersion,
+              firstName: parsed.value.firstName,
+              lastName: parsed.value.lastName,
+            }),
           })
+          const payload = (await res.json().catch(() => ({}))) as {
+            error?: string
+            profile?: unknown
+            name?: string
+          }
+          if (!res.ok) {
+            throw new Error(payload.error || 'Could not finish onboarding')
+          }
+
+          // Prefer mapped RPC profile; otherwise patch local state with name.
+          if (payload.profile) {
+            const mapped = mapProfile(payload.profile as never, authUser.id)
+            setState((prev) => {
+              if (!prev) return prev
+              const others = prev.people.filter((p) => p.id !== mapped.id)
+              return {
+                ...prev,
+                people: [
+                  ...others,
+                  {
+                    ...mapped,
+                    name: parsed.value.fullName,
+                    isCurrentUser: true,
+                  },
+                ],
+              }
+            })
+          } else {
+            setState((prev) => {
+              if (!prev) return prev
+              return {
+                ...prev,
+                people: prev.people.map((p) =>
+                  p.id === authUser.id
+                    ? {
+                        ...p,
+                        name: parsed.value.fullName,
+                        accountRole: input.role,
+                        city: input.city,
+                        stateCode: input.stateCode,
+                        locationLabel,
+                        onboardingCompletedAt: p.onboardingCompletedAt ?? now,
+                        safetyDisclaimerAcceptedAt: now,
+                        safetyDisclaimerVersion: safetyVersion,
+                        isHelper: false,
+                        isCurrentUser: true,
+                      }
+                    : p,
+                ),
+              }
+            })
+          }
           await refreshLive(authUser.id)
           return
         } catch (err) {
@@ -602,6 +656,7 @@ export function BeamProvider({
           p.id === prev.currentUserId
             ? {
                 ...p,
+                name: parsed.value.fullName,
                 accountRole: input.role,
                 city: input.city,
                 stateCode: input.stateCode,

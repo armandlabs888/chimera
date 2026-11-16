@@ -1510,8 +1510,18 @@
   gap: 12px;
 }
 
+.account-hc-onboarding-page {
+  padding: 20px 0 40px;
+}
+
+@media (min-width: 640px) {
+  .account-hc-onboarding-page {
+    padding: 28px 0 64px;
+  }
+}
+
 .account-hc-wizard {
-  margin-top: 22px;
+  margin-top: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
@@ -1531,12 +1541,15 @@
 
 .account-hc-step-meta {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 14px;
 }
 
 .account-hc-step-meta .n {
+  margin: 0;
   font-size: 13px;
   font-weight: 600;
   color: var(--hc-muted);
@@ -1549,14 +1562,21 @@
 
 .account-hc-step-bars i {
   display: block;
-  width: 48px;
+  width: 36px;
   height: 4px;
   border-radius: 9999px;
-  background: var(--hc-line);
+  background: #e3e8ef;
 }
 
 .account-hc-step-bars i.on {
   background: var(--hc-blue);
+}
+
+.account-hc-title-row .account-hc-step-meta {
+  flex-direction: column;
+  align-items: flex-end;
+  margin-bottom: 0;
+  gap: 8px;
 }
 
 .account-hc-lede {
@@ -1630,6 +1650,44 @@
   font-size: 13px;
   color: var(--hc-muted);
   line-height: 1.4;
+}
+
+.account-hc-name-field {
+  margin-top: 18px;
+}
+
+.account-hc-name-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.account-hc-name-grid .account-hc-input {
+  height: 52px;
+  border-color: var(--hc-line-2);
+}
+
+.account-hc-name-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--hc-muted);
+}
+
+.account-hc-name-error {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: #c62828;
+}
+
+.account-hc-input.is-error {
+  border-color: #c62828;
+}
+
+.account-hc-input.is-error:focus {
+  border-color: #c62828;
 }
 
 .account-hc-city-field {
@@ -2719,7 +2777,11 @@
   }
 
   .account-hc-step-meta {
-    align-items: flex-start;
+    align-items: center;
+  }
+
+  .account-hc-name-grid {
+    grid-template-columns: 1fr;
   }
 
   .account-hc-form-actions {

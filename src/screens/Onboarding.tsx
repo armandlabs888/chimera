@@ -23,6 +23,11 @@ import {
   ONBOARDING_HELPER_VERIFY_TITLE,
   VERIFY_TRUST_LINE,
 } from '@/lib/verification/constants'
+import {
+  parseRealName,
+  REAL_NAME_ERROR,
+  splitValidExistingName,
+} from '@/lib/realName'
 import { loadUsPlacesIndex, searchUsCities, type UsCity } from '@/lib/usPlaces'
 import type { AccountRole } from '@/types'
 import '@/components/account/account-hc.css'
@@ -61,7 +66,11 @@ const HELPER_POINTS = [
 
 function StepProgress({ step }: { step: 1 | 2 }) {
   return (
-    <div className="account-hc-step-meta" aria-label={`Step ${step} of 2`}>
+    <div
+      className="account-hc-step-meta"
+      aria-label={`Step ${step} of 2`}
+      data-testid="onboarding-step-progress"
+    >
       <p className="n">Step {step} of 2</p>
       <div className="account-hc-step-bars" aria-hidden>
         <i className={step >= 1 ? 'on' : undefined} />
@@ -166,11 +175,17 @@ export function Onboarding() {
   const { mode, ready, authUser, currentUser, completeOnboarding, signOut } = useBeam()
 
   const roleGroupId = useId()
+  const firstNameId = useId()
+  const lastNameId = useId()
   const cityRef = useRef<UsCityComboboxHandle>(null)
   const hydratedRef = useRef(false)
+  const nameHydratedRef = useRef(false)
   const [step, setStep] = useState<1 | 2>(1)
   const [role, setRole] = useState<AccountRole | null>(null)
   const [city, setCity] = useState<UsCity | null>(null)
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [nameError, setNameError] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [step1Error, setStep1Error] = useState('')
@@ -194,6 +209,23 @@ export function Onboarding() {
       router.replace('/auth?mode=signup&next=%2Fonboarding')
     }
   }, [ready, mode, authUser, preview, router])
+
+  useEffect(() => {
+    if (!ready || nameHydratedRef.current) return
+    const md = (authUser?.user_metadata ?? {}) as Record<string, unknown>
+    const metaFull =
+      (typeof md.full_name === 'string' && md.full_name) ||
+      (typeof md.name === 'string' && md.name) ||
+      ''
+    const fromProfile = splitValidExistingName(currentUser.name)
+    const fromMeta = splitValidExistingName(metaFull)
+    const prefill = fromProfile ?? fromMeta
+    if (prefill) {
+      setFirstName(prefill.firstName)
+      setLastName(prefill.lastName)
+    }
+    nameHydratedRef.current = true
+  }, [ready, currentUser.name, authUser])
 
   useEffect(() => {
     if (!ready || hydratedRef.current) return
@@ -243,11 +275,20 @@ export function Onboarding() {
     }
   }
 
-  const canNext = Boolean(role && city)
+  const nameParsed = parseRealName(firstName, lastName)
+  const nameReady = nameParsed.ok
+  const canNext = Boolean(role && city && nameReady)
 
   function onStep1Continue() {
     if (!role) {
       setStep1Error('Choose Neighbor or Helper to continue.')
+      return
+    }
+
+    const parsed = parseRealName(firstName, lastName)
+    if (!parsed.ok) {
+      setNameError(REAL_NAME_ERROR)
+      setStep1Error('')
       return
     }
 
@@ -259,6 +300,9 @@ export function Onboarding() {
     }
 
     setCity(resolvedCity)
+    setFirstName(parsed.value.firstName)
+    setLastName(parsed.value.lastName)
+    setNameError('')
     setStep1Error('')
     setStep(2)
   }
@@ -273,8 +317,20 @@ export function Onboarding() {
     setStep1Error('')
   }
 
+  function handleNameChange(which: 'first' | 'last', value: string) {
+    if (which === 'first') setFirstName(value)
+    else setLastName(value)
+    if (nameError) setNameError('')
+  }
+
   async function onComplete() {
     if (!role || !city) return
+    const parsed = parseRealName(firstName, lastName)
+    if (!parsed.ok) {
+      setNameError(REAL_NAME_ERROR)
+      setStep(1)
+      return
+    }
     setPending(true)
     setError('')
     try {
@@ -284,6 +340,8 @@ export function Onboarding() {
           role,
           city: city.name,
           stateCode: city.stateCode,
+          firstName: parsed.value.firstName,
+          lastName: parsed.value.lastName,
           safetyVersion: SAFETY_VERSION,
         })
       }
@@ -298,6 +356,12 @@ export function Onboarding() {
               typeof (err as { message: unknown }).message === 'string'
             ? (err as { message: string }).message
             : 'Could not finish onboarding'
+      if (message === REAL_NAME_ERROR) {
+        setNameError(REAL_NAME_ERROR)
+        setStep(1)
+        setPending(false)
+        return
+      }
       setError(message)
       setPending(false)
     }
@@ -318,22 +382,7 @@ export function Onboarding() {
 
   return (
     <div className={shellClass} data-testid="onboarding-root" data-step={step} data-edit={edit ? '1' : undefined}>
-      {!edit ? (
-        <header
-          className="sticky top-0 z-30 border-b border-[#E3E8EF] bg-white"
-          data-testid="onboarding-header"
-        >
-          <div
-            className={`account-hc-wrap flex h-14 items-center justify-end gap-4 ${
-              step === 1 ? '' : 'max-w-[520px]'
-            }`}
-          >
-            <StepProgress step={step} />
-          </div>
-        </header>
-      ) : null}
-
-      <div className={edit ? 'account-hc-wrap account-hc-page' : 'account-hc-wrap pb-10 pt-7 sm:pb-16 sm:pt-10'}>
+      <div className={edit ? 'account-hc-wrap account-hc-page' : 'account-hc-wrap account-hc-onboarding-page'}>
         {edit ? (
           <div className="account-hc-title-row">
             <h1 className="account-hc-hero-title">{pageTitle}</h1>
@@ -350,6 +399,8 @@ export function Onboarding() {
               className="account-hc-card account-hc-wizard-form min-w-0"
               data-testid="onboarding-form-column"
             >
+              {!edit ? <StepProgress step={1} /> : null}
+
               {!edit ? (
                 <>
                   <h1 className="account-hc-hero-title" style={{ fontSize: 28 }}>
@@ -417,6 +468,76 @@ export function Onboarding() {
                 </div>
               ) : null}
 
+              <div className="account-hc-name-field" data-testid="onboarding-name-field">
+                <p className="account-hc-label" id={`${firstNameId}-label`}>
+                  Your full name
+                </p>
+                <div className="account-hc-name-grid">
+                  <div>
+                    <label htmlFor={firstNameId} className="sr-only">
+                      First name
+                    </label>
+                    <input
+                      id={firstNameId}
+                      type="text"
+                      name="given-name"
+                      autoComplete="given-name"
+                      placeholder="First name"
+                      value={firstName}
+                      onChange={(e) => handleNameChange('first', e.target.value)}
+                      aria-invalid={nameError ? true : undefined}
+                      aria-describedby={
+                        nameError
+                          ? `${firstNameId}-error`
+                          : `${firstNameId}-hint`
+                      }
+                      data-testid="onboarding-first-name"
+                      className={`account-hc-input ${nameError ? 'is-error' : ''}`}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor={lastNameId} className="sr-only">
+                      Last name
+                    </label>
+                    <input
+                      id={lastNameId}
+                      type="text"
+                      name="family-name"
+                      autoComplete="family-name"
+                      placeholder="Last name"
+                      value={lastName}
+                      onChange={(e) => handleNameChange('last', e.target.value)}
+                      aria-invalid={nameError ? true : undefined}
+                      aria-describedby={
+                        nameError
+                          ? `${firstNameId}-error`
+                          : `${firstNameId}-hint`
+                      }
+                      data-testid="onboarding-last-name"
+                      className={`account-hc-input ${nameError ? 'is-error' : ''}`}
+                    />
+                  </div>
+                </div>
+                {nameError ? (
+                  <p
+                    id={`${firstNameId}-error`}
+                    className="account-hc-name-error"
+                    role="alert"
+                    data-testid="onboarding-name-error"
+                  >
+                    {nameError}
+                  </p>
+                ) : (
+                  <p
+                    id={`${firstNameId}-hint`}
+                    className="account-hc-name-hint"
+                    data-testid="onboarding-name-hint"
+                  >
+                    Use your real first and last name. Aliases and nicknames are not allowed.
+                  </p>
+                )}
+              </div>
+
               <div className="account-hc-city-field">
                 <UsCityCombobox
                   ref={cityRef}
@@ -480,6 +601,7 @@ export function Onboarding() {
             className="account-hc-wizard single animate-fade-up"
           >
             <div className="account-hc-card account-hc-rules">
+              {!edit ? <StepProgress step={2} /> : null}
               <h1 className="account-hc-hero-title" style={{ fontSize: 28 }}>
                 Our community rules
               </h1>

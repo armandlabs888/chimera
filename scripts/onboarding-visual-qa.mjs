@@ -69,10 +69,9 @@ async function probe(page) {
       ),
       imgCount: document.querySelectorAll('img').length,
       signOutTestIdCount: document.querySelectorAll('[data-testid="onboarding-sign-out"]').length,
-      headerText: document.querySelector('[data-testid="onboarding-header"]')?.textContent || '',
-      headerLogoLinkCount: document.querySelectorAll(
-        '[data-testid="onboarding-header"] a[aria-label="HouseCall home"]',
-      ).length,
+      headerCount: document.querySelectorAll('[data-testid="onboarding-header"]').length,
+      stepProgressText:
+        document.querySelector('[data-testid="onboarding-step-progress"]')?.textContent || '',
     }
   })
 }
@@ -95,9 +94,9 @@ async function assertCleanChrome(page, label, { expectBenefits = false } = {}) {
   }
   assert.equal(p.imgCount, 0, `${label} must have zero <img> stock photos`)
   assert.equal(p.signOutTestIdCount, 0, `${label} must not render onboarding-sign-out`)
-  assert.match(p.headerText, /Step \d of 2/i, `${label} must keep step progress in header`)
-  assert.doesNotMatch(p.headerText, /\bBeam\b/, `${label} must not show Beam wordmark in header`)
-  assert.equal(p.headerLogoLinkCount, 0, `${label} must not have Beam logo link in header`)
+  assert.equal(p.headerCount, 0, `${label} must not have top header bar`)
+  assert.match(p.stepProgressText, /Step \d of 2/i, `${label} must keep step progress in form`)
+  assert.doesNotMatch(p.stepProgressText, /\bBeam\b/, `${label} must not show Beam in step progress`)
   return p
 }
 
@@ -224,13 +223,18 @@ async function runViewport(browser, vp) {
     assert.match(await page.getByTestId('onboarding-step-1').innerText(), /\bNeighbor\b/)
     assert.doesNotMatch(await page.getByTestId('onboarding-step-1').innerText(), /\bCustomer\b/)
     assert.doesNotMatch(await page.getByTestId('onboarding-step-1').innerText(), /Popular/i)
-    assert.equal(await page.getByTestId('onboarding-next').isDisabled(), true)
+    assert.equal(
+      await page.getByTestId('onboarding-next').getAttribute('aria-disabled'),
+      'true',
+    )
     await shot(page, `${prefix}-step1-empty`)
 
     await page.getByTestId('onboarding-role-customer').click()
     const benefitsVisible = page.locator('[data-testid="onboarding-benefits"]:visible')
     await benefitsVisible.first().waitFor({ state: 'visible' })
     assert.match(await benefitsVisible.first().innerText(), /As a Neighbor/i)
+    await page.getByTestId('onboarding-first-name').fill('Armand')
+    await page.getByTestId('onboarding-last-name').fill('Morales')
     await page.waitForSelector('[data-testid="onboarding-city-input"]')
     await page.getByTestId('onboarding-city-input').click()
     await page.waitForSelector('[data-testid="onboarding-city-listbox"]')
@@ -246,7 +250,10 @@ async function runViewport(browser, vp) {
     const verifiedText = await page.getByTestId('onboarding-city-verified').innerText()
     assert.match(verifiedText, /San Jose,\s*CA/i)
     assert.doesNotMatch(verifiedText, /Verified/i)
-    assert.equal(await page.getByTestId('onboarding-next').isDisabled(), false)
+    assert.equal(
+      await page.getByTestId('onboarding-next').getAttribute('aria-disabled'),
+      'false',
+    )
     // Let enabled CTA styles settle (avoid mid-transition muted blue in screenshots).
     await page.waitForTimeout(250)
     const nextStyles = await page.getByTestId('onboarding-next').evaluate((btn) => {
