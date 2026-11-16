@@ -14,10 +14,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import {
-  Fragment,
   useEffect,
   useId,
-  useLayoutEffect,
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
@@ -112,8 +110,11 @@ function ActionControl({
 }
 
 /**
- * Renders items with middot separators, then hides any separator that is not
- * between two items on the same visual line (so wraps never start/end with ·).
+ * Middot-separated row. Each item paints a leading · via CSS ::before; the row
+ * clips with overflow:hidden so line-start dots (including the first item and
+ * wrap starts) hang outside and disappear. Mid-line items always keep the ·,
+ * so meta never glues together the way the measured-dot approach could when
+ * layout jitter hid a same-line separator.
  */
 function SepList({
   items,
@@ -124,60 +125,14 @@ function SepList({
   className: string
   testId: string
 }) {
-  const rootRef = useRef<HTMLParagraphElement>(null)
-
-  const itemSignature = items.map((item) => item.key).join('|')
-
-  useLayoutEffect(() => {
-    const root = rootRef.current
-    if (!root) return
-
-    function syncSeparators() {
-      if (!root) return
-      const children = Array.from(root.children) as HTMLElement[]
-      for (let i = 0; i < children.length; i++) {
-        const el = children[i]
-        if (!el.classList.contains('ph-sep-dot')) continue
-        const prev = children[i - 1]
-        const next = children[i + 1]
-        if (!prev || !next) {
-          el.hidden = true
-          continue
-        }
-        const prevBox = prev.getBoundingClientRect()
-        const nextBox = next.getBoundingClientRect()
-        const threshold = Math.max(8, Math.min(prevBox.height, nextBox.height) * 0.45)
-        const sameLine = Math.abs(prevBox.top - nextBox.top) <= threshold
-        el.hidden = !sameLine
-      }
-    }
-
-    syncSeparators()
-    // Second pass after fonts/layout settle.
-    const raf = window.requestAnimationFrame(syncSeparators)
-    const ro = new ResizeObserver(() => syncSeparators())
-    ro.observe(root)
-    window.addEventListener('resize', syncSeparators)
-    return () => {
-      window.cancelAnimationFrame(raf)
-      ro.disconnect()
-      window.removeEventListener('resize', syncSeparators)
-    }
-  }, [itemSignature])
-
   if (!items.length) return null
 
   return (
-    <p ref={rootRef} className={`ph-sep-row ${className}`} data-testid={testId}>
-      {items.map((item, index) => (
-        <Fragment key={item.key}>
-          <span className="ph-sep-item">{item.node}</span>
-          {index < items.length - 1 ? (
-            <span className="ph-sep-dot" aria-hidden="true">
-              ·
-            </span>
-          ) : null}
-        </Fragment>
+    <p className={`ph-sep-row ${className}`} data-testid={testId}>
+      {items.map((item) => (
+        <span key={item.key} className="ph-sep-item">
+          {item.node}
+        </span>
       ))}
     </p>
   )
