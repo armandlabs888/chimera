@@ -38,6 +38,7 @@ import {
   referLiveHelpersToJob,
   dismissLiveJobReferral,
   markLiveJobReferralViewed,
+  recordLiveHelpRequestView,
   sendLiveMessage,
   submitLiveReview,
   toggleLiveSavedHelper,
@@ -47,6 +48,13 @@ import {
   type CreateRequestInput,
   type ConfirmHomeLocationResult,
 } from '@/lib/beam/liveRepository'
+import {
+  getViewerKey,
+  hasDemoViewedJob,
+  markDemoViewedJob,
+  markSessionRecorded,
+  sessionAlreadyRecorded,
+} from '@/lib/helpRequestViews'
 import { canMakeOffer } from '@/lib/verification/status'
 import { createClient } from '@/lib/supabase/client'
 import { profileSeedFromUser } from '@/lib/auth/profileSeed'
@@ -172,6 +180,8 @@ interface BeamContextValue {
   }) => Promise<JobReferral[]>
   dismissJobReferral: (referralId: string) => Promise<void>
   markJobReferralViewed: (referralId: string) => Promise<void>
+  /** Count a unique viewer open; owners skipped; errors swallowed. */
+  recordHelpRequestView: (requestId: string) => Promise<void>
   toggleSavedHelper: (helperId: string) => void | Promise<void>
   toggleSavedRequest: (requestId: string) => void | Promise<void>
   markNotificationRead: (notificationId: string) => void | Promise<void>
@@ -727,6 +737,7 @@ export function BeamProvider({
           isUrgent: Boolean(input.isUrgent),
           // Demo has no Twilio; show a sample count so poster feedback UI is visible.
           urgentHelpersNotifiedCount: input.isUrgent ? 3 : 0,
+          viewCount: 0,
         }
         let next: AppState = { ...prev, requests: [created, ...prev.requests] }
         if (input.preferredHelperId) {
@@ -1624,6 +1635,55 @@ export function BeamProvider({
     [authUser, mode, refreshLive, reportError],
   )
 
+  const bumpLocalViewCount = useCallback((requestId: string) => {
+    withState(setState, (prev) => ({
+      ...prev,
+      requests: prev.requests.map((r) =>
+        r.id === requestId ? { ...r, viewCount: (r.viewCount ?? 0) + 1 } : r,
+      ),
+    }))
+  }, [])
+
+  const recordHelpRequestView = useCallback(
+    async (requestId: string) => {
+      if (!requestId || sessionAlreadyRecorded(requestId)) return
+      const request = stateRef.current?.requests.find((r) => r.id === requestId)
+      if (!request) return
+
+      if (mode === 'live') {
+        try {
+          if (authUser && request.requesterId === authUser.id) {
+            markSessionRecorded(requestId)
+            return
+          }
+          const client = createClient()
+          const viewerKey = getViewerKey(authUser?.id ?? null)
+          const counted = await recordLiveHelpRequestView(client, requestId, viewerKey)
+          markSessionRecorded(requestId)
+          if (counted) bumpLocalViewCount(requestId)
+        } catch {
+          // Fail silently — view counts are best-effort.
+        }
+        return
+      }
+
+      // Demo mode: persist unique opens in localStorage; skip owner.
+      const ownerId = stateRef.current?.currentUserId
+      if (ownerId && request.requesterId === ownerId) {
+        markSessionRecorded(requestId)
+        return
+      }
+      if (hasDemoViewedJob(requestId)) {
+        markSessionRecorded(requestId)
+        return
+      }
+      markDemoViewedJob(requestId)
+      markSessionRecorded(requestId)
+      bumpLocalViewCount(requestId)
+    },
+    [authUser, bumpLocalViewCount, mode],
+  )
+
   const toggleSavedHelper = useCallback(
     (helperId: string) => {
       if (mode === 'live') {
@@ -2131,6 +2191,7 @@ export function BeamProvider({
     referHelpers,
     dismissJobReferral,
     markJobReferralViewed,
+    recordHelpRequestView,
     toggleSavedHelper,
     toggleSavedRequest,
     markNotificationRead,

@@ -223,6 +223,8 @@ export interface HelpRequest {
   isUrgent?: boolean
   /** Helpers successfully texted for this urgent job (count only). */
   urgentHelpersNotifiedCount?: number
+  /** Unique viewers who opened this job (denormalized; 0 until first non-owner view). */
+  viewCount?: number
 }
 
 export interface Offer {

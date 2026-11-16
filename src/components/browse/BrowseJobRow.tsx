@@ -2,6 +2,7 @@
 
 import { Clock, MapPin } from 'lucide-react'
 import type { HelpRequest } from '@/types'
+import { JobViewCount, JobViewCountMetaSep } from '@/components/jobs/JobViewCount'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 
@@ -84,9 +85,12 @@ export function BrowseJobRow({
                 <span className="browse-hc-distance-desk">{distanceLabel}</span>
               </>
             ) : null}
+            <span className="browse-hc-views-desk">
+              <JobViewCountMetaSep count={request.viewCount} testId="browse-job-views" />
+            </span>
           </span>
           {excerpt ? <span className="browse-hc-row-desc">{excerpt}</span> : null}
-          {timingLabel || distanceLabel ? (
+          {timingLabel || distanceLabel || (request.viewCount ?? 0) > 0 ? (
             <span className="browse-hc-row-foot">
               {timingLabel ? (
                 <span className={`browse-hc-when ${asap ? 'browse-hc-asap' : ''}`}>
@@ -100,6 +104,9 @@ export function BrowseJobRow({
                   {distanceLabel}
                 </span>
               ) : null}
+              <span className="browse-hc-views-mob">
+                <JobViewCount count={request.viewCount} testId="browse-job-views-mob" />
+              </span>
             </span>
           ) : null}
         </span>

@@ -860,4 +860,30 @@ export async function markLiveJobReferralViewed(
   return mapJobReferral(data as Record<string, unknown>)
 }
 
+/** Returns true when a new view row was inserted (and view_count incremented). */
+export async function recordLiveHelpRequestView(
+  client: Client,
+  requestId: string,
+  viewerKey: string,
+): Promise<boolean> {
+  const { data, error } = await client.rpc('record_help_request_view', {
+    p_request_id: requestId,
+    p_viewer_key: viewerKey,
+  })
+  if (error) {
+    // Migration not applied yet, or transient RPC failure — callers fail silently.
+    if (isMissingRelationError(error)) return false
+    const msg = (error.message || '').toLowerCase()
+    if (
+      msg.includes('could not find the function') ||
+      msg.includes('schema cache') ||
+      error.code === 'PGRST202'
+    ) {
+      return false
+    }
+    return false
+  }
+  return Boolean(data)
+}
+
 export type { RateType, BeamNotification }
