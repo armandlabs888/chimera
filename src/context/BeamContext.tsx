@@ -120,7 +120,6 @@ interface BeamContextValue {
   signUp: (
     email: string,
     password: string,
-    name: string,
     options?: {
       neighborhood?: NeighborhoodId | ''
       locationLabel?: string
@@ -438,7 +437,6 @@ export function BeamProvider({
     async (
       email: string,
       password: string,
-      name: string,
       options?: {
         neighborhood?: NeighborhoodId | ''
         locationLabel?: string
@@ -448,15 +446,17 @@ export function BeamProvider({
       const client = createClient()
       const locationLabel = options?.locationLabel?.trim() || ''
       const neighborhood = options?.neighborhood || ''
+      // Email signup does not collect a name; onboarding Step 1 does.
+      // Omit name/full_name from metadata so the DB trigger falls back to
+      // email local-part / "Neighbor" until complete_onboarding writes the real name.
+      const meta: Record<string, string> = {}
+      if (locationLabel) meta.location_label = locationLabel
+      if (neighborhood) meta.neighborhood = neighborhood
       const { data, error } = await client.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            name,
-            location_label: locationLabel,
-            ...(neighborhood ? { neighborhood } : {}),
-          },
+          data: meta,
           emailRedirectTo: options?.emailRedirectTo,
         },
       })
@@ -465,7 +465,7 @@ export function BeamProvider({
         await ensureProfile(
           client,
           data.session.user.id,
-          profileSeedFromUser(data.session.user, { name, neighborhood, locationLabel }),
+          profileSeedFromUser(data.session.user, { neighborhood, locationLabel }),
         )
       }
       return { needsEmailConfirmation: !data.session }
