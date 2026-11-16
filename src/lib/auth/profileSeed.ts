@@ -1,6 +1,7 @@
 import type { User } from '@supabase/supabase-js'
 import type { NeighborhoodId } from '@/types'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
+import { normalizeAvatarUrlForStorage } from '@/lib/avatarUrl'
 
 const NEIGHBORHOOD_IDS = new Set(NEIGHBORHOODS.map((n) => n.id))
 
@@ -31,10 +32,11 @@ export function profileSeedFromUser(
     0,
     80,
   )
-  const avatarUrl =
+  const avatarUrl = normalizeAvatarUrlForStorage(
     (typeof md.avatar_url === 'string' && md.avatar_url.trim()) ||
-    (typeof md.picture === 'string' && md.picture.trim()) ||
-    ''
+      (typeof md.picture === 'string' && md.picture.trim()) ||
+      '',
+  )
   const neighborhood = sanitizeNeighborhood(
     overrides?.neighborhood || (typeof md.neighborhood === 'string' ? md.neighborhood : undefined),
   )

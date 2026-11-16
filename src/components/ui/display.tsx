@@ -1,4 +1,9 @@
 import type { ReactNode } from 'react'
+import {
+  avatarSizesAttr,
+  resolveAvatarSrc,
+  resolveAvatarSrcSet,
+} from '@/lib/avatarUrl'
 
 export function SectionHeader({
   title,
@@ -150,12 +155,17 @@ export function Avatar({
     .slice(0, 2)
     .toUpperCase()
   if (src) {
+    const resolved = resolveAvatarSrc(src, size)
+    const srcSet = resolveAvatarSrcSet(src, size)
     return (
       <img
-        src={src}
+        src={resolved}
+        srcSet={srcSet}
+        sizes={avatarSizesAttr(size)}
         alt=""
         width={size}
         height={size}
+        decoding="async"
         className="rounded-full object-cover object-[center_top] ring-2 ring-white"
         style={{ width: size, height: size }}
       />

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { AVATAR_UPLOAD_MAX_DIM } from '@/lib/avatarUrl'
 import {
   LISTING_PHOTO_MAX_BYTES,
   isAllowedListingPhotoMime,
@@ -10,8 +11,10 @@ export async function compressImageFile(
   maxDim = 1200,
   quality = 0.84,
 ): Promise<{ blob: Blob; dataUrl: string; name: string }> {
+  // Clamp so avatar (and any future) callers cannot accidentally crush below ~512px.
+  const effectiveMax = Math.max(512, maxDim)
   const bitmap = await createImageBitmap(file)
-  const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height))
+  const scale = Math.min(1, effectiveMax / Math.max(bitmap.width, bitmap.height))
   const w = Math.max(1, Math.round(bitmap.width * scale))
   const h = Math.max(1, Math.round(bitmap.height * scale))
   const canvas = document.createElement('canvas')
@@ -73,20 +76,29 @@ export async function uploadBeamMedia(opts: {
   file: File
   /** Current listing photo count before this upload (for max-5). */
   currentCount?: number
+  /** Avatar uploads keep a ≥512px long edge and land under `/avatars/`. */
+  purpose?: 'listing' | 'avatar'
 }): Promise<string> {
+  const purpose = opts.purpose ?? 'listing'
   const count = opts.currentCount ?? 0
-  const validated = validateListingPhotoFile(opts.file, count)
-  if (!validated.ok) throw new Error(validated.error)
+  if (purpose === 'listing') {
+    const validated = validateListingPhotoFile(opts.file, count)
+    if (!validated.ok) throw new Error(validated.error)
+  } else if (opts.file.size > LISTING_PHOTO_MAX_BYTES) {
+    throw new Error('Photo must be 5 MB or smaller.')
+  }
   if (!isAllowedListingPhotoMime(opts.file.type)) {
     throw new Error('Use JPEG, PNG, WebP, or GIF.')
   }
 
-  const compressed = await compressImageFile(opts.file)
+  const maxDim = purpose === 'avatar' ? AVATAR_UPLOAD_MAX_DIM : 1200
+  const compressed = await compressImageFile(opts.file, maxDim)
   if (opts.mode !== 'live' || !opts.supabase) {
     return compressed.dataUrl
   }
 
-  const path = `${opts.userId}/listings/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${compressed.name}`
+  const folder = purpose === 'avatar' ? 'avatars' : 'listings'
+  const path = `${opts.userId}/${folder}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${compressed.name}`
   const { error } = await opts.supabase.storage.from('beam-media').upload(path, compressed.blob, {
     contentType: compressed.blob.type || 'image/jpeg',
     upsert: false,

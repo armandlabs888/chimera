@@ -1,5 +1,11 @@
 'use client'
 
+import {
+  avatarSizesAttr,
+  resolveAvatarSrc,
+  resolveAvatarSrcSet,
+} from '@/lib/avatarUrl'
+
 /** Square helper photo or blue monogram for browse list / preview. */
 export function BrowseHelperPhoto({
   src,
@@ -17,13 +23,18 @@ export function BrowseHelperPhoto({
   const style = { ['--hc-helper-photo-size' as string]: `${size}px` }
 
   if (hasPhoto) {
+    const resolved = resolveAvatarSrc(src, size)
+    const srcSet = resolveAvatarSrcSet(src, size)
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={src!}
+        src={resolved}
+        srcSet={srcSet}
+        sizes={avatarSizesAttr(size)}
         alt=""
         width={size}
         height={size}
+        decoding="async"
         className={`browse-hc-helper-photo ${className}`.trim()}
         style={style}
       />

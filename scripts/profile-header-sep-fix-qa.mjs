@@ -70,17 +70,18 @@ async function assertCleanSeparators(page) {
   await meta.waitFor({ state: 'visible' })
 
   const result = await meta.evaluate((row) => {
-    const children = Array.from(row.children)
-    const items = children.filter((el) => el.classList.contains('ph-sep-item'))
-    const dots = children.filter((el) => el.classList.contains('ph-sep-dot'))
-    const visibleDots = dots.filter((el) => !el.hidden && getComputedStyle(el).display !== 'none')
-
+    const items = [...row.querySelectorAll(':scope > .ph-sep-item')]
+    const style = getComputedStyle(row)
     const problems = []
+    if (style.overflow !== 'hidden' && style.overflowX !== 'hidden') {
+      problems.push('row must clip with overflow hidden')
+    }
+
     const text = (row.textContent || '').replace(/\s+/g, ' ').trim()
     if (text.startsWith('·') || text.startsWith('•')) problems.push('row text starts with middot')
     if (text.endsWith('·') || text.endsWith('•')) problems.push('row text ends with middot')
 
-    // Group items by visual line
+    const rowBox = row.getBoundingClientRect()
     const lines = new Map()
     for (const el of items) {
       const y = Math.round(el.getBoundingClientRect().top)
@@ -89,35 +90,29 @@ async function assertCleanSeparators(page) {
     }
 
     for (const [, els] of lines) {
-      const firstText = (els[0].textContent || '').trim()
-      const lastText = (els[els.length - 1].textContent || '').trim()
-      if (firstText.startsWith('·')) problems.push(`line starts with middot text: ${firstText}`)
-      if (lastText.endsWith('·')) problems.push(`line ends with middot text: ${lastText}`)
-    }
-
-    // Every visible dot must sit between two same-line items
-    for (const dot of visibleDots) {
-      const prev = dot.previousElementSibling
-      const next = dot.nextElementSibling
-      if (!prev || !next) {
-        problems.push('orphan visible separator')
-        continue
-      }
-      const pt = prev.getBoundingClientRect().top
-      const nt = next.getBoundingClientRect().top
-      if (Math.abs(pt - nt) > 8) problems.push('visible separator between wrapped items')
-      const dt = dot.getBoundingClientRect().top
-      if (Math.abs(dt - pt) > 8) problems.push('visible separator not on item line')
-    }
-
-    // No visible leading/trailing ink: first child on each line must be an item, not a dot
-    for (const [, els] of lines) {
-      const first = els[0]
-      const prev = first.previousElementSibling
-      if (prev && prev.classList.contains('ph-sep-dot') && !prev.hidden) {
-        const same = Math.abs(prev.getBoundingClientRect().top - first.getBoundingClientRect().top) <= 8
-        if (same) problems.push('visible dot immediately before line-start item')
-      }
+      els.forEach((el, idx) => {
+        const r = el.getBoundingClientRect()
+        const before = getComputedStyle(el, '::before')
+        if (before.content === 'none' || before.content === 'normal') {
+          problems.push(`missing ::before for ${el.textContent}`)
+          return
+        }
+        const ml = parseFloat(before.marginInlineStart || before.marginLeft || '0')
+        const w = parseFloat(before.width || '0')
+        const beforeRight = r.left + ml + w
+        const fullyClipped = beforeRight <= rowBox.left + 0.5
+        const lineStart = idx === 0
+        if (lineStart && !fullyClipped) {
+          problems.push(`line-start · not clipped for ${el.textContent}`)
+        }
+        if (!lineStart && fullyClipped) {
+          problems.push(`mid-line · clipped (glued) for ${el.textContent}`)
+        }
+        const label = (el.textContent || '').trim()
+        if (label.startsWith('·') || label.endsWith('·')) {
+          problems.push(`text middot in ${label}`)
+        }
+      })
     }
 
     return {
@@ -125,7 +120,6 @@ async function assertCleanSeparators(page) {
       problems,
       lineCount: lines.size,
       itemCount: items.length,
-      visibleDotCount: visibleDots.length,
       sample: items.map((el) => (el.textContent || '').trim()),
     }
   })
@@ -134,7 +128,7 @@ async function assertCleanSeparators(page) {
   assert.ok(result.itemCount >= 2, 'expected role + location (+ skills)')
   console.log('sep-ok', result)
 
-  // Force a narrow wrap and ensure cross-line separators hide.
+  // Force a narrow wrap and ensure line-start · stay clipped (no leading middot).
   await meta.evaluate((el) => {
     el.style.maxWidth = '180px'
   })
@@ -142,31 +136,44 @@ async function assertCleanSeparators(page) {
   await page.evaluate(() => window.dispatchEvent(new Event('resize')))
   await page.waitForTimeout(80)
   const wrapped = await meta.evaluate((row) => {
-    const items = [...row.querySelectorAll('.ph-sep-item')]
-    const dots = [...row.querySelectorAll('.ph-sep-dot')]
+    const items = [...row.querySelectorAll(':scope > .ph-sep-item')]
+    const rowBox = row.getBoundingClientRect()
     const ys = new Set(items.map((el) => Math.round(el.getBoundingClientRect().top)))
     const problems = []
-    for (const dot of dots) {
-      if (dot.hidden || getComputedStyle(dot).display === 'none') continue
-      const prev = dot.previousElementSibling
-      const next = dot.nextElementSibling
-      if (!prev || !next) {
-        problems.push('orphan visible separator after wrap')
-        continue
+    const lines = new Map()
+    for (const el of items) {
+      const y = Math.round(el.getBoundingClientRect().top)
+      if (!lines.has(y)) lines.set(y, [])
+      lines.get(y).push(el)
+    }
+    for (const [, els] of lines) {
+      const el = els[0]
+      const r = el.getBoundingClientRect()
+      const before = getComputedStyle(el, '::before')
+      const ml = parseFloat(before.marginInlineStart || before.marginLeft || '0')
+      const w = parseFloat(before.width || '0')
+      const beforeRight = r.left + ml + w
+      if (beforeRight > rowBox.left + 0.5) {
+        problems.push(`wrap line-start · visible for ${el.textContent}`)
       }
-      if (Math.abs(prev.getBoundingClientRect().top - next.getBoundingClientRect().top) > 8) {
-        problems.push('visible separator between wrapped items')
+      for (let i = 1; i < els.length; i++) {
+        const mid = els[i]
+        const b = getComputedStyle(mid, '::before')
+        const mml = parseFloat(b.marginInlineStart || b.marginLeft || '0')
+        const mw = parseFloat(b.width || '0')
+        const mr = mid.getBoundingClientRect()
+        if (mr.left + mml + mw <= rowBox.left + 0.5) {
+          problems.push(`mid-line · clipped after wrap for ${mid.textContent}`)
+        }
       }
     }
     return {
       ok: problems.length === 0,
       problems,
       lineCount: ys.size,
-      hiddenDots: dots.filter((d) => d.hidden).length,
     }
   })
   assert.ok(wrapped.lineCount >= 2, `expected forced wrap, got ${JSON.stringify(wrapped)}`)
-  assert.ok(wrapped.hiddenDots >= 1, `expected hidden wrap separators, got ${JSON.stringify(wrapped)}`)
   assert.ok(wrapped.ok, `wrap separator check failed: ${JSON.stringify(wrapped)}`)
   console.log('wrap-ok', wrapped)
 

@@ -210,6 +210,7 @@ export function HelperOnboarding() {
         supabase,
         userId: authUser?.id ?? currentUser.id,
         file,
+        purpose: 'avatar',
       })
       setAvatar(url)
     } catch (err) {

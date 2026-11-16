@@ -324,7 +324,7 @@ export function PublicHelperProfileView({
             <h2 id="day-heading">Choose a day</h2>
             <p className="php-block-sub">
               {hasHours
-                ? `Pick a date for your request with ${helperFirst}. Their working hours are shown next to their name.`
+                ? `Pick a date for your request with ${helperFirst}. Their working hours are shown under their name.`
                 : `Pick a date for your request with ${helperFirst}.`}
             </p>
             <div className="php-days" role="listbox" aria-label="Choose a day">
