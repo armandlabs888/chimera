@@ -83,7 +83,7 @@ assert.match(routeSrc, /recipientEmail/)
 const sendSrc = readFileSync(join(root, 'src/lib/email/sendAccountDeletedEmail.ts'), 'utf8')
 assert.match(sendSrc, /RESEND_API_KEY/)
 assert.match(sendSrc, /EMAIL_FROM/)
-assert.match(sendSrc, /Bunk <no-reply@yariapp\.com>/)
+assert.match(sendSrc, /Bunk <no-reply@joinbunk\.xyz>/)
 assert.match(sendSrc, /import 'server-only'/)
 assert.match(sendSrc, /ACCOUNT_DELETE_ERASE_ITEMS/)
 

@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  CircleHelp,
   List,
   LogOut,
   MessageSquare,
@@ -55,6 +56,13 @@ export const ACCOUNT_MENU_LINKS: AccountMenuLink[] = [
     match: (path) => path === '/settings' || path.startsWith('/settings/'),
     icon: <Settings className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />,
     testId: 'account-menu-settings',
+  },
+  {
+    href: '/help',
+    label: 'Help and feedback',
+    match: (path) => path === '/help',
+    icon: <CircleHelp className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />,
+    testId: 'account-menu-help',
   },
 ]
 

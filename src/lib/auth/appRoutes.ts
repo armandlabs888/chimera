@@ -1,7 +1,7 @@
 import { sanitizeNext } from '@/lib/auth/safeNext'
 
 /** Discovery routes that stay readable while logged out (live guests). */
-const PUBLIC_APP_PREFIXES = ['/browse', '/match', '/safety', '/people/', '/requests/']
+const PUBLIC_APP_PREFIXES = ['/browse', '/match', '/safety', '/help', '/people/', '/requests/']
 
 /**
  * Exact `/onboarding` is public so `?preview=1` QA can walk the flow and the

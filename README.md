@@ -28,8 +28,10 @@ Optional server-only email (Resend) for account-deletion confirmation. Missing k
 
 ```bash
 RESEND_API_KEY=<resend api key>
-EMAIL_FROM=Bunk <no-reply@yariapp.com>
+EMAIL_FROM=Bunk <no-reply@joinbunk.xyz>
+SUPPORT_INBOX_EMAIL=support@joinbunk.xyz
 ```
+
 
 Live backend errors surface in the UI and **do not** silently fall back to `localStorage`.
 
