@@ -31,11 +31,13 @@
 /* ---- Flat sticky header ----
    Stick the shell (not the inner header alone) so the containing block
    spans the page scroll. A short wrapper made sticky fail and left the
-   detail card floating under an empty 72px gap. */
+   detail card floating under an empty 72px gap.
+   z-index must beat page chrome such as .describe-search (was tied at 40,
+   so the /match search bar painted over the open account dropdown). */
 [data-testid='browse-hc-header-shell'] {
   position: sticky;
   top: 0;
-  z-index: 40;
+  z-index: 55;
 }
 
 .browse-hc-header {

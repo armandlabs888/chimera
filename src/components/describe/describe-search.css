@@ -2,7 +2,10 @@
 
 .describe-search {
   position: relative;
-  z-index: 40;
+  /* Keep above nearby page copy only. Category suggestions use the fixed
+     portal (.describe-suggest, z-index 80). Do not compete with the sticky
+     site header (browse-hc-header-shell z-index 55) or the account menu. */
+  z-index: 1;
   width: 100%;
   max-width: 800px;
   text-align: left;
