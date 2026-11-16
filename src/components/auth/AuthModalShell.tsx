@@ -46,7 +46,7 @@ export function AuthModalShell({
         className="auth-shell-card"
       >
         <div className="auth-shell-form">
-          <BunkWordmark size={18} className="mb-1 w-fit self-start" />
+          <BunkWordmark size="header" className="mb-1 w-fit self-start" />
           {children}
         </div>
 

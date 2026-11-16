@@ -86,7 +86,7 @@ export function LandingNav({
   const bar = (
     <>
       <BunkWordmark
-        size={isOverlay ? 17 : 18}
+        size="header"
         tone={onDark ? 'onDark' : 'brand'}
         className="relative z-10 min-h-[44px] shrink-0"
       />

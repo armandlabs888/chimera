@@ -93,7 +93,7 @@ export function BrowseFloatHeader({
       <header className="browse-hc-header" data-testid={guest ? 'landing-nav' : 'app-topnav'} data-nav-style="flat">
         <div className="browse-hc-wrap browse-hc-header-inner">
           <BunkWordmark
-            size={17}
+            size="header"
             className="browse-hc-brand focus-visible:ring-[#1D5CE5]"
           />
 
