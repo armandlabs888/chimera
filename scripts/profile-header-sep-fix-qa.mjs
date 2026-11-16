@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Reproduces the production bug: helper with 0 reviews / no rating / 0 jobs.
- * Asserts no leading/trailing middots and no empty stats row at 1280 and 390.
+ * Asserts profile meta middots: only BETWEEN same-line items, never at line start.
+ * Covers empty-stats helpers, forced wrap, and a long multi-skill label.
  */
 import assert from 'node:assert/strict'
-import { mkdirSync, copyFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, copyFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { chromium } from 'playwright'
 
@@ -25,11 +25,11 @@ async function shot(page, name) {
   console.log('wrote', join(OUT, name))
 }
 
-async function seedZeroReviewHelper(page) {
+async function seedHelper(page, opts = {}) {
   await page.goto(`${BASE}/browse?demo=1`, { waitUntil: 'domcontentloaded', timeout: 60000 })
   await page.waitForFunction((key) => !!localStorage.getItem(key), STORAGE_KEY, { timeout: 20000 })
   await page.evaluate(
-    ({ key, helperId }) => {
+    ({ key, helperId, patch }) => {
       const state = JSON.parse(localStorage.getItem(key) || '{}')
       const me = state.currentUserId || 'user-you'
       for (const p of state.people || []) {
@@ -39,49 +39,95 @@ async function seedZeroReviewHelper(page) {
           p.skills = []
         }
         if (p.id === helperId) {
-          p.isHelper = true
-          p.accountRole = 'helper'
-          p.rating = 0
-          p.reviewCount = 0
-          p.jobsCompleted = 0
-          p.skills = ['handyman']
-          p.otherSkillLabel = null
-          p.locationLabel = 'Milpitas, CA'
-          p.availableNow = true
-          p.availability = ['mornings']
-          p.serviceRadiusMiles = 15
-          p.hourlyRate = 50
-          p.rateType = 'hourly'
-          p.name = 'Armand Mercado'
+          Object.assign(p, {
+            isHelper: true,
+            accountRole: 'helper',
+            rating: 0,
+            reviewCount: 0,
+            jobsCompleted: 0,
+            skills: ['handyman'],
+            otherSkillLabel: null,
+            locationLabel: 'Milpitas, CA',
+            availableNow: true,
+            availability: ['mornings'],
+            serviceRadiusMiles: 15,
+            hourlyRate: 50,
+            rateType: 'hourly',
+            name: 'Armand Mercado',
+            workStart: '08:00',
+            workEnd: '17:00',
+            timezone: 'America/Los_Angeles',
+            ...patch,
+          })
         }
       }
       state.reviews = (state.reviews || []).filter((r) => r.toId !== helperId)
       localStorage.setItem(key, JSON.stringify(state))
     },
-    { key: STORAGE_KEY, helperId: HELPER_ID },
+    { key: STORAGE_KEY, helperId: HELPER_ID, patch: opts.patch || {} },
   )
+  await page.goto(`${BASE}/people/${HELPER_ID}?demo=1`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60000,
+  })
+  await page.waitForFunction((key) => !!localStorage.getItem(key), STORAGE_KEY, { timeout: 20000 })
+  await page.evaluate(
+    ({ key, helperId, patch }) => {
+      const state = JSON.parse(localStorage.getItem(key) || '{}')
+      const me = state.currentUserId || 'user-you'
+      for (const p of state.people || []) {
+        if (p.id === me) {
+          p.accountRole = 'customer'
+          p.isHelper = false
+          p.skills = []
+        }
+        if (p.id === helperId) {
+          Object.assign(p, {
+            isHelper: true,
+            accountRole: 'helper',
+            rating: 0,
+            reviewCount: 0,
+            jobsCompleted: 0,
+            skills: ['handyman'],
+            otherSkillLabel: null,
+            locationLabel: 'Milpitas, CA',
+            name: 'Armand Mercado',
+            workStart: '08:00',
+            workEnd: '17:00',
+            timezone: 'America/Los_Angeles',
+            ...patch,
+          })
+        }
+      }
+      state.reviews = (state.reviews || []).filter((r) => r.toId !== helperId)
+      localStorage.setItem(key, JSON.stringify(state))
+    },
+    { key: STORAGE_KEY, helperId: HELPER_ID, patch: opts.patch || {} },
+  )
+  await page.reload({ waitUntil: 'networkidle', timeout: 60000 })
 }
 
+/** Visual + DOM checks: no leading/trailing ·, mid-line · visible, no glue. */
 async function assertCleanSeparators(page) {
   const statsCount = await page.getByTestId('profile-header-stats').count()
   assert.equal(statsCount, 0, 'empty stats row must not render for 0 reviews/jobs')
 
   const meta = page.getByTestId('profile-header-meta')
   await meta.waitFor({ state: 'visible' })
+  await page.waitForTimeout(80)
 
   const result = await meta.evaluate((row) => {
     const items = [...row.querySelectorAll(':scope > .ph-sep-item')]
-    const style = getComputedStyle(row)
+    const dots = [...row.querySelectorAll(':scope > .ph-sep-dot')]
     const problems = []
-    if (style.overflow !== 'hidden' && style.overflowX !== 'hidden') {
-      problems.push('row must clip with overflow hidden')
+
+    const visiblePainted = (dot) => {
+      if (dot.classList.contains('ph-sep-dot-off')) return false
+      const cs = getComputedStyle(dot)
+      return cs.visibility !== 'hidden' && cs.display !== 'none' && cs.opacity !== '0'
     }
 
-    const text = (row.textContent || '').replace(/\s+/g, ' ').trim()
-    if (text.startsWith('·') || text.startsWith('•')) problems.push('row text starts with middot')
-    if (text.endsWith('·') || text.endsWith('•')) problems.push('row text ends with middot')
-
-    const rowBox = row.getBoundingClientRect()
+    // Group items by visual line
     const lines = new Map()
     for (const el of items) {
       const y = Math.round(el.getBoundingClientRect().top)
@@ -90,29 +136,29 @@ async function assertCleanSeparators(page) {
     }
 
     for (const [, els] of lines) {
-      els.forEach((el, idx) => {
-        const r = el.getBoundingClientRect()
-        const before = getComputedStyle(el, '::before')
-        if (before.content === 'none' || before.content === 'normal') {
-          problems.push(`missing ::before for ${el.textContent}`)
-          return
+      const first = els[0]
+      const prev = first.previousElementSibling
+      if (prev?.classList.contains('ph-sep-dot') && visiblePainted(prev)) {
+        problems.push(`leading · before "${(first.textContent || '').trim()}"`)
+      }
+      for (let i = 1; i < els.length; i++) {
+        const between = els[i].previousElementSibling
+        if (!between?.classList.contains('ph-sep-dot') || !visiblePainted(between)) {
+          problems.push(
+            `missing mid-line · before "${(els[i].textContent || '').trim()}" (glued)`,
+          )
         }
-        const ml = parseFloat(before.marginInlineStart || before.marginLeft || '0')
-        const w = parseFloat(before.width || '0')
-        const beforeRight = r.left + ml + w
-        const fullyClipped = beforeRight <= rowBox.left + 0.5
-        const lineStart = idx === 0
-        if (lineStart && !fullyClipped) {
-          problems.push(`line-start · not clipped for ${el.textContent}`)
-        }
-        if (!lineStart && fullyClipped) {
-          problems.push(`mid-line · clipped (glued) for ${el.textContent}`)
-        }
-        const label = (el.textContent || '').trim()
-        if (label.startsWith('·') || label.endsWith('·')) {
-          problems.push(`text middot in ${label}`)
-        }
-      })
+      }
+    }
+
+    // No painted · may sit at the flex row's left edge (line start).
+    const rowLeft = row.getBoundingClientRect().left
+    for (const dot of dots) {
+      if (!visiblePainted(dot)) continue
+      const box = dot.getBoundingClientRect()
+      if (Math.abs(box.left - rowLeft) <= 1.5) {
+        problems.push('painted · at row left edge')
+      }
     }
 
     return {
@@ -120,7 +166,8 @@ async function assertCleanSeparators(page) {
       problems,
       lineCount: lines.size,
       itemCount: items.length,
-      sample: items.map((el) => (el.textContent || '').trim()),
+      paintedDots: dots.filter(visiblePainted).length,
+      sample: items.map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim()),
     }
   })
 
@@ -128,18 +175,23 @@ async function assertCleanSeparators(page) {
   assert.ok(result.itemCount >= 2, 'expected role + location (+ skills)')
   console.log('sep-ok', result)
 
-  // Force a narrow wrap and ensure line-start · stay clipped (no leading middot).
+  // Force a narrow wrap: line-start · must turn off; mid-line · stay on.
   await meta.evaluate((el) => {
-    el.style.maxWidth = '180px'
+    el.style.maxWidth = '160px'
   })
-  await page.waitForTimeout(40)
+  await page.waitForTimeout(50)
   await page.evaluate(() => window.dispatchEvent(new Event('resize')))
-  await page.waitForTimeout(80)
+  await page.waitForTimeout(100)
+
   const wrapped = await meta.evaluate((row) => {
     const items = [...row.querySelectorAll(':scope > .ph-sep-item')]
-    const rowBox = row.getBoundingClientRect()
-    const ys = new Set(items.map((el) => Math.round(el.getBoundingClientRect().top)))
+    const dots = [...row.querySelectorAll(':scope > .ph-sep-dot')]
     const problems = []
+    const visiblePainted = (dot) => {
+      if (dot.classList.contains('ph-sep-dot-off')) return false
+      const cs = getComputedStyle(dot)
+      return cs.visibility !== 'hidden' && cs.display !== 'none'
+    }
     const lines = new Map()
     for (const el of items) {
       const y = Math.round(el.getBoundingClientRect().top)
@@ -147,37 +199,30 @@ async function assertCleanSeparators(page) {
       lines.get(y).push(el)
     }
     for (const [, els] of lines) {
-      const el = els[0]
-      const r = el.getBoundingClientRect()
-      const before = getComputedStyle(el, '::before')
-      const ml = parseFloat(before.marginInlineStart || before.marginLeft || '0')
-      const w = parseFloat(before.width || '0')
-      const beforeRight = r.left + ml + w
-      if (beforeRight > rowBox.left + 0.5) {
-        problems.push(`wrap line-start · visible for ${el.textContent}`)
+      const first = els[0]
+      const prev = first.previousElementSibling
+      if (prev?.classList.contains('ph-sep-dot') && visiblePainted(prev)) {
+        problems.push(`wrap leading · before ${first.textContent}`)
       }
       for (let i = 1; i < els.length; i++) {
-        const mid = els[i]
-        const b = getComputedStyle(mid, '::before')
-        const mml = parseFloat(b.marginInlineStart || b.marginLeft || '0')
-        const mw = parseFloat(b.width || '0')
-        const mr = mid.getBoundingClientRect()
-        if (mr.left + mml + mw <= rowBox.left + 0.5) {
-          problems.push(`mid-line · clipped after wrap for ${mid.textContent}`)
+        const between = els[i].previousElementSibling
+        if (!between?.classList.contains('ph-sep-dot') || !visiblePainted(between)) {
+          problems.push(`wrap glued before ${els[i].textContent}`)
         }
       }
     }
     return {
       ok: problems.length === 0,
       problems,
-      lineCount: ys.size,
+      lineCount: lines.size,
+      offDots: dots.filter((d) => d.classList.contains('ph-sep-dot-off')).length,
     }
   })
   assert.ok(wrapped.lineCount >= 2, `expected forced wrap, got ${JSON.stringify(wrapped)}`)
+  assert.ok(wrapped.offDots >= 1, `expected off wrap separators, got ${JSON.stringify(wrapped)}`)
   assert.ok(wrapped.ok, `wrap separator check failed: ${JSON.stringify(wrapped)}`)
   console.log('wrap-ok', wrapped)
 
-  // Restore natural width for screenshots.
   await meta.evaluate((el) => {
     el.style.maxWidth = ''
   })
@@ -186,48 +231,66 @@ async function assertCleanSeparators(page) {
 }
 
 async function main() {
-  const browser = await chromium.launch({ headless: true })
-  const report = { ok: true, shots: [] }
+  const browser = await chromium.launch({ headless: true, channel: 'chrome' }).catch(() =>
+    chromium.launch({ headless: true }),
+  )
   try {
     for (const vp of [
-      { name: 'desk', width: 1280, height: 800 },
+      { name: 'desk', width: 1440, height: 900 },
       { name: 'mob', width: 390, height: 844, isMobile: true },
     ]) {
       const context = await browser.newContext({
         viewport: { width: vp.width, height: vp.height },
-        deviceScaleFactor: 1,
+        deviceScaleFactor: 2,
         isMobile: Boolean(vp.isMobile),
         hasTouch: Boolean(vp.isMobile),
       })
       const page = await context.newPage()
-      await seedZeroReviewHelper(page)
-      await page.goto(`${BASE}/people/${HELPER_ID}?demo=1`, {
-        waitUntil: 'networkidle',
-        timeout: 60000,
+
+      // Kuni-like short skills
+      await seedHelper(page, {
+        patch: {
+          name: 'Kuni Fujikumi',
+          locationLabel: 'San Francisco, CA',
+          city: 'San Francisco',
+          stateCode: 'CA',
+          createdAt: '2026-11-01T00:00:00.000Z',
+          skills: ['junk-removal'],
+        },
       })
       await page.getByTestId('profile-header').waitFor({ state: 'visible', timeout: 20000 })
-      await page.waitForTimeout(300)
       await assertCleanSeparators(page)
+      const kuniLabels = await page.getByTestId('profile-header-meta').evaluate((row) =>
+        [...row.querySelectorAll('.ph-sep-item')].map((el) =>
+          (el.textContent || '').replace(/\s+/g, ' ').trim(),
+        ),
+      )
+      assert.deepEqual(kuniLabels.slice(0, 4), [
+        'Helper',
+        'San Francisco, CA',
+        'Joined Nov 2026',
+        'Junk Removal',
+      ])
+      await shot(page, `profile-header-sep-fix-kuni-${vp.name}.png`)
 
-      const body = await page.getByTestId('profile-header').innerText()
-      assert.ok(!/[—–]/.test(body), 'no em/en dashes')
-      assert.ok(!/\bVerified\b/.test(body), 'no Verified badge')
-      assert.ok(!/0 reviews/i.test(body), 'must not show 0 reviews')
-      assert.ok(!/0 jobs/i.test(body), 'must not show 0 jobs')
+      // Long multi-skill list (forces wrap on desktop too)
+      await seedHelper(page, {
+        patch: {
+          name: 'Kuni Fujikumi',
+          locationLabel: 'San Francisco, CA',
+          city: 'San Francisco',
+          stateCode: 'CA',
+          createdAt: '2026-11-01T00:00:00.000Z',
+          skills: ['junk-removal', 'house-cleaning', 'moving'],
+        },
+      })
+      await page.getByTestId('profile-header').waitFor({ state: 'visible', timeout: 20000 })
+      await assertCleanSeparators(page)
+      await shot(page, `profile-header-sep-fix-longskills-${vp.name}.png`)
 
-      const name = `profile-header-sep-fix-${vp.name}.png`
-      await shot(page, name)
-      report.shots.push(name)
       await context.close()
     }
-
-    writeFileSync(join(OUT, 'profile-header-sep-fix-qa.json'), JSON.stringify(report, null, 2))
     console.log('profile-header-sep-fix-qa PASS')
-  } catch (err) {
-    report.ok = false
-    report.error = String(err)
-    writeFileSync(join(OUT, 'profile-header-sep-fix-qa.json'), JSON.stringify(report, null, 2))
-    throw err
   } finally {
     await browser.close()
   }

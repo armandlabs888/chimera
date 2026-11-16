@@ -14,8 +14,10 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import {
+  Fragment,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
@@ -110,11 +112,10 @@ function ActionControl({
 }
 
 /**
- * Middot-separated row. Each item paints a leading · via CSS ::before; the row
- * clips with overflow:hidden so line-start dots (including the first item and
- * wrap starts) hang outside and disappear. Mid-line items always keep the ·,
- * so meta never glues together the way the measured-dot approach could when
- * layout jitter hid a same-line separator.
+ * Middot separators as real flex siblings between items. A ResizeObserver
+ * marks a · "off" when the neighboring items sit on different visual lines
+ * (wrap / line start). Off dots keep their width via visibility:hidden so
+ * layout does not oscillate, but they never paint a leading · on a new line.
  */
 function SepList({
   items,
@@ -125,14 +126,74 @@ function SepList({
   className: string
   testId: string
 }) {
+  const rootRef = useRef<HTMLParagraphElement>(null)
+  const itemSignature = items.map((item) => item.key).join('|')
+
+  useLayoutEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+
+    function syncSeparators() {
+      if (!root) return
+      const itemEls = Array.from(root.querySelectorAll(':scope > .ph-sep-item')) as HTMLElement[]
+      const dots = Array.from(root.querySelectorAll(':scope > .ph-sep-dot')) as HTMLElement[]
+      if (dots.length !== Math.max(0, itemEls.length - 1)) return
+
+      for (let i = 0; i < dots.length; i++) {
+        const prev = itemEls[i]
+        const next = itemEls[i + 1]
+        const dot = dots[i]
+        if (!prev || !next) {
+          dot.classList.add('ph-sep-dot-off')
+          continue
+        }
+        const prevBox = prev.getBoundingClientRect()
+        const nextBox = next.getBoundingClientRect()
+        // Midpoints tolerate icon/text height differences better than top edges.
+        const prevMid = prevBox.top + prevBox.height / 2
+        const nextMid = nextBox.top + nextBox.height / 2
+        const band = Math.max(prevBox.height, nextBox.height, 16) * 0.55
+        const sameLine = Math.abs(prevMid - nextMid) <= band
+        // Prefer keeping a same-line · (never glue). Only clear for clear wraps.
+        dot.classList.toggle('ph-sep-dot-off', !sameLine)
+      }
+    }
+
+    syncSeparators()
+    const raf1 = window.requestAnimationFrame(() => {
+      syncSeparators()
+      window.requestAnimationFrame(syncSeparators)
+    })
+    const ro = new ResizeObserver(() => syncSeparators())
+    ro.observe(root)
+    for (const child of Array.from(root.children)) ro.observe(child)
+    window.addEventListener('resize', syncSeparators)
+    const fonts = document.fonts
+    const onFonts = () => syncSeparators()
+    fonts?.addEventListener?.('loadingdone', onFonts)
+    void fonts?.ready?.then(syncSeparators)
+
+    return () => {
+      window.cancelAnimationFrame(raf1)
+      ro.disconnect()
+      window.removeEventListener('resize', syncSeparators)
+      fonts?.removeEventListener?.('loadingdone', onFonts)
+    }
+  }, [itemSignature])
+
   if (!items.length) return null
 
   return (
-    <p className={`ph-sep-row ${className}`} data-testid={testId}>
-      {items.map((item) => (
-        <span key={item.key} className="ph-sep-item">
-          {item.node}
-        </span>
+    <p ref={rootRef} className={`ph-sep-row ${className}`} data-testid={testId}>
+      {items.map((item, index) => (
+        <Fragment key={item.key}>
+          {index > 0 ? (
+            <span className="ph-sep-dot" aria-hidden="true">
+              ·
+            </span>
+          ) : null}
+          <span className="ph-sep-item">{item.node}</span>
+        </Fragment>
       ))}
     </p>
   )

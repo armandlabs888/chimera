@@ -1,16 +1,8 @@
-/*
-  Wrap-safe middot separators (overflow clip technique):
-  Each item reserves padding-inline-start and paints a · in that gutter via
-  ::before with a matching negative margin. When an item starts a flex line
-  (including the first item), that · hangs fully outside the row and is
-  clipped by overflow:hidden, so no line starts or ends with a middot — and
-  mid-line items always keep their separator (no glued "Joined Nov 2026Junk").
-*/
+/* Flex row for profile header stats/meta. Separators are real nodes toggled in JS. */
 .ph-sep-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  overflow: hidden;
   row-gap: 6px;
 }
 
@@ -19,19 +11,25 @@
   align-items: center;
   gap: 6px;
   max-width: 100%;
-  /* Gutter must be wide enough that the entire · sits left of the clip edge. */
-  padding-inline-start: 1.15em;
-  box-sizing: border-box;
 }
 
-.ph-sep-item::before {
-  content: '·';
-  color: #b0b8c6;
+.ph-sep-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.15em;
-  margin-inline-start: -1.15em;
-  text-align: center;
   flex-shrink: 0;
+  color: #b0b8c6;
   pointer-events: none;
   user-select: none;
   line-height: 1;
+}
+
+/*
+  Keep width when "off" so showing/hiding a wrap separator does not reflow
+  neighbors (which can oscillate). The glyph is invisible, so a wrapped line
+  never paints a leading ·.
+*/
+.ph-sep-dot.ph-sep-dot-off {
+  visibility: hidden;
 }
