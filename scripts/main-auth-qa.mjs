@@ -77,7 +77,7 @@ async function assertMainAuthExperience(page, { viewport, expectNext = null, cle
     const img = aside.locator('img').first()
     await img.waitFor({ state: 'visible', timeout: 10000 })
     const src = await img.getAttribute('src')
-    assert.match(src || '', /carpet-cleaner/, `expected carpet-cleaner photo, got ${src}`)
+    assert.match(src || '', /auth-panel-neighbors/, `expected auth-panel-neighbors photo, got ${src}`)
   } else {
     await asideHidden(page)
   }

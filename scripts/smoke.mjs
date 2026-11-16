@@ -361,7 +361,7 @@ async function checkAuthMarkupAndRedirects() {
   assert.equal(res.status, 200, 'auth page status')
   assert.match(text, /Bunk|auth/, 'auth route shell present')
   assert.doesNotMatch(text, /text-red-300|Live mode uses Supabase email\/password auth/i, 'no legacy developer auth copy')
-  const authPhoto = await fetch(`${BASE_URL}/images/auth/carpet-cleaner.jpg`)
+  const authPhoto = await fetch(`${BASE_URL}/images/landing/auth-panel-neighbors.jpg`)
   assert.equal(authPhoto.status, 200, 'auth modal photo asset served')
   assert.match(authPhoto.headers.get('content-type') || '', /image\//, 'auth modal photo is an image')
 
@@ -577,7 +577,11 @@ async function checkAuthBrowser() {
         return raw
       }
     })
-    assert.match(decodeURIComponent(panelSrc), /carpet-cleaner/, `auth modal photo src ${panelSrc}`)
+    assert.match(
+      decodeURIComponent(panelSrc),
+      /auth-panel-neighbors/,
+      `auth modal photo src ${panelSrc}`,
+    )
 
     if (/demo mode|needs configuration|You are in demo mode/i.test(bodyText)) {
       console.log('ok auth modal photo + truthful copy (skip interactions: demo / unconfigured)')

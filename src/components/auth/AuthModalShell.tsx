@@ -115,14 +115,14 @@ function AsidePanel() {
           </span>
         </p>
 
-        <VerifyBadge className="mt-5" />
+        <VerifyBadge className="auth-shell-aside-verify" />
 
         <div className="auth-shell-aside-image">
           <Image
-            src={LIFESTYLE.authCarpet}
-            alt="A Bunk helper cleaning a carpet"
+            src={LIFESTYLE.authPanel}
+            alt="Neighbors carrying boxes together on a sidewalk"
             fill
-            className="object-cover object-[50%_30%]"
+            className="object-cover object-[50%_28%]"
             sizes="360px"
             priority
           />

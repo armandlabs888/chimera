@@ -77,15 +77,15 @@ async function assertModalFits(page, label) {
       `${label}: wordmark too wide ${metrics.wordmark.width} vs form ${metrics.formWidth}`,
     )
   }
-  if (metrics.vw < 900 || metrics.vh <= 740) {
+  if (metrics.vw < 900 || metrics.vh < 600) {
     assert.equal(
       metrics.asideDisplay,
       'none',
-      `${label}: aside should hide under 900px wide or 740px tall`,
+      `${label}: aside should hide under 900px wide or ~600px tall`,
     )
   }
-  if (metrics.vw >= 900 && metrics.vh > 820) {
-    assert.notEqual(metrics.asideDisplay, 'none', `${label}: aside should show on tall desktop`)
+  if (metrics.vw >= 900 && metrics.vh >= 600) {
+    assert.notEqual(metrics.asideDisplay, 'none', `${label}: aside should show when room allows`)
   }
   console.log(`ok fit ${label}`, {
     cardH: Math.round(metrics.card.height),
