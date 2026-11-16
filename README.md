@@ -70,6 +70,8 @@ Twilio console: set the number's inbound messaging webhook to:
 
 (X-Twilio-Signature is validated with `TWILIO_AUTH_TOKEN`.)
 
+If Twilio env is missing, `/api/phone/session` returns `phoneConfirmEnabled: false` and onboarding skips Confirm your phone (and helper alerts), keeping the original 2-step flow so signups are not blocked.
+
 ## Run locally
 
 ```bash

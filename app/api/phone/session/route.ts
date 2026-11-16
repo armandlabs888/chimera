@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import QRCode from 'qrcode'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isPhoneConfirmEnabled } from '@/lib/phone/onboardingGate'
 import {
   buildPhoneConfirmSmsUri,
   generatePhoneCode,
@@ -17,25 +18,48 @@ function twilioToNumber(): string | null {
   return process.env.TWILIO_FROM_NUMBER?.trim() || null
 }
 
+function phoneConfirmFlag() {
+  const enabled = isPhoneConfirmEnabled(twilioConfigured())
+  return {
+    phoneConfirmEnabled: enabled,
+    twilioMissing: !enabled,
+  }
+}
+
 /**
  * Start (or refresh) an inbound SMS phone-confirm session.
  * Returns a QR data URL + sms: deep link. Code is stored hashed with ~10 min expiry.
+ * When Twilio env is missing, returns phoneConfirmEnabled: false (do not block signup).
  */
 export async function POST() {
   try {
+    const flags = phoneConfirmFlag()
+    if (!flags.phoneConfirmEnabled) {
+      console.warn('[phone/session] Twilio env missing; phone confirm disabled')
+      return NextResponse.json({
+        ok: true,
+        status: 'disabled',
+        ...flags,
+      })
+    }
+
     const supabase = await createClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()
     if (!user) {
-      return NextResponse.json({ error: 'Not signed in' }, { status: 401 })
+      return NextResponse.json({ error: 'Not signed in', ...flags }, { status: 401 })
     }
 
     const admin = createAdminClient()
     if (!admin) {
       console.warn('[phone/session] admin client unavailable')
       return NextResponse.json(
-        { error: 'Phone confirmation is not configured yet.' },
+        {
+          error: 'Phone confirmation is not configured yet.',
+          phoneConfirmEnabled: false,
+          twilioMissing: true,
+        },
         { status: 503 },
       )
     }
@@ -52,20 +76,21 @@ export async function POST() {
         status: 'verified',
         phoneE164: existing.phone_e164,
         maskedPhone: maskPhoneE164(existing.phone_e164),
+        ...flags,
       })
     }
 
     const toNumber = twilioToNumber()
-    if (!toNumber || !twilioConfigured()) {
-      console.warn('[phone/session] Twilio env missing')
-      return NextResponse.json(
-        {
-          error:
-            'Text confirmation is not available right now. Try again later or use Get a code by text instead once SMS is configured.',
-          twilioMissing: true,
-        },
-        { status: 503 },
-      )
+    if (!toNumber) {
+      // Messaging Service alone can send OTP, but QR/inbound needs a From number.
+      console.warn('[phone/session] TWILIO_FROM_NUMBER missing for QR inbound')
+      return NextResponse.json({
+        ok: true,
+        status: 'disabled',
+        phoneConfirmEnabled: false,
+        twilioMissing: true,
+        error: 'Text confirmation is not available right now.',
+      })
     }
 
     const code = generatePhoneCode()
@@ -88,7 +113,7 @@ export async function POST() {
 
     if (error) {
       console.error('[phone/session] upsert', error.message)
-      return NextResponse.json({ error: 'Could not start confirmation.' }, { status: 500 })
+      return NextResponse.json({ error: 'Could not start confirmation.', ...flags }, { status: 500 })
     }
 
     let qrDataUrl: string | null = null
@@ -101,7 +126,7 @@ export async function POST() {
       })
     } catch (err) {
       console.error('[phone/session] qr encode', err)
-      return NextResponse.json({ error: 'Could not build QR code.' }, { status: 500 })
+      return NextResponse.json({ error: 'Could not build QR code.', ...flags }, { status: 500 })
     }
 
     return NextResponse.json({
@@ -111,6 +136,7 @@ export async function POST() {
       qrDataUrl,
       twilioTo: toNumber,
       expiresAt,
+      ...flags,
       ...(process.env.NODE_ENV !== 'production' ? { debugCode: code } : {}),
     })
   } catch (err) {
@@ -119,18 +145,35 @@ export async function POST() {
   }
 }
 
-/** Poll current phone confirmation status for the signed-in user. */
+/**
+ * Phone-confirm gate + status.
+ * Always returns phoneConfirmEnabled (no auth required for the gate flag).
+ * When enabled and signed in, also returns verification status for polling.
+ */
 export async function GET() {
   try {
+    const flags = phoneConfirmFlag()
+    if (!flags.phoneConfirmEnabled) {
+      return NextResponse.json({
+        ok: true,
+        status: 'disabled',
+        ...flags,
+      })
+    }
+
     const supabase = await createClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()
     if (!user) {
-      return NextResponse.json({ error: 'Not signed in' }, { status: 401 })
+      // Guests / preview can still learn that phone confirm is available.
+      return NextResponse.json({
+        ok: true,
+        status: 'unstarted',
+        ...flags,
+      })
     }
 
-    // Prefer user-readable RLS select; fall back to admin if needed.
     const { data, error } = await supabase
       .from('phone_verifications')
       .select('phone_e164, verified_at, pending_code_expires_at')
@@ -143,6 +186,7 @@ export async function GET() {
       return NextResponse.json({
         ok: true,
         status: 'unstarted',
+        ...flags,
       })
     }
 
@@ -152,6 +196,7 @@ export async function GET() {
         status: 'verified',
         phoneE164: data.phone_e164,
         maskedPhone: maskPhoneE164(data.phone_e164),
+        ...flags,
       })
     }
 
@@ -159,7 +204,7 @@ export async function GET() {
       data?.pending_code_expires_at &&
       new Date(data.pending_code_expires_at).getTime() < Date.now()
     ) {
-      return NextResponse.json({ ok: true, status: 'expired' })
+      return NextResponse.json({ ok: true, status: 'expired', ...flags })
     }
 
     if (data?.pending_code_expires_at) {
@@ -167,10 +212,11 @@ export async function GET() {
         ok: true,
         status: 'pending',
         expiresAt: data.pending_code_expires_at,
+        ...flags,
       })
     }
 
-    return NextResponse.json({ ok: true, status: 'unstarted' })
+    return NextResponse.json({ ok: true, status: 'unstarted', ...flags })
   } catch (err) {
     console.error('[phone/session GET]', err)
     return NextResponse.json({ error: 'Could not read status.' }, { status: 500 })

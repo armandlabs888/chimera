@@ -115,11 +115,12 @@ after update of status on public.helper_verifications
 for each row execute function private.activate_pending_sms_on_verification();
 
 -- ---------------------------------------------------------------------------
--- Match filter: respect optional sms_alert_parents when non-empty
+-- Match filter: keep live ZIP/radius definition (job_zip_location_urgent_match),
+-- only add optional sms_alert_parents filter when non-empty.
 -- ---------------------------------------------------------------------------
 create or replace function private.match_urgent_job_helpers(
   p_request_id uuid,
-  p_radius_miles double precision default 3
+  p_radius_miles double precision default 5
 )
 returns table (
   helper_id uuid,
@@ -133,16 +134,24 @@ set search_path = ''
 as $$
 declare
   v_req public.help_requests;
+  v_job_zip text;
   v_parent text;
 begin
   select * into v_req from public.help_requests where id = p_request_id;
   if v_req.id is null then
     return;
   end if;
-  if v_req.lat is null or v_req.lng is null then
+  if coalesce(p_radius_miles, 0) <= 0 then
     return;
   end if;
-  if coalesce(p_radius_miles, 0) <= 0 then
+
+  v_job_zip := nullif(left(trim(coalesce(v_req.zip, '')), 5), '');
+  if v_job_zip is not null and v_job_zip !~ '^[0-9]{5}$' then
+    v_job_zip := null;
+  end if;
+
+  -- Need a job ZIP (same-ZIP match) and/or a point (radius match).
+  if v_job_zip is null and (v_req.lat is null or v_req.lng is null) then
     return;
   end if;
 
@@ -158,14 +167,24 @@ begin
   return query
   select
     p.id as helper_id,
-    public.haversine_miles(v_req.lat, v_req.lng, hv.address_lat, hv.address_lng) as distance_miles,
+    case
+      when hv.address_lat is not null
+           and hv.address_lng is not null
+           and v_req.lat is not null
+           and v_req.lng is not null
+        then public.haversine_miles(
+          v_req.lat, v_req.lng, hv.address_lat, hv.address_lng
+        )
+      when v_job_zip is not null
+           and left(trim(coalesce(hv.zip, '')), 5) = v_job_zip
+        then 0::double precision
+      else null::double precision
+    end as distance_miles,
     s.phone_e164
   from public.profiles p
   inner join public.helper_verifications hv
     on hv.profile_id = p.id
    and hv.status = 'approved'
-   and hv.address_lat is not null
-   and hv.address_lng is not null
   inner join public.helper_urgent_sms_settings s
     on s.profile_id = p.id
    and s.sms_opt_in = true
@@ -186,8 +205,23 @@ begin
       )
     )
     and not private.in_quiet_hours(s.quiet_hours_start, s.quiet_hours_end, now())
-    and public.haversine_miles(v_req.lat, v_req.lng, hv.address_lat, hv.address_lng)
-        <= p_radius_miles
+    and (
+      -- Same verified home ZIP as the job
+      (
+        v_job_zip is not null
+        and nullif(left(trim(coalesce(hv.zip, '')), 5), '') = v_job_zip
+      )
+      or (
+        -- Or home point within radius of the job ZIP center
+        v_req.lat is not null
+        and v_req.lng is not null
+        and hv.address_lat is not null
+        and hv.address_lng is not null
+        and public.haversine_miles(
+          v_req.lat, v_req.lng, hv.address_lat, hv.address_lng
+        ) <= p_radius_miles
+      )
+    )
     and (
       select count(*)::int
       from public.urgent_job_sms_notifications n
@@ -197,7 +231,7 @@ begin
         and n.created_at >= (timezone('America/Los_Angeles', now()))::date
           at time zone 'America/Los_Angeles'
     ) < coalesce(s.daily_text_limit, 5)
-  order by distance_miles asc;
+  order by distance_miles asc nulls last;
 end;
 $$;
 

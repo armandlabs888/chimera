@@ -26,6 +26,10 @@ import {
   VERIFY_TRUST_LINE,
 } from '@/lib/verification/constants'
 import {
+  onboardingRulesStepNumber,
+  onboardingStepTotal,
+} from '@/lib/phone/onboardingGate'
+import {
   collapseNameWhitespace,
   parseRealName,
   REAL_NAME_ERROR,
@@ -213,16 +217,62 @@ export function Onboarding() {
   const [step1Error, setStep1Error] = useState('')
   const [maskedPhone, setMaskedPhone] = useState('')
   const [phoneE164, setPhoneE164] = useState('')
+  // null = still probing session API; default off so missing Twilio never blocks signup.
+  const [phoneConfirmEnabled, setPhoneConfirmEnabled] = useState<boolean | null>(null)
 
   const alreadyOnboarded = Boolean(currentUser.onboardingCompletedAt)
   const showAccountEscape =
     mode === 'live' && Boolean(authUser) && !edit && !alreadyOnboarded
   const demoMode = mode === 'demo' || preview
   const isHelper = role === 'helper'
-  // Edit city keeps the original 2-step flow. New onboarding adds phone (+ alerts for helpers).
-  const totalSteps = edit ? 2 : isHelper ? 4 : 3
-  const rulesStepNumber = edit ? 2 : isHelper ? 4 : 3
+  const phoneStepsOn = Boolean(phoneConfirmEnabled)
+  // Without Twilio, keep the original 2-step flow (welcome + rules).
+  const totalSteps = onboardingStepTotal({
+    edit,
+    isHelper,
+    phoneConfirmEnabled: phoneStepsOn,
+  })
+  const rulesStepNumber = onboardingRulesStepNumber({
+    edit,
+    isHelper,
+    phoneConfirmEnabled: phoneStepsOn,
+  })
   const locationVerified = helperVerification?.status === 'approved'
+
+  useEffect(() => {
+    let cancelled = false
+    void fetch('/api/phone/session')
+      .then(async (res) => {
+        const data = (await res.json().catch(() => ({}))) as {
+          phoneConfirmEnabled?: boolean
+          twilioMissing?: boolean
+          status?: string
+        }
+        if (cancelled) return
+        if (typeof data.phoneConfirmEnabled === 'boolean') {
+          setPhoneConfirmEnabled(data.phoneConfirmEnabled)
+          return
+        }
+        if (data.twilioMissing || data.status === 'disabled') {
+          setPhoneConfirmEnabled(false)
+          return
+        }
+        // Auth errors without a flag: treat as disabled so signup stays open.
+        setPhoneConfirmEnabled(res.ok)
+      })
+      .catch(() => {
+        if (!cancelled) setPhoneConfirmEnabled(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    // If Twilio is off mid-flow, drop phone/alerts and land on rules or welcome.
+    if (phoneConfirmEnabled !== false) return
+    if (step === 'phone' || step === 'alerts') setStep('rules')
+  }, [phoneConfirmEnabled, step])
 
   useEffect(() => {
     if (!ready) return
@@ -336,8 +386,12 @@ export function Onboarding() {
     setLastName(parsed.value.lastName)
     setNameError('')
     setStep1Error('')
-    // Edit city skips phone/alerts and goes straight to community rules.
-    setStep(edit ? 'rules' : 'phone')
+    // Edit city, or Twilio not configured: skip phone/alerts.
+    if (edit || !phoneStepsOn) {
+      setStep('rules')
+      return
+    }
+    setStep('phone')
   }
 
   function handleCityChange(next: UsCity | null) {
@@ -652,7 +706,7 @@ export function Onboarding() {
           </div>
         ) : null}
 
-        {step === 'phone' && !edit ? (
+        {step === 'phone' && !edit && phoneStepsOn ? (
           <ConfirmPhoneStep
             stepLabel={`Step 2 of ${totalSteps}`}
             step={2}
@@ -668,7 +722,7 @@ export function Onboarding() {
           />
         ) : null}
 
-        {step === 'alerts' && !edit && isHelper ? (
+        {step === 'alerts' && !edit && isHelper && phoneStepsOn ? (
           <JobAlertsStep
             stepLabel={`Step 3 of ${totalSteps}`}
             step={3}
@@ -738,7 +792,7 @@ export function Onboarding() {
                   className="account-hc-btn account-hc-btn-secondary account-hc-btn-lg shadow-none"
                   onClick={() => {
                     setError('')
-                    if (edit) {
+                    if (edit || !phoneStepsOn) {
                       setStep('welcome')
                       return
                     }

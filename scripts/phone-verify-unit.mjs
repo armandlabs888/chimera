@@ -133,4 +133,71 @@ const applySrc = readFileSync(join(root, 'src/lib/phone/applyVerified.ts'), 'utf
 assert.match(applySrc, /PHONE_ALREADY_USED_MESSAGE/)
 assert.match(applySrc, /isPhoneUniqueViolation/)
 
+// --- onboarding Twilio gate (skip phone/alerts when env missing) ---
+function isPhoneConfirmEnabled(twilioConfigured) {
+  return Boolean(twilioConfigured)
+}
+
+function onboardingStepTotal({ edit, isHelper, phoneConfirmEnabled }) {
+  if (edit) return 2
+  if (!phoneConfirmEnabled) return 2
+  return isHelper ? 4 : 3
+}
+
+function onboardingRulesStepNumber({ edit, isHelper, phoneConfirmEnabled }) {
+  if (edit || !phoneConfirmEnabled) return 2
+  return isHelper ? 4 : 3
+}
+
+assert.equal(isPhoneConfirmEnabled(false), false)
+assert.equal(isPhoneConfirmEnabled(true), true)
+assert.equal(isPhoneConfirmEnabled(0), false)
+assert.equal(
+  onboardingStepTotal({ edit: false, isHelper: true, phoneConfirmEnabled: false }),
+  2,
+)
+assert.equal(
+  onboardingStepTotal({ edit: false, isHelper: false, phoneConfirmEnabled: false }),
+  2,
+)
+assert.equal(
+  onboardingStepTotal({ edit: false, isHelper: true, phoneConfirmEnabled: true }),
+  4,
+)
+assert.equal(
+  onboardingStepTotal({ edit: false, isHelper: false, phoneConfirmEnabled: true }),
+  3,
+)
+assert.equal(
+  onboardingStepTotal({ edit: true, isHelper: true, phoneConfirmEnabled: true }),
+  2,
+)
+assert.equal(
+  onboardingRulesStepNumber({ edit: false, isHelper: true, phoneConfirmEnabled: false }),
+  2,
+)
+assert.equal(
+  onboardingRulesStepNumber({ edit: false, isHelper: true, phoneConfirmEnabled: true }),
+  4,
+)
+assert.equal(
+  onboardingRulesStepNumber({ edit: false, isHelper: false, phoneConfirmEnabled: true }),
+  3,
+)
+
+const gateSrc = readFileSync(join(root, 'src/lib/phone/onboardingGate.ts'), 'utf8')
+assert.match(gateSrc, /export function isPhoneConfirmEnabled/)
+assert.match(gateSrc, /export function onboardingStepTotal/)
+assert.match(gateSrc, /phoneConfirmEnabled/)
+
+const sessionSrc = readFileSync(join(root, 'app/api/phone/session/route.ts'), 'utf8')
+assert.match(sessionSrc, /phoneConfirmEnabled/)
+assert.match(sessionSrc, /isPhoneConfirmEnabled/)
+assert.match(sessionSrc, /status: 'disabled'/)
+
+const onboardingSrc = readFileSync(join(root, 'src/screens/Onboarding.tsx'), 'utf8')
+assert.match(onboardingSrc, /onboardingStepTotal/)
+assert.match(onboardingSrc, /phoneConfirmEnabled/)
+assert.match(onboardingSrc, /phoneStepsOn/)
+
 console.log('phone-verify-unit: ok')
