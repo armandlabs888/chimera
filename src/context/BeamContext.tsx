@@ -2267,13 +2267,15 @@ export function BeamProvider({
     // Always provision children during boot so headers/layouts stay mounted.
     // AuthGate blanks protected content until ready; never a full-screen splash.
     // Call sites may still pass `nonBlocking` for intent (marketing SSR); behavior matches.
+    // Pass through authUser as soon as getSession resolves so public routes
+    // (landing → /match) do not stick on guest chrome for the rest of boot.
     const provisional: BeamContextValue = {
       mode,
       ready: false,
-      authUser: null,
+      authUser,
       backendError: null,
-      state: emptyLiveState('anonymous'),
-      currentUser: guestStubPerson(),
+      state: state ?? emptyLiveState(authUser?.id ?? 'anonymous'),
+      currentUser: currentUser ?? guestStubPerson(),
       refresh: noopAsync,
       ...sharedActions,
     }

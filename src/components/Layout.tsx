@@ -29,8 +29,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const onboardingEdit = pathname === '/onboarding' && searchParams.get('edit') === '1'
   const { currentUser, mode, ready, authUser } = useBeam()
   const hideChrome = shouldHideAppChrome(pathname, onboardingEdit)
-  // Live guests get marketing chrome on public discovery routes.
-  // Demo mode always uses the authenticated marketplace top nav.
+  // Live signed-out visitors get guest chrome (Log in / Sign up, no avatar).
+  // Demo mode and live signed-in users share the marketplace top nav + avatar.
+  // Root BeamProvider keeps authUser across landing → /match so guest chrome
+  // does not stick after hero search.
   const isLiveGuest = mode === 'live' && !authUser
   const isHelperOnboarding = pathname.startsWith('/onboarding/helper')
   const showHelperSetupBanner =

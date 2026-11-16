@@ -2,10 +2,12 @@
 
 import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
+import { SiteAccountMenu } from '@/components/account/SiteAccountMenu'
 import { HouseCallWordmark } from '@/components/HouseCallWordmark'
 import { BrowseLocationTrigger } from '@/components/browse/BrowseLocationDialog'
 import { useBeam } from '@/context/BeamContext'
+import '@/components/account/account-hc.css'
 
 export function LandingNav({
   variant = 'hero',
@@ -16,13 +18,14 @@ export function LandingNav({
   /** Guest Browse: reuse topnav location control without a page eyebrow. */
   browseLocationLabel?: string
 }) {
-  const { authUser, mode, currentUser, signOut } = useBeam()
+  const { authUser, mode, currentUser } = useBeam()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const isOverlay = variant === 'overlay'
   const light = variant === 'light' || (variant === 'hero' && scrolled)
   const onDark = isOverlay || (variant === 'hero' && !scrolled)
-  const signedInLive = mode === 'live' && Boolean(authUser)
+  // Demo has no auth session but still uses the same account chrome as live signed-in.
+  const showAccountMenu = mode === 'demo' || Boolean(authUser)
   const onboardingDone = Boolean(currentUser?.onboardingCompletedAt)
   const canOnboardHelper = Boolean(authUser) || mode === 'demo'
 
@@ -71,8 +74,14 @@ export function LandingNav({
     ? 'inline-flex h-11 min-h-[44px] items-center justify-center rounded-full bg-white px-4 text-[13px] font-semibold text-[#071330] transition-colors hover:bg-[#EEF2F7]'
     : 'inline-flex h-11 min-h-[44px] items-center justify-center rounded-full bg-[#1D5CE5] px-4 text-[13px] font-semibold text-white shadow-none transition-colors hover:bg-[#1649BD]'
 
-  const primaryHref = onboardingDone ? '/browse' : '/onboarding'
-  const primaryLabel = onboardingDone ? 'Browse' : 'Continue setup'
+  const primaryHref = onboardingDone ? '/post' : '/onboarding'
+  const primaryLabel = onboardingDone ? 'Post a task' : 'Continue setup'
+
+  const accountMenu = showAccountMenu ? (
+    <Suspense fallback={null}>
+      <SiteAccountMenu onDark={onDark} />
+    </Suspense>
+  ) : null
 
   const bar = (
     <>
@@ -108,16 +117,8 @@ export function LandingNav({
             }`}
           />
         ) : null}
-        {signedInLive ? (
+        {showAccountMenu ? (
           <>
-            <button
-              type="button"
-              className={loginClass}
-              data-testid="landing-sign-out"
-              onClick={() => void signOut()}
-            >
-              Sign out
-            </button>
             <Link
               href={primaryHref}
               className={`${ctaClass} ${isOverlay ? '' : 'hidden sm:inline-flex'}`}
@@ -125,10 +126,12 @@ export function LandingNav({
             >
               {primaryLabel}
             </Link>
+            {/* Visibility follows .hc-account-desktop (hidden ≤860px; hamburger owns account). */}
+            {accountMenu}
           </>
         ) : (
           <>
-            <Link href="/auth?mode=signin" className={loginClass}>
+            <Link href="/auth?mode=signin" className={loginClass} data-testid="landing-log-in">
               Log in
             </Link>
             <Link
@@ -185,19 +188,11 @@ export function LandingNav({
           ),
         )}
         <div className="my-1 border-t border-[#E3E8EF]" />
-        {signedInLive ? (
+        {showAccountMenu ? (
           <>
-            <button
-              type="button"
-              className="min-h-[44px] px-4 py-3 text-left text-[15px] text-[#071330]"
-              data-testid="landing-mobile-sign-out"
-              onClick={() => {
-                setMobileOpen(false)
-                void signOut()
-              }}
-            >
-              Sign out
-            </button>
+            <Suspense fallback={null}>
+              <SiteAccountMenu mobile onNavigate={() => setMobileOpen(false)} />
+            </Suspense>
             <div className="px-4 pb-3 pt-1">
               <Link
                 href={primaryHref}

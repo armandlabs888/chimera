@@ -1,19 +1,12 @@
 'use client'
 
-import { ArrowRight, ChevronDown, Menu, UserRound, X } from 'lucide-react'
+import { ArrowRight, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useRef, useState, type MouseEvent } from 'react'
-import {
-  AccountMenuPanel,
-  AccountMenuTrigger,
-  MobileAccountLinks,
-} from '@/components/account/AccountMenuLinks'
+import { useEffect, useState, type MouseEvent } from 'react'
+import { SiteAccountMenu } from '@/components/account/SiteAccountMenu'
 import { HouseCallWordmark } from '@/components/HouseCallWordmark'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
-import { Avatar } from '@/components/ui'
-import { useBeam } from '@/context/BeamContext'
-import { useBrowseLocation } from '@/hooks/useBrowseLocation'
 import './browse-hc.css'
 import '@/components/account/account-hc.css'
 
@@ -28,14 +21,9 @@ export function BrowseFloatHeader({
   guest: boolean
   showHelperBanner: boolean
 }) {
-  const { currentUser, ready, authUser, signOut, mode } = useBeam()
   const { toggle, open: messagesOpen, isGuest } = useMessagesDrawer()
-  const { origin } = useBrowseLocation(currentUser)
   const pathname = usePathname()
-  const locationText = ready ? origin.locationLabel : '…'
-  const [accountOpen, setAccountOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const accountRef = useRef<HTMLDivElement>(null)
 
   const savedHref = guest ? '/auth?next=%2Fhome%3Ftab%3Dsaved' : '/home?tab=saved'
   const offersHref = guest ? '/auth?next=%2Fhome%3Ftab%3Doffers' : '/home?tab=offers'
@@ -58,29 +46,16 @@ export function BrowseFloatHeader({
 
   useEffect(() => {
     setMobileOpen(false)
-    setAccountOpen(false)
   }, [pathname])
 
   useEffect(() => {
-    if (!accountOpen && !mobileOpen) return
-    function onDoc(e: MouseEvent | globalThis.MouseEvent) {
-      if (accountOpen && accountRef.current && !accountRef.current.contains(e.target as Node)) {
-        setAccountOpen(false)
-      }
-    }
+    if (!mobileOpen) return
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setAccountOpen(false)
-        setMobileOpen(false)
-      }
+      if (e.key === 'Escape') setMobileOpen(false)
     }
-    document.addEventListener('mousedown', onDoc)
     document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDoc)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [accountOpen, mobileOpen])
+    return () => document.removeEventListener('keydown', onKey)
+  }, [mobileOpen])
 
   function onMessagesClick(event: MouseEvent<HTMLAnchorElement | HTMLButtonElement>) {
     if (isGuest) return
@@ -89,10 +64,6 @@ export function BrowseFloatHeader({
     toggle()
     setMobileOpen(false)
   }
-
-  const displayName = ready ? currentUser.name : '…'
-  // Demo has no auth session but still exposes Sign out for the same menu chrome as live.
-  const canSignOut = Boolean(authUser) || mode === 'demo'
 
   return (
     <div className="browse-hc" data-testid="browse-hc-header-shell">
@@ -160,32 +131,25 @@ export function BrowseFloatHeader({
               Post a task
             </Link>
 
-            {guest ? null : (
-              <div className="hc-account-desktop relative" ref={accountRef}>
-                <AccountMenuTrigger open={accountOpen} onToggle={() => setAccountOpen((o) => !o)}>
-                  {ready ? (
-                    <Avatar src={currentUser.avatar} name={currentUser.name} size={24} />
-                  ) : (
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#071330] text-white">
-                      <UserRound className="h-3 w-3" />
-                    </span>
-                  )}
-                  <ChevronDown className="chev h-3 w-3" aria-hidden />
-                </AccountMenuTrigger>
-                {accountOpen ? (
-                  <AccountMenuPanel
-                    name={displayName}
-                    locationText={locationText}
-                    open={accountOpen}
-                    onNavigate={() => setAccountOpen(false)}
-                    canSignOut={canSignOut}
-                    onSignOut={() => {
-                      setAccountOpen(false)
-                      void signOut()
-                    }}
-                  />
-                ) : null}
+            {guest ? (
+              <div className="browse-hc-guest-auth hidden items-center gap-2 sm:flex" data-testid="guest-auth-links">
+                <Link
+                  href="/auth?mode=signin"
+                  className="inline-flex h-10 min-h-[40px] items-center px-2 text-[13px] font-medium text-[#071330] transition hover:text-[#1D5CE5]"
+                  data-testid="topnav-log-in"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/auth?mode=signup&next=%2Fbrowse"
+                  className="inline-flex h-10 min-h-[40px] items-center justify-center rounded-full border border-[#E3E8EF] bg-white px-3.5 text-[13px] font-semibold text-[#071330] transition hover:bg-[#EEF2F7]"
+                  data-testid="topnav-sign-up"
+                >
+                  Sign up
+                </Link>
               </div>
+            ) : (
+              <SiteAccountMenu />
             )}
 
             <button
@@ -256,16 +220,7 @@ export function BrowseFloatHeader({
                   </div>
                 </>
               ) : (
-                <MobileAccountLinks
-                  name={displayName}
-                  locationText={locationText}
-                  onNavigate={() => setMobileOpen(false)}
-                  canSignOut={canSignOut}
-                  onSignOut={() => {
-                    setMobileOpen(false)
-                    void signOut()
-                  }}
-                />
+                <SiteAccountMenu mobile onNavigate={() => setMobileOpen(false)} />
               )}
             </div>
           </div>
