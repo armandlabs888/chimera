@@ -1,38 +1,38 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useMemo, useRef, useState, type FormEvent } from 'react'
-import { HouseCallWordmark } from '@/components/HouseCallWordmark'
 import { useFocusTrap } from '@/components/browse/useFocusTrap'
 import { useBeam } from '@/context/BeamContext'
 import { Button, Field, TextInput } from '@/components/ui'
 import { friendlyAuthError } from '@/lib/auth/errors'
 import { buildAuthCallbackUrl, sanitizeNext } from '@/lib/auth/safeNext'
 import { resolveOAuthRedirectOrigin } from '@/lib/auth/siteOrigin'
+import { createClient } from '@/lib/supabase/client'
+import { AuthMobileVerifyBadge, AuthModalShell } from './AuthModalShell'
 import { GoogleMark } from './GoogleMark'
-import { LIFESTYLE } from '@/data/media'
 
 export type AuthMode = 'signin' | 'signup'
+type AuthView = 'auth' | 'forgot'
 
 type Props = {
   initialMode?: AuthMode
   nextPath?: string
   initialError?: string | null
   onClose?: () => void
+  /** Open directly on the password-reset request view (e.g. expired link). */
+  initialView?: AuthView
 }
 
-const BULLETS = [
-  'Post a task in a minute',
-  'Compare offers from people nearby',
-  'Pick who fits and message them',
-] as const
+const RESET_SENT_MESSAGE =
+  'If an account exists for that email, a reset link is on its way.'
 
 export function AuthExperience({
   initialMode = 'signin',
   nextPath = '/onboarding',
   initialError = null,
   onClose,
+  initialView = 'auth',
 }: Props) {
   const {
     mode,
@@ -46,17 +46,20 @@ export function AuthExperience({
 
   const safeNext = useMemo(() => sanitizeNext(nextPath, '/onboarding'), [nextPath])
   const [tab, setTab] = useState<AuthMode>(initialMode)
+  const [view, setView] = useState<AuthView>(initialView)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [pending, setPending] = useState(false)
   const [googlePending, setGooglePending] = useState(false)
+  const [resetPending, setResetPending] = useState(false)
   const [localError, setLocalError] = useState(() =>
     initialError ? friendlyAuthError(initialError) : '',
   )
   const [confirmSent, setConfirmSent] = useState(false)
   const [resendPending, setResendPending] = useState(false)
   const [info, setInfo] = useState('')
+  const [resetSent, setResetSent] = useState(false)
 
   const modalRef = useRef<HTMLDivElement>(null)
   const handleClose = useCallback(() => {
@@ -68,13 +71,32 @@ export function AuthExperience({
   const switchTab = useCallback(
     (next: AuthMode) => {
       setTab(next)
+      setView('auth')
       setLocalError('')
       setInfo('')
       setConfirmSent(false)
+      setResetSent(false)
       clearBackendError()
     },
     [clearBackendError],
   )
+
+  const openForgot = useCallback(() => {
+    setView('forgot')
+    setLocalError('')
+    setInfo('')
+    setResetSent(false)
+    clearBackendError()
+  }, [clearBackendError])
+
+  const backToSignIn = useCallback(() => {
+    setView('auth')
+    setTab('signin')
+    setLocalError('')
+    setInfo('')
+    setResetSent(false)
+    clearBackendError()
+  }, [clearBackendError])
 
   const oauthRedirectTo =
     typeof window !== 'undefined'
@@ -140,157 +162,82 @@ export function AuthExperience({
     }
   }
 
+  async function onSendReset(e: FormEvent) {
+    e.preventDefault()
+    const trimmed = email.trim()
+    if (!trimmed) {
+      setLocalError('Enter the email for your account.')
+      return
+    }
+    setResetPending(true)
+    setLocalError('')
+    setInfo('')
+    setResetSent(false)
+    clearBackendError()
+    try {
+      const redirectTo = `${resolveOAuthRedirectOrigin(window.location.origin)}/auth/reset-password`
+      const supabase = createClient()
+      const { error } = await supabase.auth.resetPasswordForEmail(trimmed, { redirectTo })
+      if (error) {
+        setLocalError(friendlyAuthError(error.message))
+        return
+      }
+      setResetSent(true)
+      setInfo(RESET_SENT_MESSAGE)
+    } catch (err) {
+      setLocalError(
+        friendlyAuthError(err instanceof Error ? err.message : 'Could not send reset link'),
+      )
+    } finally {
+      setResetPending(false)
+    }
+  }
+
   const alertError = localError || (backendError ? friendlyAuthError(backendError) : '')
   const titleId = 'auth-modal-title'
 
   return (
-    <div
-      className="fixed inset-0 z-[80] flex items-center justify-center p-3.5 md:p-8"
-      data-testid="auth-modal-overlay"
-    >
-      <div
-        className="absolute inset-0 bg-[rgba(7,19,48,0.5)] backdrop-blur-[8px]"
-        data-testid="auth-modal-scrim"
-        onClick={handleClose}
-        aria-hidden
+    <AuthModalShell titleId={titleId} modalRef={modalRef} onClose={handleClose}>
+      <FormColumn
+        titleId={titleId}
+        tab={tab}
+        view={view}
+        switchTab={switchTab}
+        openForgot={openForgot}
+        backToSignIn={backToSignIn}
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        showPassword={showPassword}
+        setShowPassword={setShowPassword}
+        pending={pending}
+        googlePending={googlePending}
+        resetPending={resetPending}
+        onGoogle={onGoogle}
+        onSubmit={onSubmit}
+        onSendReset={onSendReset}
+        alertError={alertError}
+        info={info}
+        resetSent={resetSent}
+        confirmSent={confirmSent}
+        onResend={onResend}
+        resendPending={resendPending}
+        setConfirmSent={setConfirmSent}
+        mode={mode}
+        safeNext={safeNext}
       />
-
-      <div
-        ref={modalRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        tabIndex={-1}
-        data-testid="auth-modal"
-        className="relative z-[1] grid h-auto max-h-[calc(100vh-28px)] w-[min(100%,362px)] grid-cols-1 overflow-hidden rounded-2xl bg-white shadow-[0_24px_64px_rgba(7,19,48,0.28),0_2px_8px_rgba(7,19,48,0.08)] outline-none md:h-[736px] md:max-h-[calc(100vh-64px)] md:w-[1000px] md:max-w-[calc(100vw-64px)] md:grid-cols-2"
-      >
-        <div className="flex min-h-0 min-w-0 flex-col justify-start overflow-y-auto bg-white px-[22px] py-7 md:justify-center md:px-11 md:py-9">
-          <HouseCallWordmark size={18} className="mb-1" />
-
-          <FormColumn
-            titleId={titleId}
-            tab={tab}
-            switchTab={switchTab}
-            email={email}
-            setEmail={setEmail}
-            password={password}
-            setPassword={setPassword}
-            showPassword={showPassword}
-            setShowPassword={setShowPassword}
-            pending={pending}
-            googlePending={googlePending}
-            onGoogle={onGoogle}
-            onSubmit={onSubmit}
-            alertError={alertError}
-            info={info}
-            confirmSent={confirmSent}
-            onResend={onResend}
-            resendPending={resendPending}
-            setConfirmSent={setConfirmSent}
-            mode={mode}
-            safeNext={safeNext}
-          />
-        </div>
-
-        <AsidePanel />
-
-        {/* Close last in DOM so initial focus lands on the form, not the X. */}
-        <button
-          type="button"
-          onClick={handleClose}
-          aria-label="Close"
-          data-testid="auth-modal-close"
-          className="absolute right-2.5 top-2.5 z-[3] inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-[#4A5568] transition hover:bg-[rgba(7,19,48,0.06)] hover:text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5] focus-visible:ring-offset-2 md:right-3.5 md:top-3.5"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden>
-            <path d="M4 4l8 8M12 4l-8 8" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function VerifyBadge({ className = '' }: { className?: string }) {
-  return (
-    <span
-      className={`inline-flex items-center gap-2 self-start rounded-[10px] border border-[#D7E0EC] bg-white px-3 py-2 text-[13px] font-semibold leading-tight text-[#071330] shadow-[0_1px_2px_rgba(7,19,48,0.04)] ${className}`}
-    >
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#1D5CE5"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-        className="shrink-0"
-      >
-        <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />
-        <path d="M9.5 12.2l1.7 1.7 3.4-3.6" />
-      </svg>
-      Helpers verify they live nearby
-    </span>
-  )
-}
-
-function AsidePanel() {
-  return (
-    <aside
-      className="relative hidden min-w-0 flex-col items-center justify-center border-l border-[#E3E8EF] bg-white px-6 md:flex"
-      data-testid="auth-aside-panel"
-    >
-      {/* Content group width matches the photo (360px); centered in the panel. */}
-      <div className="flex w-[360px] max-w-full flex-col text-left">
-        <p className="font-display text-[36px] font-extrabold leading-[1.15] tracking-[-0.045em] text-[#071330]">
-          Trusted help,
-          <br />
-          <span className="whitespace-nowrap">
-            right <span className="text-[#1D5CE5]">next door.</span>
-          </span>
-        </p>
-
-        <VerifyBadge className="mt-5" />
-
-        <div className="relative mt-[22px] h-[328px] w-full shrink-0 overflow-hidden rounded-xl border border-[#E3E8EF] bg-[#E8EEF6] shadow-[0_8px_20px_rgba(7,19,48,0.08)]">
-          <Image
-            src={LIFESTYLE.authCarpet}
-            alt="A HouseCall helper cleaning a carpet"
-            fill
-            className="object-cover object-[50%_30%]"
-            sizes="360px"
-            priority
-          />
-        </div>
-
-        <ul className="mt-7 flex flex-col gap-3.5">
-          {BULLETS.map((text) => (
-            <li key={text} className="flex items-start gap-2.5 text-[15px] font-medium leading-[22px] text-[#071330]">
-              <svg className="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="none" aria-hidden>
-                <circle cx="10" cy="10" r="9" fill="#EEF4FF" stroke="#1D5CE5" strokeWidth="1.2" />
-                <path
-                  d="M6.2 10.2l2.3 2.3 5.3-5.4"
-                  stroke="#1D5CE5"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              {text}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </aside>
+    </AuthModalShell>
   )
 }
 
 function FormColumn(props: {
   titleId: string
   tab: AuthMode
+  view: AuthView
   switchTab: (t: AuthMode) => void
+  openForgot: () => void
+  backToSignIn: () => void
   email: string
   setEmail: (v: string) => void
   password: string
@@ -299,10 +246,13 @@ function FormColumn(props: {
   setShowPassword: (v: boolean | ((b: boolean) => boolean)) => void
   pending: boolean
   googlePending: boolean
+  resetPending: boolean
   onGoogle: () => void
   onSubmit: (e: FormEvent) => void
+  onSendReset: (e: FormEvent) => void
   alertError: string
   info: string
+  resetSent: boolean
   confirmSent: boolean
   onResend: () => void
   resendPending: boolean
@@ -313,7 +263,10 @@ function FormColumn(props: {
   const {
     titleId,
     tab,
+    view,
     switchTab,
+    openForgot,
+    backToSignIn,
     email,
     setEmail,
     password,
@@ -322,10 +275,13 @@ function FormColumn(props: {
     setShowPassword,
     pending,
     googlePending,
+    resetPending,
     onGoogle,
     onSubmit,
+    onSendReset,
     alertError,
     info,
+    resetSent,
     confirmSent,
     onResend,
     resendPending,
@@ -409,6 +365,64 @@ function FormColumn(props: {
     )
   }
 
+  if (view === 'forgot') {
+    return (
+      <div>
+        <h1
+          id={titleId}
+          className="mt-4 font-display text-[26px] font-extrabold leading-[1.15] tracking-[-0.035em] text-[#071330] md:text-[28px]"
+        >
+          Reset your password
+        </h1>
+        <p className="mt-2 max-w-[40ch] text-[14px] leading-[22px] text-[#4A5568]">
+          Enter your email and we&apos;ll send you a link to set a new password.
+        </p>
+
+        <form className="mt-6 space-y-3" onSubmit={onSendReset} data-testid="auth-forgot-form">
+          <Field label="Email">
+            <TextInput
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+              className="h-[42px] rounded-[10px] border-[#E3E8EF] text-[14px]"
+            />
+          </Field>
+
+          {alertError ? <ErrorBanner message={alertError} /> : null}
+          {resetSent || info ? (
+            <div
+              className="rounded-lg border border-[#D7E0EC] bg-white px-4 py-3 text-[14px] text-[#071330]"
+              data-testid="auth-reset-sent"
+            >
+              {info || RESET_SENT_MESSAGE}
+            </div>
+          ) : null}
+
+          <Button
+            type="submit"
+            className="mt-[6px] h-11 w-full rounded-[10px] bg-[#1D5CE5] hover:bg-[#1649BD]"
+            disabled={resetPending}
+          >
+            {resetPending ? 'Sending…' : 'Send reset link'}
+          </Button>
+        </form>
+
+        <p className="mt-[18px] text-center text-[13px] text-[#4A5568]">
+          <button
+            type="button"
+            className="font-semibold text-[#1649BD] underline-offset-2 hover:underline"
+            onClick={backToSignIn}
+            data-testid="auth-back-to-signin"
+          >
+            Back to sign in
+          </button>
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div>
       <h1
@@ -423,7 +437,7 @@ function FormColumn(props: {
           : 'Join HouseCall to post practical jobs or help neighbors nearby.'}
       </p>
 
-      <VerifyBadge className="mt-3.5 md:hidden" />
+      <AuthMobileVerifyBadge className="mt-3.5" />
 
       <button
         type="button"
@@ -472,27 +486,62 @@ function FormColumn(props: {
           />
         </Field>
 
-        <Field label="Password" hint={tab === 'signup' ? 'At least 6 characters' : undefined}>
-          <div className="relative">
-            <TextInput
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              autoComplete={tab === 'signin' ? 'current-password' : 'new-password'}
-              className="h-[42px] rounded-[10px] border-[#E3E8EF] pr-16 text-[14px]"
-            />
-            <button
-              type="button"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg px-1.5 py-1 text-[13px] font-semibold text-[#4A5568] hover:text-[#071330]"
-              onClick={() => setShowPassword((v) => !v)}
-              aria-pressed={showPassword}
-            >
-              {showPassword ? 'Hide' : 'Show'}
-            </button>
-          </div>
-        </Field>
+        {tab === 'signin' ? (
+          <label className="block space-y-1.5">
+            <span className="flex items-center justify-between gap-3">
+              <span className="type-meta text-beam-muted">Password</span>
+              <button
+                type="button"
+                onClick={openForgot}
+                className="shrink-0 text-[13px] font-medium text-[#1649BD] underline-offset-2 hover:underline"
+                data-testid="auth-forgot-password"
+              >
+                Forgot password?
+              </button>
+            </span>
+            <div className="relative">
+              <TextInput
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                autoComplete="current-password"
+                className="h-[42px] rounded-[10px] border-[#E3E8EF] pr-16 text-[14px]"
+              />
+              <button
+                type="button"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg px-1.5 py-1 text-[13px] font-semibold text-[#4A5568] hover:text-[#071330]"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-pressed={showPassword}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+          </label>
+        ) : (
+          <Field label="Password" hint="At least 6 characters">
+            <div className="relative">
+              <TextInput
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                autoComplete="new-password"
+                className="h-[42px] rounded-[10px] border-[#E3E8EF] pr-16 text-[14px]"
+              />
+              <button
+                type="button"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg px-1.5 py-1 text-[13px] font-semibold text-[#4A5568] hover:text-[#071330]"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-pressed={showPassword}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+          </Field>
+        )}
 
         {alertError ? <ErrorBanner message={alertError} /> : null}
         {info ? (
@@ -534,6 +583,18 @@ function FormColumn(props: {
             </button>
           </>
         )}
+      </p>
+
+      <p className="mt-5 text-center text-[12px] leading-[18px] text-[#4A5568]">
+        By continuing, you agree to HouseCall&apos;s{' '}
+        <Link href="/terms" className="text-[#1649BD] underline-offset-2 hover:underline">
+          Terms of Service
+        </Link>{' '}
+        and{' '}
+        <Link href="/privacy" className="text-[#1649BD] underline-offset-2 hover:underline">
+          Privacy Policy
+        </Link>
+        .
       </p>
     </div>
   )

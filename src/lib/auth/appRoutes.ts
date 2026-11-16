@@ -10,6 +10,8 @@ const PUBLIC_APP_PREFIXES = ['/browse', '/match', '/safety', '/people/', '/reque
 export function isPublicAppPath(pathname: string): boolean {
   if (pathname === '/onboarding') return true
   if (pathname === '/terms' || pathname === '/privacy') return true
+  // Password recovery must stay reachable with a recovery session (and for guests).
+  if (pathname === '/auth/reset-password') return true
   return PUBLIC_APP_PREFIXES.some(
     (p) => pathname === p.replace(/\/$/, '') || pathname.startsWith(p),
   )

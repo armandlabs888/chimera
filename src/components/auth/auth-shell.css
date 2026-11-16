@@ -1,0 +1,277 @@
+/* Shared HouseCall auth modal shell (sign-in + password reset). */
+
+.auth-shell-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(14px, env(safe-area-inset-top, 0px))
+    max(14px, env(safe-area-inset-right, 0px))
+    max(14px, env(safe-area-inset-bottom, 0px))
+    max(14px, env(safe-area-inset-left, 0px));
+  box-sizing: border-box;
+}
+
+.auth-shell-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 19, 48, 0.5);
+  backdrop-filter: blur(8px);
+}
+
+.auth-shell-card {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  width: min(100%, 420px);
+  max-width: calc(100vw - 28px);
+  height: auto;
+  max-height: min(736px, calc(100dvh - 28px));
+  overflow: hidden;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow:
+    0 24px 64px rgba(7, 19, 48, 0.28),
+    0 2px 8px rgba(7, 19, 48, 0.08);
+  outline: none;
+}
+
+.auth-shell-form {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  background: #fff;
+  padding: 28px 22px;
+}
+
+.auth-shell-aside {
+  display: none;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-left: 1px solid #e3e8ef;
+  background: #fff;
+  padding: 24px;
+}
+
+.auth-shell-aside-inner {
+  display: flex;
+  width: 360px;
+  max-width: 100%;
+  flex-direction: column;
+  text-align: left;
+}
+
+.auth-shell-aside-title {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.045em;
+  color: #071330;
+}
+
+.auth-shell-aside-image {
+  position: relative;
+  margin-top: 22px;
+  height: 328px;
+  width: 100%;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid #e3e8ef;
+  background: #e8eef6;
+  box-shadow: 0 8px 20px rgba(7, 19, 48, 0.08);
+}
+
+.auth-shell-aside-list {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth-shell-close {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 3;
+  display: inline-flex;
+  height: 44px;
+  width: 44px;
+  min-height: 44px;
+  min-width: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: #4a5568;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.auth-shell-close:hover {
+  background: rgba(7, 19, 48, 0.06);
+  color: #071330;
+}
+
+.auth-shell-close:focus {
+  outline: none;
+}
+
+.auth-shell-close:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px #1d5ce5;
+}
+
+/* Wide enough for the two-column marketing card. */
+@media (min-width: 900px) {
+  .auth-shell-overlay {
+    padding: max(24px, env(safe-area-inset-top, 0px))
+      max(32px, env(safe-area-inset-right, 0px))
+      max(24px, env(safe-area-inset-bottom, 0px))
+      max(32px, env(safe-area-inset-left, 0px));
+  }
+
+  .auth-shell-card {
+    width: min(1000px, calc(100vw - 64px));
+    max-width: calc(100vw - 64px);
+    max-height: min(736px, calc(100dvh - 48px));
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .auth-shell-form {
+    justify-content: center;
+    padding: 36px 44px;
+  }
+
+  .auth-shell-aside {
+    display: flex;
+  }
+
+  .auth-shell-close {
+    right: 14px;
+    top: 14px;
+  }
+}
+
+/* Short laptop viewports: compress promo art so both columns still fit. */
+@media (min-width: 900px) and (max-height: 820px) {
+  .auth-shell-card {
+    max-height: calc(100dvh - 32px);
+  }
+
+  .auth-shell-form {
+    padding: 24px 36px;
+  }
+
+  .auth-shell-aside {
+    padding: 16px 20px;
+    justify-content: flex-start;
+  }
+
+  .auth-shell-aside-title {
+    font-size: 28px;
+  }
+
+  .auth-shell-aside-image {
+    margin-top: 14px;
+    height: 160px;
+  }
+
+  .auth-shell-aside-list {
+    margin-top: 16px;
+    gap: 10px;
+  }
+
+  .auth-shell-aside .auth-shell-verify {
+    margin-top: 12px;
+  }
+}
+
+/*
+ * Short laptops (~1280x700): drop the promo column entirely so the form
+ * always fits with margins and nothing clips.
+ */
+@media (min-width: 900px) and (max-height: 740px) {
+  .auth-shell-card {
+    width: min(420px, calc(100vw - 48px));
+    grid-template-columns: 1fr;
+    max-height: calc(100dvh - 32px);
+  }
+
+  .auth-shell-aside {
+    display: none;
+  }
+
+  .auth-shell-mobile-verify {
+    display: inline-flex;
+  }
+}
+
+.auth-shell-verify {
+  display: inline-flex;
+}
+
+/* Show the inline verify chip only when the promo column is hidden. */
+.auth-shell-mobile-verify {
+  display: inline-flex;
+}
+
+@media (min-width: 900px) {
+  .auth-shell-mobile-verify {
+    display: none;
+  }
+}
+
+/* Phones: full-screen auth surface (no floating card). */
+@media (max-width: 480px) {
+  .auth-shell-overlay {
+    align-items: stretch;
+    justify-content: stretch;
+    padding: 0;
+  }
+
+  .auth-shell-card {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .auth-shell-form {
+    padding: max(20px, env(safe-area-inset-top, 0px))
+      max(20px, env(safe-area-inset-right, 0px))
+      max(24px, env(safe-area-inset-bottom, 0px))
+      max(20px, env(safe-area-inset-left, 0px));
+  }
+
+  .auth-shell-close {
+    right: max(6px, env(safe-area-inset-right, 0px));
+    top: max(6px, env(safe-area-inset-top, 0px));
+  }
+
+  /* Avoid iOS input zoom. */
+  .auth-shell-form input,
+  .auth-shell-form textarea,
+  .auth-shell-form select {
+    font-size: 16px !important;
+  }
+}
