@@ -133,6 +133,44 @@
   color: var(--php-ink);
 }
 
+.public-helper-profile .php-bio {
+  margin-top: 18px;
+}
+
+.public-helper-profile .php-bio-label {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: #071330;
+}
+
+.public-helper-profile .php-bio-text {
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: var(--php-ink);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.public-helper-profile .php-travels {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--php-muted);
+}
+
+.public-helper-profile .php-travels-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: #5b6576;
+}
+
 .public-helper-profile .php-icon-actions {
   margin-top: 22px;
   display: grid;

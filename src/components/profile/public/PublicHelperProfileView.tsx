@@ -1,6 +1,6 @@
 'use client'
 
-import { Heart, MessageSquare, Star } from 'lucide-react'
+import { Heart, MapPin, MessageSquare, Star } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
@@ -87,7 +87,6 @@ export function PublicHelperProfileView({
   const isGuest = mode === 'live' && !authUser
   const isYou = person.id === currentUser.id
   const hidePeerDiscovery = hidesPeerHelperDiscovery(currentUser, isGuest)
-  const browseFallbackHref = hidePeerDiscovery ? '/browse' : '/browse?tab=people'
   const profilePath = `/people/${person.id}`
   const isSaved = state.savedHelperIds?.includes(person.id) ?? false
 
@@ -103,6 +102,23 @@ export function PublicHelperProfileView({
     currentUser.locationLabel?.trim() ||
     'Nearby'
   const helperFirst = firstName(person.name)
+  const bioText = person.bio?.trim() || ''
+  const travelsLabel = useMemo(() => {
+    const miles =
+      typeof person.serviceRadiusMiles === 'number' && person.serviceRadiusMiles > 0
+        ? Math.round(person.serviceRadiusMiles)
+        : null
+    if (miles == null) return null
+    const cityPart = (person.city ?? '').trim()
+    const statePart = (person.stateCode ?? '').trim()
+    const fromPlace =
+      cityPart && statePart
+        ? `${cityPart}, ${statePart}`
+        : cityPart ||
+          (locationLabel && locationLabel !== 'Local area' ? locationLabel : '')
+    if (fromPlace) return `Travels up to ${miles} mi from ${fromPlace}`
+    return `Travels up to ${miles} mi`
+  }, [person.serviceRadiusMiles, person.city, person.stateCode, locationLabel])
   const days = useMemo(() => buildDayOptions(), [])
 
   const [selectedDay, setSelectedDay] = useState(days[0]?.value ?? '')
@@ -291,10 +307,15 @@ export function PublicHelperProfileView({
               }
             />
 
-            {person.bio?.trim() ? (
-              <p className="php-facts" data-testid="public-helper-bio">
-                {person.bio.trim()}
-              </p>
+            {bioText ? (
+              <div className="php-bio" data-testid="public-helper-bio-section">
+                <h2 className="php-bio-label" id="bio-heading">
+                  Bio
+                </h2>
+                <p className="php-bio-text" data-testid="public-helper-bio">
+                  {bioText}
+                </p>
+              </div>
             ) : null}
 
             {person.availableNow ? (
@@ -303,21 +324,16 @@ export function PublicHelperProfileView({
               </p>
             ) : null}
 
-            {primarySkill ? (
-              <p className="php-facts php-facts-2">
-                <Link className="php-cat-link" href={browseFallbackHref}>
-                  {primarySkill.label}
-                </Link>
-                <span className="php-sep">·</span>
-                <span className="php-meta">
-                  Within {radius} mi
-                </span>
+            {travelsLabel ? (
+              <p className="php-travels" data-testid="public-helper-travels">
+                <MapPin
+                  className="php-travels-icon"
+                  strokeWidth={2.25}
+                  aria-hidden
+                />
+                <span>{travelsLabel}</span>
               </p>
-            ) : (
-              <p className="php-facts php-facts-2">
-                <span className="php-meta">Within {radius} mi</span>
-              </p>
-            )}
+            ) : null}
           </section>
 
           <section className="php-block" aria-labelledby="day-heading">
