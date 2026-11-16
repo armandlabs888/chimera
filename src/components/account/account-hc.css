@@ -2075,6 +2075,7 @@ select.account-hc-input:focus {
   align-items: center;
   gap: 4px;
   height: 32px;
+  min-height: 40px;
   padding: 0 6px 0 2px;
   border-radius: 9999px;
   background: none;
@@ -2090,6 +2091,16 @@ select.account-hc-input:focus {
 
 .hc-account-btn .chev {
   color: var(--hc-muted-2, #4A5568);
+}
+
+/* Landing hero overlay: keep avatar readable on dark photography. */
+.hc-account-desktop-on-dark .hc-account-btn:hover,
+.hc-account-desktop-on-dark .hc-account-btn[aria-expanded='true'] {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.hc-account-desktop-on-dark .hc-account-btn .chev {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .hc-mobile-account {

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { DM_Sans, Inter } from 'next/font/google'
 import type { ReactNode } from 'react'
+import { BeamProvider } from '@/context/BeamContext'
 import { DEFAULT_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/seo/site'
 import './globals.css'
 
@@ -68,7 +69,14 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${dmSans.variable}`}>
-      <body className="font-body antialiased">{children}</body>
+      <body className="font-body antialiased">
+        {/*
+          One BeamProvider for the whole app so landing → /match (and auth)
+          keep the same session. Nested layout providers remounted auth and
+          painted guest chrome (no avatar) on public discovery routes.
+        */}
+        <BeamProvider>{children}</BeamProvider>
+      </body>
     </html>
   )
 }
