@@ -18,6 +18,11 @@ import {
   type ServiceCategoryId,
 } from '@/lib/taxonomy'
 import {
+  RateFields,
+  toEditorRateType,
+  type EditorRateType,
+} from '@/components/account/RateFields'
+import {
   WorkingHoursFields,
   workingHoursSavePayload,
 } from '@/components/account/WorkingHoursFields'
@@ -62,6 +67,9 @@ export function EditProfileForm() {
   const [serviceRadiusMiles, setServiceRadiusMiles] = useState(
     currentUser.serviceRadiusMiles ?? 5,
   )
+  const [rateType, setRateType] = useState<EditorRateType>(
+    toEditorRateType(currentUser.rateType),
+  )
   const [hourlyRate, setHourlyRate] = useState(
     currentUser.hourlyRate && currentUser.hourlyRate > 0
       ? String(currentUser.hourlyRate)
@@ -94,6 +102,7 @@ export function EditProfileForm() {
     )
     setOtherSkillLabel(currentUser.otherSkillLabel ?? '')
     setServiceRadiusMiles(currentUser.serviceRadiusMiles ?? 5)
+    setRateType(toEditorRateType(currentUser.rateType))
     setHourlyRate(
       currentUser.hourlyRate && currentUser.hourlyRate > 0
         ? String(currentUser.hourlyRate)
@@ -112,6 +121,7 @@ export function EditProfileForm() {
     currentUser.skills,
     currentUser.otherSkillLabel,
     currentUser.serviceRadiusMiles,
+    currentUser.rateType,
     currentUser.hourlyRate,
     currentUser.availableNow,
     currentUser.workStart,
@@ -195,7 +205,11 @@ export function EditProfileForm() {
       }
       const rateNum = Number(hourlyRate)
       if (!Number.isFinite(rateNum) || rateNum < 10) {
-        setError('Hourly rate should be at least $10.')
+        setError(
+          rateType === 'flat'
+            ? 'Flat rate should be at least $10.'
+            : 'Hourly rate should be at least $10.',
+        )
         return
       }
       const hours = workingHoursSavePayload(workStart, workEnd)
@@ -207,7 +221,7 @@ export function EditProfileForm() {
         skills: nextSkills,
         otherSkillLabel: otherLabel,
         serviceRadiusMiles,
-        rateType: 'hourly',
+        rateType,
         hourlyRate: rateNum,
         availableNow,
         workStart: hours.workStart,
@@ -414,27 +428,15 @@ export function EditProfileForm() {
             <div>
               <div className="ep-lbl">Rate</div>
             </div>
-            <div>
-              <div className="ep-rate-input" data-testid="you-helper-hourly-rate">
-                <label className="ep-rate-field">
-                  <span className="ep-rate-prefix" aria-hidden>
-                    $
-                  </span>
-                  <input
-                    className="ep-input"
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={hourlyRate}
-                    onChange={(e) =>
-                      setHourlyRate(e.target.value.replace(/[^\d]/g, '').slice(0, 4))
-                    }
-                    aria-label="Hourly rate in USD"
-                    placeholder="50"
-                  />
-                </label>
-                <span className="ep-meta">/ hr</span>
-              </div>
+            <div data-testid="you-helper-hourly-rate">
+              <RateFields
+                variant="edit"
+                rateType={rateType}
+                hourlyRate={hourlyRate}
+                onChangeRateType={setRateType}
+                onChangeHourlyRate={setHourlyRate}
+                testIdPrefix="you-helper-rate"
+              />
             </div>
           </div>
 

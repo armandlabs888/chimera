@@ -185,7 +185,7 @@ const people: Person[] = [
     reviewCount: 17,
     jobsCompleted: 35,
     serviceRadiusMiles: 7,
-    rateType: 'hourly',
+    rateType: 'flat',
     availableNow: false,
     isHelper: true,
     createdAt: hoursAgo(24 * 150),

@@ -21,7 +21,7 @@ import {
 import { Avatar } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { formatLocation } from '@/lib/location'
-import { formatRate, relativeTime } from '@/lib/matching'
+import { formatRate, isFlatRate, relativeTime } from '@/lib/matching'
 import { isHelperPerson } from '@/lib/roles'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import type { Person, Review } from '@/types'
@@ -202,7 +202,7 @@ export function HelperProfileBody({
   const priceDisplay = (
     <div className="hpb-price">
       ${hourly}
-      <small>/hr</small>
+      <small>{isFlatRate(person) ? ' flat' : '/hr'}</small>
     </div>
   )
 

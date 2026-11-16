@@ -21,7 +21,7 @@ export type AvailabilitySlot = 'mornings' | 'afternoons' | 'evenings' | 'weekend
 
 export type BudgetType = 'fixed' | 'open'
 
-export type RateType = 'hourly' | 'quote'
+export type RateType = 'hourly' | 'quote' | 'flat'
 
 export type AccountRole = 'customer' | 'helper'
 
