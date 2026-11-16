@@ -126,18 +126,20 @@ async function run() {
         await page.goto(`${BASE_URL}/onboarding?preview=1`, { waitUntil: 'networkidle' })
         await page.waitForSelector('[data-testid="onboarding-step-1"]')
 
-        const header = page.getByTestId('onboarding-header')
-        await header.waitFor({ state: 'visible' })
-        const headerText = await header.innerText()
-        assert.match(headerText, /Step 1 of 2/i, `${vp.name}: step progress in header`)
-        assert.doesNotMatch(headerText, /\bBeam\b/, `${vp.name}: no Beam wordmark in header`)
         assert.equal(
-          await header.locator('a[aria-label="HouseCall home"]').count(),
+          await page.locator('[data-testid="onboarding-header"]').count(),
           0,
-          `${vp.name}: no Beam logo link in header`,
+          `${vp.name}: top header bar removed`,
         )
+        const stepProgress = page.getByTestId('onboarding-step-progress')
+        await stepProgress.waitFor({ state: 'visible' })
+        const progressText = await stepProgress.innerText()
+        assert.match(progressText, /Step 1 of 2/i, `${vp.name}: step progress in form`)
+        assert.doesNotMatch(progressText, /\bBeam\b/, `${vp.name}: no Beam wordmark in step progress`)
 
         await page.getByTestId('onboarding-role-customer').click()
+        await page.getByTestId('onboarding-first-name').fill('Armand')
+        await page.getByTestId('onboarding-last-name').fill('Morales')
         const benefitsVisible = page.locator('[data-testid="onboarding-benefits"]:visible')
         await benefitsVisible.first().waitFor({ state: 'visible' })
         if (vp.width >= 1024) await assertDesktopSideBySide(page, `${vp.name} neighbor empty-city`)

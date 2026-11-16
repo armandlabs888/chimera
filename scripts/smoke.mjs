@@ -1259,22 +1259,24 @@ async function checkOnboardingFlow() {
     await page.goto(`${BASE_URL}/onboarding?preview=1`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('[data-testid="onboarding-root"]', { timeout: 20000 })
 
-    const onboardingHeader = page.getByTestId('onboarding-header')
-    await onboardingHeader.waitFor({ state: 'visible' })
-    const headerStep1 = await onboardingHeader.innerText()
-    assert.match(headerStep1, /Step 1 of 2/i, 'step progress in header')
-    assert.doesNotMatch(headerStep1, /\bBeam\b/, 'no Beam wordmark in onboarding header')
     assert.equal(
-      await onboardingHeader.locator('a[aria-label="HouseCall home"]').count(),
+      await page.locator('[data-testid="onboarding-header"]').count(),
       0,
-      'no Beam logo link in onboarding header',
+      'top onboarding header bar removed',
     )
+    const stepProgress1 = page.getByTestId('onboarding-step-progress')
+    await stepProgress1.waitFor({ state: 'visible' })
+    const progressText1 = await stepProgress1.innerText()
+    assert.match(progressText1, /Step 1 of 2/i, 'step progress in form column')
+    assert.doesNotMatch(progressText1, /\bBeam\b/, 'no Beam wordmark in step progress')
 
     const step1 = await page.locator('[data-testid="onboarding-step-1"]').innerText()
     assert.match(step1, /Welcome to HouseCall/i)
     assert.match(step1, /\bNeighbor\b/i)
     assert.match(step1, /\bHelper\b/i)
     assert.match(step1, /How you'll use HouseCall/i)
+    assert.match(step1, /Your full name/i)
+    assert.match(step1, /Aliases and nicknames are not allowed/i)
     assert.doesNotMatch(step1, /\bCustomer\b/i)
     assert.doesNotMatch(step1, /Popular/i)
     assert.doesNotMatch(step1, /Sign out/i)
@@ -1385,7 +1387,28 @@ async function checkOnboardingFlow() {
     assert.equal(step1Order?.desktopSideBySide, true, 'desktop benefits beside form column')
     assert.equal(step1Order?.continueInViewport, true, 'Continue visible beside benefits on desktop')
 
-    // Helper selected + no city → Continue focuses city + shows validation.
+    // Helper selected + empty name → inline real-name error.
+    await page.getByTestId('onboarding-next').click({ force: true })
+    await page.waitForSelector('[data-testid="onboarding-name-error"]')
+    assert.match(
+      await page.getByTestId('onboarding-name-error').innerText(),
+      /This is not a real name/i,
+    )
+
+    // Fake / mash names stay blocked.
+    await page.getByTestId('onboarding-first-name').fill('asdf')
+    await page.getByTestId('onboarding-last-name').fill('qwer')
+    await page.getByTestId('onboarding-next').click({ force: true })
+    await page.waitForSelector('[data-testid="onboarding-name-error"]')
+    assert.match(
+      await page.getByTestId('onboarding-name-error').innerText(),
+      /legal first and last name/i,
+    )
+
+    await page.getByTestId('onboarding-first-name').fill('Armand')
+    await page.getByTestId('onboarding-last-name').fill('Morales')
+
+    // Helper selected + valid name + no city → Continue focuses city + shows validation.
     await page.getByTestId('onboarding-next').click({ force: true })
     await page.waitForSelector('[data-testid="onboarding-city-error"]')
     assert.match(
@@ -1461,14 +1484,10 @@ async function checkOnboardingFlow() {
 
     await page.getByTestId('onboarding-next').click()
     await page.waitForSelector('[data-testid="onboarding-step-2"]')
-    const headerStep2 = await page.getByTestId('onboarding-header').innerText()
-    assert.match(headerStep2, /Step 2 of 2/i, 'step progress updates on step 2')
-    assert.doesNotMatch(headerStep2, /\bBeam\b/, 'no Beam wordmark on step 2 header')
-    assert.equal(
-      await page.getByTestId('onboarding-header').locator('a[aria-label="HouseCall home"]').count(),
-      0,
-      'no Beam logo link on step 2 header',
-    )
+    assert.equal(await page.locator('[data-testid="onboarding-header"]').count(), 0)
+    const progressText2 = await page.getByTestId('onboarding-step-progress').innerText()
+    assert.match(progressText2, /Step 2 of 2/i, 'step progress updates on step 2')
+    assert.doesNotMatch(progressText2, /\bBeam\b/, 'no Beam wordmark on step 2 progress')
     const step2 = await page.getByTestId('onboarding-step-2').innerText()
     assert.match(step2, /Posting illegal content or listing sexual services is strictly prohibited/i)
     assert.match(step2, /accounts are suspended/i)

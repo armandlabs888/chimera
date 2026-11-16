@@ -417,6 +417,8 @@ export type Database = {
           jobs_completed: number
           lat: number | null
           lng: number | null
+          first_name: string | null
+          last_name: string | null
           location_label: string
           name: string
           neighborhood: string
@@ -442,10 +444,12 @@ export type Database = {
           city_geoid?: string | null
           created_at?: string
           email_notifications?: boolean
+          first_name?: string | null
           hourly_rate?: number
           id: string
           is_helper?: boolean
           jobs_completed?: number
+          last_name?: string | null
           lat?: number | null
           lng?: number | null
           location_label?: string
@@ -473,10 +477,12 @@ export type Database = {
           city_geoid?: string | null
           created_at?: string
           email_notifications?: boolean
+          first_name?: string | null
           hourly_rate?: number
           id?: string
           is_helper?: boolean
           jobs_completed?: number
+          last_name?: string | null
           lat?: number | null
           lng?: number | null
           location_label?: string
@@ -926,6 +932,8 @@ export type Database = {
         Args: {
           p_accept_safety: boolean
           p_city: string
+          p_first_name?: string | null
+          p_last_name?: string | null
           p_role: string
           p_safety_version?: string
           p_state_code: string
@@ -940,10 +948,12 @@ export type Database = {
           city_geoid: string | null
           created_at: string
           email_notifications: boolean
+          first_name: string | null
           hourly_rate: number
           id: string
           is_helper: boolean
           jobs_completed: number
+          last_name: string | null
           lat: number | null
           lng: number | null
           location_label: string
