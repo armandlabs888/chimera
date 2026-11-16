@@ -14,6 +14,7 @@ export default function AuthPage() {
 
   const rawMode = searchParams.get('mode')
   const initialMode: AuthMode = rawMode === 'signup' ? 'signup' : 'signin'
+  const initialView = searchParams.get('view') === 'forgot' ? 'forgot' : 'auth'
   const safeNext = sanitizeNext(searchParams.get('next'), '/onboarding')
   const initialError = searchParams.get('error')
 
@@ -25,17 +26,18 @@ export default function AuthPage() {
     if (!ready) return
     // Already signed-in users should not linger on /auth.
     // Demo mode stays on /auth so the daylight auth chrome (and Continue CTA) is visible.
-    if (authUser) {
+    // Forgot-password request view stays available even if a stale session exists.
+    if (authUser && initialView !== 'forgot') {
       const destination = currentUser.onboardingCompletedAt
         ? sanitizeNext(searchParams.get('next'), '/browse')
         : '/onboarding'
       router.replace(destination)
     }
-  }, [ready, authUser, router, searchParams, currentUser.onboardingCompletedAt])
+  }, [ready, authUser, router, searchParams, currentUser.onboardingCompletedAt, initialView])
 
   // Keep landing chrome visible while session resolves or post-auth redirect runs.
   // Never flash a full-screen HouseCall splash (OAuth callback is a separate route).
-  if (!ready || authUser) {
+  if (!ready || (authUser && initialView !== 'forgot')) {
     return (
       <div inert aria-hidden="true">
         <LandingPage />
@@ -49,8 +51,9 @@ export default function AuthPage() {
         <LandingPage />
       </div>
       <AuthExperience
-        key={`${initialMode}:${initialError ?? ''}:${safeNext}`}
+        key={`${initialMode}:${initialView}:${initialError ?? ''}:${safeNext}`}
         initialMode={initialMode}
+        initialView={initialView}
         nextPath={safeNext}
         initialError={initialError}
         onClose={closeToLanding}

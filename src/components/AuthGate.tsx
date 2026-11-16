@@ -11,7 +11,12 @@ import {
 
 /** Routes an incomplete onboarder may visit in live mode (exact /onboarding + safety). */
 function isOnboardingAllowedPath(pathname: string) {
-  return pathname === '/onboarding' || pathname === '/safety'
+  return (
+    pathname === '/onboarding' ||
+    pathname === '/safety' ||
+    // Recovery session users must finish setting a password before onboarding redirect.
+    pathname === '/auth/reset-password'
+  )
 }
 
 /**

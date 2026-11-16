@@ -42,7 +42,12 @@ export function detectStrandedAuth(
   if (tokenHash && type) {
     return {
       pathname: '/auth/confirm',
-      params: { token_hash: tokenHash, type, next },
+      params: {
+        token_hash: tokenHash,
+        type,
+        // Recovery links without an explicit next should land on the set-password UI.
+        next: type === 'recovery' ? sanitizeNext(searchParams.get('next'), '/auth/reset-password') : next,
+      },
     }
   }
 
