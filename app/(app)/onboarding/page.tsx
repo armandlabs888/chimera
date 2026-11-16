@@ -6,7 +6,7 @@ import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Get started',
-  description: 'Finish setting up your HouseCall account.',
+  description: 'Finish setting up your Bunk account.',
   path: '/onboarding',
   noindex: true,
 })

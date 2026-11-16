@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { title, areaLabel } = result.data
     return pageMetadata({
       title,
-      description: `${title} near ${areaLabel} on HouseCall. Compare priced offers from local helpers.`,
+      description: `${title} near ${areaLabel} on Bunk. Compare priced offers from local helpers.`,
       path: `/requests/${id}`,
     })
   }
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     ...pageMetadata({
       title: 'Request',
-      description: 'View a HouseCall job request and offers from local helpers.',
+      description: 'View a Bunk job request and offers from local helpers.',
       path: `/requests/${id}`,
       noindex: true,
     }),

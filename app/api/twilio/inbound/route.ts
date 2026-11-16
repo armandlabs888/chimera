@@ -67,18 +67,18 @@ export async function POST(request: Request) {
     const keyword = body.trim().split(/\s+/)[0]?.toUpperCase() || ''
 
     if (!phone) {
-      return twiml('HouseCall: We could not read that phone number.')
+      return twiml('Bunk: We could not read that phone number.')
     }
 
     const admin = createAdminClient()
     if (!admin) {
       console.warn('[twilio/inbound] No service role')
-      return twiml('HouseCall: Temporary issue. Try again later.')
+      return twiml('Bunk: Temporary issue. Try again later.')
     }
 
     if (keyword === 'HELP' || keyword === 'INFO') {
       return twiml(
-        'HouseCall urgent job alerts. Msg & data rates may apply. Reply STOP to opt out, START to opt back in.',
+        'Bunk urgent job alerts. Msg & data rates may apply. Reply STOP to opt out, START to opt back in.',
       )
     }
 
@@ -101,7 +101,7 @@ export async function POST(request: Request) {
           .eq('profile_id', row.profile_id)
       }
       return twiml(
-        'HouseCall: You are opted out of urgent job texts. Reply START to opt back in anytime.',
+        'Bunk: You are opted out of urgent job texts. Reply START to opt back in anytime.',
       )
     }
 
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
         .eq('phone_e164', phone)
       if (!rows?.length) {
         return twiml(
-          'HouseCall: Confirm your phone in Profile & account first, then you can opt in to optional urgent job texts.',
+          'Bunk: Confirm your phone in Profile & account first, then you can opt in to optional urgent job texts.',
         )
       }
       for (const row of rows) {
@@ -123,15 +123,15 @@ export async function POST(request: Request) {
           .eq('profile_id', row.profile_id)
       }
       return twiml(
-        'HouseCall: You are opted in to optional urgent job texts near you. Reply STOP to opt out.',
+        'Bunk: You are opted in to optional urgent job texts near you. Reply STOP to opt out.',
       )
     }
 
     return twiml(
-      'HouseCall: Reply STOP to opt out, START to opt in, or HELP for info. Manage settings in the app.',
+      'Bunk: Reply STOP to opt out, START to opt in, or HELP for info. Manage settings in the app.',
     )
   } catch (err) {
     console.error('[twilio/inbound]', err)
-    return twiml('HouseCall: Temporary issue. Try again later.')
+    return twiml('Bunk: Temporary issue. Try again later.')
   }
 }

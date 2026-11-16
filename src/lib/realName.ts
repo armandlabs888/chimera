@@ -74,6 +74,7 @@ const BLOCKLIST = new Set([
   'helper',
   'neighbor',
   'housecall',
+  'bunk',
   'beam',
   // Role / business whole parts (never allowed as either name part)
   'seller',

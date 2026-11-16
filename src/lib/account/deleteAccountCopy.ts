@@ -10,7 +10,7 @@ export const ACCOUNT_DELETE_ERASE_ITEMS = [
 ] as const
 
 export const ACCOUNT_DELETE_WARNING =
-  'This cannot be undone. You will need to create a new account to use HouseCall again.'
+  'This cannot be undone. You will need to create a new account to use Bunk again.'
 
 /** Short note on the delete modal; email send is best-effort after deletion. */
 export const ACCOUNT_DELETE_EMAIL_NOTE =

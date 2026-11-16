@@ -307,7 +307,7 @@ export function ReferHelperPickerDialog({
                   data-testid="refer-helper-copy-job-link"
                   onClick={() => setShareOpen(true)}
                 >
-                  Not on HouseCall yet? Copy job link
+                  Not on Bunk yet? Copy job link
                 </button>
               </div>
             </>

@@ -5,7 +5,7 @@ import { PageContainer } from '@/components/PageContainer'
 
 const COMMITMENTS = [
   {
-    title: 'HouseCall never holds your money',
+    title: 'Bunk never holds your money',
     body: 'You pay helpers directly, in cash or Venmo. The agreed price is written in the offer so expectations stay clear.',
   },
   {
@@ -40,11 +40,11 @@ const EXCLUDED = [
 const FAQ = [
   {
     q: 'How does payment work?',
-    a: 'HouseCall never holds your money. After you accept an offer, you and the helper arrange payment peer-to-peer. The agreed price lives in the offer.',
+    a: 'Bunk never holds your money. After you accept an offer, you and the helper arrange payment peer-to-peer. The agreed price lives in the offer.',
   },
   {
     q: 'How does local matching work?',
-    a: 'HouseCall connects neighbors within dense local areas so same-day help stays close by, practical, and fast.',
+    a: 'Bunk connects neighbors within dense local areas so same-day help stays close by, practical, and fast.',
   },
   {
     q: 'What if something goes wrong?',
@@ -60,10 +60,10 @@ export function Safety() {
   return (
     <PageContainer className="py-8 sm:py-12" testId="safety-page">
       <h1 className="font-display text-[clamp(2.5rem,5vw,3.5rem)] font-bold leading-[1.15] tracking-[-0.02em] text-[#071330]">
-        Safety on HouseCall
+        Safety on Bunk
       </h1>
       <p className="mt-4 max-w-[48ch] text-[18px] leading-[1.55] text-[#4A5568]">
-        HouseCall is a coordination layer, not escrow and not a staffing agency. Clear rules keep
+        Bunk is a coordination layer, not escrow and not a staffing agency. Clear rules keep
         same-day help practical.
       </p>
 
@@ -94,7 +94,7 @@ export function Safety() {
         </div>
         <div className="rounded-lg border border-[#D7E0EC] bg-white p-6">
           <h2 className="text-[15px] font-bold uppercase tracking-[0.08em] text-[#071330]">
-            Not on HouseCall
+            Not on Bunk
           </h2>
           <ul className="mt-4 space-y-2 text-[15px] text-[#071330]">
             {EXCLUDED.map((item) => (

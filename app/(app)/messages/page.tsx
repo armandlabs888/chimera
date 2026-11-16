@@ -4,7 +4,7 @@ import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Messages',
-  description: 'Your HouseCall conversations with neighbors and helpers.',
+  description: 'Your Bunk conversations with neighbors and helpers.',
   path: '/messages',
   noindex: true,
 })

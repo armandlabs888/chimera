@@ -1,7 +1,7 @@
 # Shared slim footer across all surfaces
 
 **Supersedes:** tall grouped navy footer (Explore / Services / Get started / Trust + disclaimer).  
-**Visual lock:** white surface, top hairline `#E3E8EF`, logo + © HouseCall left, one link row right (`#4A5568`).  
+**Visual lock:** white surface, top hairline `#E3E8EF`, logo + © Bunk left, one link row right (`#4A5568`).  
 **Component:** one shared `LandingFooter` — no parallel compact bars or column lists.
 
 ## Route ownership (one landmark)

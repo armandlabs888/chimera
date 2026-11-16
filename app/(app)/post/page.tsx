@@ -5,7 +5,7 @@ import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Post a task',
-  description: 'Post a task on HouseCall and get priced offers from local helpers.',
+  description: 'Post a task on Bunk and get priced offers from local helpers.',
   path: '/post',
   noindex: true,
 })

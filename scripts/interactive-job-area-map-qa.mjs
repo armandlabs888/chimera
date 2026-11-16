@@ -44,7 +44,7 @@ async function seed(page) {
       id: 'req-interactive-map-qa',
       title: 'Carry a dresser up one flight of stairs',
       details:
-        'Solid wood dresser from the entry to the upstairs bedroom.\n\n[HouseCall sample, Nov 16, 2026]',
+        'Solid wood dresser from the entry to the upstairs bedroom.\n\n[Bunk sample, Nov 16, 2026]',
       category: 'junk-removal',
       neighborhood: 'east-austin',
       locationLabel: 'Cambrian, San Jose',

@@ -1,15 +1,15 @@
 import Link from 'next/link'
-import { HouseCallWordmark } from '@/components/HouseCallWordmark'
+import { BunkWordmark } from '@/components/BunkWordmark'
 import { GuestSiteChrome } from '@/components/marketing/GuestSiteChrome'
 
 export default function NotFound() {
   return (
     <GuestSiteChrome>
       <div className="beam-container flex flex-1 flex-col items-center justify-center py-16 text-center sm:py-24">
-        <HouseCallWordmark size={22} />
+        <BunkWordmark size={22} />
         <h1 className="mt-4 type-h2 text-[#071330]">Page not found</h1>
         <p className="mt-2 max-w-md type-sec text-beam-muted">
-          That route is not part of HouseCall. Try Browse jobs, Post a task, or the HouseCall home
+          That route is not part of Bunk. Try Browse jobs, Post a task, or the Bunk home
           page.
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
@@ -17,7 +17,7 @@ export default function NotFound() {
             href="/"
             className="touch-target inline-flex items-center rounded-lg bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white hover:bg-[#1649BD]"
           >
-            HouseCall home
+            Bunk home
           </Link>
           <Link
             href="/browse"

@@ -99,7 +99,7 @@ export function HelperProfileBody({
     const url =
       typeof window !== 'undefined' ? `${window.location.origin}${path}` : path
     const result = await shareProfileLink({
-      title: `${person.name} on HouseCall`,
+      title: `${person.name} on Bunk`,
       url,
     })
     if (result === 'copied') {

@@ -6,7 +6,7 @@ import { PolicyPlaceholder } from '@/screens/PolicyPlaceholder'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Terms of Service',
-  description: 'HouseCall terms of service for neighbors and helpers.',
+  description: 'Bunk terms of service for neighbors and helpers.',
   path: '/terms',
 })
 

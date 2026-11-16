@@ -1,5 +1,5 @@
 /**
- * Casual launch taxonomy (HouseCall).
+ * Casual launch taxonomy (Bunk).
  * Active selections are parent → service leaves (+ Other custom text).
  * Legacy six-category IDs remain readable for historical records only.
  */

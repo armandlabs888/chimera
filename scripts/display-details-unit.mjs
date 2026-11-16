@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 
 // Mirrors src/lib/displayDetails.ts
-const SAMPLE_MARKER_RE = /\n*\[(?:HouseCall|Beam) sample[^\]]*\]\s*$/i
+const SAMPLE_MARKER_RE = /\n*\[(?:HouseCall|Bunk|Beam) sample[^\]]*\]\s*$/i
 
 function formatJobDetailsDisplay(details) {
   if (!details) return ''
@@ -13,11 +13,15 @@ const body =
   'Solid wood dresser from the entry to the upstairs bedroom. Drawers come out. Two people would be ideal.'
 
 assert.equal(
-  formatJobDetailsDisplay(`${body}\n\n[HouseCall sample, Nov 12, 2026]`),
+  formatJobDetailsDisplay(`${body}\n\n[Bunk sample, Nov 12, 2026]`),
   body,
 )
 assert.equal(
-  formatJobDetailsDisplay(`${body}\n[HouseCall sample, Nov 12, 2026]`),
+  formatJobDetailsDisplay(`${body}\n[Bunk sample, Nov 12, 2026]`),
+  body,
+)
+assert.equal(
+  formatJobDetailsDisplay(`${body}\n\n[HouseCall sample, Nov 12, 2026]`),
   body,
 )
 assert.equal(
@@ -27,12 +31,12 @@ assert.equal(
 assert.equal(formatJobDetailsDisplay(body), body)
 assert.equal(formatJobDetailsDisplay(''), '')
 assert.equal(
-  formatJobDetailsDisplay(`${body}\n\n[HouseCall sample]`),
+  formatJobDetailsDisplay(`${body}\n\n[Bunk sample]`),
   body,
 )
 // Mid-body brackets are not stripped.
 assert.equal(
-  formatJobDetailsDisplay(`${body} [HouseCall sample, Nov 12, 2026] more`),
-  `${body} [HouseCall sample, Nov 12, 2026] more`,
+  formatJobDetailsDisplay(`${body} [Bunk sample, Nov 12, 2026] more`),
+  `${body} [Bunk sample, Nov 12, 2026] more`,
 )
 console.log('display-details-unit PASS')

@@ -1,9 +1,9 @@
-# HouseCall Privacy Policy
+# Bunk Privacy Policy
 
 **Effective date:** [EFFECTIVE DATE]\
 **Last updated:** [LAST UPDATED DATE]
 
-This Privacy Policy explains how [HouseCall legal entity name] ("HouseCall," "we," "us," or "our") collects, uses, shares, and protects personal information when you use the HouseCall website at https://www.yariapp.com, any HouseCall mobile app, and related features and messages (the "Service"). It also explains your choices and, for California residents, your rights under the California Consumer Privacy Act, as amended by the California Privacy Rights Act ("CCPA").
+This Privacy Policy explains how [Bunk legal entity name] ("Bunk," "we," "us," or "our") collects, uses, shares, and protects personal information when you use the Bunk website at https://www.yariapp.com, any Bunk mobile app, and related features and messages (the "Service"). It also explains your choices and, for California residents, your rights under the California Consumer Privacy Act, as amended by the California Privacy Rights Act ("CCPA").
 
 Words like "Poster," "Helper," "Job," and "Offer" have the meanings given in our Terms of Service, available at [terms URL].
 
@@ -25,7 +25,7 @@ Words like "Poster," "Helper," "Job," and "Offer" have the meanings given in our
 - **Helper verification information:** the home address you provide and the result of your one-time location check (see Section 3).
 - **Job posts:** descriptions, categories, price, whether the price is firm or open to offers, timing, the general area of the Job, any photos you upload, and any details you choose to include. Photos may contain information about your home or property, and photo files may contain embedded data such as the time or place the photo was taken. [Confirm whether the app strips photo location metadata on upload.]
 - **Offers:** proposed prices, arrival windows, and notes.
-- **Messages:** the content of messages you send and receive through HouseCall messaging, including any attachments, plus when they were sent and read.
+- **Messages:** the content of messages you send and receive through Bunk messaging, including any attachments, plus when they were sent and read.
 - **Reviews and ratings** you write, and reports you submit.
 - **Referrals and saved Helpers:** Helpers you refer or save, and any contact details you provide when inviting someone.
 - **SMS preferences:** your mobile number, whether you opted in to Urgent Job Alerts, the date, time, and method of your consent, and opt-out requests.
@@ -74,7 +74,7 @@ We do not use your personal information to make decisions that produce legal or 
 - **Public profile:** your display name [confirm format, for example first name and last initial], profile photo, bio, services, approximate area (such as neighborhood or ZIP code), verification badge, ratings, reviews, and when you joined.
 - **Jobs:** Job descriptions, photos, price, pricing type, timing, and general area are visible to Helpers. **Your exact address is not shown publicly.** You decide whether and when to share it with a Helper.
 - **Offers:** a Helper's Offer is visible to the Poster of that Job.
-- **Messages** are visible to the people in the conversation, and to HouseCall as described in this policy.
+- **Messages** are visible to the people in the conversation, and to Bunk as described in this policy.
 - **Reviews** you write are visible to other Users along with your display name.
 
 Anything you choose to share with another User, such as your phone number or address, is then outside our control, and that User is responsible for how they use it.
@@ -90,7 +90,7 @@ We share personal information only as described here:
   - **Twilio** for text messages, including Urgent Job Alerts and verification codes.
   - **Map tile and geocoding providers,** such as [map provider name], to display maps and convert addresses or ZIP codes to approximate locations. When your device loads a map, the provider may receive your IP address and the map area requested.
   - [Email delivery provider name], [analytics provider name, if any], and [error monitoring provider name, if any].
-- **For legal and safety reasons:** to comply with law, a subpoena, court order, or other legal process; to respond to lawful requests from public authorities; to protect the safety, rights, or property of any person, HouseCall, or the public, including in emergencies; and to investigate fraud or violations of our Terms.
+- **For legal and safety reasons:** to comply with law, a subpoena, court order, or other legal process; to respond to lawful requests from public authorities; to protect the safety, rights, or property of any person, Bunk, or the public, including in emergencies; and to investigate fraud or violations of our Terms.
 - **In a business transfer:** in connection with a merger, acquisition, financing, reorganization, bankruptcy, or sale of all or part of our business, subject to this policy or a policy that is at least as protective.
 - **With your consent** or at your direction.
 
@@ -112,7 +112,7 @@ We store messages so you can see your conversation history. We may review messag
 
 ## 9. Text Messages (SMS)
 
-If you opt in to Urgent Job Alerts, we use your mobile number to send recurring automated alerts through Twilio, subject to the frequency limits and quiet hours described in our Terms. **Reply STOP to any message to opt out,** or turn off alerts in Settings. Reply HELP for help. Message and data rates may apply. Consent to texts is never required to use HouseCall. We keep a record of your consent and opt-out to comply with law.
+If you opt in to Urgent Job Alerts, we use your mobile number to send recurring automated alerts through Twilio, subject to the frequency limits and quiet hours described in our Terms. **Reply STOP to any message to opt out,** or turn off alerts in Settings. Reply HELP for help. Message and data rates may apply. Consent to texts is never required to use Bunk. We keep a record of your consent and opt-out to comply with law.
 
 ## 10. How Long We Keep Information
 
@@ -159,7 +159,7 @@ In the past 12 months, we have collected the following categories of personal in
 | Audio, electronic, visual, or similar information | Profile photos, Job photos | Service providers; other Users |
 | Professional information | Services a Helper offers, skills described in a profile | Service providers; other Users |
 | Inferences | Likely interest in nearby Job categories, used for alerts | Service providers |
-| Sensitive personal information | Account login credentials; precise geolocation; contents of messages (where HouseCall is not the intended recipient) | Service providers |
+| Sensitive personal information | Account login credentials; precise geolocation; contents of messages (where Bunk is not the intended recipient) | Service providers |
 
 **We do not sell or share any category of personal information.** We use sensitive personal information only for purposes permitted by the CCPA without offering a right to limit, so we do not offer that right. We keep each category for the periods in Section 10.
 
@@ -208,7 +208,7 @@ We may update this Privacy Policy from time to time. If we make material changes
 
 ## 19. Contact Us
 
-[HouseCall legal entity name]\
+[Bunk legal entity name]\
 [mailing address]\
 San Jose, California\
 Privacy questions and requests: [privacy email]\

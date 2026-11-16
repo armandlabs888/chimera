@@ -4,7 +4,7 @@ import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Verify',
-  description: 'Complete your HouseCall helper location verification.',
+  description: 'Complete your Bunk helper location verification.',
   path: '/verify',
   noindex: true,
 })

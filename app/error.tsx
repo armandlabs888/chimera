@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
-import { HouseCallWordmark } from '@/components/HouseCallWordmark'
+import { BunkWordmark } from '@/components/BunkWordmark'
 import { GuestSiteChrome } from '@/components/marketing/GuestSiteChrome'
 
 export default function Error({
@@ -19,10 +19,10 @@ export default function Error({
   return (
     <GuestSiteChrome>
       <div className="beam-container flex flex-1 flex-col items-center justify-center py-16 text-center sm:py-24">
-        <HouseCallWordmark size={22} />
+        <BunkWordmark size={22} />
         <h1 className="mt-4 type-h2 text-[#071330]">Something went wrong</h1>
         <p className="mt-2 max-w-md type-sec text-beam-muted">
-          The page hit an unexpected error. You can try again or return to HouseCall home.
+          The page hit an unexpected error. You can try again or return to Bunk home.
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
           <button
@@ -42,7 +42,7 @@ export default function Error({
             href="/"
             className="touch-target inline-flex items-center px-3 text-[14px] font-medium text-beam-muted hover:underline"
           >
-            HouseCall home
+            Bunk home
           </Link>
         </div>
       </div>

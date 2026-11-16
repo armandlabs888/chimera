@@ -88,7 +88,7 @@ async function seedRole(page, role) {
         id: 'req-neighbor-refer-hyphen',
         title: 'Pack and label a 1-bedroom apartment',
         details:
-          'Boxes and tape are here. Kitchen and closet are the big ones. Move is next week, so packing only.\n\n[HouseCall sample, Nov 12, 2026]',
+          'Boxes and tape are here. Kitchen and closet are the big ones. Move is next week, so packing only.\n\n[Bunk sample, Nov 12, 2026]',
         category: 'moving',
         neighborhood: 'east-austin',
         locationLabel: 'North San Jose',
@@ -313,7 +313,7 @@ async function run() {
         assert.match(linkVal, new RegExp(`/requests/${jobId}$`))
         assert.match(
           await neighborPage.locator('[data-testid="refer-helper-dialog"]').innerText(),
-          /Know someone who could help\? This job is open on HouseCall:/i,
+          /Know someone who could help\? This job is open on Bunk:/i,
         )
         await neighborPage.locator('[data-testid="refer-helper-copy"]').click()
         await neighborPage.waitForSelector('[data-testid="refer-helper-toast"]')
