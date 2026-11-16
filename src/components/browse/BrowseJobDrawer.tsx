@@ -310,7 +310,6 @@ export function BrowseJobDrawer({
           neighborhood={request.neighborhood}
           city={request.city}
           radiusMiles={request.radiusMiles}
-          height={narrow ? 160 : 180}
         />
 
         <section>

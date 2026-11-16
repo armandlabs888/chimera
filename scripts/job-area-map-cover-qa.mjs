@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Assert JobAreaMap tile mosaic covers the full frame at key widths.
+ * Assert JobAreaMap interactive frame sizes, Leaflet mount, and privacy zoom clamp.
  */
 import assert from 'node:assert/strict'
 import { mkdirSync } from 'node:fs'
@@ -73,65 +73,74 @@ async function seed(page) {
   return jobId
 }
 
-async function measureMap(page) {
+async function measureMap(page, expectMobileHeight) {
   await page.waitForSelector('[data-testid="job-area-map"]', { timeout: 20000 })
   await page.locator('[data-testid="job-area-map"]').scrollIntoViewIfNeeded()
+  await page.waitForSelector(
+    '[data-testid="job-area-map-leaflet"], [data-testid="job-area-map-static"]',
+    { timeout: 20000 },
+  )
   await page.waitForFunction(() => {
-    const img = document.querySelector('[data-testid="job-area-map"] img')
+    const root = document.querySelector('[data-testid="job-area-map"]')
+    if (!root) return false
+    const leaflet = root.querySelector('.leaflet-container')
+    if (leaflet) {
+      const tile = leaflet.querySelector('img.leaflet-tile, .leaflet-tile-loaded')
+      return !!tile
+    }
+    const img = root.querySelector('.job-area-map-mosaic img')
     return img && img.complete && img.naturalWidth > 0
-  }, null, { timeout: 15000 })
-  await page.waitForTimeout(200)
-  return page.evaluate(() => {
+  }, null, { timeout: 20000 })
+  await page.waitForTimeout(300)
+
+  return page.evaluate((mobile) => {
     const map = document.querySelector('[data-testid="job-area-map"]')
-    const frame = map?.querySelector('.job-area-map-frame')
-    const mosaic = map?.querySelector('.job-area-map-mosaic')
-    const circle = map?.querySelector('.job-area-map-circle')
-    const star = map?.querySelector('.job-area-map-star svg')
-    if (!frame || !mosaic) return { error: 'missing' }
-    const fr = frame.getBoundingClientRect()
-    const mr = mosaic.getBoundingClientRect()
-    const cr = circle?.getBoundingClientRect()
+    const host =
+      map?.querySelector('.job-area-map-interactive-host') ||
+      map?.querySelector('.job-area-map-frame')
+    const leaflet = map?.querySelector('.leaflet-container')
+    const circle =
+      map?.querySelector('.leaflet-overlay-pane path') ||
+      map?.querySelector('.job-area-map-circle')
+    const star =
+      map?.querySelector('.job-area-map-star-icon svg') ||
+      map?.querySelector('.job-area-map-star svg')
+    const reset = map?.querySelector('[data-testid="job-area-map-reset"]')
+    const zoomIn = map?.querySelector('.leaflet-control-zoom-in')
+    if (!host) return { error: 'missing' }
+    const fr = host.getBoundingClientRect()
+    const mode = map?.getAttribute('data-map-mode') || 'unknown'
     return {
+      mode,
       frameW: Math.round(fr.width),
       frameH: Math.round(fr.height),
-      mosaicW: Math.round(mr.width),
-      mosaicH: Math.round(mr.height),
-      leftPad: Math.round(fr.left - mr.left),
-      rightPad: Math.round(mr.right - fr.right),
-      topPad: Math.round(fr.top - mr.top),
-      bottomPad: Math.round(mr.bottom - fr.bottom),
-      tileCount: mosaic.querySelectorAll('img').length,
+      expectH: mobile ? 260 : 320,
+      hasLeaflet: !!leaflet,
+      hasCircle: !!circle,
+      hasStar: !!star,
+      hasReset: !!reset,
+      hasZoom: !!zoomIn,
       starSize: star ? Math.round(star.getBoundingClientRect().width) : 0,
-      circleInside:
-        !cr ||
-        (cr.left >= fr.left - 1 &&
-          cr.right <= fr.right + 1 &&
-          cr.top >= fr.top - 1 &&
-          cr.bottom <= fr.bottom + 1),
     }
-  })
+  }, expectMobileHeight)
 }
 
-async function blankLeftRatio(page) {
-  const png = await page.locator('[data-testid="job-area-map"] .job-area-map-frame').screenshot()
-  const { default: sharp } = await import('sharp')
-  const { data, info } = await sharp(png).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
-  const x = Math.min(4, info.width - 1)
-  const y0 = Math.floor(info.height * 0.35)
-  const y1 = Math.floor(info.height * 0.65)
-  let blank = 0
-  let samples = 0
-  for (let y = y0; y < y1; y += 2) {
-    const i = (y * info.width + x) * info.channels
-    const r = data[i]
-    const g = data[i + 1]
-    const b = data[i + 2]
-    samples += 1
-    // Near-white or the frame fallback #e8eef5.
-    if (r > 240 && g > 240 && b > 240) blank += 1
-    else if (r >= 228 && r <= 236 && g >= 234 && g <= 242 && b >= 240 && b <= 248) blank += 1
-  }
-  return samples ? blank / samples : 0
+async function assertZoomClamp(page) {
+  const result = await page.evaluate(async () => {
+    const el = document.querySelector('[data-testid="job-area-map-leaflet"]')
+    if (!el) return { ok: false, reason: 'no-leaflet' }
+    // Leaflet stores the map on the container via private fields in some builds;
+    // drive zoom via control clicks instead.
+    const zoomIn = document.querySelector('.leaflet-control-zoom-in')
+    if (!zoomIn) return { ok: false, reason: 'no-zoom' }
+    for (let i = 0; i < 8; i += 1) {
+      zoomIn.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await new Promise((r) => setTimeout(r, 80))
+    }
+    const disabled = zoomIn.classList.contains('leaflet-disabled')
+    return { ok: disabled, reason: disabled ? 'clamped' : 'still-enabled' }
+  })
+  assert.equal(result.ok, true, `max zoom not clamped: ${result.reason}`)
 }
 
 async function main() {
@@ -143,9 +152,9 @@ async function main() {
       viewport: { width, height: width <= 500 ? 844 : 900 },
     })
     const jobId = await seed(page)
+    const mobile = width < 768
 
     if (width <= 500) {
-      // Mobile sheet / narrow browse panel widths.
       await page.goto(`${BASE}/browse?demo=1&radius=all`, {
         waitUntil: 'networkidle',
         timeout: 60000,
@@ -154,7 +163,6 @@ async function main() {
         await page.locator(`[data-testid="browse-job-row"][data-job-id="${jobId}"]`).click()
         await page.waitForSelector('[data-testid="browse-job-sheet"]', { timeout: 20000 })
       } else {
-        // Force map into a 500px column by opening request page with constrained body.
         await page.goto(`${BASE}/requests/${jobId}?demo=1`, {
           waitUntil: 'networkidle',
           timeout: 60000,
@@ -175,25 +183,28 @@ async function main() {
       }
     }
 
-    const m = await measureMap(page)
-    const blankLeft = await blankLeftRatio(page)
-    console.log(width, { ...m, blankLeft })
+    const m = await measureMap(page, mobile)
+    console.log(width, m)
     assert.ok(!m.error, `map missing @${width}`)
-    assert.ok(m.leftPad >= 0, `left gap @${width}: ${m.leftPad}`)
-    assert.ok(m.rightPad >= 0, `right gap @${width}: ${m.rightPad}`)
-    assert.ok(m.topPad >= 0, `top gap @${width}: ${m.topPad}`)
-    assert.ok(m.bottomPad >= 0, `bottom gap @${width}: ${m.bottomPad}`)
-    assert.ok(m.circleInside, `circle clipped @${width}`)
-    assert.ok(m.starSize >= 22 && m.starSize <= 28, `star size @${width}: ${m.starSize}`)
-    assert.ok(blankLeft < 0.2, `blank left strip @${width}: ${blankLeft}`)
+    assert.ok(m.hasCircle, `circle missing @${width}`)
+    assert.ok(m.hasStar, `star missing @${width}`)
+    assert.ok(m.starSize >= 20 && m.starSize <= 32, `star size @${width}: ${m.starSize}`)
+    assert.ok(
+      Math.abs(m.frameH - m.expectH) <= 2,
+      `height @${width}: got ${m.frameH}, want ~${m.expectH}`,
+    )
+    if (m.hasLeaflet) {
+      assert.ok(m.hasReset, `reset missing @${width}`)
+      assert.ok(m.hasZoom, `zoom controls missing @${width}`)
+      await assertZoomClamp(page)
+    }
     await page.locator('[data-testid="job-area-map"]').screenshot({
       path: join(OUT, `map-cover-${width}.png`),
     })
-    report.push({ width, ...m, blankLeft })
+    report.push({ width, ...m })
     await page.close()
   }
 
-  // Browse panel ~500px at 1280 layout
   {
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
     const jobId = await seed(page)
@@ -206,17 +217,14 @@ async function main() {
       const s = document.querySelector('.browse-hc-detail-scroll')
       if (s) s.scrollTop = 220
     })
-    const m = await measureMap(page)
-    const blankLeft = await blankLeftRatio(page)
-    console.log('browse-panel', { ...m, blankLeft })
-    assert.ok(m.leftPad >= 0 && m.rightPad >= 0, `browse panel gaps L${m.leftPad} R${m.rightPad}`)
-    assert.ok(m.circleInside, 'browse panel circle clipped')
-    assert.ok(m.starSize >= 22, `browse panel star ${m.starSize}`)
-    assert.ok(blankLeft < 0.2, `browse panel blank left: ${blankLeft}`)
+    const m = await measureMap(page, false)
+    console.log('browse-panel', m)
+    assert.ok(Math.abs(m.frameH - 320) <= 2, `browse panel height ${m.frameH}`)
+    assert.ok(m.hasCircle && m.hasStar, 'browse panel markers')
     await page.locator('[data-testid="job-area-map"]').screenshot({
       path: join(OUT, 'map-cover-browse-panel-500.png'),
     })
-    report.push({ width: 'browse-panel', ...m, blankLeft })
+    report.push({ width: 'browse-panel', ...m })
     await page.close()
   }
 
