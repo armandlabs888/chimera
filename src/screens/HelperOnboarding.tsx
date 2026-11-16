@@ -30,6 +30,7 @@ import {
   workingHoursSavePayload,
 } from '@/components/account/WorkingHoursFields'
 import { normalizeWorkTime } from '@/lib/workingHours'
+import { canAccessHelperProfileEditor } from '@/lib/helperAccess'
 import { formatRate } from '@/lib/matching'
 import '@/components/account/account-hc.css'
 import '@/components/account/helper-profile-hc.css'
@@ -91,6 +92,14 @@ export function HelperOnboarding() {
   const [error, setError] = useState('')
   const [skillsError, setSkillsError] = useState('')
   const [smsTextsOn, setSmsTextsOn] = useState(false)
+
+  const allowed = canAccessHelperProfileEditor(currentUser, helperVerification)
+
+  useEffect(() => {
+    if (!ready) return
+    if (allowed) return
+    router.replace('/verify')
+  }, [ready, allowed, router])
 
   useEffect(() => {
     if (!ready || hydratedCityRef.current) return
@@ -385,6 +394,18 @@ export function HelperOnboarding() {
       setError(raw.replace(/^Update profile:\s*/i, '') || 'Could not publish your helper profile.')
       setPending(false)
     }
+  }
+
+  if (!ready || !allowed) {
+    return (
+      <div className="account-hc" data-testid="helper-onboarding-gate">
+        <div className="account-hc-wrap account-hc-page">
+          <div className="h-8 w-48 animate-pulse rounded-md bg-[#E8EEF7]" />
+          <div className="mt-3 h-4 w-72 max-w-full animate-pulse rounded-md bg-[#E8EEF7]" />
+          <div className="mt-8 h-40 w-full animate-pulse rounded-lg bg-[#E8EEF7]" />
+        </div>
+      </div>
+    )
   }
 
   const editing = Boolean(currentUser.isHelper)

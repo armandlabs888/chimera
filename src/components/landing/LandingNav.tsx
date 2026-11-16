@@ -7,6 +7,7 @@ import { SiteAccountMenu } from '@/components/account/SiteAccountMenu'
 import { BunkWordmark } from '@/components/BunkWordmark'
 import { BrowseLocationTrigger } from '@/components/browse/BrowseLocationDialog'
 import { useBeam } from '@/context/BeamContext'
+import { becomeHelperHref } from '@/lib/helperAccess'
 import '@/components/account/account-hc.css'
 
 export function LandingNav({
@@ -18,7 +19,7 @@ export function LandingNav({
   /** Guest Browse: reuse topnav location control without a page eyebrow. */
   browseLocationLabel?: string
 }) {
-  const { authUser, mode, currentUser } = useBeam()
+  const { authUser, mode, currentUser, ready } = useBeam()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const isOverlay = variant === 'overlay'
@@ -27,20 +28,26 @@ export function LandingNav({
   // Demo has no auth session but still uses the same account chrome as live signed-in.
   const showAccountMenu = mode === 'demo' || Boolean(authUser)
   const onboardingDone = Boolean(currentUser?.onboardingCompletedAt)
-  const canOnboardHelper = Boolean(authUser) || mode === 'demo'
+  const signedIn = Boolean(authUser) || mode === 'demo'
+  // Before hydrate, keep the helper editor path so neighbors are not wrong-footed
+  // only after ready (Become a helper → Get verified for signed-in neighbors).
+  const helperCtaHref =
+    !signedIn
+      ? becomeHelperHref({ signedIn: false, person: null })
+      : !ready
+        ? '/onboarding/helper'
+        : becomeHelperHref({ signedIn: true, person: currentUser })
 
   const navLinks = useMemo(
     () => [
       { href: '/browse', label: 'Browse Jobs' },
       { href: '/#how-it-works', label: 'How it works' },
       {
-        href: canOnboardHelper
-          ? '/onboarding/helper'
-          : '/auth?mode=signup&next=%2Fonboarding%2Fhelper',
+        href: helperCtaHref,
         label: 'Become a helper',
       },
     ],
-    [canOnboardHelper],
+    [helperCtaHref],
   )
 
   useEffect(() => {

@@ -101,7 +101,7 @@ export function BrowseFreshEmpty({
                   Post the first request
                 </Link>
                 <Link
-                  href="/onboarding/helper"
+                  href="/verify"
                   className="inline-flex h-9 items-center justify-center rounded-lg border border-white/60 bg-transparent px-3.5 text-[13px] font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:h-10 sm:px-4 sm:text-[13.5px]"
                 >
                   Become a helper

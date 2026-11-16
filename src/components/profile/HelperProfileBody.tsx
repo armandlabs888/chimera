@@ -315,26 +315,6 @@ export function HelperProfileBody({
                 </div>
               </div>
             </section>
-          ) : isOwn ? (
-            <section className="hpb-sec" data-testid="you-become-helper">
-              <div className="hpb-sec-head">
-                <h2 className="hpb-h2">Become a helper</h2>
-              </div>
-              <p className="hpb-empty">
-                Set your skills, service area, and rate. Then start browsing open requests nearby.
-              </p>
-              <Link
-                href={
-                  mode === 'live' && !authUser
-                    ? '/auth?mode=signup&next=%2Fonboarding%2Fhelper'
-                    : '/onboarding/helper'
-                }
-                className="mt-4 inline-flex h-11 items-center justify-center rounded-full bg-[#1D5CE5] px-5 text-[14.5px] font-semibold text-white"
-                data-testid="you-become-helper-cta"
-              >
-                Become a helper
-              </Link>
-            </section>
           ) : null}
 
           <section className="hpb-sec" aria-labelledby="hpb-reviews" data-testid="helper-profile-reviews">

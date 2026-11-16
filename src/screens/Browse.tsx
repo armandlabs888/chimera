@@ -1020,7 +1020,7 @@ export function Browse() {
               }
               onReset={hasActiveFilters ? clearFilters : () => setTab('requests')}
               resetLabel={hasActiveFilters ? 'Reset filters' : 'Browse jobs'}
-              postHref="/onboarding/helper"
+              postHref="/verify"
               postLabel="Set up helper profile"
               suggestions={hasActiveFilters ? suggestions : []}
             />
