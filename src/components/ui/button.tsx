@@ -30,7 +30,7 @@ export const outlinePillClass =
   'inline-flex min-h-[40px] items-center justify-center rounded-full border border-[#D7E0EC] bg-white px-4 text-[14px] font-semibold text-[#071330] hover:bg-white'
 
 /**
- * Dark navy CTA surface matching the landing floating-header Sign up button.
+ * Dark navy CTA surface matching the landing header Sign up family.
  * Color / hover / focus only. Pair with existing size, radius, and font classes.
  * Prefer the shared `.hc-btn-navy` class when the host already uses CSS sizing.
  */

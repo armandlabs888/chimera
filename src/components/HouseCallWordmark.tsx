@@ -15,7 +15,7 @@ const TRACKING_REF_PX_VALUE = -0.8
 const HOUSE_INK = '#071330'
 const CALL_BLUE = '#1D5CE5'
 
-type Tone = 'brand' | 'onDark'
+type Tone = 'brand' | 'onDark' | 'white'
 
 export function HouseCallWordmark({
   className = '',
@@ -26,12 +26,13 @@ export function HouseCallWordmark({
   className?: string
   /** Visual size in px; keeps header weight close to the prior ~17–18px mark. */
   size?: number
-  /** `onDark`: House white, Call blue (navy/hero surfaces). */
+  /** `onDark`: House white, Call blue. `white`: all-white for dark heroes. */
   tone?: Tone
   href?: string
 }) {
   const letterSpacing = `${(TRACKING_REF_PX_VALUE * size) / TRACKING_REF_PX}px`
-  const houseColor = tone === 'onDark' ? '#FFFFFF' : HOUSE_INK
+  const houseColor = tone === 'brand' ? HOUSE_INK : '#FFFFFF'
+  const callColor = tone === 'white' ? '#FFFFFF' : CALL_BLUE
 
   return (
     <Link
@@ -48,7 +49,7 @@ export function HouseCallWordmark({
         }}
       >
         <span style={{ color: houseColor }}>House</span>
-        <span style={{ color: CALL_BLUE }}>Call</span>
+        <span style={{ color: callColor }}>Call</span>
       </span>
     </Link>
   )

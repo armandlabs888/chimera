@@ -60,7 +60,9 @@ try {
       const content = document.querySelector('[data-testid="landing-hero"]')
       const stack = content?.querySelector('.beam-container')
       const h1 = content?.querySelector('h1')
-      const header = document.querySelector('.landing-float-nav')
+      const header =
+        document.querySelector('.landing-overlay-nav') ||
+        document.querySelector('[data-testid="landing-nav"]')
       if (!hero || !content || !stack || !h1) return { ok: false, reason: 'missing nodes' }
 
       const hr = hero.getBoundingClientRect()
@@ -69,8 +71,9 @@ try {
       const headerBottom = header
         ? header.getBoundingClientRect().bottom
         : parseFloat(
-            getComputedStyle(hero).getPropertyValue('--landing-float-header-offset'),
-          ) || 68
+            getComputedStyle(hero).getPropertyValue('--landing-hero-content-pad-top') ||
+              getComputedStyle(hero).getPropertyValue('--landing-float-header-offset'),
+          ) || 56
 
       const belowHeaderCenter = headerBottom + (window.innerHeight - headerBottom) / 2
       const stackCenter = sr.top + sr.height / 2

@@ -8,7 +8,7 @@
 
 | Decision | Why |
 |----------|-----|
-| Floating glass nav (`variant="float"`) on landing only | Match mockup; guest `/browse` keeps flat `LandingNav` light chrome so Browse locked viewport is untouched |
+| Flat overlay nav (`variant="overlay"`) on landing only | Full-width transparent header over the hero (no pill/shadow/inset); other routes keep solid flat white chrome |
 | Atmospheric Beam-blue hero (CSS radials + noise + grid) | Match mockup; no purple/pink |
 | Working search retained | Same q/category/neighborhood → `/browse` routing |
 | Static Browse preview with SAMPLE labels | Illustrative only; `role="img"`; not live data; no fake ratings/prices |
@@ -24,7 +24,7 @@
 1. **Beam logo** — keep existing `BeamWordmark` (not generic lowercase text-only).
 2. **Preview photos** — category-matched `avail-*.jpg` (House Cleaning crew, Auto detailing, Pet sitting, Junk haul, Carpet vacuum, Grooming bath). Smoke excludes preview from uniqueness so marketing grids stay unique; preview paths are unique within the frame.
 3. **Popular cleaning** — still orange-crew `avail-house-cleaning.jpg` (prior Paper uniqueness lock vs kitchen shot in Available).
-4. **Guest browse header** — not floating; floating is landing-route only.
+4. **Guest browse header** — solid flat white (`BrowseFloatHeader`); landing uses overlay chrome only.
 5. **How-it-works interactive demos** — removed; QA updated to static steps.
 
 ## Test evidence

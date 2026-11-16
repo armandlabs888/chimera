@@ -127,6 +127,7 @@ async function main() {
           hasTabs: !!document.querySelector('[data-testid="browse-mode-tabs"]'),
           rowCount: document.querySelectorAll('[data-testid="browse-job-row"]').length,
           floatNav: !!document.querySelector('[data-nav-style="float"]'),
+          flatNav: !!document.querySelector('[data-nav-style="flat"]'),
           mainOverflow: document.querySelector('main')
             ? getComputedStyle(document.querySelector('main')).overflowY
             : null,
@@ -142,7 +143,8 @@ async function main() {
       assert.equal(metrics.hasTrending, false)
       assert.equal(metrics.hasSample, false)
       assert.equal(metrics.hasBudgetPill, false)
-      assert.equal(metrics.floatNav, true)
+      assert.equal(metrics.floatNav, false)
+      assert.equal(metrics.flatNav, true)
       assert.ok(metrics.rowCount > 0 || metrics.hasTabs, 'has rows or tabs')
       assert.ok(['visible', 'auto', ''].includes(metrics.mainOverflow) || metrics.mainOverflow === 'visible' || metrics.mainOverflow !== 'hidden')
       if (metrics.locCity && metrics.countCity) {
