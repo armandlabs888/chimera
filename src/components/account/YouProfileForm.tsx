@@ -63,7 +63,7 @@ export function YouProfileForm() {
     }
   }
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault()
     const trimmedName = name.trim()
     if (!trimmedName) {
@@ -78,17 +78,23 @@ export function YouProfileForm() {
 
     setPending(true)
     setError('')
-    updateProfile({
-      name: trimmedName,
-      bio: bio.trim(),
-      avatar: avatar || currentUser.avatar,
-      locationLabel: locationLabel || currentUser.locationLabel,
-      city: cityPart || currentUser.city || null,
-      stateCode: statePart || currentUser.stateCode || null,
-    })
-    setPending(false)
-    setSavedFlash(true)
-    window.setTimeout(() => setSavedFlash(false), 1800)
+    try {
+      await updateProfile({
+        name: trimmedName,
+        bio: bio.trim(),
+        avatar: avatar || currentUser.avatar,
+        locationLabel: locationLabel || currentUser.locationLabel,
+        city: cityPart || currentUser.city || null,
+        stateCode: statePart || currentUser.stateCode || null,
+      })
+      setSavedFlash(true)
+      window.setTimeout(() => setSavedFlash(false), 1800)
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : 'Could not save your profile.'
+      setError(raw.replace(/^Update profile:\s*/i, '') || 'Could not save your profile.')
+    } finally {
+      setPending(false)
+    }
   }
 
   return (

@@ -43,7 +43,7 @@ const TIPS = [
 ] as const
 
 export function HelperOnboarding() {
-  const { currentUser, updateProfile, mode, authUser, ready } = useBeam()
+  const { currentUser, updateProfile, mode, authUser, ready, helperVerification } = useBeam()
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
   const cityRef = useRef<UsCityComboboxHandle>(null)
@@ -285,7 +285,7 @@ export function HelperOnboarding() {
     })
   }
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault()
     const trimmedName = name.trim()
     if (!trimmedName) {
@@ -344,27 +344,33 @@ export function HelperOnboarding() {
     setPending(true)
     setError('')
     setSkillsError('')
-    updateProfile({
-      name: trimmedName,
-      bio: bio.trim(),
-      avatar: avatar || currentUser.avatar,
-      skills,
-      otherSkillLabel: otherLabel,
-      locationLabel,
-      city: resolvedCity?.name ?? currentUser.city ?? null,
-      stateCode: resolvedCity?.stateCode ?? currentUser.stateCode ?? null,
-      lat: resolvedCity?.lat ?? lat,
-      lng: resolvedCity?.lng ?? lng,
-      serviceRadiusMiles,
-      rateType: 'hourly',
-      hourlyRate: rateNum,
-      availableNow,
-      workStart: hours.workStart,
-      workEnd: hours.workEnd,
-      timezone: hours.timezone ?? currentUser.timezone ?? null,
-      isHelper: true,
-    })
-    router.push('/browse')
+    try {
+      await updateProfile({
+        name: trimmedName,
+        bio: bio.trim(),
+        avatar: avatar || currentUser.avatar,
+        skills,
+        otherSkillLabel: otherLabel,
+        locationLabel,
+        city: resolvedCity?.name ?? currentUser.city ?? null,
+        stateCode: resolvedCity?.stateCode ?? currentUser.stateCode ?? null,
+        lat: resolvedCity?.lat ?? lat,
+        lng: resolvedCity?.lng ?? lng,
+        serviceRadiusMiles,
+        rateType: 'hourly',
+        hourlyRate: rateNum,
+        availableNow,
+        workStart: hours.workStart,
+        workEnd: hours.workEnd,
+        timezone: hours.timezone ?? currentUser.timezone ?? null,
+        isHelper: true,
+      })
+      router.push('/browse')
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : 'Could not publish your helper profile.'
+      setError(raw.replace(/^Update profile:\s*/i, '') || 'Could not publish your helper profile.')
+      setPending(false)
+    }
   }
 
   const editing = Boolean(currentUser.isHelper)
@@ -452,15 +458,27 @@ export function HelperOnboarding() {
         <p>
           {smsTextsOn
             ? 'You get a text when a neighbor nearby needs help now. Manage preferences anytime.'
-            : 'Optional. Be the first to know when a neighbor nearby needs help now. Off until you turn it on.'}
+            : helperVerification?.status === 'approved'
+              ? 'Optional. Be the first to know when a neighbor nearby needs help now. Off until you turn it on.'
+              : 'Optional. You have to verify first to turn on text alerts.'}
         </p>
-        <Link
-          href={SMS_SETTINGS_HREF}
-          className="account-hc-helper-urgent-btn"
-          data-testid="helper-urgent-sms-cta-link"
-        >
-          {smsTextsOn ? 'Manage texts' : 'Turn on texts'}
-        </Link>
+        {helperVerification?.status === 'approved' || smsTextsOn ? (
+          <Link
+            href={SMS_SETTINGS_HREF}
+            className="account-hc-helper-urgent-btn"
+            data-testid="helper-urgent-sms-cta-link"
+          >
+            {smsTextsOn ? 'Manage texts' : 'Turn on texts'}
+          </Link>
+        ) : (
+          <Link
+            href="/verify"
+            className="account-hc-helper-urgent-btn"
+            data-testid="helper-urgent-sms-get-verified"
+          >
+            Get verified
+          </Link>
+        )}
       </div>
 
       <div className="account-hc-card account-hc-helper-side-card account-hc-helper-tips-card">

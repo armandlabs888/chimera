@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -81,15 +82,18 @@ function digitsOnly(raw: string): string {
 
 /**
  * Optional urgent-job SMS controls. Opt-in defaults OFF and is never required
- * by onboarding or verification.
+ * by onboarding. Turning texts on requires home-location verification.
  */
 export function HelperUrgentSmsSettings({
   userId,
   localOnly = false,
+  locationVerified = false,
 }: {
   userId: string
   /** Demo / preview without hitting Supabase. Still defaults opt-in to false. */
   localOnly?: boolean
+  /** True when helper_verifications.status === 'approved'. */
+  locationVerified?: boolean
 }) {
   const [settings, setSettings] = useState<Settings>(DEFAULTS)
   const [phoneInput, setPhoneInput] = useState('')
@@ -109,7 +113,8 @@ export function HelperUrgentSmsSettings({
 
   const codeInput = codeDigits.join('')
   const confirmed = Boolean(settings.phone_confirmed_at && settings.phone_e164)
-  const canOptIn = confirmed && phase === 'confirmed'
+  const phoneReady = confirmed && phase === 'confirmed'
+  const canOptIn = locationVerified && phoneReady
   const textsOn = Boolean(settings.sms_opt_in && canOptIn)
 
   const quietStart = padTime(settings.quiet_hours_start, DEFAULT_QUIET_START)
@@ -331,6 +336,10 @@ export function HelperUrgentSmsSettings({
   function onToggle() {
     if (!canOptIn || saving) return
     const turningOn = !settings.sms_opt_in
+    if (turningOn && !locationVerified) {
+      setError('You have to verify first to turn on text alerts.')
+      return
+    }
     const patch: Partial<Settings> = { sms_opt_in: turningOn }
     if (turningOn) {
       // Surface the UI defaults into storage when quiet hours were never set.
@@ -418,7 +427,18 @@ export function HelperUrgentSmsSettings({
               <i aria-hidden="true" />
             </button>
           </div>
-          {!canOptIn ? (
+          {!locationVerified ? (
+            <p className="account-hc-sms-switch-hint" data-testid="helper-sms-opt-in-locked">
+              You have to verify first to turn on text alerts.{' '}
+              <Link
+                href="/verify"
+                className="account-hc-sms-verify-link"
+                data-testid="helper-sms-get-verified"
+              >
+                Get verified
+              </Link>
+            </p>
+          ) : !canOptIn ? (
             <p className="account-hc-sms-switch-hint" data-testid="helper-sms-opt-in-locked">
               Confirm your number first.
             </p>

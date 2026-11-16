@@ -79,7 +79,7 @@ export function YouHelperDetailsForm() {
     if (id === 'other') setOtherError('')
   }
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault()
     if (skills.length < 1) {
       setError('Pick at least one skill so we can match you to open requests.')
@@ -109,21 +109,27 @@ export function YouHelperDetailsForm() {
 
     setPending(true)
     setError('')
-    updateProfile({
-      skills,
-      otherSkillLabel: otherLabel,
-      serviceRadiusMiles,
-      rateType: 'hourly',
-      hourlyRate: rateNum,
-      availableNow,
-      workStart: hours.workStart,
-      workEnd: hours.workEnd,
-      timezone: hours.timezone ?? currentUser.timezone ?? null,
-      isHelper: true,
-    })
-    setPending(false)
-    setSavedFlash(true)
-    window.setTimeout(() => setSavedFlash(false), 1800)
+    try {
+      await updateProfile({
+        skills,
+        otherSkillLabel: otherLabel,
+        serviceRadiusMiles,
+        rateType: 'hourly',
+        hourlyRate: rateNum,
+        availableNow,
+        workStart: hours.workStart,
+        workEnd: hours.workEnd,
+        timezone: hours.timezone ?? currentUser.timezone ?? null,
+        isHelper: true,
+      })
+      setSavedFlash(true)
+      window.setTimeout(() => setSavedFlash(false), 1800)
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : 'Could not save helper details.'
+      setError(raw.replace(/^Update profile:\s*/i, '') || 'Could not save helper details.')
+    } finally {
+      setPending(false)
+    }
   }
 
   return (

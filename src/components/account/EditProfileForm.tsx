@@ -153,7 +153,7 @@ export function EditProfileForm() {
     if (id === 'other') setOtherError('')
   }
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault()
     const trimmedName = name.trim()
     if (!trimmedName) {
@@ -219,10 +219,16 @@ export function EditProfileForm() {
 
     setPending(true)
     setError('')
-    updateProfile(patch)
-    setPending(false)
-    setSavedFlash(true)
-    window.setTimeout(() => setSavedFlash(false), 1800)
+    try {
+      await updateProfile(patch)
+      setSavedFlash(true)
+      window.setTimeout(() => setSavedFlash(false), 1800)
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : 'Could not save your profile.'
+      setError(raw.replace(/^Update profile:\s*/i, '') || 'Could not save your profile.')
+    } finally {
+      setPending(false)
+    }
   }
 
   const cityHint = formatLocation(currentUser) || city || 'your city'
