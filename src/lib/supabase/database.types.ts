@@ -741,6 +741,91 @@ export type Database = {
           },
         ]
       }
+      support_messages: {
+        Row: {
+          id: string
+          user_id: string | null
+          name: string
+          email: string
+          topic: string
+          job_link: string | null
+          message: string
+          screenshot_path: string | null
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          name: string
+          email: string
+          topic: string
+          job_link?: string | null
+          message: string
+          screenshot_path?: string | null
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          name?: string
+          email?: string
+          topic?: string
+          job_link?: string | null
+          message?: string
+          screenshot_path?: string | null
+          status?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback_entries: {
+        Row: {
+          id: string
+          user_id: string | null
+          rating: number | null
+          kind: string | null
+          message: string
+          page_path: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          rating?: number | null
+          kind?: string | null
+          message: string
+          page_path?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          rating?: number | null
+          kind?: string | null
+          message?: string
+          page_path?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       us_places: {
         Row: {
           geoid: string

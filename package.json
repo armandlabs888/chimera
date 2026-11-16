@@ -21,6 +21,7 @@
     "test:zip-bundle": "node scripts/zip-bundle-check.mjs",
     "test:account-delete-confirm": "node scripts/account-delete-confirm-unit.mjs",
     "test:account-delete-email": "node --experimental-strip-types scripts/account-delete-email-unit.mjs",
+    "test:support-email": "node --experimental-strip-types scripts/support-email-unit.mjs",
     "test:helper-working-hours-publish": "node scripts/helper-working-hours-publish-unit.mjs",
     "test:helper-access": "node scripts/helper-access-unit.mjs",
     "test:helper-availability-line": "node --experimental-strip-types scripts/helper-availability-line-unit.mjs",

@@ -9,11 +9,12 @@ import {
   hidesPeerHelperDiscovery,
 } from '@/lib/roles'
 
-/** Routes an incomplete onboarder may visit in live mode (exact /onboarding + safety). */
+/** Routes an incomplete onboarder may visit in live mode (exact /onboarding + safety + help). */
 function isOnboardingAllowedPath(pathname: string) {
   return (
     pathname === '/onboarding' ||
     pathname === '/safety' ||
+    pathname === '/help' ||
     // Recovery session users must finish setting a password before onboarding redirect.
     pathname === '/auth/reset-password'
   )
