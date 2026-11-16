@@ -1067,12 +1067,15 @@
 }
 
 .account-hc-sms-select {
+  -webkit-appearance: none;
   appearance: none;
-  padding-right: 36px;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234A5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  border-color: var(--hc-line-2);
+  padding-right: 40px;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%234A5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 8 4 4 4-4'/></svg>");
   background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
+  background-position: right 14px center;
+  background-size: 20px;
 }
 
 .account-hc-sms-phone-row .account-hc-btn,
@@ -1360,6 +1363,7 @@
 }
 
 .account-hc-input,
+.account-hc-select,
 .account-hc-textarea {
   width: 100%;
   height: 48px;
@@ -1374,7 +1378,30 @@
 }
 
 .account-hc-input:focus,
+.account-hc-select:focus,
 .account-hc-textarea:focus {
+  border-color: var(--hc-blue);
+}
+
+/*
+  Custom select chevron (matches .php-select on the helper booking card).
+  Kept outside any @layer so -webkit-appearance is not dropped by Lightning CSS.
+*/
+.account-hc-select,
+select.account-hc-input {
+  -webkit-appearance: none;
+  appearance: none;
+  border-color: var(--hc-line-2);
+  padding-right: 40px;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%234A5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 8 4 4 4-4'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 20px;
+}
+
+.account-hc-select:focus,
+select.account-hc-input:focus {
   border-color: var(--hc-blue);
 }
 
