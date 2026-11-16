@@ -649,3 +649,17 @@ export function PublicHelperNotFound() {
     </div>
   )
 }
+
+/** Shown when a neighbor profile exists server-side but is not in the signed-out marketplace payload. */
+export function PublicProfileSignInPrompt({ profilePath }: { profilePath: string }) {
+  return (
+    <div className="beam-container py-10" data-testid="public-profile-sign-in">
+      <EmptyState
+        titleAs="h1"
+        title="Sign in to view this profile"
+        body="Neighbor profiles are available after you sign in."
+        action={<ButtonLink href={authNextHref(profilePath)}>Sign in</ButtonLink>}
+      />
+    </div>
+  )
+}

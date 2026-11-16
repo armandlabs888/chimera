@@ -1,9 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
 import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/config'
-import { isHelperPerson } from '@/lib/roles'
 import { isUuid } from '@/lib/seo/ids'
-import type { AccountRole, CategoryId } from '@/types'
 import type { Database } from '@/lib/supabase/database.types'
 
 /**
@@ -51,23 +49,14 @@ export async function rewriteIfMissingPublicDetail(
     })
 
     if (kind === 'people') {
+      // Any real profile (helper or neighbor) is a valid /people/[id] page.
       const { data, error } = await admin
         .from('profiles')
-        .select('id, is_helper, skills, account_role')
+        .select('id')
         .eq('id', id)
         .maybeSingle()
       if (error) return null
       if (!data) return rewriteMissing(request)
-      const role =
-        data.account_role === 'customer' || data.account_role === 'helper'
-          ? (data.account_role as AccountRole)
-          : null
-      const helper = isHelperPerson({
-        isHelper: Boolean(data.is_helper),
-        accountRole: role,
-        skills: (data.skills ?? []) as CategoryId[],
-      })
-      if (!helper) return rewriteMissing(request)
       return null
     }
 

@@ -312,15 +312,36 @@ export function buildHelperStats(person: Person): ProfileHeaderStatItem[] {
 export function buildNeighborStats(input: {
   jobsPosted?: number | null
   memberSinceLabel?: string | null
+  person?: Pick<Person, 'rating' | 'reviewCount'> | null
 }): ProfileHeaderStatItem[] {
   const items: ProfileHeaderStatItem[] = []
+  const person = input.person
+  if (person) {
+    const ratingLabel = formatPublicRating(person)
+    if (hasPublicRating(person) && ratingLabel) {
+      items.push({
+        key: 'rating',
+        content: (
+          <span className="inline-flex items-center gap-1 font-medium text-[#071330]">
+            <Star className="h-3.5 w-3.5 fill-[#071330] text-[#071330]" aria-hidden />
+            {ratingLabel}
+          </span>
+        ),
+      })
+    } else {
+      items.push({
+        key: 'new',
+        content: <span className="font-medium text-[#071330]">New</span>,
+      })
+    }
+  }
   const posted = Number(input.jobsPosted ?? 0)
   if (posted > 0) {
     items.push({
       key: 'posted',
       content: (
         <span>
-          {posted} {posted === 1 ? 'job posted' : 'jobs posted'}
+          {posted} {posted === 1 ? 'post' : 'posts'}
         </span>
       ),
     })

@@ -79,7 +79,7 @@ export function HelperProfileBody({
 
   const headerStats = useMemo(() => {
     if (helper) return buildHelperStats(person)
-    return buildNeighborStats({ jobsPosted })
+    return buildNeighborStats({ jobsPosted, person })
   }, [helper, person, jobsPosted])
 
   const headerMeta = useMemo(
@@ -87,8 +87,16 @@ export function HelperProfileBody({
     [helper, person],
   )
 
+  const openJobs = useMemo(
+    () =>
+      !helper
+        ? state.requests.filter((r) => r.requesterId === person.id && r.status === 'open')
+        : [],
+    [helper, state.requests, person.id],
+  )
+
   async function onShare() {
-    const path = helper ? `/people/${person.id}` : '/you'
+    const path = `/people/${person.id}`
     const url =
       typeof window !== 'undefined' ? `${window.location.origin}${path}` : path
     const result = await shareProfileLink({
@@ -180,16 +188,17 @@ export function HelperProfileBody({
     },
   ]
 
-  const overflowItems = isOwn
-    ? []
-    : [
-        {
-          key: 'save',
-          label: isSaved ? 'Saved' : 'Save',
-          onClick: () => void onSave(),
-          testId: 'public-helper-save',
-        },
-      ]
+  const overflowItems =
+    isOwn || !helper
+      ? []
+      : [
+          {
+            key: 'save',
+            label: isSaved ? 'Saved' : 'Save',
+            onClick: () => void onSave(),
+            testId: 'public-helper-save',
+          },
+        ]
 
   const priceDisplay = isQuote ? (
     <div className="hpb-price">Quote</div>
@@ -205,7 +214,9 @@ export function HelperProfileBody({
   return (
     <div
       className="helper-profile-body"
-      data-testid={isOwn ? 'you-page' : 'public-helper-profile'}
+      data-testid={
+        isOwn ? 'you-page' : helper ? 'public-helper-profile' : 'public-neighbor-profile'
+      }
     >
       {isOwn ? (
         <div className="hpb-preview-bar" data-testid="you-preview-bar">
@@ -375,9 +386,39 @@ export function HelperProfileBody({
                 })}
               </ul>
             ) : (
-              <p className="hpb-empty">Completed jobs will show neighbor feedback here.</p>
+              <p className="hpb-empty">
+                {helper
+                  ? 'Completed jobs will show neighbor feedback here.'
+                  : 'No reviews yet.'}
+              </p>
             )}
           </section>
+
+          {!helper && openJobs.length > 0 ? (
+            <section className="hpb-sec" aria-labelledby="hpb-open-jobs" data-testid="neighbor-open-jobs">
+              <div className="hpb-sec-head">
+                <h2 id="hpb-open-jobs" className="hpb-h2">
+                  Open jobs{' '}
+                  <span className="hpb-review-count">· {openJobs.length}</span>
+                </h2>
+              </div>
+              <ul className="divide-y divide-[#E3E8EF]">
+                {openJobs.map((job) => (
+                  <li key={job.id} className="py-3 first:pt-0 last:pb-0">
+                    <Link
+                      href={`/requests/${job.id}`}
+                      className="block min-w-0 text-[#071330] transition hover:text-[#1D5CE5]"
+                    >
+                      <p className="truncate text-[15px] font-semibold">{job.title}</p>
+                      <p className="mt-0.5 truncate text-[13px] text-[#4A5568]">
+                        {[job.locationLabel || job.city, job.whenLabel].filter(Boolean).join(' · ')}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </div>
 
         {helper ? (

@@ -129,6 +129,17 @@ export function RequestDetail() {
       : null
 
   const isOwner = request?.requesterId === currentUser.id
+  const requesterIsHelper = requester ? isHelperPerson(requester) : false
+  const requesterPostsCount = requester
+    ? state.requests.filter((r) => r.requesterId === requester.id).length
+    : 0
+  const requesterActivityLabel = requester
+    ? requesterIsHelper
+      ? `${requester.jobsCompleted} jobs`
+      : requesterPostsCount > 0
+        ? `${requesterPostsCount} ${requesterPostsCount === 1 ? 'post' : 'posts'}`
+        : null
+    : null
   const isNeighborViewer =
     Boolean(request) && !isGuest && !isOwner && !isHelperPerson(currentUser)
   const isAcceptedHelper = Boolean(request?.helperId && request.helperId === currentUser.id)
@@ -489,8 +500,7 @@ export function RequestDetail() {
                     {requester.rating > 0 && requester.reviewCount > 0
                       ? `★ ${requester.rating.toFixed(1)}`
                       : 'New'}
-                    {' · '}
-                    {requester.jobsCompleted} jobs
+                    {requesterActivityLabel ? ` · ${requesterActivityLabel}` : ''}
                   </p>
                 </div>
                 <Link

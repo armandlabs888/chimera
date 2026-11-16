@@ -14,11 +14,15 @@ import type { Database } from '@/lib/supabase/database.types'
 
 export { isUuid } from '@/lib/seo/ids'
 
+export type PersonSeoKind = 'helper' | 'neighbor'
+
 export type HelperSeoData = {
   id: string
   name: string
+  /** Present for helpers; empty for neighbors. */
   categoryLabel: string
   cityLabel: string
+  kind: PersonSeoKind
 }
 
 export type RequestSeoData = {
@@ -76,30 +80,34 @@ function cityLabelFrom(row: {
   return neighborhood || 'Nearby'
 }
 
-function toHelperSeo(row: ProfileSeoRow): HelperSeoData | null {
+function isHelperRow(row: ProfileSeoRow): boolean {
   const skills = (row.skills ?? []) as CategoryId[]
   const role =
     row.account_role === 'customer' || row.account_role === 'helper'
       ? (row.account_role as AccountRole)
       : null
-  if (
-    !isHelperPerson({
-      isHelper: Boolean(row.is_helper),
-      accountRole: role,
-      skills,
-    })
-  ) {
-    return null
-  }
+  return isHelperPerson({
+    isHelper: Boolean(row.is_helper),
+    accountRole: role,
+    skills,
+  })
+}
+
+/** Map any real profile row to SEO data. Neighbors get generic noindex metadata. */
+function toPersonSeo(row: ProfileSeoRow): HelperSeoData {
+  const skills = (row.skills ?? []) as CategoryId[]
+  const helper = isHelperRow(row)
+  const name =
+    (row.name || (helper ? 'Helper' : 'Neighbor')).trim() || (helper ? 'Helper' : 'Neighbor')
   const primary = skills[0]
   return {
     id: row.id,
-    name: (row.name || 'Helper').trim() || 'Helper',
-    categoryLabel: formatCategoryLabel(
-      primary,
-      primary === 'other' ? row.other_skill_label : null,
-    ),
+    name,
+    categoryLabel: helper
+      ? formatCategoryLabel(primary, primary === 'other' ? row.other_skill_label : null)
+      : '',
     cityLabel: cityLabelFrom(row),
+    kind: helper ? 'helper' : 'neighbor',
   }
 }
 
@@ -112,8 +120,9 @@ function toRequestSeo(row: RequestSeoRow): RequestSeoData {
 }
 
 /**
- * Resolve a public helper for metadata / hard 404.
- * `missing` only when the server can prove the profile is absent (or not a helper).
+ * Resolve a public person for metadata / hard 404.
+ * `missing` only when the server can prove the profile is absent.
+ * Helpers get indexable SEO; neighbors are `found` with `kind: 'neighbor'` (noindex).
  * Demo / unconfigured / RLS-blocked reads return `unknown` so the client gate still runs.
  */
 export async function lookupPublicHelper(id: string): Promise<LookupResult<HelperSeoData>> {
@@ -133,9 +142,7 @@ export async function lookupPublicHelper(id: string): Promise<LookupResult<Helpe
       .maybeSingle()
     if (error) return { status: 'unknown' }
     if (!data) return { status: 'missing' }
-    const helper = toHelperSeo(data as ProfileSeoRow)
-    if (!helper) return { status: 'missing' }
-    return { status: 'found', data: helper }
+    return { status: 'found', data: toPersonSeo(data as ProfileSeoRow) }
   }
 
   try {
@@ -151,9 +158,7 @@ export async function lookupPublicHelper(id: string): Promise<LookupResult<Helpe
         .maybeSingle()
       if (error) return { status: 'unknown' }
       if (!data) return { status: 'missing' }
-      const helper = toHelperSeo(data as ProfileSeoRow)
-      if (!helper) return { status: 'missing' }
-      return { status: 'found', data: helper }
+      return { status: 'found', data: toPersonSeo(data as ProfileSeoRow) }
     }
   } catch {
     // Fall through to anon-readable marketplace RPC.
@@ -165,10 +170,9 @@ export async function lookupPublicHelper(id: string): Promise<LookupResult<Helpe
   if (error || !data) return { status: 'unknown' }
   const payload = data as { profiles?: ProfileSeoRow[] }
   const row = (payload.profiles ?? []).find((p) => p.id === id)
+  // Marketplace is a helper-heavy subset; absence is not proof the profile is missing.
   if (!row) return { status: 'unknown' }
-  const helper = toHelperSeo(row)
-  if (!helper) return { status: 'unknown' }
-  return { status: 'found', data: helper }
+  return { status: 'found', data: toPersonSeo(row) }
 }
 
 function isPubliclyListedRequest(row: RequestSeoRow): boolean {
