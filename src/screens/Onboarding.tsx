@@ -11,6 +11,8 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
 import { LandingFooter } from '@/components/landing/LandingFooter'
+import { ConfirmPhoneStep } from '@/components/onboarding/ConfirmPhoneStep'
+import { JobAlertsStep } from '@/components/onboarding/JobAlertsStep'
 import {
   UsCityCombobox,
   type UsCityComboboxHandle,
@@ -23,6 +25,10 @@ import {
   ONBOARDING_HELPER_VERIFY_TITLE,
   VERIFY_TRUST_LINE,
 } from '@/lib/verification/constants'
+import {
+  onboardingRulesStepNumber,
+  onboardingStepTotal,
+} from '@/lib/phone/onboardingGate'
 import {
   collapseNameWhitespace,
   parseRealName,
@@ -65,21 +71,32 @@ const HELPER_POINTS = [
   "Coordinate in Messages once you're hired.",
 ] as const
 
-function StepProgress({ step }: { step: 1 | 2 }) {
+function StepProgress({
+  step,
+  total,
+}: {
+  step: number
+  total: number
+}) {
   return (
     <div
       className="account-hc-step-meta"
-      aria-label={`Step ${step} of 2`}
+      aria-label={`Step ${step} of ${total}`}
       data-testid="onboarding-step-progress"
     >
-      <p className="n">Step {step} of 2</p>
+      <p className="n">
+        Step {step} of {total}
+      </p>
       <div className="account-hc-step-bars" aria-hidden>
-        <i className={step >= 1 ? 'on' : undefined} />
-        <i className={step >= 2 ? 'on' : undefined} />
+        {Array.from({ length: total }, (_, i) => (
+          <i key={i} className={step >= i + 1 ? 'on' : undefined} />
+        ))}
       </div>
     </div>
   )
 }
+
+type OnboardingStep = 'welcome' | 'phone' | 'alerts' | 'rules'
 
 function PointCheck({ size = 18 }: { size?: number }) {
   return (
@@ -173,7 +190,15 @@ export function Onboarding() {
   const searchParams = useSearchParams()
   const preview = searchParams.get('preview') === '1'
   const edit = searchParams.get('edit') === '1'
-  const { mode, ready, authUser, currentUser, completeOnboarding, signOut } = useBeam()
+  const {
+    mode,
+    ready,
+    authUser,
+    currentUser,
+    completeOnboarding,
+    signOut,
+    helperVerification,
+  } = useBeam()
 
   const roleGroupId = useId()
   const firstNameId = useId()
@@ -181,7 +206,7 @@ export function Onboarding() {
   const cityRef = useRef<UsCityComboboxHandle>(null)
   const hydratedRef = useRef(false)
   const nameHydratedRef = useRef(false)
-  const [step, setStep] = useState<1 | 2>(1)
+  const [step, setStep] = useState<OnboardingStep>('welcome')
   const [role, setRole] = useState<AccountRole | null>(null)
   const [city, setCity] = useState<UsCity | null>(null)
   const [firstName, setFirstName] = useState('')
@@ -190,10 +215,64 @@ export function Onboarding() {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [step1Error, setStep1Error] = useState('')
+  const [maskedPhone, setMaskedPhone] = useState('')
+  const [phoneE164, setPhoneE164] = useState('')
+  // null = still probing session API; default off so missing Twilio never blocks signup.
+  const [phoneConfirmEnabled, setPhoneConfirmEnabled] = useState<boolean | null>(null)
 
   const alreadyOnboarded = Boolean(currentUser.onboardingCompletedAt)
   const showAccountEscape =
     mode === 'live' && Boolean(authUser) && !edit && !alreadyOnboarded
+  const demoMode = mode === 'demo' || preview
+  const isHelper = role === 'helper'
+  const phoneStepsOn = Boolean(phoneConfirmEnabled)
+  // Without Twilio, keep the original 2-step flow (welcome + rules).
+  const totalSteps = onboardingStepTotal({
+    edit,
+    isHelper,
+    phoneConfirmEnabled: phoneStepsOn,
+  })
+  const rulesStepNumber = onboardingRulesStepNumber({
+    edit,
+    isHelper,
+    phoneConfirmEnabled: phoneStepsOn,
+  })
+  const locationVerified = helperVerification?.status === 'approved'
+
+  useEffect(() => {
+    let cancelled = false
+    void fetch('/api/phone/session')
+      .then(async (res) => {
+        const data = (await res.json().catch(() => ({}))) as {
+          phoneConfirmEnabled?: boolean
+          twilioMissing?: boolean
+          status?: string
+        }
+        if (cancelled) return
+        if (typeof data.phoneConfirmEnabled === 'boolean') {
+          setPhoneConfirmEnabled(data.phoneConfirmEnabled)
+          return
+        }
+        if (data.twilioMissing || data.status === 'disabled') {
+          setPhoneConfirmEnabled(false)
+          return
+        }
+        // Auth errors without a flag: treat as disabled so signup stays open.
+        setPhoneConfirmEnabled(res.ok)
+      })
+      .catch(() => {
+        if (!cancelled) setPhoneConfirmEnabled(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    // If Twilio is off mid-flow, drop phone/alerts and land on rules or welcome.
+    if (phoneConfirmEnabled !== false) return
+    if (step === 'phone' || step === 'alerts') setStep('rules')
+  }, [phoneConfirmEnabled, step])
 
   useEffect(() => {
     if (!ready) return
@@ -307,7 +386,12 @@ export function Onboarding() {
     setLastName(parsed.value.lastName)
     setNameError('')
     setStep1Error('')
-    setStep(2)
+    // Edit city, or Twilio not configured: skip phone/alerts.
+    if (edit || !phoneStepsOn) {
+      setStep('rules')
+      return
+    }
+    setStep('phone')
   }
 
   function handleCityChange(next: UsCity | null) {
@@ -341,7 +425,7 @@ export function Onboarding() {
     const parsed = parseRealName(firstName, lastName)
     if (!parsed.ok) {
       setNameError(REAL_NAME_ERROR)
-      setStep(1)
+      setStep('welcome')
       return
     }
     setPending(true)
@@ -371,7 +455,7 @@ export function Onboarding() {
             : 'Could not finish onboarding'
       if (message === REAL_NAME_ERROR) {
         setNameError(REAL_NAME_ERROR)
-        setStep(1)
+        setStep('welcome')
         setPending(false)
         return
       }
@@ -398,16 +482,21 @@ export function Onboarding() {
     : 'account-hc min-h-dvh'
 
   return (
-    <div className={shellClass} data-testid="onboarding-root" data-step={step} data-edit={edit ? '1' : undefined}>
+    <div
+      className={shellClass}
+      data-testid="onboarding-root"
+      data-step={step}
+      data-edit={edit ? '1' : undefined}
+    >
       <div className={edit ? 'account-hc-wrap account-hc-page' : 'account-hc-wrap account-hc-onboarding-page'}>
         {edit ? (
           <div className="account-hc-title-row">
             <h1 className="account-hc-hero-title">{pageTitle}</h1>
-            <StepProgress step={step} />
+            <StepProgress step={step === 'welcome' ? 1 : 2} total={2} />
           </div>
         ) : null}
 
-        {step === 1 ? (
+        {step === 'welcome' ? (
           <div
             data-testid="onboarding-step-1"
             className={`account-hc-wizard animate-fade-up ${role ? '' : 'single'}`}
@@ -416,7 +505,7 @@ export function Onboarding() {
               className="account-hc-card account-hc-wizard-form min-w-0"
               data-testid="onboarding-form-column"
             >
-              {!edit ? <StepProgress step={1} /> : null}
+              {!edit ? <StepProgress step={1} total={totalSteps} /> : null}
 
               {!edit ? (
                 <>
@@ -615,13 +704,48 @@ export function Onboarding() {
               </div>
             ) : null}
           </div>
-        ) : (
+        ) : null}
+
+        {step === 'phone' && !edit && phoneStepsOn ? (
+          <ConfirmPhoneStep
+            stepLabel={`Step 2 of ${totalSteps}`}
+            step={2}
+            total={totalSteps}
+            demoMode={demoMode}
+            onBack={() => setStep('welcome')}
+            onContinue={(info) => {
+              setMaskedPhone(info.maskedPhone)
+              setPhoneE164(info.phoneE164 || '')
+              if (isHelper) setStep('alerts')
+              else setStep('rules')
+            }}
+          />
+        ) : null}
+
+        {step === 'alerts' && !edit && isHelper && phoneStepsOn ? (
+          <JobAlertsStep
+            stepLabel={`Step 3 of ${totalSteps}`}
+            step={3}
+            total={totalSteps}
+            maskedPhone={maskedPhone || '+1•••••0000'}
+            phoneE164={phoneE164}
+            locationVerified={locationVerified}
+            demoMode={demoMode}
+            onBack={() => setStep('phone')}
+            onSkip={() => setStep('rules')}
+            onEnabled={() => setStep('rules')}
+          />
+        ) : null}
+
+        {step === 'rules' ? (
           <div
             data-testid="onboarding-step-2"
             className="account-hc-wizard single animate-fade-up"
           >
             <div className="account-hc-card account-hc-rules">
-              {!edit ? <StepProgress step={2} /> : null}
+              {!edit ? (
+                <StepProgress step={rulesStepNumber} total={totalSteps} />
+              ) : null}
               <h1 className="account-hc-hero-title" style={{ fontSize: 28 }}>
                 Our community rules
               </h1>
@@ -668,7 +792,12 @@ export function Onboarding() {
                   className="account-hc-btn account-hc-btn-secondary account-hc-btn-lg shadow-none"
                   onClick={() => {
                     setError('')
-                    setStep(1)
+                    if (edit || !phoneStepsOn) {
+                      setStep('welcome')
+                      return
+                    }
+                    if (isHelper) setStep('alerts')
+                    else setStep('phone')
                   }}
                   disabled={pending}
                   data-testid="onboarding-back"
@@ -689,7 +818,7 @@ export function Onboarding() {
               </div>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
       {!edit ? <LandingFooter /> : null}
     </div>

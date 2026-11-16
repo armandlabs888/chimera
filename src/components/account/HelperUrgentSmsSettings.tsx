@@ -8,6 +8,7 @@ type Settings = {
   phone_e164: string | null
   phone_confirmed_at: string | null
   sms_opt_in: boolean
+  sms_opt_in_pending: boolean
   quiet_hours_start: string | null
   quiet_hours_end: string | null
   daily_text_limit: number
@@ -19,6 +20,7 @@ const DEFAULTS: Settings = {
   phone_e164: null,
   phone_confirmed_at: null,
   sms_opt_in: false,
+  sms_opt_in_pending: false,
   quiet_hours_start: null,
   quiet_hours_end: null,
   daily_text_limit: 5,
@@ -136,25 +138,54 @@ export function HelperUrgentSmsSettings({
         return
       }
       const supabase = createClient()
-      const { data, error: readError } = await supabase
-        .from('helper_urgent_sms_settings')
-        .select(
-          'phone_e164, phone_confirmed_at, sms_opt_in, quiet_hours_start, quiet_hours_end, daily_text_limit',
-        )
-        .eq('profile_id', userId)
-        .maybeSingle()
+      const [{ data, error: readError }, phoneRes, pendingRes] = await Promise.all([
+        supabase
+          .from('helper_urgent_sms_settings')
+          .select(
+            'phone_e164, phone_confirmed_at, sms_opt_in, quiet_hours_start, quiet_hours_end, daily_text_limit',
+          )
+          .eq('profile_id', userId)
+          .maybeSingle(),
+        supabase
+          .from('phone_verifications')
+          .select('phone_e164, verified_at')
+          .eq('user_id', userId)
+          .maybeSingle(),
+        // Optional until migration is applied.
+        supabase
+          .from('helper_urgent_sms_settings')
+          .select('sms_opt_in_pending')
+          .eq('profile_id', userId)
+          .maybeSingle(),
+      ])
       if (readError) throw readError
+
+      // phone_verifications may not exist until the onboarding migration is applied.
+      const verifiedPhone =
+        !phoneRes.error &&
+        phoneRes.data?.verified_at &&
+        phoneRes.data.phone_e164
+          ? {
+              phone_e164: phoneRes.data.phone_e164,
+              phone_confirmed_at: phoneRes.data.verified_at,
+            }
+          : null
+
       if (data) {
         const next: Settings = {
-          phone_e164: data.phone_e164,
-          phone_confirmed_at: data.phone_confirmed_at,
+          phone_e164: verifiedPhone?.phone_e164 ?? data.phone_e164,
+          phone_confirmed_at:
+            verifiedPhone?.phone_confirmed_at ?? data.phone_confirmed_at,
           sms_opt_in: Boolean(data.sms_opt_in),
+          sms_opt_in_pending: Boolean(
+            !pendingRes.error && pendingRes.data?.sms_opt_in_pending,
+          ),
           quiet_hours_start: data.quiet_hours_start,
           quiet_hours_end: data.quiet_hours_end,
           daily_text_limit: data.daily_text_limit ?? 5,
         }
         setSettings(next)
-        setPhoneInput(data.phone_e164 || '')
+        setPhoneInput(next.phone_e164 || '')
         if (next.phone_confirmed_at && next.phone_e164) {
           setPhase('confirmed')
         } else {
@@ -165,9 +196,20 @@ export function HelperUrgentSmsSettings({
           profile_id: userId,
           sms_opt_in: false,
         })
-        setSettings(DEFAULTS)
-        setPhoneInput('')
-        setPhase('phone')
+        if (verifiedPhone) {
+          const next: Settings = {
+            ...DEFAULTS,
+            phone_e164: verifiedPhone.phone_e164,
+            phone_confirmed_at: verifiedPhone.phone_confirmed_at,
+          }
+          setSettings(next)
+          setPhoneInput(verifiedPhone.phone_e164)
+          setPhase('confirmed')
+        } else {
+          setSettings(DEFAULTS)
+          setPhoneInput('')
+          setPhase('phone')
+        }
       }
       setCodeDigits(['', '', '', '', '', ''])
       setSentPhoneDisplay('')
@@ -429,7 +471,9 @@ export function HelperUrgentSmsSettings({
           </div>
           {!locationVerified ? (
             <p className="account-hc-sms-switch-hint" data-testid="helper-sms-opt-in-locked">
-              You have to verify first to turn on text alerts.{' '}
+              {settings.sms_opt_in_pending
+                ? 'Alerts start once you get verified. '
+                : 'You have to verify first to turn on text alerts. '}
               <Link
                 href="/verify"
                 className="account-hc-sms-verify-link"
