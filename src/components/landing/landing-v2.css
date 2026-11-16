@@ -112,10 +112,20 @@
   }
 }
 
-/* Hero headline: standard size (~36px @390 → 56px @1280+). */
+/* Hero headline: wraps naturally on phones; single line from md up.
+   Mobile keeps ~36px @390. From 768+, nowrap + a slightly lower clamp so
+   "Trusted help, right next door." fits one centered line without overflow. */
 .landing-hero-title {
   font-size: clamp(2.25rem, 2.25vw + 1.7rem, 3.5rem);
   line-height: 1.08;
+}
+
+@media (min-width: 768px) {
+  .landing-hero-title {
+    white-space: nowrap;
+    /* ~40px @768 → 56px @1280+ so the full phrase stays one line. */
+    font-size: clamp(2.5rem, 3.125vw + 1rem, 3.5rem);
+  }
 }
 
 /* Hero lede: wrap on mobile; single line on tablet/desktop. */
