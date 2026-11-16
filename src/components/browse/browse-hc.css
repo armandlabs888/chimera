@@ -423,6 +423,19 @@
   flex: none;
 }
 
+.browse-hc-views-desk {
+  display: inline;
+}
+
+.browse-hc-views-mob {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  color: #4a5568;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
 
 /* ---- Category tabs (Yelp chip rhythm; same tab structure) ---- */
 .browse-hc-tabs-wrap {
@@ -1686,6 +1699,14 @@
   }
 
   .browse-hc-distance-mob {
+    display: inline-flex;
+  }
+
+  .browse-hc-views-desk {
+    display: none !important;
+  }
+
+  .browse-hc-views-mob {
     display: inline-flex;
   }
 
