@@ -13,7 +13,7 @@
   --hc-sub: #4a5568;
   --hc-page: #ffffff;
   --hc-white: #ffffff;
-  --hc-red: #dc2626;
+  --hc-red: #c62828;
   --hc-red-hover: #fef2f2;
   --hc-tabbar: #eef2f6;
   color: var(--hc-navy);
@@ -2355,7 +2355,7 @@
   height: 44px;
   padding: 0 18px;
   border-radius: 8px;
-  background: var(--hc-red);
+  background: #c62828;
   color: #fff;
   font-size: 14px;
   font-weight: 600;
@@ -2365,7 +2365,7 @@
 }
 
 .account-hc-btn-danger:hover:not(:disabled) {
-  background: #b91c1c;
+  background: #b71c1c;
 }
 
 .account-hc-btn-danger:disabled {

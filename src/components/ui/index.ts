@@ -1,4 +1,13 @@
-export { Button, ButtonLink, type ButtonVariant, type ButtonSize } from './button'
+export {
+  Button,
+  ButtonLink,
+  dangerOutlineButtonClass,
+  dangerOutlineColorClass,
+  dangerSolidButtonClass,
+  navyButtonClass,
+  type ButtonVariant,
+  type ButtonSize,
+} from './button'
 export { Field, TextInput, TextArea, Select } from './form'
 export { ConfirmDialog } from './ConfirmDialog'
 export {

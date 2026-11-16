@@ -31,6 +31,7 @@ import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 import type { HelpRequest } from '@/types'
 import { CancelJobAction } from '@/components/jobs/CancelJobAction'
 import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
+import { dangerOutlineButtonClass } from '@/components/ui/button'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { JobDetailPriceLine } from '@/components/jobs/JobDetailPriceLine'
@@ -495,8 +496,8 @@ export function BrowseJobDrawer({
     <CancelJobAction
       request={request}
       className={narrow ? 'w-full' : 'min-w-0 shrink-0'}
-      buttonClassName={`inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg border border-[#D7E0EC] bg-white px-4 text-[14px] font-semibold tracking-[-0.01em] text-[#071330] hover:bg-[#EEF2F7] disabled:opacity-60 ${
-        narrow ? 'w-full' : 'shrink-0'
+      buttonClassName={`${dangerOutlineButtonClass}${
+        narrow ? ' w-full' : ' shrink-0'
       }`}
       onCancelled={onClose}
     />

@@ -422,7 +422,7 @@ export function BrowseJobDetailPanel({
             <CancelJobAction
               request={request}
               className="min-w-0 flex-1"
-              buttonClassName="browse-hc-btn-ask w-full"
+              buttonClassName="browse-hc-btn-cancel-job w-full"
             />
             {primaryButton}
           </div>

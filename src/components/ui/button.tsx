@@ -37,6 +37,24 @@ export const outlinePillClass =
 export const navyButtonClass =
   'border border-[#071330] bg-[#071330] text-white transition-colors hover:border-[#142450] hover:bg-[#142450] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2'
 
+/**
+ * Destructive outline for Cancel job (and matching owner cancel controls).
+ * Prefer shared `.hc-btn-danger-outline` for color / hover (see globals.css).
+ * Size / radius / width stay with the host (or `dangerOutlineButtonClass`).
+ */
+export const dangerOutlineColorClass =
+  'hc-btn-danger-outline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C4C4] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60'
+
+/** Full Cancel job footprint used on the job page and Browse drawer. */
+export const dangerOutlineButtonClass = `inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg px-[18px] text-[14px] font-semibold tracking-[-0.01em] ${dangerOutlineColorClass}`
+
+/**
+ * Solid destructive confirm (Cancel job dialog). Matches account danger CTAs at #C62828.
+ * Prefer `.account-hc-btn-danger` in ConfirmDialog; this string is for Tailwind hosts.
+ */
+export const dangerSolidButtonClass =
+  'border-0 bg-[#C62828] text-white transition-colors hover:bg-[#B71C1C] disabled:cursor-not-allowed disabled:opacity-60'
+
 function Spinner() {
   return (
     <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>

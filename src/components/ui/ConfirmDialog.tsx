@@ -16,7 +16,7 @@ const HC_VARS = {
   ['--hc-muted' as string]: '#48556a',
   ['--hc-muted-2' as string]: '#4A5568',
   ['--hc-white' as string]: '#ffffff',
-  ['--hc-red' as string]: '#dc2626',
+  ['--hc-red' as string]: '#c62828',
   ['--hc-red-hover' as string]: '#fef2f2',
 } as const
 
