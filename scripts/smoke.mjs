@@ -121,6 +121,12 @@ async function checkLandingMarkup() {
     /data-testid="landing-hero"[\s\S]*?(Post a task|Browse services)[\s\S]*?data-testid="landing-categories"/,
     'hero has no Post a task / Browse services under search',
   )
+  assert.doesNotMatch(text, /data-testid="describe-chip"/, 'hero has no example suggestion chips')
+  assert.doesNotMatch(
+    text,
+    /Weekly house cleaner|Help moving a couch|Find jobs near me|Dog walker this week/,
+    'hero has no example chip labels',
+  )
   assert.doesNotMatch(text, /categories-tile-custom|Something else\?/, 'navy custom tile removed')
   assert.match(text, /data-testid="categories-tile-auto"/, 'auto detailing tile')
   assert.match(text, /data-testid="categories-tile-moving"/, 'moving tile')
@@ -2317,12 +2323,11 @@ async function checkSubtleRadii() {
             const cls = String(el.className || '')
             const px = radiusPx(el)
             const testid = el.getAttribute('data-testid')
-            // Intentional pills (landing search, chips, Sign up) use rounded-full.
+            // Intentional pills (landing search, Sign up) use rounded-full.
             const allowPill =
               /rounded-full/.test(cls) ||
               px >= 999 ||
               testid === 'describe-search-submit' ||
-              testid === 'describe-chip' ||
               el.closest?.('[data-testid="hero-search"]') != null
             return {
               tag: el.tagName,

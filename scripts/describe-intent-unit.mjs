@@ -593,15 +593,15 @@ function formatHelpersEmptyNoun(categoryLabel, categoryId = null) {
   assert.ok(r.exampleRequests.every((ex) => ex.locationMeta === 'in 95131'))
 }
 
-// Hero chips still route with the right intent ("Find jobs near me" → jobs)
+// Common describe phrases still resolve to the right intent ("Find jobs near me" → jobs)
 {
-  const chips = [
+  const phrases = [
     'Weekly house cleaner',
     'Help moving a couch',
     'Find jobs near me',
     'Dog walker this week',
   ]
-  const intents = chips.map((c) => detectDescribeIntent(c).intent)
+  const intents = phrases.map((c) => detectDescribeIntent(c).intent)
   assert.deepEqual(intents, ['helpers', 'helpers', 'jobs', 'helpers'])
   assert.equal(detectDescribeIntent('Find jobs near me').ambiguous, false)
 }

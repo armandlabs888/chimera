@@ -138,14 +138,13 @@ export function LandingHero() {
             Describe the job, compare helpers nearby, or find new work in your area.
           </p>
 
-          <div className="mx-auto mt-9 flex w-full justify-center">
+          <div className="mx-auto mt-8 flex w-full justify-center md:mt-9">
             <DescribeSearchForm
               key={zip || 'no-zip'}
               initialZip={zip}
               roleHint={roleHint}
               cityLabel={currentUser?.city || ''}
               variant="hero"
-              showChips
               onSubmit={onSearch}
             />
           </div>

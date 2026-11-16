@@ -30,13 +30,6 @@ export const DESCRIBE_PLACEHOLDERS = [
   'Find a dog walker near me',
 ] as const
 
-export const DESCRIBE_CHIPS = [
-  'Weekly house cleaner',
-  'Help moving a couch',
-  'Find jobs near me',
-  'Dog walker this week',
-] as const
-
 type MenuPos = { top: number; left: number; width: number; maxHeight: number }
 
 type FlatOption =
@@ -57,7 +50,6 @@ export function DescribeSearchForm({
   roleHint = null,
   cityLabel = '',
   variant = 'hero',
-  showChips = true,
   autoFocusQuery = false,
   onSubmit,
 }: {
@@ -67,7 +59,6 @@ export function DescribeSearchForm({
   roleHint?: DescribeRoleHint
   cityLabel?: string
   variant?: 'hero' | 'results'
-  showChips?: boolean
   autoFocusQuery?: boolean
   onSubmit: (payload: DescribeSearchSubmit) => void
 }) {
@@ -99,8 +90,6 @@ export function DescribeSearchForm({
       }),
     [query, zip, cityLabel, roleHint, intentOverride],
   )
-
-  const zipDigits = zip.replace(/\D/g, '').slice(0, 5)
 
   const categories = useMemo(() => {
     const cats: MatchedCategory[] = []
@@ -250,23 +239,6 @@ export function DescribeSearchForm({
   function onFormSubmit(e: FormEvent) {
     e.preventDefault()
     submitSearch()
-  }
-
-  function applyChip(text: string) {
-    setQuery(text)
-    setOpen(true)
-    queryRef.current?.focus()
-    const detected = detectDescribeIntent(text, {
-      zip: zipDigits,
-      city: cityLabel,
-      roleHint,
-      intentOverride: null,
-    })
-    setIntentOverride(null)
-    // Chips that are clearly job-seeking submit immediately with jobs intent.
-    if (detected.intent === 'jobs' && !detected.ambiguous) {
-      submitSearch({ q: text, intent: 'jobs' })
-    }
   }
 
   function selectOption(index: number) {
@@ -453,22 +425,6 @@ export function DescribeSearchForm({
         </div>
 
       </div>
-
-      {showChips && !typedQuery ? (
-        <div className="describe-chips" aria-label="Try a request">
-          {DESCRIBE_CHIPS.map((label) => (
-            <button
-              key={label}
-              type="button"
-              className={`describe-chip${!isHero ? ' on-light' : ''}`}
-              data-testid="describe-chip"
-              onClick={() => applyChip(label)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      ) : null}
 
       {suggestPortal}
     </form>

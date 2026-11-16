@@ -101,12 +101,18 @@
   align-items: center;
   justify-content: center;
   padding-top: var(--landing-hero-content-pad-top);
-  /* Modest bottom pad nudges the stack slightly above the center of the
-     below-header area and leaves room for the describe dropdown. */
-  padding-bottom: 48px;
+  /* Bottom pad nudges the shorter (no-chips) stack slightly above the
+     below-header center and leaves room for the describe dropdown. */
+  padding-bottom: 40px;
 }
 
 @media (min-width: 768px) {
+  .landing-hero-content {
+    padding-bottom: 56px;
+  }
+}
+
+@media (min-width: 1280px) {
   .landing-hero-content {
     padding-bottom: 64px;
   }
