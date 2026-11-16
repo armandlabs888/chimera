@@ -334,6 +334,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-height: 40px;
   margin: 16px 0 12px;
   font-size: 14.5px;
   font-weight: 650;
@@ -341,7 +342,7 @@
   background: none;
   border: 0;
   cursor: pointer;
-  padding: 0;
+  padding: 8px 0;
 }
 
 .public-helper-profile .php-ask:hover {
@@ -573,7 +574,7 @@
     grid-template-columns: 1fr;
     gap: 8px;
     /* Clear fixed bottom tab bar so Request to book stays tappable. */
-    padding-bottom: 88px;
+    padding-bottom: calc(var(--beam-mobile-dock-clearance, 4.75rem) + 1.25rem);
   }
 
   .public-helper-profile .php-sticky {

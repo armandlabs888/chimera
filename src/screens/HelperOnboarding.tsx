@@ -692,7 +692,7 @@ export function HelperOnboarding() {
                     type="button"
                     onClick={() => void detectMyLocation()}
                     disabled={detecting}
-                    className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD] disabled:opacity-50"
+                    className="mt-2 inline-flex min-h-10 items-center gap-1.5 text-[13px] font-semibold text-[#1D5CE5] transition hover:text-[#1649BD] disabled:opacity-50"
                     data-testid="helper-use-location"
                   >
                     <MapPin className="h-3.5 w-3.5" aria-hidden />

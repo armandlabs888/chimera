@@ -87,6 +87,7 @@
 
 .settings-mobile-back {
   display: none;
+  min-height: 40px;
 }
 
 .settings-desk-back {

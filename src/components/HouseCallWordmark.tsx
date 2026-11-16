@@ -37,7 +37,7 @@ export function HouseCallWordmark({
     <Link
       href={href}
       aria-label="HouseCall home"
-      className={`inline-flex w-fit max-w-full items-center rounded-sm outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/50 ${className}`}
+      className={`inline-flex min-h-10 w-fit max-w-full items-center rounded-sm outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/50 ${className}`}
     >
       <span
         className={`${outfit.className} inline-block font-bold leading-none`}

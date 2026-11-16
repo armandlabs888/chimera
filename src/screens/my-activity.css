@@ -21,7 +21,8 @@
 }
 
 .ma-tab {
-  padding: 0 2px 12px;
+  min-height: 40px;
+  padding: 8px 2px 12px;
   font-family: var(--font-display, inherit);
   font-weight: 600;
   font-size: 15px;
@@ -57,7 +58,8 @@
 
 .ma-choice {
   flex: none;
-  height: 34px;
+  height: 40px;
+  min-height: 40px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1px solid #d7e0ec;
@@ -190,6 +192,9 @@
 }
 
 .ma-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
   color: #1649bd;
   font-weight: 600;
   text-decoration: none;

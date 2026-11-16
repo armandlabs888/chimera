@@ -56,7 +56,9 @@
 }
 
 .match-intent-switch {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
   margin-top: 6px;
   font-size: 14px;
   font-weight: 500;
@@ -64,7 +66,7 @@
   color: #1649bd;
   background: none;
   border: 0;
-  padding: 0;
+  padding: 8px 0;
   text-decoration: none;
 }
 

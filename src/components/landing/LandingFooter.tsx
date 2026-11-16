@@ -26,7 +26,7 @@ export function LandingFooter({
   return (
     <footer
       className={`shrink-0 border-t border-white/10 bg-[#071330] ${
-        dockPadding ? 'pb-24 md:pb-0' : ''
+        dockPadding ? 'pb-[calc(var(--beam-mobile-dock-clearance)+1.5rem)] md:pb-0' : ''
       }`}
       data-testid="landing-footer"
       data-app-footer="true"

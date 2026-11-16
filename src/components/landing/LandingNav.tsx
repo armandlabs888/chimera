@@ -87,7 +87,7 @@ export function LandingNav({
       />
 
       <nav
-        className={`hidden items-center ${isFloat ? 'gap-8 px-6 md:flex' : 'gap-8 lg:flex'}`}
+        className={`hidden items-center ${isFloat ? 'gap-8 px-6 lg:flex' : 'gap-8 lg:flex'}`}
         aria-label="Marketing"
       >
         {navLinks.map((l) =>
@@ -152,7 +152,7 @@ export function LandingNav({
           type="button"
           className={
             isFloat
-              ? 'inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-[#E3E8EF] bg-white text-[#071330] md:hidden'
+              ? 'inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-[#E3E8EF] bg-white text-[#071330] lg:hidden'
               : `inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-[10px] border lg:hidden ${
                   light
                     ? 'border-[#E3E8EF] text-[#071330]'
@@ -172,7 +172,7 @@ export function LandingNav({
   const mobileMenu = mobileOpen ? (
     <div
       className={`relative z-50 overflow-hidden rounded-[12px] border border-[rgba(7,19,48,0.12)] bg-white shadow-[0_18px_40px_-12px_rgba(12,42,102,0.28)] ${
-        isFloat ? 'mx-0 mt-2 md:hidden' : 'mx-4 mb-3 lg:hidden'
+        isFloat ? 'mx-0 mt-2 lg:hidden' : 'mx-4 mb-3 lg:hidden'
       }`}
       data-testid="landing-mobile-menu"
     >
@@ -250,10 +250,10 @@ export function LandingNav({
 
   if (isFloat) {
     return (
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-6 pt-4 md:px-5 md:pt-5">
-        <div className="pointer-events-none w-full md:w-auto md:max-w-[calc(100%-40px)]">
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4 sm:px-5 md:pt-5">
+        <div className="pointer-events-none w-full max-w-[calc(100%-2rem)] lg:w-auto lg:max-w-[calc(100%-40px)]">
           <header
-            className="landing-float-nav pointer-events-auto grid w-full grid-cols-[auto_1fr] items-center md:inline-grid md:w-max md:grid-cols-[1fr_auto_1fr] md:gap-x-10"
+            className="landing-float-nav pointer-events-auto grid w-full max-w-full grid-cols-[auto_1fr] items-center lg:inline-grid lg:w-max lg:grid-cols-[1fr_auto_1fr] lg:gap-x-10"
             data-testid="landing-nav"
             data-nav-style="float"
           >

@@ -60,6 +60,8 @@
   --beam-content: 1296px;
   --beam-shell-gutter: 24px;
   --beam-shell-gutter-mobile: 16px;
+  /* Fixed mobile BottomNav: outer pb-3 + dock chrome + min-h-12 tabs. */
+  --beam-mobile-dock-clearance: calc(4.75rem + env(safe-area-inset-bottom, 0px));
   --canvas: #ffffff;
   --surface-1: #ffffff;
   --surface-2: #ffffff;
@@ -134,6 +136,16 @@
   textarea,
   select {
     font: inherit;
+  }
+
+  /* iOS Safari zooms focused inputs under 16px; keep mobile form controls at 16px.
+     !important beats component rules (e.g. .ep-input, .describe-search-field input). */
+  @media (max-width: 767px) {
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='hidden']),
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
   }
 
   :focus-visible {
@@ -264,6 +276,25 @@ input[type='search']::-ms-clear {
   .btn-compact {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* Sticky mobile action bars sit above the BottomNav dock. */
+  .mobile-sticky-above-dock {
+    margin-bottom: var(--beam-mobile-dock-clearance);
+  }
+
+  .mobile-page-above-dock {
+    padding-bottom: calc(var(--beam-mobile-dock-clearance) + 1.5rem);
+  }
+
+  @media (min-width: 768px) {
+    .mobile-sticky-above-dock {
+      margin-bottom: 0;
+    }
+
+    .mobile-page-above-dock {
+      padding-bottom: 0;
+    }
   }
 
   .hide-scrollbar {

@@ -4,6 +4,7 @@
 }
 
 .account-hc-helper-edit-back {
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
