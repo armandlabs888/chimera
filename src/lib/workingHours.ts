@@ -7,10 +7,17 @@ export type WorkingHoursStatus = 'available' | 'unavailable'
 
 export type WorkingHoursSnapshot = {
   status: WorkingHoursStatus
+  /** Short chip label, e.g. "Available" / "Unavailable". */
   label: string
+  /** Full status word for the profile line, e.g. "Available now". */
+  statusWord: string
+  /** "Works 8:00 AM to 5:00 PM PST" (no en/em dashes). */
+  hoursLabel: string
+  /** Compact until/from hint used as a tooltip fallback. */
   detail: string | null
   untilLabel: string | null
   fromLabel: string | null
+  timeZoneAbbr: string | null
 }
 
 const HALF_HOUR_STEPS = 48
@@ -154,6 +161,29 @@ export function resolveHelperTimeZone(
   return timezoneFromStateCode(person.stateCode)
 }
 
+/** Short timezone abbreviation for the helper's zone (e.g. PST, CDT, GMT). */
+export function formatTimeZoneAbbreviation(
+  timeZone: string,
+  now: Date = new Date(),
+): string | null {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      timeZoneName: 'short',
+    }).formatToParts(now)
+    const raw = parts.find((p) => p.type === 'timeZoneName')?.value?.trim()
+    if (!raw) return null
+    // Prefer GMT±H over long "Coordinated Universal Time" style names.
+    if (/^GMT([+-]\d+)?$/i.test(raw) || /^UTC$/i.test(raw)) return raw.toUpperCase()
+    if (/^[A-Za-z]{2,5}$/.test(raw)) return raw.toUpperCase()
+    // Fallback: some engines return "GMT-5" etc. Keep as-is when short.
+    if (raw.length <= 8) return raw
+    return null
+  } catch {
+    return null
+  }
+}
+
 function minutesInTimeZone(now: Date, timeZone: string): number | null {
   try {
     const parts = new Intl.DateTimeFormat('en-US', {
@@ -233,22 +263,31 @@ export function getWorkingHoursStatus(
   const available = nowMinutes >= startMinutes && nowMinutes < endMinutes
   const startLabel = formatWorkTimeLabel(start)
   const endLabel = formatWorkTimeLabel(end)
+  const timeZoneAbbr = formatTimeZoneAbbreviation(timeZone, now)
+  const hoursCore = `Works ${startLabel} to ${endLabel}`
+  const hoursLabel = timeZoneAbbr ? `${hoursCore} ${timeZoneAbbr}` : hoursCore
 
   if (available) {
     return {
       status: 'available',
       label: 'Available',
+      statusWord: 'Available now',
+      hoursLabel,
       detail: `Available until ${endLabel}`,
       untilLabel: endLabel,
       fromLabel: null,
+      timeZoneAbbr,
     }
   }
 
   return {
     status: 'unavailable',
     label: 'Unavailable',
+    statusWord: 'Unavailable now',
+    hoursLabel,
     detail: `Available from ${startLabel}`,
     untilLabel: null,
     fromLabel: startLabel,
+    timeZoneAbbr,
   }
 }
