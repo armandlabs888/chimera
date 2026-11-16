@@ -24,6 +24,7 @@ import {
   VERIFY_TRUST_LINE,
 } from '@/lib/verification/constants'
 import {
+  collapseNameWhitespace,
   parseRealName,
   REAL_NAME_ERROR,
   splitValidExistingName,
@@ -323,6 +324,16 @@ export function Onboarding() {
     if (nameError) setNameError('')
   }
 
+  function handleNameBlur() {
+    const first = collapseNameWhitespace(firstName)
+    const last = collapseNameWhitespace(lastName)
+    // Wait until both parts are present so tabbing first -> last is not noisy.
+    if (!first || !last) return
+    const parsed = parseRealName(firstName, lastName)
+    if (!parsed.ok) setNameError(REAL_NAME_ERROR)
+    else setNameError('')
+  }
+
   async function onComplete() {
     if (!role || !city) return
     const parsed = parseRealName(firstName, lastName)
@@ -485,6 +496,7 @@ export function Onboarding() {
                       placeholder="First name"
                       value={firstName}
                       onChange={(e) => handleNameChange('first', e.target.value)}
+                      onBlur={handleNameBlur}
                       aria-invalid={nameError ? true : undefined}
                       aria-describedby={
                         nameError
@@ -507,6 +519,7 @@ export function Onboarding() {
                       placeholder="Last name"
                       value={lastName}
                       onChange={(e) => handleNameChange('last', e.target.value)}
+                      onBlur={handleNameBlur}
                       aria-invalid={nameError ? true : undefined}
                       aria-describedby={
                         nameError
@@ -561,13 +574,14 @@ export function Onboarding() {
                 <Button
                   type="button"
                   size="lg"
+                  variant={canNext ? 'primary' : 'secondary'}
                   aria-disabled={!canNext}
                   onClick={onStep1Continue}
                   data-testid="onboarding-next"
                   className={`account-hc-btn account-hc-btn-lg w-full shadow-none !transition-[background-color] disabled:opacity-100 ${
                     canNext
-                      ? 'bg-[#1D5CE5] text-white hover:bg-[#1649BD]'
-                      : 'bg-[#E3E8EF] text-[#4A5568] hover:bg-[#D7E0EC]'
+                      ? '!bg-[#1D5CE5] !text-white hover:!bg-[#1649BD]'
+                      : '!bg-[#E3E8EF] !text-[#4A5568] hover:!bg-[#D7E0EC]'
                   }`}
                 >
                   Continue

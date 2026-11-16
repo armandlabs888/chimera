@@ -1,7 +1,20 @@
 /**
  * Shared real-name validation + normalization for onboarding.
  * Used by the Step 1 UI and the server save path.
+ *
+ * Name lexicon (see src/data/real-names/SOURCES.txt):
+ * - US SSA baby names (all years, count >= 5) + international given names
+ * - US Census 2010 surnames
+ * - Top ~20k English words
+ *
+ * Client and server both load lexicon.v1.json (~270KB / ~108KB gzip): the
+ * English word list plus english∩given and english∩surname allowlists.
+ * That is equivalent to the full lists for these rules (international and
+ * rare names that are not common English words still pass). The server
+ * route remains authoritative because the same parseRealName runs there.
  */
+
+import lexiconJson from '../data/real-names/lexicon.v1.json' with { type: 'json' }
 
 export const REAL_NAME_ERROR =
   'This is not a real name. Please enter your legal first and last name.'
@@ -9,7 +22,24 @@ export const REAL_NAME_ERROR =
 const MAX_LEN = 40
 const MIN_LETTERS = 2
 
-/** Whole-token placeholder / alias blocklist (case-insensitive). */
+type NameLexicon = {
+  english: string[]
+  givenEnglish: string[]
+  surnameEnglish: string[]
+}
+
+const lexicon = lexiconJson as NameLexicon
+
+const ENGLISH_WORDS = new Set(lexicon.english.map((w) => w.toLowerCase()))
+/** First names that are also common English words (Grace, Hope, Will, ...). */
+const GIVEN_ENGLISH = new Set(lexicon.givenEnglish.map((w) => w.toLowerCase()))
+/** Surnames that are also common English words (Baker, Best, Hope, ...). */
+const SURNAME_ENGLISH = new Set(lexicon.surnameEnglish.map((w) => w.toLowerCase()))
+
+/**
+ * Whole-token placeholder / alias blocklist (case-insensitive).
+ * Applied to first and last name parts.
+ */
 const BLOCKLIST = new Set([
   'test',
   'testing',
@@ -45,6 +75,40 @@ const BLOCKLIST = new Set([
   'neighbor',
   'housecall',
   'beam',
+  // Role / business whole parts (never allowed as either name part)
+  'seller',
+  'buyer',
+  'handyman',
+  'cleaner',
+  'mover',
+  'services',
+  'service',
+  'llc',
+  'inc',
+  'co',
+  'company',
+  'rated',
+  'boss',
+  'guy',
+  'girl',
+  'man',
+  'lady',
+])
+
+/**
+ * Brand / title words blocked as a first name even when they appear in SSA
+ * given-name data (e.g. King, Guy). As a last name they may still pass when
+ * present in the surname list (e.g. Mark Best) via the English-surname allow
+ * path; words that must never be surnames stay in BLOCKLIST above.
+ */
+const BRAND_FIRST_BLOCKLIST = new Set([
+  'official',
+  'real',
+  'pro',
+  'best',
+  'top',
+  'king',
+  'queen',
 ])
 
 /** Obvious fake full names (normalized "first last"). */
@@ -104,6 +168,25 @@ export function collapseNameWhitespace(value: string): string {
   return value.trim().replace(/\s+/g, ' ')
 }
 
+/** Lowercase letters-only key for lexicon membership (O'Neill -> oneill). */
+function lexiconKey(value: string): string {
+  return value.toLocaleLowerCase().replace(/[^a-z]/g, '')
+}
+
+function isCommonEnglishWord(value: string): boolean {
+  const key = lexiconKey(value)
+  if (!key || key.length < 2) return false
+  return ENGLISH_WORDS.has(key)
+}
+
+function isEnglishGivenName(value: string): boolean {
+  return GIVEN_ENGLISH.has(lexiconKey(value))
+}
+
+function isEnglishSurname(value: string): boolean {
+  return SURNAME_ENGLISH.has(lexiconKey(value))
+}
+
 function letterCount(value: string): number {
   const m = value.match(/\p{L}/gu)
   return m ? m.length : 0
@@ -147,16 +230,25 @@ function isKeyboardMash(value: string): boolean {
   return false
 }
 
-function isBlockedToken(value: string): boolean {
+function isBlockedToken(value: string, part: 'first' | 'last'): boolean {
   const compact = value.toLowerCase().replace(/[.\s]/g, '')
   const spaced = value.toLowerCase().trim()
-  if (BLOCKLIST.has(spaced) || BLOCKLIST.has(compact)) return true
+  const key = lexiconKey(value)
+  if (BLOCKLIST.has(spaced) || BLOCKLIST.has(compact) || BLOCKLIST.has(key)) return true
   // "n/a" stored without slash after collapse may already be "na"
   if (spaced === 'n/a' || compact === 'na') return true
+  if (
+    part === 'first' &&
+    (BRAND_FIRST_BLOCKLIST.has(spaced) ||
+      BRAND_FIRST_BLOCKLIST.has(compact) ||
+      BRAND_FIRST_BLOCKLIST.has(key))
+  ) {
+    return true
+  }
   return false
 }
 
-function isAllowedNamePart(value: string): boolean {
+function isAllowedNamePart(value: string, part: 'first' | 'last'): boolean {
   if (!value) return false
   if (value.length > MAX_LEN) return false
   if (letterCount(value) < MIN_LETTERS) return false
@@ -166,8 +258,31 @@ function isAllowedNamePart(value: string): boolean {
   if (isSingleLetterRepeated(value)) return false
   if (lacksVowelsWhenLong(value)) return false
   if (isKeyboardMash(value)) return false
-  if (isBlockedToken(value)) return false
+  if (isBlockedToken(value, part)) return false
   return true
+}
+
+/**
+ * Reject common English words used as names unless they appear in the
+ * given-name / surname reference lists. International and rare names that
+ * are not common English words still pass even when absent from the lists.
+ */
+function failsEnglishWordNameRules(firstName: string, lastName: string): boolean {
+  const firstEnglish = isCommonEnglishWord(firstName)
+  const lastEnglish = isCommonEnglishWord(lastName)
+
+  // First name: common English word and not a known given name.
+  if (firstEnglish && !isEnglishGivenName(firstName)) return true
+
+  // Last name: common English word and not a known surname.
+  if (lastEnglish && !isEnglishSurname(lastName)) return true
+
+  // Phrase / brand / title: both parts are common English words and the
+  // first is not a known given name (e.g. Best Seller, Big Mike), even if
+  // the last happens to be a rare surname.
+  if (firstEnglish && lastEnglish && !isEnglishGivenName(firstName)) return true
+
+  return false
 }
 
 /**
@@ -251,7 +366,7 @@ export function parseRealName(firstRaw: unknown, lastRaw: unknown): RealNameResu
     return { ok: false, error: REAL_NAME_ERROR }
   }
 
-  if (!isAllowedNamePart(firstName) || !isAllowedNamePart(lastName)) {
+  if (!isAllowedNamePart(firstName, 'first') || !isAllowedNamePart(lastName, 'last')) {
     return { ok: false, error: REAL_NAME_ERROR }
   }
 
@@ -261,6 +376,10 @@ export function parseRealName(firstRaw: unknown, lastRaw: unknown): RealNameResu
 
   const fullKey = `${firstName} ${lastName}`.toLocaleLowerCase()
   if (FAKE_FULL_NAMES.has(fullKey)) {
+    return { ok: false, error: REAL_NAME_ERROR }
+  }
+
+  if (failsEnglishWordNameRules(firstName, lastName)) {
     return { ok: false, error: REAL_NAME_ERROR }
   }
 
