@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ConfirmDialog } from '@/components/ui'
+import { dangerOutlineButtonClass } from '@/components/ui/button'
 import { useBeam } from '@/context/BeamContext'
 import type { HelpRequest } from '@/types'
 
@@ -54,9 +55,6 @@ export function CancelJobAction({
     }
   }
 
-  const defaultBtn =
-    'inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg border border-[#D7E0EC] bg-white px-[18px] text-[14px] font-semibold tracking-[-0.01em] text-[#071330] hover:bg-[#EEF2F7] disabled:cursor-not-allowed disabled:opacity-60'
-
   return (
     <div className={className} data-testid={`${testId}-wrap`}>
       <button
@@ -67,7 +65,7 @@ export function CancelJobAction({
         onClick={() => setOpen(true)}
         className={
           buttonClassName ??
-          `${defaultBtn}${fullWidth ? ' w-full' : ''}`
+          `${dangerOutlineButtonClass}${fullWidth ? ' w-full' : ''}`
         }
       >
         Cancel job

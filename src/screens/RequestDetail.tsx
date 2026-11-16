@@ -708,7 +708,7 @@ export function RequestDetail() {
               )}
 
               <div className="mt-5 border-t border-[#E3E8EF] pt-4">
-                <ButtonLink href="/post" variant="secondary" className="w-full">
+                <ButtonLink href="/post" className="w-full">
                   Post another task
                 </ButtonLink>
               </div>
