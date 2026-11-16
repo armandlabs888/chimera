@@ -90,12 +90,26 @@ async function assertNoLeadingDots(page) {
   return result
 }
 
+async function assertBioTravels(page) {
+  const bioLabel = page.locator('.php-bio-label')
+  await bioLabel.waitFor({ state: 'visible' })
+  assert.equal((await bioLabel.innerText()).trim(), 'Bio')
+  const travels = page.getByTestId('public-helper-travels')
+  await travels.waitFor({ state: 'visible' })
+  const text = (await travels.innerText()).replace(/\s+/g, ' ').trim()
+  assert.match(text, /^Travels up to 25 mi from San Francisco, CA$/)
+  assert.doesNotMatch(text, /[—–]/)
+  assert.equal(await page.locator('.php-cat-link').count(), 0)
+  console.log('bio-travels-ok', text)
+}
+
 async function shotSection(page, name, width) {
-  await page.setViewportSize({ width, height: width >= 1000 ? 1100 : 900 })
+  await page.setViewportSize({ width, height: width >= 1000 ? 1200 : 1000 })
   await page.waitForTimeout(200)
   await page.evaluate(() => window.dispatchEvent(new Event('resize')))
   await page.waitForTimeout(120)
   await assertNoLeadingDots(page)
+  await assertBioTravels(page)
   const header = page.getByTestId('profile-header')
   const daySection = page.locator('section[aria-labelledby="day-heading"]')
   await daySection.waitFor({ state: 'visible' })
@@ -139,7 +153,7 @@ const kuniPatch = {
   hourlyRate: 100,
   rateType: 'flat',
   serviceRadiusMiles: 25,
-  bio: 'Reliable, Fast, and Friendly Junk Removal.',
+  bio: 'Reliable, Fast, and Friendly Junk Removal.\n\nHi! I am a dedicated gig worker who loves helping people clear out the clutter and reclaim their space.',
 }
 
 const longSkillsPatch = {
