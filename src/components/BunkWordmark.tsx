@@ -8,11 +8,10 @@ const outfit = Outfit({
   display: 'swap',
 })
 
-/** Mock reference size for the -0.8px tracking (scales with `size`). */
-const TRACKING_REF_PX = 22
-const TRACKING_REF_PX_VALUE = -0.8
-
 const BUNK_BLUE = '#1D5CE5'
+
+/** Logo tracking for the wordmark at header and fixed sizes. */
+const LOGO_TRACKING = '-0.02em'
 
 type Tone = 'brand' | 'onDark' | 'white'
 
@@ -23,13 +22,16 @@ export function BunkWordmark({
   href = '/',
 }: {
   className?: string
-  /** Visual size in px; keeps header weight close to the prior ~17–18px mark. */
-  size?: number
+  /**
+   * Visual size in px, or `'header'` for responsive logo sizing:
+   * 24px below `lg`, 28px at `lg` and up.
+   */
+  size?: number | 'header'
   /** `brand`: #1D5CE5 on light. `onDark` / `white`: white on dark heroes and chrome. */
   tone?: Tone
   href?: string
 }) {
-  const letterSpacing = `${(TRACKING_REF_PX_VALUE * size) / TRACKING_REF_PX}px`
+  const isHeader = size === 'header'
   const color = tone === 'brand' ? BUNK_BLUE : '#FFFFFF'
 
   return (
@@ -39,10 +41,12 @@ export function BunkWordmark({
       className={`inline-flex min-h-10 w-fit max-w-full items-center rounded-sm outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/50 ${className}`}
     >
       <span
-        className={`${outfit.className} inline-block font-bold leading-none`}
+        className={`${outfit.className} inline-block font-bold leading-none${
+          isHeader ? ' text-[24px] lg:text-[28px]' : ''
+        }`}
         style={{
-          fontSize: size,
-          letterSpacing,
+          ...(isHeader ? {} : { fontSize: size }),
+          letterSpacing: LOGO_TRACKING,
           fontWeight: 700,
           color,
         }}
