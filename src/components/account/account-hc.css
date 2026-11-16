@@ -1124,6 +1124,19 @@
   margin-top: 10px;
 }
 
+.account-hc-sms-verify-link {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1649BD;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.account-hc-sms-verify-link:hover {
+  color: #1649BD;
+  opacity: 0.9;
+}
+
 .account-hc-sms-text-link {
   font-size: 13.5px;
   font-weight: 600;

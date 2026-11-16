@@ -269,11 +269,57 @@ export async function ensureProfile(
   return mapProfile(inserted.data, userId)
 }
 
-export async function updateLiveProfile(
-  client: Client,
-  userId: string,
+/** Normalize HH:MM / HH:MM:SS into Postgres `time` text (HH:MM:SS) or null. */
+export function toDbWorkTime(value: string | null | undefined): string | null {
+  if (value == null) return null
+  const trimmed = String(value).trim()
+  if (!trimmed) return null
+  const m = /^(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(trimmed)
+  if (!m) return null
+  const hh = m[1].padStart(2, '0')
+  const mm = m[2]
+  const ss = m[3] ?? '00'
+  return `${hh}:${mm}:${ss}`
+}
+
+/**
+ * True only for genuine missing-column / schema-cache misses on working-hours
+ * fields. Broad matches like bare "column" caused silent drops of work_* after
+ * unrelated update failures.
+ */
+export function isMissingWorkingHoursColumnError(
+  error: { message?: string; code?: string } | null | undefined,
+): boolean {
+  if (!error) return false
+  const msg = error.message || ''
+  const lower = msg.toLowerCase()
+  const code = error.code || ''
+
+  const namesWorkingHoursColumn =
+    /\bwork_start\b|\bwork_end\b|\btimezone\b/i.test(msg)
+
+  // PostgREST: unknown column in schema cache
+  if (code === 'PGRST204' && namesWorkingHoursColumn) return true
+  // Postgres undefined_column
+  if (code === '42703' && namesWorkingHoursColumn) return true
+
+  if (
+    /could not find the '(work_start|work_end|timezone)' column/i.test(msg) ||
+    /column ["']?(work_start|work_end|timezone)["']? (?:of relation|does not exist)/i.test(
+      lower,
+    ) ||
+    (namesWorkingHoursColumn &&
+      (/schema cache/i.test(msg) || /does not exist/i.test(lower)))
+  ) {
+    return true
+  }
+  return false
+}
+
+/** Build the profiles UPDATE payload from a Person patch (exported for QA). */
+export function buildLiveProfileUpdatePayload(
   patch: Partial<Person>,
-): Promise<void> {
+): Record<string, unknown> {
   const payload: Record<string, unknown> = {}
   if (patch.name !== undefined) payload.name = patch.name
   if (patch.avatar !== undefined) payload.avatar_url = patch.avatar
@@ -301,25 +347,40 @@ export async function updateLiveProfile(
   if (patch.availableNow !== undefined) payload.available_now = patch.availableNow
   if (patch.isHelper !== undefined) payload.is_helper = patch.isHelper
 
+  if (patch.workStart !== undefined) payload.work_start = toDbWorkTime(patch.workStart)
+  if (patch.workEnd !== undefined) payload.work_end = toDbWorkTime(patch.workEnd)
+  if (patch.timezone !== undefined) {
+    const tz = typeof patch.timezone === 'string' ? patch.timezone.trim() : ''
+    payload.timezone = tz || null
+  }
+  return payload
+}
+
+export async function updateLiveProfile(
+  client: Client,
+  userId: string,
+  patch: Partial<Person>,
+): Promise<void> {
+  const payload = buildLiveProfileUpdatePayload(patch)
+  if (Object.keys(payload).length === 0) return
+
   const hasWorkingHoursPatch =
-    patch.workStart !== undefined ||
-    patch.workEnd !== undefined ||
-    patch.timezone !== undefined
-  if (patch.workStart !== undefined) payload.work_start = patch.workStart
-  if (patch.workEnd !== undefined) payload.work_end = patch.workEnd
-  if (patch.timezone !== undefined) payload.timezone = patch.timezone
+    payload.work_start !== undefined ||
+    payload.work_end !== undefined ||
+    payload.timezone !== undefined
 
   const { error } = await client.from('profiles').update(payload).eq('id', userId)
-  if (
-    error &&
-    hasWorkingHoursPatch &&
-    /work_start|work_end|timezone|column/i.test(error.message || '')
-  ) {
-    // Deployed before migration: retry without working-hours columns.
+  if (error && hasWorkingHoursPatch && isMissingWorkingHoursColumnError(error)) {
+    // Deployed before migration: retry without working-hours columns only.
     delete payload.work_start
     delete payload.work_end
     delete payload.timezone
-    if (Object.keys(payload).length === 0) return
+    if (Object.keys(payload).length === 0) {
+      throw new BeamBackendError(
+        'Update profile: working hours are not available yet. Ask an admin to apply the helper_working_hours migration.',
+        error,
+      )
+    }
     const retry = await client.from('profiles').update(payload).eq('id', userId)
     throwOnError(retry.error, 'Update profile')
     return

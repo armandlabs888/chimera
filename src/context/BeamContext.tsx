@@ -132,7 +132,7 @@ interface BeamContextValue {
   signOut: () => Promise<void>
   clearBackendError: () => void
   resetDemo: () => void
-  updateProfile: (patch: Partial<Person>) => void
+  updateProfile: (patch: Partial<Person>) => Promise<void>
   completeOnboarding: (input: {
     role: AccountRole
     city: string
@@ -517,18 +517,17 @@ export function BeamProvider({
   }, [mode])
 
   const updateProfile = useCallback(
-    (patch: Partial<Person>) => {
+    async (patch: Partial<Person>) => {
       if (mode === 'live') {
-        void (async () => {
-          try {
-            if (!authUser) throw new Error('Not signed in')
-            const client = createClient()
-            await updateLiveProfile(client, authUser.id, patch)
-            await refreshLive(authUser.id)
-          } catch (err) {
-            reportError(err, 'Update profile failed')
-          }
-        })()
+        try {
+          if (!authUser) throw new Error('Not signed in')
+          const client = createClient()
+          await updateLiveProfile(client, authUser.id, patch)
+          await refreshLive(authUser.id)
+        } catch (err) {
+          reportError(err, 'Update profile failed')
+          throw err
+        }
         return
       }
       withState(setState, (prev) => ({

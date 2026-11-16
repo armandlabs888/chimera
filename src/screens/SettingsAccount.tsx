@@ -77,6 +77,7 @@ export function SettingsAccount() {
                 <HelperUrgentSmsSettings
                   userId={authUser?.id || currentUser.id}
                   localOnly={mode !== 'live'}
+                  locationVerified={verificationDone}
                 />
               </div>
 
