@@ -786,7 +786,9 @@ export type Database = {
           profile_id: string
           quiet_hours_end: string | null
           quiet_hours_start: string | null
+          sms_alert_parents: string[]
           sms_opt_in: boolean
+          sms_opt_in_pending: boolean
           updated_at: string
         }
         Insert: {
@@ -797,7 +799,9 @@ export type Database = {
           profile_id: string
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
+          sms_alert_parents?: string[]
           sms_opt_in?: boolean
+          sms_opt_in_pending?: boolean
           updated_at?: string
         }
         Update: {
@@ -808,13 +812,65 @@ export type Database = {
           profile_id?: string
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
+          sms_alert_parents?: string[]
           sms_opt_in?: boolean
+          sms_opt_in_pending?: boolean
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "helper_urgent_sms_settings_profile_id_fkey"
             columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      phone_verifications: {
+        Row: {
+          created_at: string
+          pending_attempts: number
+          pending_channel: string | null
+          pending_code_expires_at: string | null
+          pending_code_hash: string | null
+          pending_send_count: number
+          pending_send_window_start: string | null
+          phone_e164: string | null
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          pending_attempts?: number
+          pending_channel?: string | null
+          pending_code_expires_at?: string | null
+          pending_code_hash?: string | null
+          pending_send_count?: number
+          pending_send_window_start?: string | null
+          phone_e164?: string | null
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          pending_attempts?: number
+          pending_channel?: string | null
+          pending_code_expires_at?: string | null
+          pending_code_hash?: string | null
+          pending_send_count?: number
+          pending_send_window_start?: string | null
+          phone_e164?: string | null
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phone_verifications_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]

@@ -46,7 +46,29 @@ Set `NEXT_PUBLIC_BEAM_DEMO_MODE=1` (or open with `?demo=1`) for the original Aus
 
 ## Database migration
 
-SQL lives in `supabase/migrations/20261105201933_beam_core_schema.sql`. Apply with Supabase MCP/CLI against project `lfyqdrjqfpczsfkqjxpq` (already applied in the live project during integration). Advisors: revoke `EXECUTE` on RPCs from `anon`; authenticated may call `accept_offer`, `complete_request`, `ensure_thread`, and `submit_review`.
+SQL lives in `supabase/migrations/`. Apply with Supabase MCP/CLI against project `lfyqdrjqfpczsfkqjxpq` (core schema already applied in the live project during integration). Advisors: revoke `EXECUTE` on RPCs from `anon`; authenticated may call `accept_offer`, `complete_request`, `ensure_thread`, and `submit_review`.
+
+### Phone confirmation (onboarding)
+
+Migration: `supabase/migrations/20261117090000_phone_verification_onboarding.sql` (do not auto-apply from agents).
+
+Adds `phone_verifications` (one verified E.164 per account, hashed pending codes, RLS select-own) and helper SMS columns `sms_opt_in_pending` / `sms_alert_parents`, plus a trigger that activates pending opt-in when home verification is approved.
+
+Required server env for SMS (missing values skip sends gracefully and show a friendly UI error):
+
+```bash
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_FROM_NUMBER=+1xxxxxxxxxx
+# or TWILIO_MESSAGING_SERVICE_SID=MGxxxxxxxx
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
+Twilio console: set the number's inbound messaging webhook to:
+
+`https://www.joinbunk.xyz/api/sms/inbound`
+
+(X-Twilio-Signature is validated with `TWILIO_AUTH_TOKEN`.)
 
 ## Run locally
 
