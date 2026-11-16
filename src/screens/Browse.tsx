@@ -51,7 +51,8 @@ import {
   formatCategoryLabel,
   matchesBrowseCategory,
 } from '@/lib/taxonomy'
-import type { AvailabilitySlot, HelpRequest, Person, WhenOption } from '@/types'
+import { getWorkingHoursStatus } from '@/lib/workingHours'
+import type { HelpRequest, Person, WhenOption } from '@/types'
 import '@/components/browse/browse-hc.css'
 
 type SortMode = 'nearest' | 'newest' | 'budget'
@@ -84,10 +85,8 @@ const PAY_FILTER_OPTIONS: FilterOption[] = [
 
 const AVAIL_FILTER_OPTIONS: FilterOption[] = [
   { id: 'all', label: 'Any' },
-  { id: 'mornings', label: 'Mornings' },
-  { id: 'afternoons', label: 'Afternoons' },
-  { id: 'evenings', label: 'Evenings' },
-  { id: 'weekends', label: 'Weekends' },
+  { id: 'same-day', label: 'Same-day' },
+  { id: 'available', label: 'Available now' },
 ]
 
 function parseWhen(value: string | null): WhenOption | 'all' {
@@ -97,16 +96,17 @@ function parseWhen(value: string | null): WhenOption | 'all' {
   return 'all'
 }
 
-function parseAvail(value: string | null): AvailabilitySlot | 'all' {
-  if (
-    value === 'mornings' ||
-    value === 'afternoons' ||
-    value === 'evenings' ||
-    value === 'weekends'
-  ) {
-    return value
-  }
+type AvailFilter = 'all' | 'same-day' | 'available'
+
+function parseAvail(value: string | null): AvailFilter {
+  if (value === 'same-day' || value === 'available') return value
   return 'all'
+}
+
+function matchesAvailFilter(person: Person, avail: AvailFilter): boolean {
+  if (avail === 'all') return true
+  if (avail === 'same-day') return Boolean(person.availableNow)
+  return getWorkingHoursStatus(person)?.status === 'available'
 }
 
 function parsePay(value: string | null): PayFilter {
@@ -115,7 +115,6 @@ function parsePay(value: string | null): PayFilter {
 }
 
 function isBlankZeroCard(person: Person): boolean {
-  if (person.rateType === 'quote') return false
   return !(person.hourlyRate > 0)
 }
 
@@ -459,7 +458,7 @@ export function Browse() {
         if (!expanded) return true
         return p.skills.some((s) => expanded.includes(s))
       })
-      .filter((p) => (avail === 'all' ? true : p.availability.includes(avail)))
+      .filter((p) => matchesAvailFilter(p, avail))
       .filter((p) => {
         if (!q) return true
         return (
@@ -469,9 +468,7 @@ export function Browse() {
           formatLocation(p).toLowerCase().includes(q)
         )
       })
-      .filter((p) =>
-        freeOnly ? p.availability.includes('afternoons') || p.availability.includes('evenings') : true,
-      )
+      .filter((p) => (freeOnly ? Boolean(p.availableNow) : true))
 
     list = [...list].sort((a, b) => {
       if (sort === 'newest' || (isGuest && sort !== 'budget')) return b.rating - a.rating

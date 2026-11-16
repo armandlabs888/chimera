@@ -16,6 +16,9 @@ function normalizePerson(p: Person): Person {
     serviceRadiusMiles: p.serviceRadiusMiles ?? 5,
     rateType: p.rateType ?? 'hourly',
     availableNow: p.availableNow ?? false,
+    workStart: p.workStart ?? null,
+    workEnd: p.workEnd ?? null,
+    timezone: p.timezone ?? null,
     isHelper: p.isHelper ?? p.skills.length > 0,
     accountRole:
       p.accountRole === 'customer' || p.accountRole === 'helper'

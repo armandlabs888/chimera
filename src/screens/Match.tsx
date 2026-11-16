@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { createElement, useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { MapPin } from 'lucide-react'
+import { HelperAvailabilityStatus } from '@/components/HelperAvailabilityStatus'
 import { BrowseJobRow } from '@/components/browse/BrowseJobRow'
 import {
   DescribeSearchForm,
@@ -616,7 +617,10 @@ export function Match() {
                               height={96}
                             />
                             <div className="match-helper-card-meta">
-                              <h3 className="name">{person.name}</h3>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="name">{person.name}</h3>
+                                <HelperAvailabilityStatus person={person} />
+                              </div>
                               <p className="skill">{skill}</p>
                               <p className="stats">
                                 {rating ? (
@@ -715,6 +719,10 @@ export function Match() {
                               <div>
                                 <p className="name">
                                   {person.name}
+                                  <HelperAvailabilityStatus
+                                    person={person}
+                                    className="ml-2 align-middle"
+                                  />
                                   {!rating ? (
                                     <span className="match-badge-new">New</span>
                                   ) : null}

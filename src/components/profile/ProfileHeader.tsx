@@ -23,6 +23,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from 'react'
+import { HelperAvailabilityStatus } from '@/components/HelperAvailabilityStatus'
 import { Avatar } from '@/components/ui'
 import { formatLocation } from '@/lib/location'
 import { formatPublicRating, hasPublicRating } from '@/lib/ratingDisplay'
@@ -523,12 +524,22 @@ export function ProfileHeader({
               Auto grid rows so an empty stats list does not leave a blank band.
             */}
             <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-x-3">
-              <h1
-                id={titleId}
-                className="min-w-0 font-display text-[32px] font-bold leading-[1.15] tracking-[-0.03em] text-[#071330] sm:col-start-1 sm:text-[34px]"
-              >
-                {person.name}
-              </h1>
+              <div className="min-w-0 sm:col-start-1">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                  <h1
+                    id={titleId}
+                    className="min-w-0 font-display text-[32px] font-bold leading-[1.15] tracking-[-0.03em] text-[#071330] sm:text-[34px]"
+                  >
+                    {person.name}
+                  </h1>
+                  <HelperAvailabilityStatus
+                    person={person}
+                    showDetail
+                    className="text-[13px]"
+                    testId="profile-header-availability"
+                  />
+                </div>
+              </div>
               <div className="mt-3 sm:col-start-2 sm:row-start-1 sm:mt-0 sm:justify-self-end sm:self-center">
                 {actions}
               </div>

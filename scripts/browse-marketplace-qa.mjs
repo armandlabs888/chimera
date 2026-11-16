@@ -263,19 +263,19 @@ try {
       await page.getByTestId('browse-availability-listbox').waitFor({ state: 'visible' })
       await assertNoAustinPickerInOpenListbox(page, 'browse-availability-listbox')
       const availText = await page.getByTestId('browse-availability-listbox').innerText()
-      if (!/Afternoons|Evenings|Mornings|Weekends/i.test(availText)) {
+      if (!/Same-day|Available now/i.test(availText)) {
         fail(`Availability listbox missing expected options: ${availText}`)
       }
-      await page.getByRole('option', { name: 'Afternoons' }).click()
+      await page.getByRole('option', { name: 'Same-day' }).click()
     } else {
       await page
         .locator('[data-testid="browse-filters-sidebar"]')
-        .getByRole('button', { name: /^Afternoons$/ })
+        .getByRole('button', { name: /^Same-day$/ })
         .click()
     }
     await page.waitForTimeout(200)
     const helperFilterText = await page.locator('body').innerText()
-    if (!/Afternoons/i.test(helperFilterText)) fail('Missing Afternoons filter pill on helpers')
+    if (!/Same-day/i.test(helperFilterText)) fail('Missing Same-day filter pill on helpers')
 
     await page.getByTestId('browse-sort-trigger').click()
     await page.getByTestId('browse-sort-listbox').waitFor({ state: 'visible' })

@@ -20,16 +20,13 @@ import {
   searchUsCities,
   type UsCity,
 } from '@/lib/usPlaces'
-import type { AvailabilitySlot, RateType } from '@/types'
+import {
+  WorkingHoursFields,
+  workingHoursSavePayload,
+} from '@/components/account/WorkingHoursFields'
+import { normalizeWorkTime } from '@/lib/workingHours'
 import '@/components/account/account-hc.css'
 import '@/components/account/helper-profile-hc.css'
-
-const SLOTS: { id: AvailabilitySlot; label: string }[] = [
-  { id: 'mornings', label: 'Mornings' },
-  { id: 'afternoons', label: 'Afternoons' },
-  { id: 'evenings', label: 'Evenings' },
-  { id: 'weekends', label: 'Weekends' },
-]
 
 const RADIUS_OPTIONS = [3, 5, 10, 15, 25] as const
 
@@ -71,16 +68,14 @@ export function HelperOnboarding() {
   const [serviceRadiusMiles, setServiceRadiusMiles] = useState(
     currentUser.serviceRadiusMiles ?? 5,
   )
-  const [rateType, setRateType] = useState<RateType>(currentUser.rateType ?? 'hourly')
   const [hourlyRate, setHourlyRate] = useState(
     currentUser.hourlyRate && currentUser.hourlyRate > 0
       ? String(currentUser.hourlyRate)
-      : '35',
+      : '',
   )
   const [availableNow, setAvailableNow] = useState(Boolean(currentUser.availableNow))
-  const [availability, setAvailability] = useState<AvailabilitySlot[]>(
-    currentUser.availability ?? [],
-  )
+  const [workStart, setWorkStart] = useState(normalizeWorkTime(currentUser.workStart) ?? '')
+  const [workEnd, setWorkEnd] = useState(normalizeWorkTime(currentUser.workEnd) ?? '')
   const [detecting, setDetecting] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [pending, setPending] = useState(false)
@@ -183,12 +178,6 @@ export function HelperOnboarding() {
       if (next.length > 0) setSkillsError('')
       return next
     })
-  }
-
-  function toggleSlot(slot: AvailabilitySlot) {
-    setAvailability((prev) =>
-      prev.includes(slot) ? prev.filter((s) => s !== slot) : [...prev, slot],
-    )
   }
 
   function handleCityChange(next: UsCity | null) {
@@ -339,9 +328,16 @@ export function HelperOnboarding() {
     }
 
     const rateNum = Number(hourlyRate)
-    if (rateType === 'hourly' && (!Number.isFinite(rateNum) || rateNum < 10)) {
+    if (!Number.isFinite(rateNum) || rateNum < 10) {
       setSkillsError('')
       setError('Hourly rate should be at least $10.')
+      return
+    }
+
+    const hours = workingHoursSavePayload(workStart, workEnd)
+    if (!hours.ok) {
+      setSkillsError('')
+      setError(hours.error)
       return
     }
 
@@ -360,10 +356,12 @@ export function HelperOnboarding() {
       lat: resolvedCity?.lat ?? lat,
       lng: resolvedCity?.lng ?? lng,
       serviceRadiusMiles,
-      rateType,
-      hourlyRate: rateType === 'hourly' ? rateNum : 0,
+      rateType: 'hourly',
+      hourlyRate: rateNum,
       availableNow,
-      availability,
+      workStart: hours.workStart,
+      workEnd: hours.workEnd,
+      timezone: hours.timezone ?? currentUser.timezone ?? null,
       isHelper: true,
     })
     router.push('/browse')
@@ -378,12 +376,9 @@ export function HelperOnboarding() {
     customLocationLabel.split(',')[0]?.trim() ||
     currentUser.city ||
     ''
-  const previewRate =
-    rateType === 'quote'
-      ? 'Contact for quote'
-      : hourlyRate.trim()
-        ? `$${Math.round(Number(hourlyRate)) || hourlyRate}/hr`
-        : ''
+  const previewRate = hourlyRate.trim()
+    ? `$${Math.round(Number(hourlyRate)) || hourlyRate}/hr`
+    : ''
   const showRating = currentUser.rating > 0 && currentUser.reviewCount > 0
   const previewSkills = skills.map((skill) =>
     formatCategoryLabel(skill, skill === 'other' ? otherSkillLabel : null),
@@ -707,59 +702,24 @@ export function HelperOnboarding() {
 
               <div>
                 <p className={labelClass}>Rate</p>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div
-                    className="account-hc-seg"
-                    role="radiogroup"
-                    aria-label="Rate type"
-                    data-testid="helper-rate-type"
-                  >
-                    {(
-                      [
-                        ['hourly', 'Hourly rate'],
-                        ['quote', 'Quote per task'],
-                      ] as const
-                    ).map(([id, label]) => {
-                      const on = rateType === id
-                      return (
-                        <button
-                          key={id}
-                          type="button"
-                          role="radio"
-                          aria-checked={on}
-                          onClick={() => setRateType(id)}
-                          className={on ? 'is-on' : undefined}
-                        >
-                          {label}
-                        </button>
-                      )
-                    })}
-                  </div>
-
-                  {rateType === 'hourly' ? (
-                    <div className="account-hc-rate-input" data-testid="helper-hourly-rate">
-                      <span className="pre" aria-hidden>
-                        $
-                      </span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={hourlyRate}
-                        onChange={(e) =>
-                          setHourlyRate(e.target.value.replace(/[^\d]/g, '').slice(0, 4))
-                        }
-                        aria-label="Hourly rate in USD"
-                      />
-                      <span className="post" aria-hidden>
-                        / hr
-                      </span>
-                    </div>
-                  ) : (
-                    <p className="text-[13.5px] leading-[1.45] text-[#48556A] sm:max-w-[240px] sm:text-right">
-                      Neighbors will describe the task and ask for your price.
-                    </p>
-                  )}
+                <div className="account-hc-rate-input" data-testid="helper-hourly-rate">
+                  <span className="pre" aria-hidden>
+                    $
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={hourlyRate}
+                    onChange={(e) =>
+                      setHourlyRate(e.target.value.replace(/[^\d]/g, '').slice(0, 4))
+                    }
+                    aria-label="Hourly rate in USD"
+                    placeholder="50"
+                  />
+                  <span className="post" aria-hidden>
+                    / hr
+                  </span>
                 </div>
               </div>
 
@@ -782,25 +742,13 @@ export function HelperOnboarding() {
               </div>
 
               <div className="account-hc-field">
-                <p className={labelClass}>
-                  Typical schedule <span className="account-hc-hint">(optional)</span>
-                </p>
-                <div className="account-hc-choice-row" data-testid="helper-availability-slots">
-                  {SLOTS.map((slot) => {
-                    const on = availability.includes(slot.id)
-                    return (
-                      <button
-                        key={slot.id}
-                        type="button"
-                        aria-pressed={on}
-                        onClick={() => toggleSlot(slot.id)}
-                        className={`account-hc-choice ${on ? 'is-on' : ''}`}
-                      >
-                        {slot.label}
-                      </button>
-                    )
-                  })}
-                </div>
+                <WorkingHoursFields
+                  workStart={workStart}
+                  workEnd={workEnd}
+                  onChangeStart={setWorkStart}
+                  onChangeEnd={setWorkEnd}
+                  testIdPrefix="helper-hours"
+                />
               </div>
             </section>
 

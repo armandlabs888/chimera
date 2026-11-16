@@ -29,14 +29,8 @@ import { formatRate, relativeTime } from '@/lib/matching'
 import { hidesPeerHelperDiscovery } from '@/lib/roles'
 import { formatCategoryLabel } from '@/lib/taxonomy'
 import type { Person, Review } from '@/types'
+import { hasWorkingHours } from '@/lib/workingHours'
 import './public-helper-profile.css'
-
-const AVAIL_LABELS: Record<string, string> = {
-  mornings: 'Mornings',
-  afternoons: 'Afternoons',
-  evenings: 'Evenings',
-  weekends: 'Weekends',
-}
 
 const ARRIVAL_HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18] as const
 
@@ -101,7 +95,6 @@ export function PublicHelperProfileView({
   const radius = person.serviceRadiusMiles ?? 5
   const skills = skillOptions(person)
   const primarySkill = skills[0]
-  const isQuote = person.rateType === 'quote'
   const hourly = Math.round(person.hourlyRate || 0)
   const rateLabel = formatRate(person)
   const viewerArea =
@@ -120,12 +113,9 @@ export function PublicHelperProfileView({
   const [toast, setToast] = useState('')
   const [messaging, setMessaging] = useState(false)
 
-  const availSlots = person.availability
-    .map((slot) => AVAIL_LABELS[slot] ?? slot)
-    .filter(Boolean)
-  const usualTime = availSlots[0]
   const headerStats = useMemo(() => buildHelperStats(person), [person])
   const headerMeta = useMemo(() => buildRoleMeta('helper', person), [person])
+  const hasHours = hasWorkingHours(person)
 
   const total = hourly * hours
   const hoursLabel = hours === 1 ? '1 hr' : `${hours} hrs`
@@ -195,7 +185,7 @@ export function PublicHelperProfileView({
     if (arrival) params.set('time', arrival)
     if (city.trim()) params.set('location', city.trim())
     if (details.trim()) params.set('details', details.trim())
-    if (!isQuote && hourly > 0) {
+    if (hourly > 0) {
       params.set('budget', String(total))
       params.set('budgetType', 'fixed')
     }
@@ -306,15 +296,11 @@ export function PublicHelperProfileView({
               </p>
             ) : null}
 
-            {(person.availableNow || availSlots.length > 0) && (
+            {person.availableNow ? (
               <p className="php-facts">
-                {person.availableNow ? <span className="php-now">Available now</span> : null}
-                {person.availableNow && availSlots.length ? (
-                  <span className="php-sep">·</span>
-                ) : null}
-                {availSlots.length ? availSlots.join(', ') : null}
+                <span className="php-now">Available for same-day tasks</span>
               </p>
-            )}
+            ) : null}
 
             {primarySkill ? (
               <p className="php-facts php-facts-2">
@@ -336,8 +322,8 @@ export function PublicHelperProfileView({
           <section className="php-block" aria-labelledby="day-heading">
             <h2 id="day-heading">Choose a day</h2>
             <p className="php-block-sub">
-              {usualTime
-                ? `${helperFirst} lists ${usualTime.toLowerCase()} as their usual time. Pick a date for your request.`
+              {hasHours
+                ? `Pick a date for your request with ${helperFirst}. Their working hours are shown next to their name.`
                 : `Pick a date for your request with ${helperFirst}.`}
             </p>
             <div className="php-days" role="listbox" aria-label="Choose a day">
@@ -528,7 +514,7 @@ export function PublicHelperProfileView({
                   </div>
                 </div>
 
-                {!isQuote ? (
+                {hourly > 0 ? (
                   <div className="php-field">
                     <div className="php-time-row">
                       <span className="php-label" style={{ margin: 0 }}>
@@ -590,7 +576,7 @@ export function PublicHelperProfileView({
                   />
                 </div>
 
-                {!isQuote ? (
+                {hourly > 0 ? (
                   <div className="php-total-row" data-testid="public-helper-total">
                     <span className="php-lbl">
                       Estimated total (${hourly} × {hoursLabel})
