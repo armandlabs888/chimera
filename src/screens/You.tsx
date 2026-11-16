@@ -29,8 +29,8 @@ export function You() {
       return
     }
     if (rawTab === 'helper') {
-      // Neighbors keep the become-a-helper path on edit profile; helpers open services.
-      router.replace(isHelper ? '/settings/profile#services' : '/settings/profile')
+      // Helpers open services; neighbors start at Get verified (not the helper editor).
+      router.replace(isHelper ? '/settings/profile#services' : '/verify')
       return
     }
     if (rawTab === 'notifications') {

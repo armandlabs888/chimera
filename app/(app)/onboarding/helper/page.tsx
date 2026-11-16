@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { HelperOnboarding } from '@/screens/HelperOnboarding'
+import { enforceHelperProfileEditorAccess } from '@/lib/helperAccess.server'
 import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
@@ -9,6 +10,7 @@ export const metadata: Metadata = pageMetadata({
   noindex: true,
 })
 
-export default function Page() {
+export default async function Page() {
+  await enforceHelperProfileEditorAccess()
   return <HelperOnboarding />
 }
