@@ -18,7 +18,11 @@ export type ProfileSeed = {
   locationLabel: string
 }
 
-/** Build profile seed from auth user metadata (Google + email signup). */
+/**
+ * Build profile seed from auth user metadata.
+ * Google OAuth typically provides name / full_name; email signup omits them
+ * and we fall back to the email local-part until onboarding sets the real name.
+ */
 export function profileSeedFromUser(
   user: User,
   overrides?: { name?: string; neighborhood?: string; locationLabel?: string },

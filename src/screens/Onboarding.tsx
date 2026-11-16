@@ -213,6 +213,8 @@ export function Onboarding() {
 
   useEffect(() => {
     if (!ready || nameHydratedRef.current) return
+    // Prefill from an existing real profile name, or Google OAuth metadata.
+    // Email signup no longer collects a name, so those fields stay empty.
     const md = (authUser?.user_metadata ?? {}) as Record<string, unknown>
     const metaFull =
       (typeof md.full_name === 'string' && md.full_name) ||

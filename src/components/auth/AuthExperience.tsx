@@ -49,7 +49,6 @@ export function AuthExperience({
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [name, setName] = useState('')
   const [pending, setPending] = useState(false)
   const [googlePending, setGooglePending] = useState(false)
   const [localError, setLocalError] = useState(() =>
@@ -109,7 +108,7 @@ export function AuthExperience({
           typeof window !== 'undefined'
             ? buildAuthCallbackUrl(resolveOAuthRedirectOrigin(window.location.origin), safeNext)
             : undefined
-        const result = await signUp(email.trim(), password, name.trim().slice(0, 80), {
+        const result = await signUp(email.trim(), password, {
           emailRedirectTo,
         })
         if (result.needsEmailConfirmation) {
@@ -183,8 +182,6 @@ export function AuthExperience({
             setPassword={setPassword}
             showPassword={showPassword}
             setShowPassword={setShowPassword}
-            name={name}
-            setName={setName}
             pending={pending}
             googlePending={googlePending}
             onGoogle={onGoogle}
@@ -305,8 +302,6 @@ function FormColumn(props: {
   setPassword: (v: string) => void
   showPassword: boolean
   setShowPassword: (v: boolean | ((b: boolean) => boolean)) => void
-  name: string
-  setName: (v: string) => void
   pending: boolean
   googlePending: boolean
   onGoogle: () => void
@@ -330,8 +325,6 @@ function FormColumn(props: {
     setPassword,
     showPassword,
     setShowPassword,
-    name,
-    setName,
     pending,
     googlePending,
     onGoogle,
@@ -473,20 +466,6 @@ function FormColumn(props: {
       </div>
 
       <form className="space-y-3" onSubmit={onSubmit}>
-        {tab === 'signup' ? (
-          <Field label="Full name">
-            <TextInput
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              maxLength={80}
-              autoComplete="name"
-              placeholder="Alex Rivera"
-              className="h-[42px] rounded-[10px] border-[#E3E8EF] text-[14px]"
-            />
-          </Field>
-        ) : null}
-
         <Field label="Email">
           <TextInput
             type="email"

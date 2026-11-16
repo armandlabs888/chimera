@@ -553,12 +553,15 @@ async function checkAuthBrowser() {
     assert.ok(isLightRgb(surfaces.body), `auth body daylight got ${surfaces.body}`)
 
     await page.getByRole('tab', { name: 'Create account' }).click()
-    await page.waitForSelector('text=Full name')
+    await page.waitForSelector('text=Join HouseCall')
+    // Name is collected in onboarding Step 1, not on email signup.
+    assert.equal(await page.locator('text=Full name').count(), 0, 'signup must not ask for Full name')
+    assert.equal(await page.getByLabel('Email').count(), 1)
     assert.equal(await page.locator('select').count(), 0, 'signup has no Austin neighborhood select')
     assert.equal(await page.getByPlaceholder(/City or ZIP/i).count(), 0, 'signup no longer asks City/ZIP')
     assert.equal(await page.getByTestId('signup-location').count(), 0, 'no signup-location field')
 
-    await page.locator('input[type="password"], input[type="text"]').last().fill('secret12')
+    await page.locator('input[type="password"]').first().fill('secret12')
     const showBtn = page.getByRole('button', { name: /Show|Hide/ })
     await showBtn.click()
     const revealed = await page.evaluate(() =>
@@ -570,7 +573,8 @@ async function checkAuthBrowser() {
     assert.equal(await page.locator('text=Full name').count(), 0)
 
     await page.goto(`${BASE_URL}/auth?mode=signup`, { waitUntil: 'domcontentloaded' })
-    await page.waitForSelector('text=Full name')
+    await page.waitForSelector('text=Join HouseCall')
+    assert.equal(await page.locator('text=Full name').count(), 0, 'direct signup URL must not ask for Full name')
     assert.equal(await page.getByRole('tab', { name: 'Create account' }).getAttribute('aria-selected'), 'true')
     const signupBody = await page.locator('body').innerText()
     assert.match(signupBody, /Join HouseCall/i)
