@@ -1,5 +1,6 @@
 /**
  * Capture desktop + mobile screenshots for urgent job SMS UI (demo mode).
+ * ASAP posts map to urgent / Text nearby helpers.
  */
 import { chromium, devices } from 'playwright'
 import { mkdirSync } from 'node:fs'
@@ -15,25 +16,46 @@ async function shot(page, name) {
   console.log('wrote', path)
 }
 
+async function continueToReview(page) {
+  await page.getByTestId('post-describe-input').fill(
+    'Need two people to move a sofa downstairs as soon as possible',
+  )
+  await page.getByTestId('post-zip-change').click()
+  await page.getByTestId('post-zip').fill('95124')
+  await page.getByTestId('post-zip-resolved').waitFor({ state: 'visible', timeout: 15000 })
+  await page
+    .locator('[data-testid="post-continue-mobile"], [data-testid="post-continue"]')
+    .locator('visible=true')
+    .first()
+    .click()
+  await page.waitForSelector('[data-testid="post-request-form"]', { timeout: 20000 })
+}
+
 async function capture(context, suffix) {
   const page = await context.newPage()
   await page.goto(`${BASE}/post?demo=1`, { waitUntil: 'networkidle' })
-  // Scroll the When section into view so the urgent option is visible.
+  await continueToReview(page)
+
+  await page.getByTestId('post-when-section-edit').click()
+  await page.getByTestId('post-when-asap').click()
   const urgent = page.getByTestId('post-needs-help-now')
   await urgent.waitFor({ state: 'visible', timeout: 20000 })
   await urgent.scrollIntoViewIfNeeded()
-  await page.getByTestId('post-needs-help-now-checkbox').check()
   await shot(page, `urgent-post-option-${suffix}.png`)
 
-  // Fill minimal post and submit (demo simulates texted count > 0).
+  if ((await page.getByTestId('post-title').count()) === 0) {
+    await page.getByTestId('post-row-title-edit').click()
+  }
   await page.getByTestId('post-title').fill('Urgent sofa move help')
+  if ((await page.getByTestId('post-details').count()) === 0) {
+    await page.getByTestId('post-row-details-edit').click()
+  }
   await page
     .getByTestId('post-details')
     .fill(
       'Need two people to move a sofa downstairs this afternoon. Stairs and parking available.',
     )
-  await page.getByTestId('post-zip').fill('95124')
-  const submit = page.locator('form[data-testid="post-request-form"] button[type="submit"]')
+  const submit = page.locator('form[data-testid="post-request-form"] button[type="submit"]').first()
   await submit.scrollIntoViewIfNeeded()
   await submit.click()
   await page.waitForURL(/\/requests\//, { timeout: 20000 })
@@ -43,7 +65,6 @@ async function capture(context, suffix) {
     .waitFor({ state: 'visible', timeout: 15000 })
   await shot(page, `urgent-texted-helpers-${suffix}.png`)
 
-  // Helper SMS settings on Profile helper tab (seed user is a helper in demo).
   await page.goto(`${BASE}/you?tab=helper&demo=1`, { waitUntil: 'networkidle' })
   const sms = page.getByTestId('helper-sms-settings')
   await sms.waitFor({ state: 'visible', timeout: 20000 })

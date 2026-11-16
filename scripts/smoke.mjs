@@ -1588,6 +1588,20 @@ async function checkMarketplaceFlows() {
     assert.equal(draftJson.blocked, undefined)
     assert.ok(draftJson.category, 'draft has category')
     assert.ok(draftJson.title, 'draft has title')
+    assert.ok(draftJson.when === 'asap' || draftJson.when === 'scheduled', 'draft when')
+
+    const scheduledDraftRes = await fetch(`${BASE_URL}/api/ai/draft-request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: 'Need help hauling boxes Saturday afternoon',
+      }),
+    })
+    assert.equal(scheduledDraftRes.status, 200, 'scheduled draft status')
+    const scheduledDraft = await scheduledDraftRes.json()
+    assert.equal(scheduledDraft.when, 'scheduled', 'saturday afternoon is scheduled')
+    assert.match(String(scheduledDraft.scheduledDate || ''), /^\d{4}-\d{2}-\d{2}$/)
+    assert.match(String(scheduledDraft.startTime || ''), /^\d{2}:\d{2}$/)
 
     const blockedRes = await fetch(`${BASE_URL}/api/ai/draft-request`, {
       method: 'POST',
@@ -1795,7 +1809,7 @@ async function checkMarketplaceFlows() {
     await page
       .waitForFunction(
         () =>
-          /Draft with AI|Describe what you need|Post request|Sign in|Create account|Continue with Google|Continue to HouseCall|demo mode|Welcome back/i.test(
+          /Step 1 of 2|What do you need done|Continue|Post a task|Sign in|Create account|Continue with Google|Continue to HouseCall|demo mode|Welcome back/i.test(
             document.body.innerText,
           ) || /\/auth/.test(location.pathname),
         null,
@@ -1807,7 +1821,7 @@ async function checkMarketplaceFlows() {
     if (
       postUrl.pathname.replace(/\/$/, '') === '/auth' ||
       (/Sign in|Create account|demo mode|Continue to HouseCall|Continue with Google|Welcome back/i.test(postBody) &&
-        !/Draft with AI|Post request/i.test(postBody)) ||
+        !/What do you need done|Continue|Post a task/i.test(postBody)) ||
       /^HouseCall$/m.test(postBody.trim())
     ) {
       console.log('skip post composer interactive (auth gated → /auth)')
@@ -1823,26 +1837,28 @@ async function checkMarketplaceFlows() {
         assert.equal(gateHeader, false, 'no AuthGate Browse/Safety header on /auth from /post')
       }
     } else {
-      assert.match(postBody, /Draft with AI|Describe what you need/i)
-      assert.match(postBody, /Your price \(USD\)|Open to offers/i)
-      assert.match(postBody, /Price/i)
-      const draftBtn = page.getByRole('button', { name: /Draft with AI/i })
-      if ((await draftBtn.count()) > 0) {
-        const prompt = page.getByPlaceholder(/Describe what you need|sentence/i).first()
-        if ((await prompt.count()) > 0) {
-          await prompt.fill('Need help carrying a queen mattress up 1 flight of stairs this afternoon')
-          await draftBtn.click()
-          await page.waitForTimeout(800)
-        }
+      assert.match(postBody, /Step 1 of 2|What do you need done/i)
+      assert.doesNotMatch(postBody, /Draft with AI/)
+      const continueBtn = page
+        .locator('[data-testid="post-continue-mobile"], [data-testid="post-continue"]')
+        .locator('visible=true')
+        .first()
+      const prompt = page.locator('[data-testid="post-describe-input"]')
+      if ((await prompt.count()) > 0 && (await continueBtn.count()) > 0) {
+        await prompt.fill('Need help carrying a queen mattress up 1 flight of stairs this afternoon')
+        await continueBtn.click()
+        await page.waitForSelector('[data-testid="post-request-form"], [data-testid="post-drafting"]', {
+          timeout: 20000,
+        })
+        await page.waitForSelector('[data-testid="post-request-form"]', { timeout: 20000 })
+        const reviewBody = await page.locator('body').innerText()
+        assert.match(reviewBody, /Review and post|Step 2 of 2/i)
+        assert.match(reviewBody, /Open to offers|Price/i)
       }
-      // Submit if form is ready in demo
-      const titleInput = page.locator('input[name="title"], input[placeholder*="title" i], textarea').first()
-      const postBtn = page.getByRole('button', { name: /Post request/i })
-      if ((await postBtn.count()) > 0 && (await postBtn.isEnabled().catch(() => false))) {
-        const openOffers = page.locator('[data-testid="post-accepts-offers-checkbox"]')
-        if ((await openOffers.count()) > 0) await openOffers.first().check()
-      }
-      assert.ok(await page.getByText(/Invite to offer|matched|preview|Post request/i).count() >= 1)
+      assert.ok(
+        (await page.getByText(/Review and post|Continue|Post task|helpers nearby|Preview/i).count()) >=
+          1,
+      )
     }
 
     // Request detail — 2-column desktop layout + subtle card radii + open-budget price
