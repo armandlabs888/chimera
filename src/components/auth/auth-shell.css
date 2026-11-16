@@ -60,36 +60,50 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  overflow: hidden;
   border-left: 1px solid #e3e8ef;
   background: #fff;
-  padding: 24px;
+  padding: clamp(12px, 2.4dvh, 24px) clamp(16px, 2vw, 24px);
 }
 
 .auth-shell-aside-inner {
   display: flex;
   width: 360px;
   max-width: 100%;
+  min-height: 0;
+  height: 100%;
   flex-direction: column;
   text-align: left;
 }
 
 .auth-shell-aside-title {
-  font-size: 36px;
+  flex-shrink: 0;
+  font-size: clamp(24px, 2.4dvh + 1.1vw, 36px);
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.045em;
   color: #071330;
 }
 
+.auth-shell-aside-verify {
+  flex-shrink: 0;
+  margin-top: clamp(10px, 1.8dvh, 20px);
+}
+
 .auth-shell-aside-image {
   position: relative;
-  margin-top: 22px;
-  height: 328px;
+  margin-top: clamp(10px, 2dvh, 22px);
   width: 100%;
-  flex-shrink: 0;
+  /*
+   * Flexible share of remaining height:
+   * floor near 4:3 of the 360px column (270px) when the viewport allows,
+   * grow toward 328px on tall screens, shrink via dvh on short ones.
+   */
+  flex: 0 1 auto;
+  height: clamp(min(270px, 42dvh), 35dvh, 328px);
+  max-height: min(328px, 42dvh);
+  min-height: clamp(140px, 18dvh, 200px);
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   border-radius: 12px;
   border: 1px solid #e3e8ef;
@@ -98,10 +112,11 @@
 }
 
 .auth-shell-aside-list {
-  margin-top: 28px;
+  flex-shrink: 0;
+  margin-top: clamp(12px, 2.4dvh, 28px);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: clamp(8px, 1.4dvh, 14px);
 }
 
 .auth-shell-close {
@@ -142,15 +157,16 @@
 /* Wide enough for the two-column marketing card. */
 @media (min-width: 900px) {
   .auth-shell-overlay {
-    padding: max(24px, env(safe-area-inset-top, 0px))
+    padding: max(clamp(12px, 2.5dvh, 24px), env(safe-area-inset-top, 0px))
       max(32px, env(safe-area-inset-right, 0px))
-      max(24px, env(safe-area-inset-bottom, 0px))
+      max(clamp(12px, 2.5dvh, 24px), env(safe-area-inset-bottom, 0px))
       max(32px, env(safe-area-inset-left, 0px));
   }
 
   .auth-shell-card {
     width: min(1000px, calc(100vw - 64px));
     max-width: calc(100vw - 64px);
+    height: min(736px, calc(100dvh - 48px));
     max-height: min(736px, calc(100dvh - 48px));
     grid-template-columns: 1fr 1fr;
   }
@@ -170,49 +186,16 @@
   }
 }
 
-/* Short laptop viewports: compress promo art so both columns still fit. */
-@media (min-width: 900px) and (max-height: 820px) {
-  .auth-shell-card {
-    max-height: calc(100dvh - 32px);
-  }
-
-  .auth-shell-form {
-    padding: 24px 36px;
-  }
-
-  .auth-shell-aside {
-    padding: 16px 20px;
-    justify-content: flex-start;
-  }
-
-  .auth-shell-aside-title {
-    font-size: 28px;
-  }
-
-  .auth-shell-aside-image {
-    margin-top: 14px;
-    height: 160px;
-  }
-
-  .auth-shell-aside-list {
-    margin-top: 16px;
-    gap: 10px;
-  }
-
-  .auth-shell-aside .auth-shell-verify {
-    margin-top: 12px;
-  }
-}
-
 /*
- * Short laptops (~1280x700): drop the promo column entirely so the form
- * always fits with margins and nothing clips.
+ * Only hide the promo when there genuinely is not room:
+ * under ~900px wide or under ~600px tall.
  */
-@media (min-width: 900px) and (max-height: 740px) {
+@media (min-width: 900px) and (max-height: 599px) {
   .auth-shell-card {
     width: min(420px, calc(100vw - 48px));
+    height: auto;
+    max-height: min(736px, calc(100dvh - 24px));
     grid-template-columns: 1fr;
-    max-height: calc(100dvh - 32px);
   }
 
   .auth-shell-aside {
@@ -233,7 +216,7 @@
   display: inline-flex;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 900px) and (min-height: 600px) {
   .auth-shell-mobile-verify {
     display: none;
   }

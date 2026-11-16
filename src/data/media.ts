@@ -64,13 +64,13 @@ export const LIFESTYLE = {
   /** Outdoor event / setup — used for Other custom everyday help */
   events: '/images/landing/service-events.jpg',
   /**
-   * Auth modal marketing panel — helper cleaning a carpet.
+   * Legacy auth carpet photo (HouseCall logo on shirt). Kept on disk but not used in UI.
    * Served from `/public/images/auth/carpet-cleaner.jpg`.
    */
   authCarpet: '/images/auth/carpet-cleaner.jpg',
   /**
-   * Legacy auth left panel — outdoor neighbors carrying moving boxes (Pexels 7464497).
-   * Retired from auth UI when the modal replaced the split-screen layout.
+   * Auth modal marketing panel — outdoor neighbors carrying moving boxes (Pexels 7464497).
+   * No HouseCall/Beam branding; user-facing brand is Bunk.
    */
   authPanel: '/images/landing/auth-panel-neighbors.jpg',
   /** Legacy indoor plant/move photo — retired from auth UI */
