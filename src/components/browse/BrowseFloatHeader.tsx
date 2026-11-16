@@ -9,7 +9,7 @@ import {
   AccountMenuTrigger,
   MobileAccountLinks,
 } from '@/components/account/AccountMenuLinks'
-import { BeamWordmark } from '@/components/BeamMark'
+import { HouseCallWordmark } from '@/components/HouseCallWordmark'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import { Avatar } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
@@ -121,18 +121,10 @@ export function BrowseFloatHeader({
 
       <header className="browse-hc-header" data-testid={guest ? 'landing-nav' : 'app-topnav'} data-nav-style="flat">
         <div className="browse-hc-wrap browse-hc-header-inner">
-          <Link
-            href="/browse"
-            className="browse-hc-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]"
-            aria-label="HouseCall home"
-          >
-            <BeamWordmark
-              markWidth={18}
-              markHeight={18}
-              wordClassName="text-[17px] font-bold tracking-[-0.03em] text-[#071330]"
-              tone="ink"
-            />
-          </Link>
+          <HouseCallWordmark
+            size={17}
+            className="browse-hc-brand focus-visible:ring-[#1D5CE5]"
+          />
 
           <nav className="browse-hc-nav" aria-label="Primary">
             {navItems.map((item) => {

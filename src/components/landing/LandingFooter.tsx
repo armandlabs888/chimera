@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BeamWordmark } from '@/components/BeamMark'
+import { HouseCallWordmark } from '@/components/HouseCallWordmark'
 
 const FOOTER_LINKS = [
   { href: '/browse', label: 'Browse jobs' },
@@ -34,18 +34,11 @@ export function LandingFooter({
     >
       <div className="beam-container flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:py-5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <Link
-            href="/"
-            className="inline-flex w-fit rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330]"
-            aria-label="HouseCall home"
-          >
-            <BeamWordmark
-              markWidth={18}
-              markHeight={18}
-              wordClassName="text-[16px] tracking-[-0.03em]"
-              tone="white"
-            />
-          </Link>
+          <HouseCallWordmark
+            size={16}
+            tone="onDark"
+            className="w-fit rounded-sm focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330]"
+          />
           <p
             className="text-[13px] leading-none text-[#94A3B8]"
             data-testid="footer-legal"

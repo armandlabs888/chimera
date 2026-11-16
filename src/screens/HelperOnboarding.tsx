@@ -342,7 +342,7 @@ export function HelperOnboarding() {
       setSkillsError('')
       setError(
         rateType === 'flat'
-          ? 'Flat rate should be at least $10.'
+          ? 'Flat Fee should be at least $10.'
           : 'Hourly rate should be at least $10.',
       )
       return

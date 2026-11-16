@@ -3,7 +3,7 @@
 import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
-import { BeamWordmark } from '@/components/BeamMark'
+import { HouseCallWordmark } from '@/components/HouseCallWordmark'
 import { BrowseLocationTrigger } from '@/components/browse/BrowseLocationDialog'
 import { useBeam } from '@/context/BeamContext'
 
@@ -80,22 +80,11 @@ export function LandingNav({
 
   const bar = (
     <>
-      <Link
-        href="/"
-        className={`relative z-10 inline-flex min-h-[44px] shrink-0 items-center ${isFloat ? '' : 'pl-1'}`}
-        aria-label="HouseCall home"
-      >
-        <BeamWordmark
-          tone={light ? 'ink' : 'white'}
-          markWidth={18}
-          markHeight={18}
-          wordClassName={
-            isFloat
-              ? 'text-[17px] font-bold tracking-[-0.03em] text-[#071330]'
-              : 'text-[18px] font-bold tracking-[-0.025em]'
-          }
-        />
-      </Link>
+      <HouseCallWordmark
+        size={isFloat ? 17 : 18}
+        tone={light ? 'brand' : 'onDark'}
+        className={`relative z-10 min-h-[44px] shrink-0 ${isFloat ? '' : 'pl-1'}`}
+      />
 
       <nav
         className={`hidden items-center ${isFloat ? 'gap-8 px-6 md:flex' : 'gap-8 lg:flex'}`}

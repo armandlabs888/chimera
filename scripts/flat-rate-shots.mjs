@@ -1,6 +1,6 @@
 /**
- * Capture 1440 / 390 screenshots for helper Hourly | Flat rate editor
- * and flat-rate helper card + public profile.
+ * Capture 1440 / 390 screenshots for helper Hourly | Flat Fee editor
+ * and Flat Fee helper card + public profile.
  */
 import { chromium } from 'playwright'
 import { mkdirSync } from 'node:fs'
@@ -124,7 +124,7 @@ async function main() {
     await caseyRow.scrollIntoViewIfNeeded()
     await page.waitForTimeout(200)
   } else {
-    const flatRate = page.locator('text=/\\$\\d+ flat/').first()
+    const flatRate = page.locator('text=/\\$\\d+ Flat Fee/').first()
     if ((await flatRate.count()) > 0) await flatRate.scrollIntoViewIfNeeded()
   }
   await shot(page, 'browse-helper-flat-1440.png', 1440)

@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useMemo, useRef, useState, type FormEvent } from 'react'
-import { BeamMark } from '@/components/BeamMark'
+import { HouseCallWordmark } from '@/components/HouseCallWordmark'
 import { useFocusTrap } from '@/components/browse/useFocusTrap'
 import { useBeam } from '@/context/BeamContext'
 import { Button, Field, TextInput } from '@/components/ui'
@@ -165,12 +165,7 @@ export function AuthExperience({
         className="relative z-[1] grid h-auto max-h-[calc(100vh-28px)] w-[min(100%,362px)] grid-cols-1 overflow-hidden rounded-2xl bg-white shadow-[0_24px_64px_rgba(7,19,48,0.28),0_2px_8px_rgba(7,19,48,0.08)] outline-none md:h-[736px] md:max-h-[calc(100vh-64px)] md:w-[1000px] md:max-w-[calc(100vw-64px)] md:grid-cols-2"
       >
         <div className="flex min-h-0 min-w-0 flex-col justify-start overflow-y-auto bg-white px-[22px] py-7 md:justify-center md:px-11 md:py-9">
-          <div
-            className="inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#E3E8EF] bg-white text-[#1D5CE5]"
-            aria-hidden
-          >
-            <BeamMark width={18} height={18} color="currentColor" />
-          </div>
+          <HouseCallWordmark size={18} className="mb-1" />
 
           <FormColumn
             titleId={titleId}

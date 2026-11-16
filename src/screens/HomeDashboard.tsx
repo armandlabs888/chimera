@@ -301,7 +301,7 @@ export function HomeDashboard() {
                             ${Math.round(person.hourlyRate || 0)}
                           </div>
                           <div className="ma-act-price-label">
-                            {person.rateType === 'flat' ? 'flat' : '/hr'}
+                            {person.rateType === 'flat' ? 'Flat Fee' : '/hr'}
                           </div>
                         </span>
                       </Link>
