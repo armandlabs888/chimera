@@ -1,14 +1,14 @@
 # chimera
 
-This repository hosts the **HouseCall** MVP (hyper-local same-day help marketplace).
+This repository hosts the **Bunk** MVP (hyper-local same-day help marketplace).
 
 ---
 
-# HouseCall
+# Bunk
 
 **Help nearby. Done today.**
 
-HouseCall is a hyper-local, same-day help marketplace. People post practical jobs nearby; neighbors respond with a time and a price.
+Bunk is a hyper-local, same-day help marketplace. People post practical jobs nearby; neighbors respond with a time and a price.
 
 ## Modes
 
@@ -28,7 +28,7 @@ Optional server-only email (Resend) for account-deletion confirmation. Missing k
 
 ```bash
 RESEND_API_KEY=<resend api key>
-EMAIL_FROM=HouseCall <no-reply@yariapp.com>
+EMAIL_FROM=Bunk <no-reply@yariapp.com>
 ```
 
 Live backend errors surface in the UI and **do not** silently fall back to `localStorage`.

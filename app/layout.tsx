@@ -21,7 +21,7 @@ const dmSans = DM_Sans({
   display: 'swap',
 })
 
-const title = 'HouseCall. Trusted help, right next door'
+const title = 'Bunk. Trusted help, right next door'
 const description = DEFAULT_DESCRIPTION
 
 export const metadata: Metadata = {
@@ -32,6 +32,9 @@ export const metadata: Metadata = {
   },
   description,
   applicationName: SITE_NAME,
+  appleWebApp: {
+    title: SITE_NAME,
+  },
   alternates: {
     canonical: '/',
   },
@@ -47,7 +50,7 @@ export const metadata: Metadata = {
         url: '/images/og-default.jpg',
         width: 1200,
         height: 630,
-        alt: 'Neighbor carrying a moving box. HouseCall same-day help nearby',
+        alt: 'Neighbor carrying a moving box. Bunk same-day help nearby',
       },
     ],
   },

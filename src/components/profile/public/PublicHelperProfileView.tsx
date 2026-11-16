@@ -150,7 +150,7 @@ export function PublicHelperProfileView({
   async function onShare() {
     const url = typeof window !== 'undefined' ? window.location.href : profilePath
     const result = await shareProfileLink({
-      title: `${person.name} on HouseCall`,
+      title: `${person.name} on Bunk`,
       url,
     })
     if (result === 'copied') {
@@ -414,7 +414,7 @@ export function PublicHelperProfileView({
                 <div className="php-guide">
                   <h3>Pay after completion</h3>
                   <p>
-                    Payments are arranged directly between neighbors. HouseCall does not collect a
+                    Payments are arranged directly between neighbors. Bunk does not collect a
                     booking fee.
                   </p>
                 </div>
@@ -433,7 +433,7 @@ export function PublicHelperProfileView({
                 <div className="php-guide" style={{ marginTop: 0, paddingTop: 0, borderTop: 0 }}>
                   <h3>Pay after completion</h3>
                   <p>
-                    Payments are arranged directly between neighbors. HouseCall does not collect a
+                    Payments are arranged directly between neighbors. Bunk does not collect a
                     booking fee.
                   </p>
                 </div>

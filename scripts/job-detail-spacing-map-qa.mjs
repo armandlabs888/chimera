@@ -83,7 +83,7 @@ async function seedRole(page, role) {
         id: 'req-dresser-spacing-qa',
         title: 'Carry a dresser up one flight of stairs',
         details:
-          'Solid wood dresser from the entry to the upstairs bedroom. Drawers come out. Two people would be ideal.\n\n[HouseCall sample, Nov 12, 2026]',
+          'Solid wood dresser from the entry to the upstairs bedroom. Drawers come out. Two people would be ideal.\n\n[Bunk sample, Nov 12, 2026]',
         category: 'junk-removal',
         neighborhood: 'east-austin',
         locationLabel: 'Cambrian, San Jose',
@@ -155,7 +155,7 @@ async function runRole(browser, role) {
     }, null, { timeout: 15000 })
     // Assert sample marker is not visible in the detail panel.
     const detailText = await page.locator('[data-testid="browse-job-detail"]').innerText()
-    if (/HouseCall sample|Beam sample/i.test(detailText)) {
+    if (/HouseCall sample|Bunk sample|Beam sample/i.test(detailText)) {
       throw new Error(`sample marker still visible in browse detail (${role})`)
     }
     await shot(page, `browse-detail-${role}-1280x800`)
@@ -187,7 +187,7 @@ async function runRole(browser, role) {
       return img && img.complete && img.naturalWidth > 0
     }, null, { timeout: 15000 })
     const sheetText = await page.locator('[data-testid="browse-job-sheet"]').innerText()
-    if (/HouseCall sample|Beam sample/i.test(sheetText)) {
+    if (/HouseCall sample|Bunk sample|Beam sample/i.test(sheetText)) {
       throw new Error(`sample marker still visible in mobile sheet (${role})`)
     }
     await shot(page, `mobile-sheet-${role}-390x844`)
@@ -211,7 +211,7 @@ async function runRole(browser, role) {
       return img && img.complete && img.naturalWidth > 0
     }, null, { timeout: 15000 })
     const pageText = await page.locator('[data-testid="request-detail-root"]').innerText()
-    if (/HouseCall sample|Beam sample/i.test(pageText)) {
+    if (/HouseCall sample|Bunk sample|Beam sample/i.test(pageText)) {
       throw new Error(`sample marker still visible on request detail (${role})`)
     }
     await shot(page, `request-detail-${role}-1280x800`)

@@ -43,7 +43,7 @@ async function seed(page) {
       id: 'req-dresser-spacing-qa',
       title: 'Carry a dresser up one flight of stairs',
       details:
-        'Solid wood dresser from the entry to the upstairs bedroom. Drawers come out. Two people would be ideal.\n\n[HouseCall sample, Nov 12, 2026]',
+        'Solid wood dresser from the entry to the upstairs bedroom. Drawers come out. Two people would be ideal.\n\n[Bunk sample, Nov 12, 2026]',
       category: 'junk-removal',
       neighborhood: 'east-austin',
       locationLabel: 'Cambrian, San Jose',

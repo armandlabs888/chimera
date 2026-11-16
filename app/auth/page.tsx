@@ -36,7 +36,7 @@ export default function AuthPage() {
   }, [ready, authUser, router, searchParams, currentUser.onboardingCompletedAt, initialView])
 
   // Keep landing chrome visible while session resolves or post-auth redirect runs.
-  // Never flash a full-screen HouseCall splash (OAuth callback is a separate route).
+  // Never flash a full-screen Bunk splash (OAuth callback is a separate route).
   if (!ready || (authUser && initialView !== 'forgot')) {
     return (
       <div inert aria-hidden="true">

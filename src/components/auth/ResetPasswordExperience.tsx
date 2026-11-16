@@ -210,7 +210,7 @@ export function ResetPasswordExperience({ onClose }: Props) {
             Password updated
           </h1>
           <p className="mt-2 text-[14px] leading-[22px] text-[#4A5568]">
-            Your password is saved. Taking you into HouseCall…
+            Your password is saved. Taking you into Bunk…
           </p>
         </div>
       ) : null}
@@ -224,7 +224,7 @@ export function ResetPasswordExperience({ onClose }: Props) {
             Set a new password
           </h1>
           <p className="mt-2 max-w-[40ch] text-[14px] leading-[22px] text-[#4A5568]">
-            Choose a new password for your HouseCall account.
+            Choose a new password for your Bunk account.
           </p>
 
           <form className="mt-6 space-y-3" onSubmit={onSubmit} data-testid="reset-password-form">

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Responsive layout audit for HouseCall.
+ * Responsive layout audit for Bunk.
  * Loads each page at common viewports, asserts no horizontal overflow,
  * collects soft layout issues, and saves screenshots.
  *

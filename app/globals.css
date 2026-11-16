@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /*
-  HouseCall daylight design system. Dribbble Home Services / Local Finder (Shot 27708245).
+  Bunk daylight design system. Dribbble Home Services / Local Finder (Shot 27708245).
   Canvas #FFFFFF · navy ink · royal-blue CTAs · butter-yellow accent bands.
 */
 @theme {
@@ -37,7 +37,7 @@
   --color-beam-butter: #eef2f7;
   --color-beam-butter-deep: #e3e8ef;
   --color-beam-sky: #ffffff;
-  /* Keep HouseCall fonts (Uber Move stand-ins). Readability via contrast + size, not a font swap. */
+  /* Keep Bunk fonts (Uber Move stand-ins). Readability via contrast + size, not a font swap. */
   --font-display: 'UberMove', 'Uber Move', var(--font-dm-sans), system-ui, -apple-system,
     BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-sans: 'UberMoveText', 'Uber Move Text', var(--font-inter), system-ui, -apple-system,
@@ -612,7 +612,7 @@ input[type='search']::-ms-clear {
     background: #ffffff;
   }
 
-  /* Yelp-mapped chip / rating helpers (HouseCall blue palette). */
+  /* Yelp-mapped chip / rating helpers (Bunk blue palette). */
   .hc-chip {
     display: inline-flex;
     align-items: center;

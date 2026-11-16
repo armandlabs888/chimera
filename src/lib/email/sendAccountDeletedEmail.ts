@@ -8,7 +8,7 @@ import {
   type AccountDeletedEmailInput,
 } from '@/lib/email/accountDeletedEmailContent'
 
-const DEFAULT_FROM = 'HouseCall <no-reply@yariapp.com>'
+const DEFAULT_FROM = 'Bunk <no-reply@yariapp.com>'
 
 export type SendAccountDeletedEmailResult =
   | { ok: true; skipped: true; reason: string }

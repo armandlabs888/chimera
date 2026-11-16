@@ -6,7 +6,7 @@ import { PolicyPlaceholder } from '@/screens/PolicyPlaceholder'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Privacy Policy',
-  description: 'How HouseCall collects, uses, and protects your information.',
+  description: 'How Bunk collects, uses, and protects your information.',
   path: '/privacy',
 })
 

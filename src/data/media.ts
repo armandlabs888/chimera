@@ -1,4 +1,4 @@
-/** Daylight photography. Unique local public assets for the HouseCall landing page.
+/** Daylight photography. Unique local public assets for the Bunk landing page.
  *  Hero fan: smiling human portraits (object-cover object-top).
  *  Lifestyle: real photography — no cartoons, masks/goggles, drills, or alphabet blocks.
  *  Specialty labels must match the photo subject (or be omitted), never invent a service.

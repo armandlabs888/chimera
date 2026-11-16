@@ -4,7 +4,7 @@ import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import { SiteAccountMenu } from '@/components/account/SiteAccountMenu'
-import { HouseCallWordmark } from '@/components/HouseCallWordmark'
+import { BunkWordmark } from '@/components/BunkWordmark'
 import { BrowseLocationTrigger } from '@/components/browse/BrowseLocationDialog'
 import { useBeam } from '@/context/BeamContext'
 import '@/components/account/account-hc.css'
@@ -85,7 +85,7 @@ export function LandingNav({
 
   const bar = (
     <>
-      <HouseCallWordmark
+      <BunkWordmark
         size={isOverlay ? 17 : 18}
         tone={onDark ? 'onDark' : 'brand'}
         className="relative z-10 min-h-[44px] shrink-0"

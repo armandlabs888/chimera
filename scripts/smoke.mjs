@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Headless smoke checks for HouseCall (no screenshots committed).
+ * Headless smoke checks for Bunk (no screenshots committed).
  * Daylight reference-locked gates for requester + provider marketplace flows.
  */
 import assert from 'node:assert/strict'
@@ -69,7 +69,7 @@ async function checkRoutes() {
       res.status === 200 || res.status === 404,
       `${route} unexpected status ${res.status}`,
     )
-    assert.match(text, /HouseCall/i, `${route} missing HouseCall brand marker`)
+    assert.match(text, /Bunk/i, `${route} missing Bunk brand marker`)
     assert.doesNotMatch(text, /Application error|Internal Server Error/i, `${route} errored`)
     console.log(`ok route ${route} -> ${res.status}`)
   }
@@ -137,7 +137,7 @@ async function checkLandingMarkup() {
   assert.match(
     text,
     /Clear steps and in-app messaging, so you can compare offers/,
-    'why HouseCall body copy',
+    'why Bunk body copy',
   )
   assert.doesNotMatch(text, /without invented counts/, 'old why body removed')
   assert.doesNotMatch(
@@ -150,7 +150,7 @@ async function checkLandingMarkup() {
     /Payments are arranged directly between neighbors/,
     'footer payments disclaimer removed',
   )
-  assert.match(text, /© HouseCall/, 'footer copyright')
+  assert.match(text, /© Bunk/, 'footer copyright')
   assert.match(text, /href="\/browse"[^>]*>Browse jobs/, 'footer Browse jobs')
   assert.match(text, /href="\/post"[^>]*>Post a task/, 'footer Post a task')
   assert.match(text, /href="\/#how-it-works"[^>]*>How it works/, 'footer How it works')
@@ -170,7 +170,7 @@ async function checkLandingMarkup() {
   assert.match(text, /Chat, finish/, 'how-it-works step 3')
   assert.match(text, /Know what you.?re choosing/, 'why-beam heading')
   assert.match(text, /One less thing on your list/, 'closing CTA')
-  assert.doesNotMatch(text, /Available services on HouseCall/, 'available services section removed')
+  assert.doesNotMatch(text, /Available services on Bunk/, 'available services section removed')
   assert.doesNotMatch(text, /data-testid="available-services"/, 'available-services testid removed')
   assert.doesNotMatch(text, /Explore all six/, 'explore-all-six overline removed')
   assert.doesNotMatch(text, /id="neighborhoods"/, 'neighborhoods anchor removed')
@@ -351,7 +351,7 @@ async function checkAuthMarkupAndRedirects() {
 
   const { res, text } = await fetchText('/auth?mode=signup')
   assert.equal(res.status, 200, 'auth page status')
-  assert.match(text, /HouseCall|auth/, 'auth route shell present')
+  assert.match(text, /Bunk|auth/, 'auth route shell present')
   assert.doesNotMatch(text, /text-red-300|Live mode uses Supabase email\/password auth/i, 'no legacy developer auth copy')
   const authPhoto = await fetch(`${BASE_URL}/images/auth/carpet-cleaner.jpg`)
   assert.equal(authPhoto.status, 200, 'auth modal photo asset served')
@@ -586,7 +586,7 @@ async function checkAuthBrowser() {
     assert.ok(isLightRgb(surfaces.body), `auth body daylight got ${surfaces.body}`)
 
     await page.getByRole('tab', { name: 'Create account' }).click()
-    await page.waitForSelector('text=Join HouseCall')
+    await page.waitForSelector('text=Join Bunk')
     // Name is collected in onboarding Step 1, not on email signup.
     assert.equal(await page.locator('text=Full name').count(), 0, 'signup must not ask for Full name')
     assert.equal(await page.getByLabel('Email').count(), 1)
@@ -606,11 +606,11 @@ async function checkAuthBrowser() {
     assert.equal(await page.locator('text=Full name').count(), 0)
 
     await page.goto(`${BASE_URL}/auth?mode=signup`, { waitUntil: 'domcontentloaded' })
-    await page.waitForSelector('text=Join HouseCall')
+    await page.waitForSelector('text=Join Bunk')
     assert.equal(await page.locator('text=Full name').count(), 0, 'direct signup URL must not ask for Full name')
     assert.equal(await page.getByRole('tab', { name: 'Create account' }).getAttribute('aria-selected'), 'true')
     const signupBody = await page.locator('body').innerText()
-    assert.match(signupBody, /Join HouseCall/i)
+    assert.match(signupBody, /Join Bunk/i)
     assert.match(signupBody, /Post a task in a minute/i)
     assert.match(signupBody, /Helpers verify they live nearby/i)
     assert.doesNotMatch(signupBody, /Elena R\.|Posted a couch move at 1pm/i)
@@ -868,7 +868,7 @@ async function checkLandingBrowser() {
     // Public browse + safety
     await page.goto(`${BASE_URL}/browse`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('body')
-    // Boot must keep marketplace chrome (no full-screen HouseCall splash takeover).
+    // Boot must keep marketplace chrome (no full-screen Bunk splash takeover).
     await page
       .waitForFunction(
         () =>
@@ -886,10 +886,10 @@ async function checkLandingBrowser() {
       'browse reachable',
     )
     assert.ok(
-      !/^HouseCall\s*$/.test(browseBody.trim()),
-      'no full-screen HouseCall splash',
+      !/^Bunk\s*$/.test(browseBody.trim()),
+      'no full-screen Bunk splash',
     )
-    assert.doesNotMatch(browseBody.slice(0, 80), /^HouseCall\nSign in to help nearby$/m)
+    assert.doesNotMatch(browseBody.slice(0, 80), /^Bunk\nSign in to help nearby$/m)
     assert.doesNotMatch(browseBody, /across Austin neighborhoods/i)
     assert.doesNotMatch(browseBody, /\bfree=1\b|\bq:\s/)
     const browseChrome = await page.evaluate(() => ({
@@ -977,7 +977,7 @@ async function checkLandingBrowser() {
       await footer.scrollIntoViewIfNeeded()
       await footer.locator('a[href="/safety"]').first().click()
       await page.waitForURL(/\/safety/, { timeout: 15000 })
-      await page.waitForSelector('text=Safety on HouseCall', { timeout: 15000 })
+      await page.waitForSelector('text=Safety on Bunk', { timeout: 15000 })
       assert.match(page.url(), /\/safety/)
       // Signed-in /safety keeps marketplace chrome (topnav + shared footer), not a stranded page.
       assert.ok(
@@ -993,12 +993,12 @@ async function checkLandingBrowser() {
     }
 
     await page.goto(`${BASE_URL}/safety`, { waitUntil: 'domcontentloaded' })
-    await page.waitForSelector('text=Safety on HouseCall', { timeout: 15000 })
+    await page.waitForSelector('text=Safety on Bunk', { timeout: 15000 })
     const safetyText = await page.locator('body').innerText()
     assert.match(safetyText, /Safety/i)
-    assert.match(safetyText, /never holds your money|HouseCall never holds/i)
+    assert.match(safetyText, /never holds your money|Bunk never holds/i)
     assert.match(safetyText, /How does local matching work\?/i)
-    assert.doesNotMatch(safetyText, /Is HouseCall available outside Austin\?/i)
+    assert.doesNotMatch(safetyText, /Is Bunk available outside Austin\?/i)
     assert.ok(await page.locator('a[href="/browse"], a[href="/"]').count() >= 1, 'safety has nav escape')
     // /safety guest chrome may omit marketing nav; ensure escape links exist above.
     const safetyNav = await page.locator('[data-testid="landing-nav"]').count()
@@ -1229,7 +1229,7 @@ async function checkBrowserPersistence() {
   try {
     await page.goto(`${BASE_URL}/browse`, { waitUntil: 'networkidle' })
     const bodyText = await page.locator('body').innerText()
-    if (/Sign in to help nearby|Create account|HouseCall needs configuration/i.test(bodyText) &&
+    if (/Sign in to help nearby|Create account|Bunk needs configuration/i.test(bodyText) &&
         !/Open requests|Browse/i.test(bodyText)) {
       console.log('skip browser localStorage (live auth gate)')
       return
@@ -1333,10 +1333,10 @@ async function checkOnboardingFlow() {
     assert.doesNotMatch(progressText1, /\bBeam\b/, 'no Beam wordmark in step progress')
 
     const step1 = await page.locator('[data-testid="onboarding-step-1"]').innerText()
-    assert.match(step1, /Welcome to HouseCall/i)
+    assert.match(step1, /Welcome to Bunk/i)
     assert.match(step1, /\bNeighbor\b/i)
     assert.match(step1, /\bHelper\b/i)
-    assert.match(step1, /How you'll use HouseCall/i)
+    assert.match(step1, /How you'll use Bunk/i)
     assert.match(step1, /Your full name/i)
     assert.match(step1, /Aliases and nicknames are not allowed/i)
     assert.doesNotMatch(step1, /\bCustomer\b/i)
@@ -1767,7 +1767,7 @@ async function checkMarketplaceFlows() {
     ) {
       console.log('skip helper onboarding interactive (auth gated → /auth)')
       if (onboardUrl.pathname.replace(/\/$/, '') === '/auth') {
-        assert.match(onboardText, /Welcome back|Join HouseCall|Continue with Google|demo mode/i)
+        assert.match(onboardText, /Welcome back|Join Bunk|Continue with Google|demo mode/i)
         // Main AuthExperience — not the removed AuthGate compact header.
         const gateHeader = await page.evaluate(() =>
           [...document.querySelectorAll('header')].some((h) => {
@@ -1890,7 +1890,7 @@ async function checkMarketplaceFlows() {
     await page
       .waitForFunction(
         () =>
-          /Step 1 of 2|What do you need done|Continue|Post a task|Sign in|Create account|Continue with Google|Continue to HouseCall|demo mode|Welcome back/i.test(
+          /Step 1 of 2|What do you need done|Continue|Post a task|Sign in|Create account|Continue with Google|Continue to Bunk|demo mode|Welcome back/i.test(
             document.body.innerText,
           ) || /\/auth/.test(location.pathname),
         null,
@@ -1901,9 +1901,9 @@ async function checkMarketplaceFlows() {
     const postBody = await page.locator('body').innerText()
     if (
       postUrl.pathname.replace(/\/$/, '') === '/auth' ||
-      (/Sign in|Create account|demo mode|Continue to HouseCall|Continue with Google|Welcome back/i.test(postBody) &&
+      (/Sign in|Create account|demo mode|Continue to Bunk|Continue with Google|Welcome back/i.test(postBody) &&
         !/What do you need done|Continue|Post a task/i.test(postBody)) ||
-      /^HouseCall$/m.test(postBody.trim())
+      /^Bunk$/m.test(postBody.trim())
     ) {
       console.log('skip post composer interactive (auth gated → /auth)')
       if (postUrl.pathname.replace(/\/$/, '') === '/auth') {
@@ -2195,7 +2195,7 @@ async function checkSubtleRadii() {
         .waitForFunction(
           () =>
             document.body.innerText.length > 40 &&
-            !/^HouseCall\s*$/m.test(document.body.innerText.trim()),
+            !/^Bunk\s*$/m.test(document.body.innerText.trim()),
           null,
           { timeout: 15000 },
         )

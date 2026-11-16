@@ -23,7 +23,7 @@ export function PolicyPlaceholder({
   const { authUser, mode } = useBeam()
   const signedIn = mode === 'demo' || Boolean(authUser)
   const backHref = signedIn ? '/settings' : '/'
-  const backLabel = signedIn ? 'Back to Settings' : 'Back to HouseCall'
+  const backLabel = signedIn ? 'Back to Settings' : 'Back to Bunk'
 
   return (
     <div className="account-hc" data-testid={testId} data-policy={title}>

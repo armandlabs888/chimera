@@ -6,7 +6,7 @@ import { pageMetadata } from '@/lib/seo/site'
 export const metadata: Metadata = pageMetadata({
   title: 'Browse jobs',
   description:
-    'Browse open jobs and local helpers on HouseCall. Compare priced offers for home, auto, junk removal, and pet care.',
+    'Browse open jobs and local helpers on Bunk. Compare priced offers for home, auto, junk removal, and pet care.',
   path: '/browse',
 })
 

@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { type ReactNode, type Ref } from 'react'
-import { HouseCallWordmark } from '@/components/HouseCallWordmark'
+import { BunkWordmark } from '@/components/BunkWordmark'
 import { LIFESTYLE } from '@/data/media'
 import './auth-shell.css'
 
@@ -46,7 +46,7 @@ export function AuthModalShell({
         className="auth-shell-card"
       >
         <div className="auth-shell-form">
-          <HouseCallWordmark size={18} className="mb-1 w-fit self-start" />
+          <BunkWordmark size={18} className="mb-1 w-fit self-start" />
           {children}
         </div>
 
@@ -120,7 +120,7 @@ function AsidePanel() {
         <div className="auth-shell-aside-image">
           <Image
             src={LIFESTYLE.authCarpet}
-            alt="A HouseCall helper cleaning a carpet"
+            alt="A Bunk helper cleaning a carpet"
             fill
             className="object-cover object-[50%_30%]"
             sizes="360px"

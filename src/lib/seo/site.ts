@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 /** Production origin for canonicals, sitemap, and robots. */
 export const SITE_URL = 'https://www.yariapp.com'
 
-export const SITE_NAME = 'HouseCall'
+export const SITE_NAME = 'Bunk'
 
 export const DEFAULT_DESCRIPTION =
   'Describe the job, compare priced offers, and choose local help that fits: home, auto, junk removal, pets, and other everyday tasks.'
