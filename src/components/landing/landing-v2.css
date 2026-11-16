@@ -1,16 +1,14 @@
 /* Landing v2 — full-bleed photo hero + stacked product preview (landing route only). */
 
+.landing-root {
+  --landing-overlay-nav-height: 56px;
+  --landing-float-header-offset: var(--landing-overlay-nav-height);
+}
+
 .landing-hero-photo {
-  /* Floating pill: 16px top + 52px bar (md: 20px top + 54px). */
-  --landing-float-nav-inset: 16px;
-  --landing-float-nav-height: 52px;
-  --landing-float-header-offset: calc(
-    var(--landing-float-nav-inset) + var(--landing-float-nav-height)
-  );
-  /* Reserve only the fixed header; flex centering places the stack in the
-     remaining hero (viewport − header). Extra header→eyebrow gap was pushing
-     the group too low when combined with justify-content: center. */
-  --landing-hero-content-pad-top: var(--landing-float-header-offset);
+  /* Flat overlay header: full-width bar, no inset. Reserve header height so
+     hero content clears the overlay and stays centered in the remainder. */
+  --landing-hero-content-pad-top: var(--landing-overlay-nav-height);
 
   /* Fill the first viewport so no white strip shows under the photo on load. */
   min-height: 100svh;
@@ -19,12 +17,6 @@
   display: flex;
   flex-direction: column;
   background: #071330;
-}
-
-@media (min-width: 768px) {
-  .landing-hero-photo {
-    --landing-float-nav-inset: 20px;
-  }
 }
 
 .landing-hero-photo-img {
@@ -213,34 +205,39 @@
   }
 }
 
-.landing-float-nav {
-  /* Translucent pill readable on the landing photo and white browse pages. */
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px) saturate(1.35);
-  -webkit-backdrop-filter: blur(20px) saturate(1.35);
-  border: 1px solid #e3e8ef;
-  border-radius: 9999px;
-  box-shadow:
-    0 8px 28px rgba(7, 19, 48, 0.12),
-    0 2px 8px rgba(7, 19, 48, 0.06);
-  height: 52px;
-  padding: 0 6px 0 16px;
+/* Flat overlay header: full-bleed, transparent, no pill/shadow/inset. */
+.landing-overlay-shell {
+  width: 100%;
 }
 
-@media (min-width: 768px) {
-  .landing-float-nav {
-    height: 54px;
-    padding: 0 6px 0 20px;
-  }
-}
-
-/* Browse v3 reuses the landing float offset so the column clears the inset header. */
-.browse-v3 {
-  --landing-float-nav-inset: 16px;
-  --landing-float-nav-height: 52px;
-  --landing-float-header-offset: calc(
-    var(--landing-float-nav-inset) + var(--landing-float-nav-height)
+.landing-overlay-scrim {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 112px;
+  background: linear-gradient(
+    180deg,
+    rgba(7, 19, 48, 0.55) 0%,
+    rgba(7, 19, 48, 0.22) 55%,
+    rgba(7, 19, 48, 0) 100%
   );
+  z-index: 0;
+}
+
+.landing-overlay-nav {
+  position: relative;
+  z-index: 1;
+  height: var(--landing-overlay-nav-height, 56px);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Legacy browse-v3 float offset (unused by current browse-hc shell; kept for safety). */
+.browse-v3 {
+  --landing-overlay-nav-height: 56px;
+  --landing-float-header-offset: var(--landing-overlay-nav-height);
   --browse-header-gap: 40px;
   --browse-banner-h: 0px;
   padding-top: calc(
@@ -250,7 +247,6 @@
 
 @media (min-width: 768px) {
   .browse-v3 {
-    --landing-float-nav-inset: 20px;
     --browse-header-gap: 60px;
   }
 }

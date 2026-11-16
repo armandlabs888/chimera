@@ -11,16 +11,17 @@ export function LandingNav({
   variant = 'hero',
   browseLocationLabel,
 }: {
-  /** `float` = Landing v2 glass pill (landing route only). `light`/`hero` = guest browse shell. */
-  variant?: 'hero' | 'light' | 'float'
+  /** `overlay` = flat transparent bar over the landing hero. `light`/`hero` = solid chrome. */
+  variant?: 'hero' | 'light' | 'overlay'
   /** Guest Browse: reuse topnav location control without a page eyebrow. */
   browseLocationLabel?: string
 }) {
   const { authUser, mode, currentUser, signOut } = useBeam()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const isFloat = variant === 'float'
-  const light = variant === 'light' || variant === 'float' || scrolled
+  const isOverlay = variant === 'overlay'
+  const light = variant === 'light' || (variant === 'hero' && scrolled)
+  const onDark = isOverlay || (variant === 'hero' && !scrolled)
   const signedInLive = mode === 'live' && Boolean(authUser)
   const onboardingDone = Boolean(currentUser?.onboardingCompletedAt)
   const canOnboardHelper = Boolean(authUser) || mode === 'demo'
@@ -57,23 +58,18 @@ export function LandingNav({
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
-  const linkClass = isFloat
-    ? 'text-[14px] font-medium text-[#071330] transition-colors hover:text-[#1D5CE5]'
-    : light
-      ? 'text-[15px] font-medium text-[#4A5568] transition hover:text-[#071330]'
-      : 'text-[15px] font-medium text-white/90 transition hover:text-white'
+  const linkClass = onDark
+    ? 'text-[14px] font-medium text-white/90 transition-colors hover:text-white'
+    : 'text-[14px] font-medium text-[#4A5568] transition-colors hover:text-[#071330]'
 
-  const loginClass = isFloat
-    ? 'hidden text-[13px] font-medium text-[#071330] transition hover:text-[#1D5CE5] sm:inline'
-    : light
-      ? 'hidden text-[15px] font-medium text-[#071330] transition hover:text-[#1D5CE5] sm:inline'
-      : 'hidden text-[15px] font-medium text-white transition hover:text-white/85 sm:inline'
+  const loginClass = onDark
+    ? 'hidden min-h-11 items-center text-[13px] font-medium text-white transition hover:text-white/85 sm:inline-flex'
+    : 'hidden min-h-11 items-center text-[13px] font-medium text-[#071330] transition hover:text-[#1D5CE5] sm:inline-flex'
 
-  const ctaClass = isFloat
-    ? 'inline-flex h-11 min-h-[44px] items-center justify-center rounded-full bg-[#071330] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D5CE5]'
-    : light
-      ? 'hidden min-h-[44px] items-center justify-center rounded-full bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white shadow-none transition hover:bg-[#1649BD] sm:inline-flex'
-      : 'hidden min-h-[44px] items-center justify-center rounded-full bg-white px-5 text-[14px] font-semibold text-[#071330] transition hover:bg-[#EEF2F7] sm:inline-flex'
+  // 40px+ tap targets (responsive audit / PR #187 used 44px).
+  const ctaClass = onDark
+    ? 'inline-flex h-11 min-h-[44px] items-center justify-center rounded-full bg-white px-4 text-[13px] font-semibold text-[#071330] transition-colors hover:bg-[#EEF2F7]'
+    : 'inline-flex h-11 min-h-[44px] items-center justify-center rounded-full bg-[#1D5CE5] px-4 text-[13px] font-semibold text-white shadow-none transition-colors hover:bg-[#1649BD]'
 
   const primaryHref = onboardingDone ? '/browse' : '/onboarding'
   const primaryLabel = onboardingDone ? 'Browse' : 'Continue setup'
@@ -81,15 +77,13 @@ export function LandingNav({
   const bar = (
     <>
       <HouseCallWordmark
-        size={isFloat ? 17 : 18}
-        tone={light ? 'brand' : 'onDark'}
-        className={`relative z-10 min-h-[44px] shrink-0 ${isFloat ? '' : 'pl-1'}`}
+        size={isOverlay ? 17 : 18}
+        tone={onDark ? 'onDark' : 'brand'}
+        className="relative z-10 min-h-[44px] shrink-0"
       />
 
-      <nav
-        className={`hidden items-center ${isFloat ? 'gap-8 px-6 lg:flex' : 'gap-8 lg:flex'}`}
-        aria-label="Marketing"
-      >
+      {/* Desktop links from lg up so 768–1024 keeps the hamburger (PR #187). */}
+      <nav className="hidden items-center gap-8 lg:flex" aria-label="Marketing">
         {navLinks.map((l) =>
           l.href.startsWith('/#') ? (
             <a key={l.href} href={l.href} className={linkClass}>
@@ -103,20 +97,14 @@ export function LandingNav({
         )}
       </nav>
 
-      <div
-        className={`flex shrink-0 items-center ${
-          isFloat ? 'justify-self-end gap-1.5 sm:gap-3' : 'gap-3 sm:gap-5'
-        }`}
-      >
+      <div className="flex shrink-0 items-center justify-self-end gap-1.5 sm:gap-3">
         {browseLocationLabel ? (
           <BrowseLocationTrigger
             label={browseLocationLabel}
             className={`inline-flex h-11 min-h-[44px] max-w-[9.5rem] items-center gap-1.5 rounded-[10px] px-2 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:px-2.5 ${
-              isFloat
-                ? 'border border-[#E3E8EF] bg-white/70 text-[#071330] hover:bg-white'
-                : light
-                  ? 'text-[#4A5568] hover:bg-white hover:text-[#071330]'
-                  : 'text-white/90 hover:bg-white/10 hover:text-white'
+              onDark
+                ? 'text-white/90 hover:bg-white/10 hover:text-white'
+                : 'text-[#4A5568] hover:bg-[#EEF2F7] hover:text-[#071330]'
             }`}
           />
         ) : null}
@@ -130,7 +118,11 @@ export function LandingNav({
             >
               Sign out
             </button>
-            <Link href={primaryHref} className={ctaClass} data-testid="landing-nav-primary">
+            <Link
+              href={primaryHref}
+              className={`${ctaClass} ${isOverlay ? '' : 'hidden sm:inline-flex'}`}
+              data-testid="landing-nav-primary"
+            >
               {primaryLabel}
             </Link>
           </>
@@ -141,7 +133,7 @@ export function LandingNav({
             </Link>
             <Link
               href="/auth?mode=signup&next=%2Fonboarding"
-              className={ctaClass}
+              className={`${ctaClass} ${isOverlay ? '' : 'hidden sm:inline-flex'}`}
               data-testid="landing-nav-signup"
             >
               Sign up
@@ -150,15 +142,9 @@ export function LandingNav({
         )}
         <button
           type="button"
-          className={
-            isFloat
-              ? 'inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-[#E3E8EF] bg-white text-[#071330] lg:hidden'
-              : `inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-[10px] border lg:hidden ${
-                  light
-                    ? 'border-[#E3E8EF] text-[#071330]'
-                    : 'border-white/30 text-white'
-                }`
-          }
+          className={`inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-[10px] border lg:hidden ${
+            onDark ? 'border-white/30 text-white' : 'border-[#E3E8EF] text-[#071330]'
+          }`}
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={mobileOpen}
           onClick={() => setMobileOpen((v) => !v)}
@@ -171,8 +157,8 @@ export function LandingNav({
 
   const mobileMenu = mobileOpen ? (
     <div
-      className={`relative z-50 overflow-hidden rounded-[12px] border border-[rgba(7,19,48,0.12)] bg-white shadow-[0_18px_40px_-12px_rgba(12,42,102,0.28)] ${
-        isFloat ? 'mx-0 mt-2 lg:hidden' : 'mx-4 mb-3 lg:hidden'
+      className={`relative z-50 overflow-hidden border-[#E3E8EF] bg-white lg:hidden ${
+        isOverlay ? 'border-b' : 'mx-4 mb-3 rounded-[12px] border'
       }`}
       data-testid="landing-mobile-menu"
     >
@@ -182,7 +168,7 @@ export function LandingNav({
             <a
               key={l.href}
               href={l.href}
-              className="px-4 py-3 text-[15px] text-[#071330]"
+              className="min-h-[44px] px-4 py-3 text-[15px] text-[#071330]"
               onClick={() => setMobileOpen(false)}
             >
               {l.label}
@@ -191,19 +177,19 @@ export function LandingNav({
             <Link
               key={l.href}
               href={l.href}
-              className="px-4 py-3 text-[15px] text-[#071330]"
+              className="min-h-[44px] px-4 py-3 text-[15px] text-[#071330]"
               onClick={() => setMobileOpen(false)}
             >
               {l.label}
             </Link>
           ),
         )}
-        <div className="my-1 border-t border-[rgba(7,19,48,0.08)]" />
+        <div className="my-1 border-t border-[#E3E8EF]" />
         {signedInLive ? (
           <>
             <button
               type="button"
-              className="px-4 py-3 text-left text-[15px] text-[#071330]"
+              className="min-h-[44px] px-4 py-3 text-left text-[15px] text-[#071330]"
               data-testid="landing-mobile-sign-out"
               onClick={() => {
                 setMobileOpen(false)
@@ -215,7 +201,7 @@ export function LandingNav({
             <div className="px-4 pb-3 pt-1">
               <Link
                 href={primaryHref}
-                className="inline-flex h-9 w-full items-center justify-center rounded-[10px] bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white transition hover:bg-[#1649BD]"
+                className="inline-flex h-11 min-h-[44px] w-full items-center justify-center rounded-[10px] bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white transition hover:bg-[#1649BD]"
                 data-testid="landing-mobile-primary"
                 onClick={() => setMobileOpen(false)}
               >
@@ -227,7 +213,7 @@ export function LandingNav({
           <>
             <Link
               href="/auth?mode=signin"
-              className="px-4 py-3 text-[15px] text-[#071330]"
+              className="min-h-[44px] px-4 py-3 text-[15px] text-[#071330]"
               onClick={() => setMobileOpen(false)}
             >
               Log in
@@ -235,7 +221,7 @@ export function LandingNav({
             <div className="px-4 pb-3 pt-1">
               <Link
                 href="/auth?mode=signup&next=%2Fonboarding"
-                className="inline-flex h-9 w-full items-center justify-center rounded-[10px] bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white transition hover:bg-[#1649BD]"
+                className="inline-flex h-11 min-h-[44px] w-full items-center justify-center rounded-[10px] bg-[#1D5CE5] px-5 text-[14px] font-semibold text-white transition hover:bg-[#1649BD]"
                 data-testid="landing-mobile-signup"
                 onClick={() => setMobileOpen(false)}
               >
@@ -248,19 +234,20 @@ export function LandingNav({
     </div>
   ) : null
 
-  if (isFloat) {
+  if (isOverlay) {
     return (
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4 sm:px-5 md:pt-5">
-        <div className="pointer-events-none w-full max-w-[calc(100%-2rem)] lg:w-auto lg:max-w-[calc(100%-40px)]">
-          <header
-            className="landing-float-nav pointer-events-auto grid w-full max-w-full grid-cols-[auto_1fr] items-center lg:inline-grid lg:w-max lg:grid-cols-[1fr_auto_1fr] lg:gap-x-10"
-            data-testid="landing-nav"
-            data-nav-style="float"
-          >
+      <div className="landing-overlay-shell pointer-events-none absolute inset-x-0 top-0 z-50">
+        <div className="landing-overlay-scrim pointer-events-none" aria-hidden />
+        <header
+          className="landing-overlay-nav pointer-events-auto relative w-full"
+          data-testid="landing-nav"
+          data-nav-style="overlay"
+        >
+          <div className="beam-container grid h-full grid-cols-[auto_1fr] items-center lg:grid-cols-[1fr_auto_1fr] lg:gap-x-10">
             {bar}
-          </header>
-          <div className="pointer-events-auto w-full">{mobileMenu}</div>
-        </div>
+          </div>
+        </header>
+        <div className="pointer-events-auto w-full">{mobileMenu}</div>
       </div>
     )
   }
@@ -275,6 +262,7 @@ export function LandingNav({
           : ''
       }`}
       data-testid="landing-nav"
+      data-nav-style={variant === 'light' ? 'flat' : 'hero'}
     >
       <div className="beam-container flex h-14 items-center justify-between lg:h-16">{bar}</div>
       {mobileMenu}

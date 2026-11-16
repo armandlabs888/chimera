@@ -9,15 +9,15 @@ import { LandingFooter } from './LandingFooter'
 import { AccountDeletedNotice } from './AccountDeletedNotice'
 import './landing-v2.css'
 
-/** Landing v2 — floating glass nav, full-bleed photo hero, Popular services first. */
+/** Landing v2 — flat overlay nav on full-bleed photo hero, Popular services first. */
 export function LandingPage() {
   return (
     <div className="landing-root relative min-h-dvh bg-white text-[#071330]">
       <Suspense fallback={null}>
         <AccountDeletedNotice />
       </Suspense>
-      {/* Outside the hero so fixed positioning is not trapped by isolate stacking. */}
-      <LandingNav variant="float" />
+      {/* Outside the hero so absolute overlay is not trapped by isolate stacking. */}
+      <LandingNav variant="overlay" />
       <main>
         <LandingHero />
         <LandingCategories />
