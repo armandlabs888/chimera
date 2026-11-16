@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
+import { ContentSkeleton } from '@/components/loading/ContentSkeleton'
 import { Onboarding } from '@/screens/Onboarding'
 import { pageMetadata } from '@/lib/seo/site'
 
@@ -12,13 +13,7 @@ export const metadata: Metadata = pageMetadata({
 
 export default function Page() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-dvh items-center justify-center bg-white">
-          <p className="text-[22px] font-semibold tracking-tight text-[#071330]">HouseCall</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<ContentSkeleton label="Loading onboarding" />}>
       <Onboarding />
     </Suspense>
   )

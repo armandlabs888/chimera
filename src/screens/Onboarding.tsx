@@ -380,8 +380,12 @@ export function Onboarding() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-white">
-        <p className="text-[22px] font-semibold tracking-tight text-[#071330]">HouseCall</p>
+      <div className="account-hc min-h-dvh" data-testid="onboarding-loading" aria-busy="true">
+        <div className="account-hc-wrap account-hc-onboarding-page">
+          <div className="h-8 w-48 animate-pulse rounded-md bg-[#E8EEF7]" />
+          <div className="mt-3 h-4 w-72 max-w-full animate-pulse rounded-md bg-[#E8EEF7]" />
+          <div className="mt-8 h-40 w-full animate-pulse rounded-lg bg-[#E8EEF7]" />
+        </div>
       </div>
     )
   }

@@ -287,10 +287,13 @@ function noopAsync() {
 
 export function BeamProvider({
   children,
-  nonBlocking = false,
+  nonBlocking: _nonBlocking = false,
 }: {
   children: ReactNode
-  /** When true, render children during boot with a provisional guest context (marketing SSR). */
+  /**
+   * Historical marketing SSR flag. Boot always provisions children now
+   * (no full-screen splash); AuthGate blanks protected routes until ready.
+   */
   nonBlocking?: boolean
 }) {
   const [mode] = useState<BeamMode>(() => resolveBeamMode())
@@ -2261,26 +2264,20 @@ export function BeamProvider({
   }
 
   if (booting) {
-    if (nonBlocking) {
-      const provisional: BeamContextValue = {
-        mode,
-        ready: false,
-        authUser: null,
-        backendError: null,
-        state: emptyLiveState('anonymous'),
-        currentUser: guestStubPerson(),
-        refresh: noopAsync,
-        ...sharedActions,
-      }
-      return <BeamContext.Provider value={provisional}>{children}</BeamContext.Provider>
+    // Always provision children during boot so headers/layouts stay mounted.
+    // AuthGate blanks protected content until ready; never a full-screen splash.
+    // Call sites may still pass `nonBlocking` for intent (marketing SSR); behavior matches.
+    const provisional: BeamContextValue = {
+      mode,
+      ready: false,
+      authUser: null,
+      backendError: null,
+      state: emptyLiveState('anonymous'),
+      currentUser: guestStubPerson(),
+      refresh: noopAsync,
+      ...sharedActions,
     }
-    return (
-      <div className="flex min-h-dvh items-center justify-center bg-white text-[#071330]">
-        <p className="text-[22px] font-semibold tracking-tight text-[#071330]" aria-busy="true">
-          HouseCall
-        </p>
-      </div>
-    )
+    return <BeamContext.Provider value={provisional}>{children}</BeamContext.Provider>
   }
 
   if (mode === 'unconfigured') {

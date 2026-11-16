@@ -33,18 +33,12 @@ export default function AuthPage() {
     }
   }, [ready, authUser, router, searchParams, currentUser.onboardingCompletedAt])
 
-  if (!ready) {
+  // Keep landing chrome visible while session resolves or post-auth redirect runs.
+  // Never flash a full-screen HouseCall splash (OAuth callback is a separate route).
+  if (!ready || authUser) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-white">
-        <p className="text-[22px] font-semibold tracking-tight text-[#071330]">HouseCall</p>
-      </div>
-    )
-  }
-
-  if (authUser) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center bg-white">
-        <p className="type-sec text-beam-muted">Continuing…</p>
+      <div inert aria-hidden="true">
+        <LandingPage />
       </div>
     )
   }

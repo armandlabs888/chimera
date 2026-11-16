@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { Suspense } from 'react'
 import { BeamProvider } from '@/context/BeamContext'
+import { RouteProgressBar } from '@/components/loading/RouteProgressBar'
 import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
@@ -16,11 +17,12 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     <BeamProvider>
       <Suspense
         fallback={
-          <div className="flex min-h-dvh items-center justify-center bg-beam-base text-beam-cream">
-            <p className="text-[22px] font-semibold tracking-tight text-[#071330]">HouseCall</p>
+          <div className="relative min-h-dvh bg-white">
+            <div className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-[2px] bg-[#1D5CE5]" />
           </div>
         }
       >
+        <RouteProgressBar />
         {children}
       </Suspense>
     </BeamProvider>
