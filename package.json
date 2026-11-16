@@ -17,6 +17,7 @@
     "test:taxonomy": "node scripts/taxonomy-unit.mjs",
     "test:describe-intent": "node scripts/describe-intent-unit.mjs",
     "test:zip-lookup": "node scripts/zip-lookup-unit.mjs",
+    "test:draft-schedule": "node scripts/draft-schedule-unit.mjs",
     "test:zip-bundle": "node scripts/zip-bundle-check.mjs",
     "test:account-delete-confirm": "node scripts/account-delete-confirm-unit.mjs",
     "test:casual-categories": "node scripts/casual-categories-qa.mjs",

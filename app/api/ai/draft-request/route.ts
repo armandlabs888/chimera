@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { inferDraftSchedule, type DraftSchedule } from '@/lib/draftSchedule'
 import { isCategoryId } from '@/lib/taxonomy'
 import type { CategoryId, WhenOption } from '@/types'
 
@@ -13,6 +14,8 @@ type DraftResult = {
   details?: string
   when?: WhenOption
   whenLabel?: string
+  scheduledDate?: string
+  startTime?: string
   suggestedMin?: number
   suggestedMax?: number
   suggestedBudget?: number
@@ -37,7 +40,7 @@ function inferCategory(prompt: string, hint?: CategoryId): CategoryId {
   if (hint) return hint
   const t = prompt.toLowerCase()
   if (/\b(carpet|rug|upholstery)\b/.test(t)) return 'carpet-cleaning'
-  if (/\b(clean|mop|kitchen|bathroom|move-?out|deep clean|fridge|vacuum|tidy)\b/.test(t))
+  if (/\b(clean(?:ing)?|mop|kitchen|bathroom|move-?out|deep clean|fridge|vacuum|tidy)\b/.test(t))
     return 'house-cleaning'
   if (/\b(car|auto|detail|vehicle|interior wipe|wax)\b/.test(t)) return 'auto-detailing'
   if (/\b(junk|haul|debris|trash haul|couch|sofa|sectional|u-?haul|boxes|mattress|lift|stairs|move|moving)\b/.test(t))
@@ -47,27 +50,39 @@ function inferCategory(prompt: string, hint?: CategoryId): CategoryId {
   return 'other'
 }
 
-function inferWhen(prompt: string): { when: WhenOption; whenLabel: string } {
-  const t = prompt.toLowerCase()
-  // New post form only accepts asap | scheduled. Mentions of a calendar day → scheduled
-  // (customer still picks concrete date/time in the form). Urgency language → asap.
-  if (
-    /\b(tomorrow|saturday|sunday|monday|tuesday|wednesday|thursday|friday)\b/.test(t) ||
-    /\b(next week|this weekend|schedule[d]?|on the \d)/.test(t) ||
-    /\b\d{1,2}\/\d{1,2}\b/.test(t)
-  ) {
-    return { when: 'scheduled', whenLabel: 'Scheduled' }
+function applySchedule(draft: DraftResult, schedule: DraftSchedule): DraftResult {
+  return {
+    ...draft,
+    when: schedule.when,
+    whenLabel: schedule.whenLabel,
+    scheduledDate: schedule.scheduledDate,
+    startTime: schedule.startTime,
   }
-  return { when: 'asap', whenLabel: 'As soon as possible' }
 }
 
-/** Strip removed timing chips (today/tomorrow/this-week) from model output. */
-function sanitizeDraftWhen(draft: DraftResult): DraftResult {
-  if (draft.when === 'scheduled') {
-    return { ...draft, when: 'scheduled', whenLabel: draft.whenLabel || 'Scheduled' }
+/** Strip removed timing chips (today/tomorrow/this-week) from model output; attach concrete clocks. */
+function sanitizeDraftWhen(draft: DraftResult, prompt: string): DraftResult {
+  const inferred = inferDraftSchedule(prompt)
+  if (draft.when === 'scheduled' || inferred.when === 'scheduled') {
+    const scheduledDate =
+      typeof draft.scheduledDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(draft.scheduledDate)
+        ? draft.scheduledDate
+        : inferred.scheduledDate
+    const startTime =
+      typeof draft.startTime === 'string' && /^\d{1,2}:\d{2}$/.test(draft.startTime)
+        ? draft.startTime
+        : inferred.startTime
+    if (scheduledDate && startTime) {
+      return applySchedule(draft, {
+        when: 'scheduled',
+        whenLabel: draft.whenLabel || inferred.whenLabel || 'Scheduled',
+        scheduledDate,
+        startTime,
+      })
+    }
+    if (inferred.when === 'scheduled') return applySchedule(draft, inferred)
   }
-  // Default + map legacy urgency chips to asap — never reintroduce today/tomorrow/this-week.
-  return { ...draft, when: 'asap', whenLabel: 'As soon as possible' }
+  return applySchedule(draft, { when: 'asap', whenLabel: 'As soon as possible' })
 }
 
 function estimateBudget(category: CategoryId, prompt: string): {
@@ -158,17 +173,19 @@ function stripEmEnDashes<T extends DraftResult>(draft: T): T {
 
 function smartDraft(prompt: string, categoryHint?: CategoryId): DraftResult {
   const category = inferCategory(prompt, categoryHint)
-  const { when, whenLabel } = inferWhen(prompt)
+  const schedule = inferDraftSchedule(prompt)
   const budget = estimateBudget(category, prompt)
   return stripEmEnDashes(
-    sanitizeDraftWhen({
-      category,
-      title: synthesizeTitle(category, prompt),
-      details: synthesizeDetails(prompt),
-      when,
-      whenLabel,
-      ...budget,
-    }),
+    sanitizeDraftWhen(
+      {
+        category,
+        title: synthesizeTitle(category, prompt),
+        details: synthesizeDetails(prompt),
+        ...schedule,
+        ...budget,
+      },
+      prompt,
+    ),
   )
 }
 
@@ -191,8 +208,8 @@ async function llmDraft(
 Allowed categories ONLY: house-cleaning, carpet-cleaning, auto-detailing, junk-removal, pet-sitting, grooming, other.
 Never suggest licensed trades, childcare, medical/elder care, or passenger rides. Same exclusions apply when category is other.
 Never use em or en dashes.
-Return JSON with keys: category, title (<=70 chars), details, when (asap|scheduled ONLY, never today, tomorrow, or this-week), whenLabel, suggestedMin, suggestedMax, suggestedBudget.
-Use when=asap when the customer wants help soon / urgently (not a guaranteed dispatch). Use when=scheduled only if they clearly name a future day or appointment.
+Return JSON with keys: category, title (<=70 chars), details (optional if title is clear), when (asap|scheduled ONLY, never today, tomorrow, or this-week), whenLabel, scheduledDate (YYYY-MM-DD when when=scheduled), startTime (HH:MM 24h local when when=scheduled), suggestedMin, suggestedMax, suggestedBudget.
+Use when=asap when the customer wants help soon / urgently without naming a day. Use when=scheduled when they clearly name a future day or time of day on a day (for example Saturday afternoon -> next Saturday 13:00, tomorrow morning -> tomorrow 09:00). Always include scheduledDate and startTime with when=scheduled.
 ${hasPhoto ? 'A photo was attached. Mention checking the photo in details.' : ''}
 ${categoryHint ? `Prefer category ${categoryHint} if it fits.` : ''}`
 
@@ -246,7 +263,7 @@ export async function POST(req: NextRequest) {
 
   const llm = await llmDraft(prompt, Boolean(body.hasPhoto), body.categoryHint)
   if (llm && llm.category && isCategoryId(llm.category) && llm.title) {
-    return NextResponse.json(stripEmEnDashes(sanitizeDraftWhen(llm)))
+    return NextResponse.json(stripEmEnDashes(sanitizeDraftWhen(llm, prompt)))
   }
 
   return NextResponse.json(smartDraft(prompt, body.categoryHint))

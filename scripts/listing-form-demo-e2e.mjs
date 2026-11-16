@@ -56,6 +56,23 @@ async function main() {
     // Clear prior demo posts from previous runs in this browser profile
   })
   await page.goto(`${BASE}/post`, { waitUntil: 'networkidle' })
+  await page.waitForSelector('[data-testid="post-describe-input"]')
+  await page.locator('[data-testid="post-describe-input"]').fill(
+    'Demo verify five photos for listing upload',
+  )
+  await page.locator('[data-testid="post-zip-change"]').click()
+  await page.locator('[data-testid="post-zip"]').fill('95124')
+  await page.locator('[data-testid="post-zip-resolved"]').waitFor({
+    state: 'visible',
+    timeout: 15000,
+  })
+  await page
+    .locator('[data-testid="post-continue-mobile"], [data-testid="post-continue"]')
+    .locator('visible=true')
+    .first()
+    .click()
+  await page.waitForSelector('[data-testid="post-request-form"]', { timeout: 20000 })
+  await page.locator('[data-testid="post-add-photos-link"]').click()
   await page.waitForSelector('[data-testid="post-photos-section"]')
 
   // --- 0 photos baseline ---
@@ -112,38 +129,30 @@ async function main() {
     '[DEMO] re-add to 5',
   )
 
-  // --- When: Schedule a date + times ---
+  // --- When: Pick a time (date + start only) ---
+  await page.locator('[data-testid="post-when-section-edit"]').click()
   await page.locator('[data-testid="post-when-scheduled"]').click()
   await page.waitForSelector('[data-testid="post-time-window"]')
   await page.locator('[data-testid="post-start-time"]').fill('15:30')
-  await page.locator('[data-testid="post-end-time"]').fill('17:00')
   await page.waitForTimeout(200)
   const whenText = await page.evaluate(() => document.body.innerText)
   assert.match(whenText, /3:30\s*PM/i, '[DEMO] start time label')
-  assert.match(whenText, /Schedule a date/i, '[DEMO] schedule mode')
+  assert.match(whenText, /Pick a time/i, '[DEMO] schedule mode')
+  assert.equal(await page.locator('[data-testid="post-end-time"]').count(), 0)
 
-  // Past start / end-before covered in unit tests; UI end-before-start:
-  await page.locator('[data-testid="post-start-time"]').fill('16:00')
-  await page.locator('[data-testid="post-end-time"]').fill('15:00')
+  if ((await page.locator('[data-testid="post-title"]').count()) === 0) {
+    await page.locator('[data-testid="post-row-title-edit"]').click()
+  }
   await page.locator('[data-testid="post-title"]').fill('Demo verify five photos')
+  if ((await page.locator('[data-testid="post-details"]').count()) === 0) {
+    await page.locator('[data-testid="post-row-details-edit"]').click()
+  }
   await page.locator('[data-testid="post-details"]').fill(
     'Demo-only listing for photo/schedule verification. Do not treat as production.',
   )
-  await page.locator('[data-testid="post-zip"]').fill('95124')
-  await page.getByRole('button', { name: /^Post request$/i }).click()
-  await page.waitForSelector('[data-testid="post-error"]', { timeout: 5000 })
-  assert.match(
-    (await page.locator('[data-testid="post-error"]').textContent()) || '',
-    /End time must be after start/i,
-    '[DEMO] end-before-start error',
-  )
-
-  // Fix times and post
-  await page.locator('[data-testid="post-start-time"]').fill('15:30')
-  await page.locator('[data-testid="post-end-time"]').fill('17:00')
 
   await page.screenshot({ path: join(ART, 'demo-post-5-photos-desktop.png'), fullPage: false })
-  await page.getByRole('button', { name: /^Post request$/i }).click()
+  await page.getByRole('button', { name: /^Post task$/i }).first().click()
   await page.waitForTimeout(1200)
 
   // Detail read-back
@@ -177,8 +186,17 @@ async function main() {
 
   // Mobile framed shot of form with 5 thumbs
   await page.goto(`${BASE}/post`, { waitUntil: 'networkidle' })
+  await page.locator('[data-testid="post-describe-input"]').fill('Mobile photo demo task')
+  await page
+    .locator('[data-testid="post-continue-mobile"], [data-testid="post-continue"]')
+    .locator('visible=true')
+    .first()
+    .click()
+  await page.waitForSelector('[data-testid="post-request-form"]', { timeout: 20000 })
+  await page.locator('[data-testid="post-add-photos-link"]').click()
   await page.setInputFiles('[data-testid="post-photo-input"]', files.slice(0, 5))
   await page.waitForTimeout(1000)
+  await page.locator('[data-testid="post-when-section-edit"]').click()
   await page.locator('[data-testid="post-when-scheduled"]').click()
   await page.locator('[data-testid="post-start-time"]').fill('15:30')
   await page.setViewportSize({ width: 390, height: 844 })
