@@ -36,8 +36,10 @@ import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { JobDetailPriceLine } from '@/components/jobs/JobDetailPriceLine'
 import { JobSaveButton } from '@/components/jobs/JobSaveButton'
+import { JobViewCount, JobViewCountMetaSep } from '@/components/jobs/JobViewCount'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { formatJobAreaCaption } from '@/lib/location'
+import { useRecordHelpRequestView } from '@/hooks/useRecordHelpRequestView'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 import {
   ReferHelperButton,
@@ -77,6 +79,7 @@ export function BrowseJobDrawer({
     helperVerification,
   } = useBeam()
   const isGuest = mode === 'live' && !authUser
+  useRecordHelpRequestView(request.id)
   const panelRef = useRef<HTMLElement>(null)
   const titleId = useId()
   const close = useCallback(() => onClose(), [onClose])
@@ -235,6 +238,7 @@ export function BrowseJobDrawer({
       >
         <div className="browse-hc-photo-caption">
           {categoryLabel} · Posted {posted}
+          <JobViewCountMetaSep count={request.viewCount} testId="browse-drawer-views" />
         </div>
         <JobSaveButton requestId={request.id} testId="browse-drawer-job-save" />
       </JobDetailPhoto>
@@ -265,6 +269,12 @@ export function BrowseJobDrawer({
           />
           <p className="mt-2 text-[14px] text-[#273449]">
             Posted {posted} by {firstName} · {place}
+            {(request.viewCount ?? 0) > 0 ? (
+              <>
+                {' '}
+                · <JobViewCount count={request.viewCount} testId="browse-drawer-views-body" />
+              </>
+            ) : null}
           </p>
         </div>
 

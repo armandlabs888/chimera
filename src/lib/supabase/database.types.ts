@@ -46,6 +46,7 @@ export type Database = {
           updated_at: string
           urgent_escalated_at: string | null
           urgent_helpers_notified_count: number
+          view_count: number
           when_label: string
           when_option: string
         }
@@ -80,6 +81,7 @@ export type Database = {
           updated_at?: string
           urgent_escalated_at?: string | null
           urgent_helpers_notified_count?: number
+          view_count?: number
           when_label: string
           when_option: string
         }
@@ -114,6 +116,7 @@ export type Database = {
           updated_at?: string
           urgent_escalated_at?: string | null
           urgent_helpers_notified_count?: number
+          view_count?: number
           when_label?: string
           when_option?: string
         }
@@ -664,6 +667,32 @@ export type Database = {
           },
         ]
       }
+      help_request_views: {
+        Row: {
+          help_request_id: string
+          viewer_key: string
+          viewed_at: string
+        }
+        Insert: {
+          help_request_id: string
+          viewer_key: string
+          viewed_at?: string
+        }
+        Update: {
+          help_request_id?: string
+          viewer_key?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "help_request_views_help_request_id_fkey"
+            columns: ["help_request_id"]
+            isOneToOne: false
+            referencedRelation: "help_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_help_requests: {
         Row: {
           created_at: string
@@ -1039,6 +1068,10 @@ export type Database = {
         }
       }
       get_public_marketplace: { Args: never; Returns: Json }
+      record_help_request_view: {
+        Args: { p_request_id: string; p_viewer_key: string }
+        Returns: boolean
+      }
       browse_marketplace_distances: {
         Args: {
           p_origin_lat?: number

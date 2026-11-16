@@ -59,6 +59,7 @@ function normalizeRequest(r: HelpRequest): HelpRequest {
     categoryCustom: r.categoryCustom ?? null,
     images,
     image: images[0] || r.image || '',
+    viewCount: typeof r.viewCount === 'number' && r.viewCount >= 0 ? r.viewCount : 0,
   }
 }
 

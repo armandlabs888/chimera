@@ -109,6 +109,7 @@ export function mapRequest(
     publicOfferCount: row.offer_count,
     isUrgent: Boolean(row.is_urgent),
     urgentHelpersNotifiedCount: Number(row.urgent_helpers_notified_count ?? 0),
+    viewCount: Number(row.view_count ?? 0),
   }
 }
 
@@ -272,6 +273,7 @@ export function mapPublicRequest(row: Record<string, unknown>): HelpRequest {
     publicOfferCount: Number(row.offer_count ?? 0),
     isUrgent: Boolean(row.is_urgent),
     urgentHelpersNotifiedCount: Number(row.urgent_helpers_notified_count ?? 0),
+    viewCount: Number(row.view_count ?? 0),
   }
 }
 

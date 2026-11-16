@@ -2,6 +2,7 @@
 
 import { Clock, MapPin } from 'lucide-react'
 import type { HelpRequest } from '@/types'
+import { JobViewCountMetaSep } from '@/components/jobs/JobViewCount'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 
@@ -84,6 +85,7 @@ export function BrowseJobRow({
                 <span className="browse-hc-distance-desk">{distanceLabel}</span>
               </>
             ) : null}
+            <JobViewCountMetaSep count={request.viewCount} testId="browse-job-views" />
           </span>
           {excerpt ? <span className="browse-hc-row-desc">{excerpt}</span> : null}
           {timingLabel || distanceLabel ? (

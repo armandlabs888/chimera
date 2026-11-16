@@ -28,8 +28,10 @@ import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { JobDetailPriceLine } from '@/components/jobs/JobDetailPriceLine'
+import { JobViewCountMetaSep } from '@/components/jobs/JobViewCount'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { formatJobAreaCaption } from '@/lib/location'
+import { useRecordHelpRequestView } from '@/hooks/useRecordHelpRequestView'
 import { BrowseCategoryThumb } from './BrowseCategoryThumb'
 import { SuggestedHelpersSection } from '@/components/refer/SuggestedHelpersSection'
 import { ReferHelperFooterActions } from './ReferHelperActions'
@@ -61,6 +63,7 @@ export function BrowseJobDetailPanel({
     ensureThread,
     helperVerification,
   } = useBeam()
+  useRecordHelpRequestView(request.id)
   const isGuest = mode === 'live' && !authUser
   const titleId = useId()
 
@@ -253,6 +256,7 @@ export function BrowseJobDetailPanel({
         >
           <div className="browse-hc-photo-caption">
             {categoryLabel} · Posted {posted}
+            <JobViewCountMetaSep count={request.viewCount} testId="browse-detail-views" />
           </div>
           <JobSaveButton requestId={request.id} testId="browse-job-save" />
         </JobDetailPhoto>

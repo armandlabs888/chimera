@@ -24,6 +24,7 @@ import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { JobDetailPriceLine } from '@/components/jobs/JobDetailPriceLine'
 import { JobSaveButton } from '@/components/jobs/JobSaveButton'
+import { JobViewCount } from '@/components/jobs/JobViewCount'
 import '@/components/browse/browse-hc.css'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
@@ -54,6 +55,7 @@ import {
 } from '@/lib/matching'
 import { isHelperPerson } from '@/lib/roles'
 import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
+import { useRecordHelpRequestView } from '@/hooks/useRecordHelpRequestView'
 
 const ETA_CHIPS = ['Within 30 min', 'Within 1 hour', 'Today afternoon', 'Flexible'] as const
 
@@ -105,6 +107,7 @@ export function RequestDetail() {
 
   const request = getRequest(id)
   const isGuest = mode === 'live' && !authUser
+  useRecordHelpRequestView(request?.id)
 
   // After an urgent post, refresh so "We texted n helpers" can update.
   useEffect(() => {
@@ -366,6 +369,12 @@ export function RequestDetail() {
                 <span className="text-[12.5px] text-[#4A5568]">
                   Posted {relativeTime(request.createdAt)}
                 </span>
+                {(request.viewCount ?? 0) > 0 ? (
+                  <span className="inline-flex items-center gap-1.5 text-[12.5px] text-[#4A5568]">
+                    <span aria-hidden>·</span>
+                    <JobViewCount count={request.viewCount} testId="request-detail-views" />
+                  </span>
+                ) : null}
               </div>
 
               {isOwner && request.isUrgent ? (

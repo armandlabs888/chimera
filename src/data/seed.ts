@@ -211,6 +211,7 @@ const requests: HelpRequest[] = [
     requesterId: 'p-sam',
     image: getCategory('junk-removal').image,
     createdAt: minutesAgo(42),
+    viewCount: 12,
   },
   {
     id: 'req-2',
@@ -229,6 +230,7 @@ const requests: HelpRequest[] = [
     requesterId: 'p-jordan',
     image: getCategory('grooming').image,
     createdAt: hoursAgo(1.5),
+    viewCount: 3,
   },
   {
     id: 'req-3',
@@ -247,6 +249,7 @@ const requests: HelpRequest[] = [
     requesterId: 'p-riley',
     image: getCategory('pet-sitting').image,
     createdAt: hoursAgo(2),
+    viewCount: 1,
   },
   {
     id: 'req-4',
