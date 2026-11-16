@@ -20,6 +20,8 @@
     "test:draft-schedule": "node scripts/draft-schedule-unit.mjs",
     "test:zip-bundle": "node scripts/zip-bundle-check.mjs",
     "test:account-delete-confirm": "node scripts/account-delete-confirm-unit.mjs",
+    "test:account-delete-email": "node --experimental-strip-types scripts/account-delete-email-unit.mjs",
+
     "test:helper-working-hours-publish": "node scripts/helper-working-hours-publish-unit.mjs",
     "test:helper-availability-line": "node --experimental-strip-types scripts/helper-availability-line-unit.mjs",
     "test:avatar-url": "node --experimental-strip-types scripts/avatar-url-unit.mjs",
@@ -45,6 +47,7 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-leaflet": "^5.0.0",
+    "resend": "^6.38.1",
     "server-only": "^0.0.1"
   },
   "devDependencies": {
