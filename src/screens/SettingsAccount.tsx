@@ -14,6 +14,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { HelperUrgentSmsSettings } from '@/components/account/HelperUrgentSmsSettings'
 import { SettingsPageChrome } from '@/components/account/SettingsNav'
 import {
+  ACCOUNT_DELETE_EMAIL_NOTE,
   ACCOUNT_DELETE_ERASE_ITEMS,
   ACCOUNT_DELETE_WARNING,
 } from '@/lib/account/deleteAccountCopy'
@@ -262,6 +263,9 @@ function DeleteAccountModal({
           ))}
         </ul>
         <p className="account-hc-modal-warn">{ACCOUNT_DELETE_WARNING}</p>
+        <p className="lead" style={{ marginTop: 12 }}>
+          {ACCOUNT_DELETE_EMAIL_NOTE}
+        </p>
 
         <div className="account-hc-field account-hc-modal-field">
           <label htmlFor="account-delete-confirm" className="account-hc-label">

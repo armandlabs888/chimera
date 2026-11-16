@@ -11,3 +11,7 @@ export const ACCOUNT_DELETE_ERASE_ITEMS = [
 
 export const ACCOUNT_DELETE_WARNING =
   'This cannot be undone. You will need to create a new account to use HouseCall again.'
+
+/** Short note on the delete modal; email send is best-effort after deletion. */
+export const ACCOUNT_DELETE_EMAIL_NOTE =
+  'We will send a confirmation email to the address on your account.'

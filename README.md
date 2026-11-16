@@ -24,6 +24,13 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable key>
 
 Legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY` is accepted as a fallback name for the publishable/anon key. **Never** expose a service-role key to the browser.
 
+Optional server-only email (Resend) for account-deletion confirmation. Missing keys skip sending and never block deletion:
+
+```bash
+RESEND_API_KEY=<resend api key>
+EMAIL_FROM=HouseCall <no-reply@yariapp.com>
+```
+
 Live backend errors surface in the UI and **do not** silently fall back to `localStorage`.
 
 ### Explicit demo
