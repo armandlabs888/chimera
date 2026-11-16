@@ -525,26 +525,26 @@ export function ProfileHeader({
             */}
             <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-x-3">
               <div className="min-w-0 sm:col-start-1">
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                  <h1
-                    id={titleId}
-                    className="min-w-0 font-display text-[32px] font-bold leading-[1.15] tracking-[-0.03em] text-[#071330] sm:text-[34px]"
-                  >
-                    {person.name}
-                  </h1>
-                  <HelperAvailabilityStatus
-                    person={person}
-                    showDetail
-                    className="text-[13px]"
-                    testId="profile-header-availability"
-                  />
-                </div>
+                <h1
+                  id={titleId}
+                  className="min-w-0 font-display text-[32px] font-bold leading-[1.15] tracking-[-0.03em] text-[#071330] sm:text-[34px]"
+                >
+                  {person.name}
+                </h1>
               </div>
               <div className="mt-3 sm:col-start-2 sm:row-start-1 sm:mt-0 sm:justify-self-end sm:self-center">
                 {actions}
               </div>
               {statsRow ? <div className="sm:col-start-1">{statsRow}</div> : null}
               {metaRow ? <div className="sm:col-start-1">{metaRow}</div> : null}
+              <div className="sm:col-start-1">
+                <HelperAvailabilityStatus
+                  person={person}
+                  variant="line"
+                  className={metaRow ? 'mt-1.5' : statsRow ? 'mt-2' : 'mt-1.5'}
+                  testId="profile-header-availability"
+                />
+              </div>
             </div>
             {belowActions ? <div className="mt-3 sm:mt-4">{belowActions}</div> : null}
           </div>
