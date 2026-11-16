@@ -477,7 +477,6 @@ export function RequestDetail() {
                 city={request.city}
                 radiusMiles={request.radiusMiles}
                 areaLabel={formatJobAreaCaption(request)}
-                height={180}
               />
 
               <div className="border-t border-[#E3E8EF] pt-6 sm:pt-7">
