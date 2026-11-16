@@ -130,12 +130,14 @@ try {
         { lhRatio: Number(lhRatio.toFixed(3)), fontPx, lh },
       )
 
-      // Stack should be at or slightly above below-header center (delta ≤ 8px below, up to ~48px above).
+      // Stack sits above below-header center (~48px mobile / ~72px desktop lift
+      // from geometric center, plus the prior modest bottom-pad nudge).
+      const maxAbove = vp.width <= 390 ? 90 : 130
       record(
         metrics.deltaFromBelowHeaderCenter <= 8 &&
-          metrics.deltaFromBelowHeaderCenter >= -48,
-        `${vp.name}: stack centered in below-header area (or slightly above)`,
-        { delta: metrics.deltaFromBelowHeaderCenter },
+          metrics.deltaFromBelowHeaderCenter >= -maxAbove,
+        `${vp.name}: stack above below-header center with header clearance`,
+        { delta: metrics.deltaFromBelowHeaderCenter, maxAbove },
       )
 
       record(

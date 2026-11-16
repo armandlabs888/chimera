@@ -101,20 +101,21 @@
   align-items: center;
   justify-content: center;
   padding-top: var(--landing-hero-content-pad-top);
-  /* Bottom pad nudges the shorter (no-chips) stack slightly above the
-     below-header center and leaves room for the describe dropdown. */
-  padding-bottom: 40px;
+  /* Bottom pad lifts the centered stack (~3 lines) above the below-header
+     center while keeping clearance under the overlay header and room for
+     the describe dropdown. Mobile ~48px lift; tablet/desktop ~72px lift. */
+  padding-bottom: 136px;
 }
 
 @media (min-width: 768px) {
   .landing-hero-content {
-    padding-bottom: 56px;
+    padding-bottom: 200px;
   }
 }
 
 @media (min-width: 1280px) {
   .landing-hero-content {
-    padding-bottom: 64px;
+    padding-bottom: 208px;
   }
 }
 

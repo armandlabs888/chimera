@@ -31,7 +31,7 @@ export function LandingNav({
 
   const navLinks = useMemo(
     () => [
-      { href: '/browse', label: 'Services' },
+      { href: '/browse', label: 'Browse Jobs' },
       { href: '/#how-it-works', label: 'How it works' },
       {
         href: canOnboardHelper

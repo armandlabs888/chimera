@@ -166,6 +166,8 @@ async function checkLandingMarkup() {
   assert.doesNotMatch(text, /why-beam-live-offers|Trusted across local neighborhoods|hero-fan-stack/, 'no legacy hero/live-proof markup')
   assert.match(text, /href="\/auth\?mode=signin"/, 'landing Log in')
   assert.match(text, /href="\/auth\?mode=signup/, 'landing Sign up')
+  assert.match(text, /href="\/browse"[^>]*>Browse Jobs/, 'nav Browse Jobs')
+  assert.doesNotMatch(text, /href="\/browse"[^>]*>Services</, 'browse nav link not labeled Services')
   assert.match(text, /How it works/, 'nav How it works')
   assert.match(text, /Become a helper/, 'nav Become a helper')
   assert.match(text, /Safety/, 'Safety link present')
