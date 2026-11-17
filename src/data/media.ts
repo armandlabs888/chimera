@@ -55,7 +55,7 @@ export const LIFESTYLE = {
   cleaningCrew: '/images/landing/avail-house-cleaning.jpg',
   /** Neighbors carrying a sofa on a sunny driveway — used for junk haul-away */
   moving: '/images/landing/service-moving.jpg',
-  /** Furniture/shelf assembly — kept as asset; not used for active Auto marketing */
+  /** Furniture/shelf assembly — used for Popular services custom-task tile */
   handyman: '/images/landing/service-handyman.jpg',
   /** Neighbor walking dogs on a tree-lined sidewalk */
   petcare: '/images/landing/service-petcare.jpg',

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Popular services (Landing): 12-col bento with 4 photo tiles + light junk + custom CTA.
+ * Popular services (Landing): 12-col bento with 6 photo tiles (incl. junk + custom CTA).
  * Screenshots → /opt/cursor/artifacts/categories-bento-qa/
  */
 import assert from 'node:assert/strict'
@@ -41,6 +41,7 @@ async function main() {
         const cleaningImg = cleaning?.querySelector('img')
         const movingImg = moving?.querySelector('img')
         const junkImg = junk?.querySelector('img')
+        const customImg = custom?.querySelector('img')
         const cols = grid ? getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length : 0
         const sectionStyle = section ? getComputedStyle(section) : null
         const tiles = [...(grid?.querySelectorAll('a') || [])]
@@ -62,7 +63,10 @@ async function main() {
           junkHref: junk?.getAttribute('href') || '',
           cleaningSrc: cleaningImg?.getAttribute('src') || cleaningImg?.currentSrc || '',
           movingSrc: movingImg?.getAttribute('src') || movingImg?.currentSrc || '',
+          junkSrc: junkImg?.getAttribute('src') || junkImg?.currentSrc || '',
+          customSrc: customImg?.getAttribute('src') || customImg?.currentSrc || '',
           junkHasImg: !!junkImg,
+          customHasImg: !!customImg,
           labels: tiles.map((a) => a.getAttribute('aria-label') || ''),
           filterTabs: document.querySelectorAll('[data-testid="categories-filter-tabs"]').length,
           hrefs: tiles.map((a) => a.getAttribute('href')),
@@ -100,7 +104,10 @@ async function main() {
       assert.equal(metrics.filterTabs, 0, 'popular has no filter chip row')
       assert.match(metrics.cleaningSrc, /avail-house-cleaning/, 'popular cleaning uses crew asset')
       assert.match(metrics.movingSrc, /avail-moving/, 'moving uses sofa photo')
-      assert.equal(metrics.junkHasImg, false, 'junk is a light card without photo')
+      assert.equal(metrics.junkHasImg, true, 'junk is a photo card')
+      assert.match(metrics.junkSrc, /avail-junk-garage/, 'junk uses garage haul photo')
+      assert.equal(metrics.customHasImg, true, 'custom is a photo card')
+      assert.match(metrics.customSrc, /service-handyman/, 'custom uses furniture assembly photo')
       assert.ok(metrics.hrefs.includes('/browse?category=home'))
       assert.ok(metrics.hrefs.includes('/browse?category=auto'))
       assert.ok(metrics.hrefs.includes('/browse?category=moving'))
