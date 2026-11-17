@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, Plus } from 'lucide-react'
+import { LIFESTYLE } from '@/data/media'
 import { POPULAR_SERVICES } from '@/lib/popularServices'
 
 function PhotoCard({
@@ -64,8 +65,7 @@ function PhotoCard({
 }
 
 /**
- * Popular services: 12-col bento with photo tiles, a light junk card,
- * and a custom-task CTA linked to /post.
+ * Popular services: 12-col bento with photo tiles and a custom-task CTA linked to /post.
  */
 export function LandingCategories() {
   const moving = POPULAR_SERVICES.find((s) => s.id === 'moving')!
@@ -104,50 +104,43 @@ export function LandingCategories() {
           <PhotoCard service={cleaning} compact />
           <PhotoCard service={auto} compact />
           <PhotoCard service={pets} />
-
-          <Link
-            href={junk.href}
-            data-testid={junk.testId}
-            aria-label={junk.label}
-            className="categories-light-card categories-tile-junk group relative flex flex-col justify-between overflow-hidden rounded-[12px] border border-[#E3E8EF] bg-[#F7F9FC] p-5 transition-colors duration-300 hover:border-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5] focus-visible:ring-offset-2 motion-reduce:transition-none"
-          >
-            <ArrowUpRight
-              className="absolute right-4 top-4 h-4 w-4 text-[#071330]/70 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[#1D5CE5] motion-reduce:transition-none"
-              strokeWidth={2.2}
-              aria-hidden="true"
-            />
-            <div className="pr-8">
-              <h3 className="text-[17px] font-bold leading-tight tracking-[-0.025em] text-[#071330] sm:text-[18px]">
-                {junk.label}
-              </h3>
-              <p className="mt-2 text-[14px] leading-[1.5] text-[#4A5568]">{junk.description}</p>
-            </div>
-          </Link>
+          <PhotoCard service={junk} showArrow />
 
           <Link
             href="/post"
             data-testid="categories-tile-custom"
             aria-label="Post a custom task"
-            className="categories-custom-card categories-tile-custom group relative flex flex-col justify-between overflow-hidden rounded-[12px] border border-[#D7E0EC] bg-[#EEF2F7] p-5 transition-colors duration-300 hover:border-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5] focus-visible:ring-offset-2 motion-reduce:transition-none"
+            className="categories-photo-card categories-custom-card categories-tile-custom group relative isolate overflow-hidden rounded-[12px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5] focus-visible:ring-offset-2"
           >
+            <Image
+              src={LIFESTYLE.handyman}
+              alt="Neighbor assembling a bookshelf in a living room"
+              fill
+              className="object-cover transition-transform duration-[450ms] ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+              sizes="(max-width: 767px) 100vw, 33vw"
+            />
             <span
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-[#1D5CE5]/12 text-[#1D5CE5] transition-colors duration-300 group-hover:bg-[#1D5CE5]/18"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[rgba(7,19,48,0.88)] via-[rgba(29,92,229,0.42)] to-[rgba(29,92,229,0.18)]"
+              aria-hidden="true"
+            />
+            <span
+              className="absolute right-4 top-4 z-[1] flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white ring-1 ring-white/35 transition-colors duration-300 group-hover:bg-white/28"
               aria-hidden="true"
             >
               <Plus className="h-4 w-4" strokeWidth={2.4} />
             </span>
-            <div className="pr-10">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#1D5CE5]">
+            <span className="absolute inset-x-0 bottom-0 z-[1] flex flex-col gap-1 p-4 sm:p-5">
+              <span className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#B8D4FF]">
                 Need something else? Free to post
-              </p>
-              <h3 className="mt-2 text-[17px] font-bold leading-tight tracking-[-0.025em] text-[#071330] sm:text-[18px]">
+              </span>
+              <span className="text-[17px] font-bold leading-tight tracking-[-0.025em] text-white sm:text-[18px]">
                 Post a custom task
-              </h3>
-              <p className="mt-2 text-[14px] leading-[1.5] text-[#4A5568]">
+              </span>
+              <span className="max-w-[34ch] text-[13px] leading-[1.45] text-white/85 sm:text-[14px]">
                 TV mounting, furniture assembly, or heavy lifting. Describe it once and compare
                 offers from neighbors.
-              </p>
-            </div>
+              </span>
+            </span>
           </Link>
         </div>
       </div>

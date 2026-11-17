@@ -676,8 +676,8 @@ async function checkLandingBrowser() {
     await page.waitForFunction(
       () => {
         const imgs = [...document.querySelectorAll('img')]
-        // Popular services: four photo tiles (junk + custom are light cards).
-        return imgs.length >= 4 && imgs.every((img) => img.complete)
+        // Popular services: six photo tiles (moving, cleaning, auto, pets, junk, custom).
+        return imgs.length >= 6 && imgs.every((img) => img.complete)
       },
       null,
       { timeout: 20000 },

@@ -53,7 +53,7 @@ export const POPULAR_SERVICES = [
     alt: 'Neighbors hauling junk from a garage into a pickup',
     testId: 'categories-tile-junk',
     description: 'Clear out garages, yards, and leftover clutter.',
-    layout: 'light' as const,
+    layout: 'photo' as const,
   },
 ] as const
 
