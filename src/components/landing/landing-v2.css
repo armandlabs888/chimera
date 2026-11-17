@@ -2,13 +2,23 @@
 
 .landing-root {
   --landing-overlay-nav-height: 56px;
-  --landing-float-header-offset: var(--landing-overlay-nav-height);
+  /* Top inset so the overlay header row is not flush with the viewport edge. */
+  --landing-overlay-nav-inset: 18px;
+  --landing-float-header-offset: calc(
+    var(--landing-overlay-nav-inset) + var(--landing-overlay-nav-height)
+  );
+}
+
+@media (min-width: 768px) {
+  .landing-root {
+    --landing-overlay-nav-inset: 26px;
+  }
 }
 
 .landing-hero-photo {
-  /* Flat overlay header: full-width bar, no inset. Reserve header height so
-     hero content clears the overlay and stays centered in the remainder. */
-  --landing-hero-content-pad-top: var(--landing-overlay-nav-height);
+  /* Flat overlay header: full-width bar, no inset pill. Reserve header height
+     plus top inset so hero content clears the overlay. */
+  --landing-hero-content-pad-top: var(--landing-float-header-offset);
 
   /* Fill the first viewport so no white strip shows under the photo on load. */
   min-height: 100svh;
@@ -222,16 +232,17 @@
   }
 }
 
-/* Flat overlay header: full-bleed, transparent, no pill/shadow/inset. */
+/* Flat overlay header: full-bleed, transparent, no pill/shadow. */
 .landing-overlay-shell {
   width: 100%;
+  padding-top: var(--landing-overlay-nav-inset, 18px);
 }
 
 .landing-overlay-scrim {
   position: absolute;
   inset-inline: 0;
   top: 0;
-  height: 112px;
+  height: calc(112px + var(--landing-overlay-nav-inset, 18px));
   background: linear-gradient(
     180deg,
     rgba(7, 19, 48, 0.55) 0%,
