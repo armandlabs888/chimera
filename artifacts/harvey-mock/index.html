@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bunk landing mock (owner review)</title>
+    <meta
+      name="description"
+      content="Standalone Harvey-inspired redesign mock for Bunk. Not the live site."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@700&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="wordmark" href="#" aria-label="Bunk home">Bunk</a>
+        <nav class="nav-links" aria-label="Marketing">
+          <a href="#categories">Browse Jobs</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#trust">Become a helper</a>
+        </nav>
+        <div class="nav-actions">
+          <a class="nav-login" href="#">Log in</a>
+          <a class="btn btn-light" href="#">Sign up</a>
+          <button
+            class="menu-toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="mobile-menu"
+            data-menu-toggle
+          >
+            <span class="sr-only">Open menu</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="mobile-menu" id="mobile-menu" data-mobile-menu>
+        <a href="#categories">Browse Jobs</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#trust">Become a helper</a>
+        <a href="#">Log in</a>
+        <a href="#">Sign up</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" data-testid="landing-hero">
+        <div class="hero__media" aria-hidden="true">
+          <img src="./images/hero-poster.jpg" alt="" />
+          <div class="hero__veil"></div>
+        </div>
+        <div class="container">
+          <div class="hero__content reveal">
+            <p class="eyebrow">Local services · Real everyday help</p>
+            <h1>Trusted help, right <em>next door.</em></h1>
+            <p class="hero__lede">
+              Describe the job and compare offers from neighbors nearby.
+            </p>
+            <form class="search" action="#" method="get" role="search" aria-label="Describe your task">
+              <label class="search__field">
+                <svg class="search__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" />
+                  <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.8" />
+                </svg>
+                <span class="sr-only">Describe what you need</span>
+                <input
+                  type="search"
+                  name="q"
+                  placeholder="Looking for a weekly house cleaner"
+                  autocomplete="off"
+                />
+              </label>
+              <label class="search__zip">
+                <svg class="search__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M12 21s7-5.2 7-11a7 7 0 10-14 0c0 5.8 7 11 7 11z"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                  />
+                  <circle cx="12" cy="10" r="2.4" stroke="currentColor" stroke-width="1.8" />
+                </svg>
+                <span class="sr-only">ZIP code</span>
+                <input type="text" name="zip" placeholder="ZIP code" maxlength="5" inputmode="numeric" />
+              </label>
+              <button type="submit">Search</button>
+            </form>
+            <p class="hero__micro">Free to post. No obligation.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="categories" data-testid="landing-categories">
+        <div class="container">
+          <div class="section__head reveal">
+            <div>
+              <p class="eyebrow">Start here</p>
+              <h2>Popular Neighborhood Services</h2>
+            </div>
+            <p class="section__support">
+              Pick a category to start a request. Helpers nearby send offers you can compare.
+            </p>
+          </div>
+
+          <div class="categories-grid" aria-label="Popular Neighborhood Services">
+            <a class="tile tile-moving reveal" href="#">
+              <img src="./images/avail-moving.jpg" alt="Neighbors carrying a sofa outdoors" />
+              <span class="tile__shade" aria-hidden="true"></span>
+              <span class="tile__body">
+                <span class="tile__title">Moving &amp; Hauling</span>
+                <span class="tile__desc">Furniture, trucks, and heavy lifting with neighbors nearby.</span>
+              </span>
+            </a>
+            <a class="tile tile-cleaning reveal" href="#">
+              <img src="./images/avail-house-cleaning.jpg" alt="Cleaning crew with equipment in a living room" />
+              <span class="tile__shade" aria-hidden="true"></span>
+              <span class="tile__body">
+                <span class="tile__title">House cleaning</span>
+                <span class="tile__desc">Kitchen refreshes, move-out cleans, and weekly upkeep.</span>
+              </span>
+            </a>
+            <a class="tile tile-auto reveal" href="#">
+              <img src="./images/avail-auto-detailing.jpg" alt="Person washing a car with soap suds" />
+              <span class="tile__shade" aria-hidden="true"></span>
+              <span class="tile__body">
+                <span class="tile__title">Auto detailing</span>
+                <span class="tile__desc">Driveway hand washes, interior details, and waxing.</span>
+              </span>
+            </a>
+            <a class="tile tile-pets reveal" href="#">
+              <img src="./images/avail-pet-sitting.jpg" alt="Person walking dogs on a path" />
+              <span class="tile__shade" aria-hidden="true"></span>
+              <span class="tile__body">
+                <span class="tile__title">Pet care</span>
+                <span class="tile__desc">Walks, drop-ins, and everyday pet help nearby.</span>
+              </span>
+            </a>
+            <a class="tile tile-junk reveal" href="#">
+              <img src="./images/avail-junk-garage.jpg" alt="Neighbors hauling junk from a garage into a pickup" />
+              <span class="tile__shade" aria-hidden="true"></span>
+              <span class="tile__body">
+                <span class="tile__title">Yard &amp; Junk Removal</span>
+                <span class="tile__desc">Clear out garages, yards, and leftover clutter.</span>
+              </span>
+            </a>
+            <a class="tile tile-custom reveal" href="#">
+              <img src="./images/service-handyman.jpg" alt="Neighbor assembling a bookshelf in a living room" />
+              <span class="tile__shade" aria-hidden="true"></span>
+              <span class="tile__body">
+                <span class="tile__kicker">Need something else? Free to post</span>
+                <span class="tile__title">Post a custom task</span>
+                <span class="tile__desc"
+                  >TV mounting, furniture assembly, or heavy lifting. Describe it once and compare offers from
+                  neighbors.</span
+                >
+              </span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section workflow" id="how-it-works" data-testid="how-it-works">
+        <div class="container">
+          <div class="workflow__intro reveal">
+            <p class="eyebrow">How it works</p>
+            <h2>From to-do to done.</h2>
+            <p>
+              A transparent path from request to finish: post a task, review offers from verified neighbors, then
+              pick who you meet.
+            </p>
+          </div>
+
+          <div class="steps" role="tablist" aria-label="Workflow steps" data-steps>
+            <button class="step is-active reveal" type="button" role="tab" aria-selected="true" data-step="1">
+              <span class="step__n">1</span>
+              <h3>Post your task</h3>
+              <p>What needs doing, when you need it, and anything a helper should know.</p>
+            </button>
+            <button class="step reveal" type="button" role="tab" aria-selected="false" data-step="2">
+              <span class="step__n">2</span>
+              <h3>Get offers from verified neighbors</h3>
+              <p>Review proposed price and arrival window before you choose.</p>
+            </button>
+            <button class="step reveal" type="button" role="tab" aria-selected="false" data-step="3">
+              <span class="step__n">3</span>
+              <h3>Pick, pay, and meet</h3>
+              <p>Message in-app to agree on details, arrange payment directly, then leave feedback.</p>
+            </button>
+          </div>
+
+          <div class="preview-shell reveal" data-preview>
+            <div class="preview-shell__bar">
+              <span class="sample-tag">Sample UI</span>
+              <p class="preview-shell__hint">Illustrative only. No live prices, ratings, or counts.</p>
+            </div>
+            <div class="preview-panels">
+              <div class="preview-panel is-active" data-panel="1" role="tabpanel">
+                <div class="preview-photo">
+                  <img src="./images/how-it-works-post.webp" alt="Woman typing a task on her phone at a kitchen table" />
+                </div>
+                <article class="job-card">
+                  <h4>Sample task draft</h4>
+                  <div class="job-meta">
+                    <div class="field">
+                      <span>Category</span>
+                      <strong>House cleaning</strong>
+                    </div>
+                    <div class="field">
+                      <span>When</span>
+                      <strong>This weekend</strong>
+                    </div>
+                    <div class="field">
+                      <span>Details for helpers</span>
+                      <strong>Kitchen and living room refresh before guests arrive.</strong>
+                    </div>
+                  </div>
+                </article>
+              </div>
+
+              <div class="preview-panel" data-panel="2" role="tabpanel" hidden>
+                <div class="preview-photo">
+                  <img
+                    src="./images/how-it-works-compare.webp"
+                    alt="Man on a porch looking at his phone to compare offers"
+                  />
+                </div>
+                <div class="offer-list" role="group" aria-label="Sample offers">
+                  <h4>Sample offers</h4>
+                  <button class="offer is-selected" type="button" aria-pressed="true" data-offer>
+                    <img src="./images/offer-hannah.jpg" alt="" />
+                    <span>
+                      <p class="offer__name">Neighbor A</p>
+                      <p class="offer__fields">
+                        <span>Proposed price: shown in offer</span>
+                        <span>Arrival window: shown in offer</span>
+                        <span>Verified via location check</span>
+                      </p>
+                    </span>
+                  </button>
+                  <button class="offer" type="button" aria-pressed="false" data-offer>
+                    <img src="./images/offer-caleb.jpg" alt="" />
+                    <span>
+                      <p class="offer__name">Neighbor B</p>
+                      <p class="offer__fields">
+                        <span>Proposed price: shown in offer</span>
+                        <span>Arrival window: shown in offer</span>
+                        <span>Verified via location check</span>
+                      </p>
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="preview-panel" data-panel="3" role="tabpanel" hidden>
+                <div class="preview-photo">
+                  <img
+                    src="./images/how-it-works-finish.webp"
+                    alt="Homeowner and helper shaking hands at the front door"
+                  />
+                </div>
+                <div class="chat-card">
+                  <h4>In-app messages</h4>
+                  <div class="chat-bubble">Happy to bring supplies. Does 10:00 to 12:00 still work?</div>
+                  <div class="chat-bubble chat-bubble--self">Yes. We will settle payment after the job.</div>
+                  <div class="field-row">
+                    <div class="field">
+                      <span>Payment</span>
+                      <strong>Peer to peer. Bunk does not hold your money.</strong>
+                    </div>
+                    <div class="field">
+                      <span>After the job</span>
+                      <strong>Leave feedback so the next neighbor can choose with more context.</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section trust" id="trust" data-testid="why-beam-section">
+        <div class="container trust-grid">
+          <div class="trust__copy reveal">
+            <p class="eyebrow">Why Bunk</p>
+            <h2>Know what you’re choosing.</h2>
+            <p>
+              Helpers confirm home with a location check before they can offer. You compare proposed price and
+              arrival window, then message in-app before anyone starts.
+            </p>
+            <a class="trust__link" href="#">Read safety &amp; community guidelines →</a>
+          </div>
+          <ul class="pillars reveal">
+            <li>
+              <span class="n">01</span>
+              <div>
+                <h3>See the offer first</h3>
+                <p>Compare proposed price and arrival window before choosing.</p>
+              </div>
+            </li>
+            <li>
+              <span class="n">02</span>
+              <div>
+                <h3>Talk through the details</h3>
+                <p>Use in-app messages to agree on what the job involves.</p>
+              </div>
+            </li>
+            <li>
+              <span class="n">03</span>
+              <div>
+                <h3>Leave useful feedback</h3>
+                <p>Share a review after the task to help the next person choose.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section closing" data-testid="landing-closing-cta">
+        <div class="container reveal">
+          <h2>One less thing on your list.</h2>
+          <p>Tell us what you need a hand with. Free to post.</p>
+          <a class="btn btn-accent" href="#">Post a task</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" data-testid="landing-footer">
+      <div class="container site-footer__inner">
+        <div class="site-footer__brand">
+          <a class="wordmark" href="#" aria-label="Bunk home">Bunk</a>
+          <p>© Bunk</p>
+        </div>
+        <nav class="footer-nav" aria-label="Footer">
+          <a href="#">Browse jobs</a>
+          <a href="#">Post a task</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#">Safety</a>
+          <a href="#">Help and contact</a>
+          <a href="#">Terms</a>
+          <a href="#">Privacy</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var shotMode = params.get("shot") === "1";
+
+        var menuBtn = document.querySelector("[data-menu-toggle]");
+        var menu = document.querySelector("[data-mobile-menu]");
+        if (menuBtn && menu) {
+          menuBtn.addEventListener("click", function () {
+            var open = menu.classList.toggle("is-open");
+            menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+          });
+        }
+
+        var steps = Array.prototype.slice.call(document.querySelectorAll("[data-step]"));
+        var panels = Array.prototype.slice.call(document.querySelectorAll("[data-panel]"));
+
+        function activateStep(id) {
+          steps.forEach(function (btn) {
+            var on = btn.getAttribute("data-step") === id;
+            btn.classList.toggle("is-active", on);
+            btn.setAttribute("aria-selected", on ? "true" : "false");
+          });
+          panels.forEach(function (panel) {
+            var on = panel.getAttribute("data-panel") === id;
+            panel.classList.toggle("is-active", on);
+            if (on) {
+              panel.removeAttribute("hidden");
+            } else {
+              panel.setAttribute("hidden", "");
+            }
+          });
+        }
+
+        steps.forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            activateStep(btn.getAttribute("data-step"));
+          });
+        });
+
+        var offers = Array.prototype.slice.call(document.querySelectorAll("[data-offer]"));
+        offers.forEach(function (offer) {
+          offer.addEventListener("click", function () {
+            offers.forEach(function (o) {
+              o.classList.remove("is-selected");
+              o.setAttribute("aria-pressed", "false");
+            });
+            offer.classList.add("is-selected");
+            offer.setAttribute("aria-pressed", "true");
+          });
+        });
+
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var nodes = Array.prototype.slice.call(document.querySelectorAll(".reveal"));
+        if (shotMode || reduce || !("IntersectionObserver" in window)) {
+          nodes.forEach(function (el) {
+            el.classList.add("is-in");
+          });
+          return;
+        }
+
+        var io = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("is-in");
+                io.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
+        );
+
+        nodes.forEach(function (el) {
+          io.observe(el);
+        });
+      })();
+    </script>
+  </body>
+</html>
