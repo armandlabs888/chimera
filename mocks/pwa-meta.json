@@ -1,0 +1,36 @@
+{
+  "manifestLink": "http://127.0.0.1:43123/manifest.webmanifest",
+  "manifestJson": {
+    "name": "Bunk",
+    "short_name": "Bunk",
+    "description": "Trusted help, right next door.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#FFFFFF",
+    "theme_color": "#1D5CE5",
+    "icons": [
+      {
+        "src": "/icons/icon-192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any"
+      },
+      {
+        "src": "/icons/icon-512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any"
+      },
+      {
+        "src": "/apple-touch-icon.png",
+        "sizes": "180x180",
+        "type": "image/png"
+      }
+    ]
+  },
+  "themeColor": "#1D5CE5",
+  "appleTouchIcon": "http://127.0.0.1:43123/apple-icon.png?apple-icon.0tnlmkshwrvbi.png",
+  "appleCapable": null,
+  "appleTitle": "Bunk",
+  "viewport": "width=device-width, initial-scale=1, viewport-fit=cover"
+}

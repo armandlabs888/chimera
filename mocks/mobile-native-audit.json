@@ -1,0 +1,468 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "base": "http://127.0.0.1:43123",
+  "live": "https://www.joinbunk.xyz",
+  "shots": [
+    "/opt/cursor/artifacts/current_landing_signed_out_390x844.png",
+    "/opt/cursor/artifacts/current_auth_390x844.png",
+    "/opt/cursor/artifacts/current_landing_demo_390x844.png",
+    "/opt/cursor/artifacts/current_onboarding_390x844.png",
+    "/opt/cursor/artifacts/current_browse_390x844.png",
+    "/opt/cursor/artifacts/current_job_details_390x844.png",
+    "/opt/cursor/artifacts/current_post_390x844.png",
+    "/opt/cursor/artifacts/current_offers_390x844.png",
+    "/opt/cursor/artifacts/current_messages_390x844.png",
+    "/opt/cursor/artifacts/current_profile_390x844.png",
+    "/opt/cursor/artifacts/current_settings_390x844.png",
+    "/opt/cursor/artifacts/current_verify_390x844.png",
+    "/opt/cursor/artifacts/current_help_390x844.png"
+  ],
+  "findings": [
+    {
+      "priority": "P0",
+      "kind": "no-bottom-tab-bar",
+      "page": "current_landing_signed_out",
+      "detail": "Signed-in chrome relies on top header / hamburger without visible bottom dock"
+    },
+    {
+      "priority": "P1",
+      "kind": "hamburger-nav",
+      "page": "current_landing_signed_out",
+      "detail": "Hamburger / website-style menu still present on phone"
+    },
+    {
+      "priority": "P0",
+      "kind": "small-tap-targets",
+      "page": "current_landing_signed_out",
+      "detail": "5 interactive elements under 44px"
+    },
+    {
+      "priority": "P1",
+      "kind": "hover-dependent",
+      "page": "current_landing_signed_out",
+      "detail": "12 elements use hover: utility classes (weak press feedback on touch)"
+    },
+    {
+      "priority": "P1",
+      "kind": "marketing-footer",
+      "page": "current_landing_signed_out",
+      "detail": "Marketing-style footer present in app chrome"
+    },
+    {
+      "priority": "P2",
+      "kind": "no-apple-standalone-meta",
+      "page": "current_landing_signed_out",
+      "detail": "No apple-mobile-web-app-capable meta"
+    },
+    {
+      "priority": "P2",
+      "kind": "overscroll-bounce",
+      "page": "current_landing_signed_out",
+      "detail": "overscroll-behavior is auto (browser pull-to-refresh / bounce likely)"
+    },
+    {
+      "priority": "P0",
+      "kind": "no-bottom-tab-bar",
+      "page": "current_auth",
+      "detail": "Signed-in chrome relies on top header / hamburger without visible bottom dock"
+    },
+    {
+      "priority": "P1",
+      "kind": "hamburger-nav",
+      "page": "current_auth",
+      "detail": "Hamburger / website-style menu still present on phone"
+    },
+    {
+      "priority": "P0",
+      "kind": "small-tap-targets",
+      "page": "current_auth",
+      "detail": "13 interactive elements under 44px"
+    },
+    {
+      "priority": "P1",
+      "kind": "hover-dependent",
+      "page": "current_auth",
+      "detail": "22 elements use hover: utility classes (weak press feedback on touch)"
+    },
+    {
+      "priority": "P1",
+      "kind": "marketing-footer",
+      "page": "current_auth",
+      "detail": "Marketing-style footer present in app chrome"
+    },
+    {
+      "priority": "P2",
+      "kind": "no-apple-standalone-meta",
+      "page": "current_auth",
+      "detail": "No apple-mobile-web-app-capable meta"
+    },
+    {
+      "priority": "P2",
+      "kind": "overscroll-bounce",
+      "page": "current_auth",
+      "detail": "overscroll-behavior is auto (browser pull-to-refresh / bounce likely)"
+    },
+    {
+      "priority": "P0",
+      "kind": "no-bottom-tab-bar",
+      "page": "current_landing_demo",
+      "detail": "Signed-in chrome relies on top header / hamburger without visible bottom dock"
+    },
+    {
+      "priority": "P0",
+      "kind": "small-tap-targets",
+      "page": "current_landing_demo",
+      "detail": "5 interactive elements under 44px"
+    },
+    {
+      "priority": "P1",
+      "kind": "hover-dependent",
+      "page": "current_landing_demo",
+      "detail": "12 elements use hover: utility classes (weak press feedback on touch)"
+    },
+    {
+      "priority": "P1",
+      "kind": "marketing-footer",
+      "page": "current_landing_demo",
+      "detail": "Marketing-style footer present in app chrome"
+    },
+    {
+      "priority": "P2",
+      "kind": "no-apple-standalone-meta",
+      "page": "current_landing_demo",
+      "detail": "No apple-mobile-web-app-capable meta"
+    },
+    {
+      "priority": "P2",
+      "kind": "overscroll-bounce",
+      "page": "current_landing_demo",
+      "detail": "overscroll-behavior is auto (browser pull-to-refresh / bounce likely)"
+    },
+    {
+      "priority": "P0",
+      "kind": "no-bottom-tab-bar",
+      "page": "current_onboarding",
+      "detail": "Signed-in chrome relies on top header / hamburger without visible bottom dock"
+    },
+    {
+      "priority": "P0",
+      "kind": "small-tap-targets",
+      "page": "current_onboarding",
+      "detail": "3 interactive elements under 44px"
+    },
+    {
+      "priority": "P1",
+      "kind": "hover-dependent",
+      "page": "current_onboarding",
+      "detail": "9 elements use hover: utility classes (weak press feedback on touch)"
+    },
+    {
+      "priority": "P1",
+      "kind": "marketing-footer",
+      "page": "current_onboarding",
+      "detail": "Marketing-style footer present in app chrome"
+    },
+    {
+      "priority": "P2",
+      "kind": "no-apple-standalone-meta",
+      "page": "current_onboarding",
+      "detail": "No apple-mobile-web-app-capable meta"
+    },
+    {
+      "priority": "P2",
+      "kind": "overscroll-bounce",
+      "page": "current_onboarding",
+      "detail": "overscroll-behavior is auto (browser pull-to-refresh / bounce likely)"
+    },
+    {
+      "priority": "P0",
+      "kind": "small-tap-targets",
+      "page": "current_browse",
+      "detail": "18 interactive elements under 44px"
+    },
+    {
+      "priority": "P1",
+      "kind": "hover-dependent",
+      "page": "current_browse",
+      "detail": "11 elements use hover: utility classes (weak press feedback on touch)"
+    },
+    {
+      "priority": "P1",
+      "kind": "marketing-footer",
+      "page": "current_browse",
+      "detail": "Marketing-style footer present in app chrome"
+    },
+    {
+      "priority": "P2",
+      "kind": "no-apple-standalone-meta",
+      "page": "current_browse",
+      "detail": "No apple-mobile-web-app-capable meta"
+    },
+    {
+      "priority": "P2",
+      "kind": "overscroll-bounce",
+      "page": "current_browse",
+      "detail": "overscroll-behavior is auto (browser pull-to-refresh / bounce likely)"
+    },
+    {
+      "priority": "P0",
+      "kind": "small-tap-targets",
+      "page": "current_job_details",
+      "detail": "17 interactive elements under 44px"
+    },
+    {
+      "priority": "P1",
+      "kind": "hover-dependent",
+      "page": "current_job_details",
+      "detail": "22 elements use hover: utility classes (weak press feedback on touch)"
+    },
+    {
+      "priority": "P1",
+      "kind": "marketing-footer",
+      "page": "current_job_details",
+      "detail": "Marketing-style footer present in app chrome"
+    },
+    {
+      "priority": "P2",
+      "kind": "no-apple-standalone-meta",
+      "page": "current_job_details",
+      "detail": "No apple-mobile-web-app-capable meta"
+    },
+    {
+      "priority": "P2",
+      "kind": "overscroll-bounce",
+      "page": "current_job_details",
+      "detail": "overscroll-behavior is auto (browser pull-to-refresh / bounce likely)"
+    },
+    {
+      "priority": "P0",
+      "kind": "small-tap-targets",
+      "page": "current_post",
+      "detail": "13 interactive elements under 44px"
+    },
+    {
+      "priority": "P1",
+      "kind": "hover-dependent",
+      "page": "current_post",
+      "detail": "17 elements use hover: utility classes (weak press feedback on touch)"
+    },
+    {
+      "priority": "P1",
+      "kind": "marketing-footer",
+      "page": "current_post",
+      "detail": "Marketing-style footer present in app chrome"
+    },
+    {
+      "priority": "P2",
+      "kind": "no-apple-standalone-meta",
+      "page": "current_post",
+      "detail": "No apple-mobile-web-app-capable meta"
+    },
+    {
+      "priority": "P2",
+      "kind": "overscroll-bounce",
+      "page": "current_post",
+      "detail": "overscroll-behavior is auto (browser pull-to-refresh / bounce likely)"
+    },
+    {
+      "priority": "P0",
+      "kind": "small-tap-targets",
+      "page": "current_offers",
+      "detail": "10 interactive elements under 44px"
+    },
+    {
+      "priority": "P1",
+      "kind": "hover-dependent",
+      "page": "current_offers",
+      "detail": "12 elements use hover: utility classes (weak press feedback on touch)"
+    },
+    {
+      "priority": "P1",
+      "kind": "marketing-footer",
+      "page": "current_offers",
+      "detail": "Marketing-style footer present in app chrome"
+    },
+    {
+      "priority": "P2",
+      "kind": "no-apple-standalone-meta",
+      "page": "current_offers",
+      "detail": "No apple-mobile-web-app-capable meta"
+    },
+    {
+      "priority": "P2",
+      "kind": "overscroll-bounce",
+      "page": "current_offers",
+      "detail": "overscroll-behavior is auto (browser pull-to-refresh / bounce likely)"
+    },
+    {
+      "priority": "P0",
+      "kind": "no-bottom-tab-bar",
+      "page": "current_messages",
+      "detail": "Signed-in chrome relies on top header / hamburger without visible bottom dock"
+    },
+    {
+      "priority": "P0",
+      "kind": "small-tap-targets",
+      "page": "current_messages",
+      "detail": "21 interactive elements under 44px"
+    },
+    {
+      "priority": "P1",
+      "kind": "hover-dependent",
+      "page": "current_messages",
+      "detail": "14 elements use hover: utility classes (weak press feedback on touch)"
+    },
+    {
+      "priority": "P1",
+      "kind": "marketing-footer",
+      "page": "current_messages",
+      "detail": "Marketing-style footer present in app chrome"
+    },
+    {
+      "priority": "P2",
+      "kind": "no-apple-standalone-meta",
+      "page": "current_messages",
+      "detail": "No apple-mobile-web-app-capable meta"
+    },
+    {
+      "priority": "P2",
+      "kind": "overscroll-bounce",
+      "page": "current_messages",
+      "detail": "overscroll-behavior is auto (browser pull-to-refresh / bounce likely)"
+    },
+    {
+      "priority": "P0",
+      "kind": "small-tap-targets",
+      "page": "current_profile",
+      "detail": "10 interactive elements under 44px"
+    },
+    {
+      "priority": "P1",
+      "kind": "hover-dependent",
+      "page": "current_profile",
+      "detail": "13 elements use hover: utility classes (weak press feedback on touch)"
+    },
+    {
+      "priority": "P1",
+      "kind": "marketing-footer",
+      "page": "current_profile",
+      "detail": "Marketing-style footer present in app chrome"
+    },
+    {
+      "priority": "P2",
+      "kind": "no-apple-standalone-meta",
+      "page": "current_profile",
+      "detail": "No apple-mobile-web-app-capable meta"
+    },
+    {
+      "priority": "P2",
+      "kind": "overscroll-bounce",
+      "page": "current_profile",
+      "detail": "overscroll-behavior is auto (browser pull-to-refresh / bounce likely)"
+    },
+    {
+      "priority": "P0",
+      "kind": "small-tap-targets",
+      "page": "current_settings",
+      "detail": "7 interactive elements under 44px"
+    },
+    {
+      "priority": "P1",
+      "kind": "hover-dependent",
+      "page": "current_settings",
+      "detail": "11 elements use hover: utility classes (weak press feedback on touch)"
+    },
+    {
+      "priority": "P1",
+      "kind": "marketing-footer",
+      "page": "current_settings",
+      "detail": "Marketing-style footer present in app chrome"
+    },
+    {
+      "priority": "P2",
+      "kind": "no-apple-standalone-meta",
+      "page": "current_settings",
+      "detail": "No apple-mobile-web-app-capable meta"
+    },
+    {
+      "priority": "P2",
+      "kind": "overscroll-bounce",
+      "page": "current_settings",
+      "detail": "overscroll-behavior is auto (browser pull-to-refresh / bounce likely)"
+    },
+    {
+      "priority": "P0",
+      "kind": "small-tap-targets",
+      "page": "current_verify",
+      "detail": "7 interactive elements under 44px"
+    },
+    {
+      "priority": "P1",
+      "kind": "hover-dependent",
+      "page": "current_verify",
+      "detail": "12 elements use hover: utility classes (weak press feedback on touch)"
+    },
+    {
+      "priority": "P1",
+      "kind": "marketing-footer",
+      "page": "current_verify",
+      "detail": "Marketing-style footer present in app chrome"
+    },
+    {
+      "priority": "P2",
+      "kind": "no-apple-standalone-meta",
+      "page": "current_verify",
+      "detail": "No apple-mobile-web-app-capable meta"
+    },
+    {
+      "priority": "P2",
+      "kind": "overscroll-bounce",
+      "page": "current_verify",
+      "detail": "overscroll-behavior is auto (browser pull-to-refresh / bounce likely)"
+    },
+    {
+      "priority": "P0",
+      "kind": "small-tap-targets",
+      "page": "current_help",
+      "detail": "17 interactive elements under 44px"
+    },
+    {
+      "priority": "P0",
+      "kind": "input-zoom-risk",
+      "page": "current_help",
+      "detail": "1 inputs under 16px font-size"
+    },
+    {
+      "priority": "P1",
+      "kind": "hover-dependent",
+      "page": "current_help",
+      "detail": "31 elements use hover: utility classes (weak press feedback on touch)"
+    },
+    {
+      "priority": "P1",
+      "kind": "marketing-footer",
+      "page": "current_help",
+      "detail": "Marketing-style footer present in app chrome"
+    },
+    {
+      "priority": "P2",
+      "kind": "no-apple-standalone-meta",
+      "page": "current_help",
+      "detail": "No apple-mobile-web-app-capable meta"
+    },
+    {
+      "priority": "P2",
+      "kind": "overscroll-bounce",
+      "page": "current_help",
+      "detail": "overscroll-behavior is auto (browser pull-to-refresh / bounce likely)"
+    }
+  ],
+  "summary": {
+    "P0": 19,
+    "P1": 28,
+    "P2": 26
+  }
+}
