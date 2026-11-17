@@ -171,6 +171,75 @@
   }
 }
 
+/* Popular services bento: 12-col desktop, stacked mobile. */
+.categories-bento {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.categories-photo-card {
+  position: relative;
+  display: block;
+  min-height: 220px;
+  height: 220px;
+}
+
+.categories-light-card,
+.categories-custom-card {
+  min-height: 220px;
+}
+
+.categories-custom-card {
+  background: #eef2f7;
+  background-image: linear-gradient(160deg, #f3f7fc 0%, #e8eef8 100%);
+}
+
+@media (min-width: 768px) {
+  .categories-bento {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: minmax(260px, 300px) minmax(240px, 280px);
+    gap: 14px;
+  }
+
+  .categories-photo-card,
+  .categories-light-card,
+  .categories-custom-card {
+    min-height: 0;
+    height: auto;
+  }
+
+  .categories-tile-moving {
+    grid-column: 1 / span 6;
+    grid-row: 1;
+  }
+
+  .categories-tile-cleaning {
+    grid-column: 7 / span 3;
+    grid-row: 1;
+  }
+
+  .categories-tile-auto {
+    grid-column: 10 / span 3;
+    grid-row: 1;
+  }
+
+  .categories-tile-pets {
+    grid-column: 1 / span 4;
+    grid-row: 2;
+  }
+
+  .categories-tile-junk {
+    grid-column: 5 / span 4;
+    grid-row: 2;
+  }
+
+  .categories-tile-custom {
+    grid-column: 9 / span 4;
+    grid-row: 2;
+  }
+}
+
 /* Soft blob used by non-hero landing sections (e.g. How it works). */
 .landing-cloud {
   position: absolute;
