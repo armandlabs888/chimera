@@ -9,7 +9,7 @@ export const metadata: Metadata = pageMetadata({
   noindex: true,
 })
 
-/** Full-page thread view for deep links and panel pop out. */
+/** Full-page thread view for deep links. */
 export default async function MessagesThreadPage({
   params,
 }: {

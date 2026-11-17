@@ -2044,7 +2044,7 @@ async function checkMarketplaceFlows() {
       assert.equal(px, 0, `browse job row is flat (radius 0), got ${px}`)
     }
 
-    // Floating messages panel over browse, plus full-page /messages for pop out.
+    // Floating messages panel over browse, plus full-page /messages for deep links.
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto(`${BASE_URL}/messages/missing-thread`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('[data-testid="messages-thread-missing"]', { timeout: 15000 })
@@ -2151,7 +2151,11 @@ async function checkMarketplaceFlows() {
     })
     assert.equal(await page.getByTestId('messages-incoming-offer').count(), 0)
     assert.equal(await page.getByTestId('messages-task-bar').count(), 0)
+    assert.equal(await page.getByTestId('messages-popout').count(), 0, 'no pop-out button in panel header')
     assert.ok((await page.getByTestId('messages-composer').count()) >= 1)
+    assert.ok((await page.getByTestId('messages-settings').count()) >= 1)
+    assert.ok((await page.getByTestId('messages-minimize').count()) >= 1)
+    assert.ok((await page.getByTestId('messages-chat-close').count()) >= 1)
     assert.ok((await page.getByTestId('messages-view-request').count()) >= 1)
     assert.ok((await page.getByTestId('messages-job-strip').count()) >= 1)
     assert.equal(threadProbe.price, false, 'no uppercase PRICE label in messages')

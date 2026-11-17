@@ -9,7 +9,7 @@ export const metadata: Metadata = pageMetadata({
   noindex: true,
 })
 
-/** Full-page messages workspace (pop out from the floating panel). */
+/** Full-page messages workspace for direct links. */
 export default function MessagesPage() {
   return (
     <div className="beam-page py-4 sm:py-6">
