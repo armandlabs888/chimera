@@ -125,7 +125,7 @@ export function LandingHero() {
       </div>
 
       <div className="landing-hero-content relative z-20" data-testid="landing-hero">
-        <div className="beam-container relative z-10 text-center">
+        <div className="landing-centered beam-container relative z-10 w-full text-center">
           <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#8FB2FF]">
             Local services · Real everyday help
           </p>
@@ -138,7 +138,7 @@ export function LandingHero() {
             Describe the job, compare helpers nearby, or find new work in your area.
           </p>
 
-          <div className="mx-auto mt-8 flex w-full justify-center md:mt-9">
+          <div className="mx-auto mt-8 flex w-full flex-col items-center justify-center md:mt-9">
             <DescribeSearchForm
               key={zip || 'no-zip'}
               initialZip={zip}
@@ -147,6 +147,12 @@ export function LandingHero() {
               variant="hero"
               onSubmit={onSearch}
             />
+            <p
+              className="landing-hero-reassure"
+              data-testid="landing-hero-reassure"
+            >
+              Free to post. No obligation.
+            </p>
           </div>
         </div>
       </div>

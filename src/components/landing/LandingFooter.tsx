@@ -33,8 +33,8 @@ export function LandingFooter({
       data-app-footer="true"
       id="site-footer"
     >
-      <div className="beam-container flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:py-5">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <div className="beam-container flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:py-6">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <BunkWordmark
             size={16}
             tone="onDark"
@@ -50,7 +50,7 @@ export function LandingFooter({
 
         <nav
           aria-label="Footer"
-          className="flex max-w-full flex-wrap items-center gap-x-4 gap-y-0 sm:justify-end"
+          className="flex max-w-full flex-wrap items-center gap-x-5 gap-y-1 sm:justify-end"
         >
           {FOOTER_LINKS.map((l) => (
             <Link key={l.href} href={l.href} className={linkClass}>

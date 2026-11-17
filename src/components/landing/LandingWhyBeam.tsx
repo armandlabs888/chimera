@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { LandingReveal } from './LandingReveal'
 
 const PILLARS = [
   {
@@ -24,41 +25,40 @@ const PILLARS = [
 export function LandingWhyBeam() {
   return (
     <section
-      className="relative overflow-hidden bg-white py-11 md:py-14"
+      className="landing-section relative overflow-hidden bg-[#F7F9FC]"
       data-testid="why-beam-section"
       id="why-beam"
     >
       <div className="beam-container relative">
-        <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-start">
-          <div>
-            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#1D5CE5]">
-              Why Bunk
-            </p>
-            <h2 className="mt-1.5 text-[26px] font-bold tracking-[-0.02em] text-[#071330] md:text-[30px]">
-              Know what you’re choosing.
-            </h2>
-            <p className="mt-2 max-w-md text-[15px] leading-[1.55] text-[#4A5568]">
+        <div className="grid gap-8 md:grid-cols-[1.05fr_1fr] md:items-start md:gap-12">
+          <LandingReveal>
+            <p className="landing-section-eyebrow">Why Bunk</p>
+            <h2 className="landing-section-title">Know what you’re choosing.</h2>
+            <p className="landing-section-lede">
               Clear steps and in-app messaging, so you can compare offers and agree on the details
               before anyone starts.
             </p>
+            <p className="landing-trust-verify" data-testid="why-beam-verification">
+              Helpers confirm their home with a location check before they can make offers.
+            </p>
             <Link
               href="/safety"
-              className="mt-4 inline-flex min-h-10 items-center text-[14px] font-semibold text-[#1D5CE5] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
+              className="mt-5 inline-flex min-h-[44px] items-center text-[14px] font-semibold text-[#1D5CE5] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40"
             >
               Read safety &amp; community guidelines →
             </Link>
-          </div>
-          <ul className="space-y-4">
+          </LandingReveal>
+          <LandingReveal as="ul" className="landing-trust-list">
             {PILLARS.map((pillar) => (
-              <li key={pillar.step} className="flex gap-3">
-                <span className="mt-0.5 text-[13px] font-bold text-[#1D5CE5]">{pillar.step}</span>
+              <li key={pillar.step} className="landing-trust-item">
+                <span className="landing-trust-step">{pillar.step}</span>
                 <div>
-                  <h3 className="text-[15px] font-semibold text-[#071330]">{pillar.title}</h3>
-                  <p className="mt-0.5 text-[13px] leading-5 text-[#4A5568]">{pillar.body}</p>
+                  <h3>{pillar.title}</h3>
+                  <p>{pillar.body}</p>
                 </div>
               </li>
             ))}
-          </ul>
+          </LandingReveal>
         </div>
       </div>
     </section>

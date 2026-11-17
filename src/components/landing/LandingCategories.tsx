@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowUpRight, Plus } from 'lucide-react'
 import { LIFESTYLE } from '@/data/media'
 import { POPULAR_SERVICES } from '@/lib/popularServices'
+import { LandingReveal } from './LandingReveal'
 
 function PhotoCard({
   service,
@@ -28,7 +29,7 @@ function PhotoCard({
         src={service.src}
         alt={service.alt}
         fill
-        className="object-cover transition-transform duration-[450ms] ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+        className="object-cover"
         sizes={
           service.layout === 'photo-large'
             ? '(max-width: 767px) 100vw, 50vw'
@@ -85,25 +86,21 @@ export function LandingCategories() {
   return (
     <section
       id="categories"
-      className="relative z-10 border-t border-transparent bg-white"
+      className="landing-section relative z-10 border-t border-transparent bg-white"
       data-testid="landing-categories"
     >
       <div className="beam-container">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-10">
+        <LandingReveal className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-10">
           <div className="min-w-0 md:max-w-[34rem]">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#1D5CE5]">
-              Start here
-            </p>
-            <h2 className="mt-1.5 text-[26px] font-bold tracking-[-0.02em] text-[#071330] md:text-[32px]">
-              Popular Neighborhood Services
-            </h2>
+            <p className="landing-section-eyebrow">Start here</p>
+            <h2 className="landing-section-title">Popular Neighborhood Services</h2>
           </div>
-          <p className="max-w-md text-[15px] leading-[1.55] text-[#4A5568] md:max-w-[22rem] md:text-right">
+          <p className="max-w-md text-[15px] leading-[1.55] text-[#4A5568] md:max-w-[22rem] md:text-right md:text-pretty">
             Pick a category to start a request and see what neighbors nearby typically charge.
           </p>
-        </div>
+        </LandingReveal>
 
-        <div
+        <LandingReveal
           data-testid="categories-bento"
           aria-label="Popular Neighborhood Services"
           className="categories-bento mt-7"
@@ -124,7 +121,7 @@ export function LandingCategories() {
               src={LIFESTYLE.handyman}
               alt="Neighbor assembling a bookshelf in a living room"
               fill
-              className="object-cover transition-transform duration-[450ms] ease-out group-hover:scale-[1.045] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+              className="object-cover"
               sizes="(max-width: 767px) 100vw, 33vw"
             />
             <span
@@ -150,7 +147,7 @@ export function LandingCategories() {
               </span>
             </span>
           </Link>
-        </div>
+        </LandingReveal>
       </div>
     </section>
   )

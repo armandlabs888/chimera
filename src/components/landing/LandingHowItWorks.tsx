@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { LIFESTYLE } from '@/data/media'
+import { LandingReveal } from './LandingReveal'
 
 /**
  * How it works. Landing v2 tinted band with three compact steps (non-interactive).
@@ -32,39 +33,42 @@ export function LandingHowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="relative overflow-hidden bg-white py-12 md:py-14"
+      className="landing-section relative overflow-hidden bg-white"
       data-testid="how-it-works"
     >
       <div className="beam-container relative">
-        <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#1D5CE5]">
-          How it works
-        </p>
-        <h2 className="mt-1.5 text-[26px] font-bold tracking-[-0.02em] text-[#071330] md:text-[30px]">
-          From to-do to done.
-        </h2>
+        <LandingReveal>
+          <p className="landing-section-eyebrow">How it works</p>
+          <h2 className="landing-section-title">From to-do to done.</h2>
+        </LandingReveal>
         <div
-          className="mt-6 grid items-start gap-8 bg-transparent md:grid-cols-3 md:gap-6"
+          className="mt-7 grid items-stretch gap-4 bg-transparent md:grid-cols-3 md:gap-5"
           data-testid="how-it-works-steps"
         >
-          {STEPS.map((step) => (
-            <article key={step.n} className="flex h-full min-h-0 flex-col">
-              <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden rounded-lg bg-[#EEF2F7]">
-                <Image
-                  src={step.src}
-                  alt={step.alt}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                />
+          {STEPS.map((step, index) => (
+            <LandingReveal key={step.n} as="article" className="h-full">
+              <div
+                className="landing-step-card"
+                style={{ transitionDelay: `${index * 60}ms` }}
+              >
+                <div className="landing-step-media">
+                  <Image
+                    src={step.src}
+                    alt={step.alt}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                </div>
+                <div className="landing-step-body">
+                  <span className="landing-step-num" aria-hidden="true">
+                    {step.n}
+                  </span>
+                  <h3 className="landing-step-title">{step.title}</h3>
+                  <p className="landing-step-copy">{step.body}</p>
+                </div>
               </div>
-              <div className="mt-4 flex flex-1 flex-col">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#EEF2F7] text-[12px] font-bold text-[#1D5CE5]">
-                  {step.n}
-                </span>
-                <h3 className="mt-2.5 text-[15px] font-semibold text-[#071330]">{step.title}</h3>
-                <p className="mt-1 text-[15px] leading-[1.55] text-[#4A5568]">{step.body}</p>
-              </div>
-            </article>
+            </LandingReveal>
           ))}
         </div>
       </div>

@@ -146,6 +146,12 @@ async function checkLandingMarkup() {
     /Clear steps and in-app messaging, so you can compare offers/,
     'why Bunk body copy',
   )
+  assert.match(
+    text,
+    /Helpers confirm their home with a location check before they can make offers/,
+    'why Bunk verification fact',
+  )
+  assert.match(text, /Free to post\. No obligation\./, 'free to post reassurance')
   assert.doesNotMatch(text, /without invented counts/, 'old why body removed')
   assert.doesNotMatch(
     text,

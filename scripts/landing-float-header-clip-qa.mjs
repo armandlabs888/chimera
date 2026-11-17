@@ -80,9 +80,13 @@ try {
     })
     record(placement.ok, `${vp.name}: overlay nav outside hero`, placement)
     record(placement.navStyle === 'overlay', `${vp.name}: data-nav-style=overlay`, placement)
+    // Overlay header keeps a top inset (26px desktop / 18px mobile), not flush to 0.
+    const expectedTop = vp.width >= 768 ? 26 : 18
     record(
-      placement.top === 0 && placement.left === 0 && placement.widthRatio >= 0.98,
-      `${vp.name}: full-width flush header`,
+      placement.top === expectedTop &&
+        placement.left === 0 &&
+        placement.widthRatio >= 0.98,
+      `${vp.name}: full-width inset header`,
       placement,
     )
     record(
