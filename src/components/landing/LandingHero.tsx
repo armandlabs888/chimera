@@ -125,7 +125,7 @@ export function LandingHero() {
       </div>
 
       <div className="landing-hero-content relative z-20" data-testid="landing-hero">
-        <div className="beam-container relative z-10 text-center">
+        <div className="landing-centered beam-container relative z-10 w-full text-center">
           <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#8FB2FF]">
             Local services · Real everyday help
           </p>

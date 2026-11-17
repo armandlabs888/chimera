@@ -76,12 +76,36 @@
 }
 
 .landing-root .landing-section-lede {
-  margin: 10px 0 0;
+  /* Keep left-aligned measure in split layouts (Why Bunk). */
+  margin-block: 10px 0;
+  margin-inline: 0;
   max-width: var(--landing-prose);
   font-size: var(--landing-body-size);
   line-height: var(--landing-body-leading);
   color: var(--landing-muted);
   text-wrap: pretty;
+}
+
+/* Centered stacks: max-width blocks must center, not sit left. */
+.landing-root .landing-centered,
+.landing-root .text-center .landing-reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.landing-root .landing-centered .landing-section-title,
+.landing-root .landing-centered .landing-section-lede,
+.landing-root .landing-centered .landing-closing-reassure,
+.landing-root .landing-centered .landing-hero-reassure,
+.landing-root .text-center .landing-section-title,
+.landing-root .text-center .landing-section-lede,
+.landing-root .text-center .landing-closing-reassure,
+.landing-root .text-center .landing-hero-reassure,
+.landing-root .text-center .landing-hero-lede {
+  margin-inline: auto;
+  text-align: center;
 }
 
 /* Entrance reveals: visible without JS; hide only after JS marks ready. */
@@ -296,10 +320,13 @@
 
 .landing-hero-reassure,
 .landing-closing-reassure {
-  margin: 12px 0 0;
+  margin-block: 12px 0;
+  margin-inline: auto;
+  max-width: var(--landing-prose);
   font-size: 13px;
   line-height: 1.4;
   letter-spacing: 0.01em;
+  text-align: center;
   color: rgba(255, 255, 255, 0.78);
 }
 
@@ -314,6 +341,7 @@
   align-items: center;
   justify-content: center;
   margin-top: 20px;
+  margin-inline: auto;
   padding-inline: 26px;
   border-radius: 999px;
   background: var(--landing-blue);

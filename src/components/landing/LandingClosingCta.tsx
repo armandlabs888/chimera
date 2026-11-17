@@ -8,9 +8,9 @@ export function LandingClosingCta() {
   return (
     <section className="landing-section bg-white" data-testid="landing-closing-cta">
       <div className="beam-container text-center">
-        <LandingReveal>
-          <h2 className="landing-section-title mx-auto">One less thing on your list.</h2>
-          <p className="landing-section-lede mx-auto mt-3 max-w-[42ch] text-balance">
+        <LandingReveal className="landing-centered w-full">
+          <h2 className="landing-section-title">One less thing on your list.</h2>
+          <p className="landing-section-lede mt-3 max-w-[42ch] text-balance">
             Tell us what you need a hand with.
           </p>
           <p className="landing-closing-reassure" data-testid="landing-closing-reassure">
