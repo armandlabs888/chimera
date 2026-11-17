@@ -1,6 +1,7 @@
 'use client'
 
 import type { Ref } from 'react'
+import { FieldInlineError } from '@/components/ui'
 import type { RateType } from '@/types'
 
 /** Editor rate options. Legacy DB `quote` maps to Hourly in the UI. */
@@ -143,14 +144,13 @@ export function RateFields({
       </div>
 
       {error ? (
-        <p
+        <FieldInlineError
           id={errorId}
           className={variant === 'edit' ? 'ep-field-error' : 'account-hc-field-error'}
-          role="alert"
-          data-testid={errorId}
+          testId={errorId}
         >
           {error}
-        </p>
+        </FieldInlineError>
       ) : rateType === 'flat' ? (
         <p className={hintClass} data-testid={`${testIdPrefix}-flat-hint`}>
           One price per job.

@@ -12,8 +12,9 @@ import {
   WorkingHoursFields,
   workingHoursSavePayload,
 } from '@/components/account/WorkingHoursFields'
-import { Button, InlineBanner } from '@/components/ui'
+import { Button, FormErrorAlert, InlineBanner } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
+import { humanizeSaveError, scrollAlertIntoView } from '@/lib/formErrors'
 import { normalizeWorkTime } from '@/lib/workingHours'
 import { normalizeOtherCustom, type ServiceCategoryId } from '@/lib/taxonomy'
 import '@/components/account/account-hc.css'
@@ -34,6 +35,7 @@ export function YouHelperDetailsForm() {
   const { currentUser, updateProfile } = useBeam()
   const rateInputRef = useRef<HTMLInputElement>(null)
   const hoursStartRef = useRef<HTMLSelectElement>(null)
+  const alertRef = useRef<HTMLDivElement>(null)
   const [skills, setSkills] = useState<ServiceCategoryId[]>(
     (currentUser.skills ?? []).filter((s): s is ServiceCategoryId =>
       SERVICE_IDS.includes(s as ServiceCategoryId),
@@ -155,8 +157,10 @@ export function YouHelperDetailsForm() {
       setSavedFlash(true)
       window.setTimeout(() => setSavedFlash(false), 1800)
     } catch (err) {
-      const raw = err instanceof Error ? err.message : 'Could not save helper details.'
-      setError(raw.replace(/^Update profile:\s*/i, '') || 'Could not save helper details.')
+      setError(humanizeSaveError(err, 'Could not save helper details.'))
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => scrollAlertIntoView(alertRef.current))
+      })
     } finally {
       setPending(false)
     }
@@ -170,9 +174,11 @@ export function YouHelperDetailsForm() {
       noValidate
     >
       {error ? (
-        <div className="mb-2">
-          <InlineBanner tone="error">{error}</InlineBanner>
-        </div>
+        <FormErrorAlert
+          className="mb-2"
+          message={error}
+          testId="you-helper-top-error"
+        />
       ) : null}
       {savedFlash ? (
         <div className="mb-2">
@@ -283,15 +289,12 @@ export function YouHelperDetailsForm() {
         />
       </div>
 
-      {error ? (
-        <p
-          className="account-hc-field-error mt-4"
-          role="alert"
-          data-testid="you-helper-submit-error"
-        >
-          {error}
-        </p>
-      ) : null}
+      <FormErrorAlert
+        ref={alertRef}
+        className="mt-4"
+        message={error}
+        testId="you-helper-submit-error"
+      />
 
       <Button
         type="submit"

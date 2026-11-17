@@ -4,8 +4,9 @@ import { Camera, Info } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { CategorySelect } from '@/components/CategorySelect'
-import { Avatar, InlineBanner } from '@/components/ui'
+import { Avatar, FormErrorAlert, InlineBanner } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
+import { humanizeSaveError, scrollAlertIntoView } from '@/lib/formErrors'
 import { uploadBeamMedia } from '@/lib/beam/storageUpload'
 import { formatLocation } from '@/lib/location'
 import { isHelperPerson } from '@/lib/roles'
@@ -48,6 +49,7 @@ export function EditProfileForm() {
   const fileRef = useRef<HTMLInputElement>(null)
   const rateInputRef = useRef<HTMLInputElement>(null)
   const hoursStartRef = useRef<HTMLSelectElement>(null)
+  const alertRef = useRef<HTMLDivElement>(null)
   const isHelper = isHelperPerson(currentUser)
 
   const [avatar, setAvatar] = useState(currentUser.avatar || '')
@@ -157,7 +159,7 @@ export function EditProfileForm() {
       })
       setAvatar(url)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not upload photo')
+      setError(humanizeSaveError(err, 'Could not upload photo'))
     } finally {
       setUploading(false)
     }
@@ -254,8 +256,10 @@ export function EditProfileForm() {
       setSavedFlash(true)
       window.setTimeout(() => setSavedFlash(false), 1800)
     } catch (err) {
-      const raw = err instanceof Error ? err.message : 'Could not save your profile.'
-      setError(raw.replace(/^Update profile:\s*/i, '') || 'Could not save your profile.')
+      setError(humanizeSaveError(err, 'Could not save your profile.'))
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => scrollAlertIntoView(alertRef.current))
+      })
     } finally {
       setPending(false)
     }
@@ -271,9 +275,11 @@ export function EditProfileForm() {
       noValidate
     >
       {error ? (
-        <div className="mb-3">
-          <InlineBanner tone="error">{error}</InlineBanner>
-        </div>
+        <FormErrorAlert
+          className="mb-3"
+          message={error}
+          testId="edit-profile-top-error"
+        />
       ) : null}
       {savedFlash ? (
         <div className="mb-3">
@@ -509,15 +515,12 @@ export function EditProfileForm() {
         </>
       ) : null}
 
-      {error ? (
-        <p
-          className="ep-field-error mb-3"
-          role="alert"
-          data-testid="edit-profile-submit-error"
-        >
-          {error}
-        </p>
-      ) : null}
+      <FormErrorAlert
+        ref={alertRef}
+        className="mb-3"
+        message={error}
+        testId="edit-profile-submit-error"
+      />
 
       <div className="ep-save-bar" data-testid="edit-profile-save-bar">
         <button
