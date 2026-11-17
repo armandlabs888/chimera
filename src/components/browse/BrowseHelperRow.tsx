@@ -105,9 +105,9 @@ export function BrowseHelperRow({
                 </span>
               ) : null}
             </span>
+            <span className="browse-hc-helper-rate">{rateLabel}</span>
           </span>
           <span className="browse-hc-helper-side">
-            <span className="browse-hc-helper-rate">{rateLabel}</span>
             <Link
               href={profileHref}
               data-testid="browse-helper-view-profile"
