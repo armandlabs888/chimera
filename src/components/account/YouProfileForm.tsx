@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Avatar, Button, InlineBanner } from '@/components/ui'
+import { Avatar, Button, FormErrorAlert, InlineBanner } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
+import { humanizeSaveError, scrollAlertIntoView } from '@/lib/formErrors'
 import { uploadBeamMedia } from '@/lib/beam/storageUpload'
 import { createClient } from '@/lib/supabase/client'
 import '@/components/account/account-hc.css'
@@ -10,6 +11,8 @@ import '@/components/account/account-hc.css'
 export function YouProfileForm() {
   const { currentUser, updateProfile, mode, authUser } = useBeam()
   const fileRef = useRef<HTMLInputElement>(null)
+  const nameInputRef = useRef<HTMLInputElement>(null)
+  const alertRef = useRef<HTMLDivElement>(null)
   const [avatar, setAvatar] = useState(currentUser.avatar || '')
   const [name, setName] = useState(currentUser.name || '')
   const [bio, setBio] = useState(currentUser.bio || '')
@@ -58,7 +61,7 @@ export function YouProfileForm() {
       })
       setAvatar(url)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not upload photo')
+      setError(humanizeSaveError(err, 'Could not upload photo'))
     } finally {
       setUploading(false)
     }
@@ -69,6 +72,10 @@ export function YouProfileForm() {
     const trimmedName = name.trim()
     if (!trimmedName) {
       setError('Add a display name so neighbors know who you are.')
+      requestAnimationFrame(() => {
+        nameInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        nameInputRef.current?.focus()
+      })
       return
     }
     const locationLabel = city.trim()
@@ -91,8 +98,10 @@ export function YouProfileForm() {
       setSavedFlash(true)
       window.setTimeout(() => setSavedFlash(false), 1800)
     } catch (err) {
-      const raw = err instanceof Error ? err.message : 'Could not save your profile.'
-      setError(raw.replace(/^Update profile:\s*/i, '') || 'Could not save your profile.')
+      setError(humanizeSaveError(err, 'Could not save your profile.'))
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => scrollAlertIntoView(alertRef.current))
+      })
     } finally {
       setPending(false)
     }
@@ -106,9 +115,11 @@ export function YouProfileForm() {
       noValidate
     >
       {error ? (
-        <div className="mb-2">
-          <InlineBanner tone="error">{error}</InlineBanner>
-        </div>
+        <FormErrorAlert
+          className="mb-2"
+          message={error}
+          testId="you-profile-top-error"
+        />
       ) : null}
       {savedFlash ? (
         <div className="mb-2">
@@ -151,6 +162,7 @@ export function YouProfileForm() {
           Display name
         </label>
         <input
+          ref={nameInputRef}
           id="you-display-name"
           name="displayName"
           autoComplete="name"
@@ -194,6 +206,13 @@ export function YouProfileForm() {
           data-testid="you-city"
         />
       </div>
+
+      <FormErrorAlert
+        ref={alertRef}
+        className="mt-4"
+        message={error}
+        testId="you-profile-submit-error"
+      />
 
       <Button
         type="submit"

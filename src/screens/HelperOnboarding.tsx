@@ -8,8 +8,9 @@ import {
   UsCityCombobox,
   type UsCityComboboxHandle,
 } from '@/components/onboarding/UsCityCombobox'
-import { Avatar, Button, InlineBanner } from '@/components/ui'
+import { Avatar, Button, FormErrorAlert } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
+import { humanizeSaveError, scrollAlertIntoView } from '@/lib/formErrors'
 import { CategorySelect } from '@/components/CategorySelect'
 import { normalizeOtherCustom, formatCategoryLabel, type ServiceCategoryId } from '@/lib/taxonomy'
 import { uploadBeamMedia } from '@/lib/beam/storageUpload'
@@ -60,6 +61,7 @@ export function HelperOnboarding() {
   const nameInputRef = useRef<HTMLInputElement>(null)
   const rateInputRef = useRef<HTMLInputElement>(null)
   const hoursStartRef = useRef<HTMLSelectElement>(null)
+  const alertRef = useRef<HTMLDivElement>(null)
 
   const [avatar, setAvatar] = useState(currentUser.avatar || '')
   const [name, setName] = useState(currentUser.name || '')
@@ -228,7 +230,7 @@ export function HelperOnboarding() {
       })
       setAvatar(url)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not upload photo')
+      setError(humanizeSaveError(err, 'Could not upload photo'))
     } finally {
       setUploading(false)
     }
@@ -423,9 +425,13 @@ export function HelperOnboarding() {
       })
       router.push('/browse')
     } catch (err) {
-      const raw = err instanceof Error ? err.message : 'Could not publish your helper profile.'
-      setError(raw.replace(/^Update profile:\s*/i, '') || 'Could not publish your helper profile.')
+      setError(
+        humanizeSaveError(err, 'Could not publish your helper profile.'),
+      )
       setPending(false)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => scrollAlertIntoView(alertRef.current))
+      })
     }
   }
 
@@ -592,9 +598,11 @@ export function HelperOnboarding() {
             noValidate
           >
             {error ? (
-              <div className="mb-2">
-                <InlineBanner tone="error">{error}</InlineBanner>
-              </div>
+              <FormErrorAlert
+                className="mb-2"
+                message={error}
+                testId="helper-onboarding-top-error"
+              />
             ) : null}
 
             <section aria-labelledby="helper-section-profile">
@@ -847,15 +855,12 @@ export function HelperOnboarding() {
 
             <hr className="account-hc-divider" />
 
-            {error ? (
-              <p
-                className="account-hc-field-error mb-3"
-                role="alert"
-                data-testid="helper-onboarding-submit-error"
-              >
-                {error}
-              </p>
-            ) : null}
+            <FormErrorAlert
+              ref={alertRef}
+              className="mb-3"
+              message={error}
+              testId="helper-onboarding-submit-error"
+            />
 
             <div className="account-hc-form-actions">
               <Button
