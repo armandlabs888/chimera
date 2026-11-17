@@ -66,13 +66,20 @@
   padding: clamp(12px, 2.4dvh, 24px) clamp(16px, 2vw, 24px);
 }
 
+/*
+ * One content column (headline, badge, photo, checklist). Sized to the photo
+ * width and centered in the panel so left/right gutters match at every
+ * desktop and tablet width where the promo is shown.
+ */
 .auth-shell-aside-inner {
   display: flex;
-  width: 360px;
+  box-sizing: border-box;
+  width: min(360px, 100%);
   max-width: 100%;
   min-height: 0;
-  height: 100%;
+  margin-inline: auto;
   flex-direction: column;
+  justify-content: flex-start;
   text-align: left;
 }
 

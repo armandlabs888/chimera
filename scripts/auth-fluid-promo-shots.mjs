@@ -13,10 +13,12 @@ const OUT = '/opt/cursor/artifacts'
 mkdirSync(OUT, { recursive: true })
 
 const VIEWPORTS = [
+  { name: '1280x720', width: 1280, height: 720 },
+  { name: '1440x900', width: 1440, height: 900 },
+  { name: '1920x1080', width: 1920, height: 1080 },
+  { name: 'tablet-1024x768', width: 1024, height: 768 },
   { name: '1440x760', width: 1440, height: 760 },
   { name: '1536x800', width: 1536, height: 800 },
-  { name: '1280x720', width: 1280, height: 720 },
-  { name: '1920x1080', width: 1920, height: 1080 },
   { name: '1366x768', width: 1366, height: 768 },
   { name: '390x844', width: 390, height: 844 },
 ]
@@ -42,18 +44,38 @@ async function assertLayout(page, label, vp) {
   const metrics = await page.evaluate(() => {
     const card = document.querySelector('[data-testid="auth-modal"]')
     const aside = document.querySelector('[data-testid="auth-aside-panel"]')
+    const inner = document.querySelector('.auth-shell-aside-inner')
     const imgWrap = document.querySelector('.auth-shell-aside-image')
     const img = aside?.querySelector('img')
     if (!card) return null
     const cr = card.getBoundingClientRect()
     const asideStyle = aside ? getComputedStyle(aside) : null
+    const ar = aside ? aside.getBoundingClientRect() : null
+    const nr = inner ? inner.getBoundingClientRect() : null
     const ir = imgWrap ? imgWrap.getBoundingClientRect() : null
+    const padL = aside ? parseFloat(asideStyle.paddingLeft) || 0 : 0
+    const padR = aside ? parseFloat(asideStyle.paddingRight) || 0 : 0
+    const padT = aside ? parseFloat(asideStyle.paddingTop) || 0 : 0
+    const padB = aside ? parseFloat(asideStyle.paddingBottom) || 0 : 0
+    const borderL = aside ? parseFloat(asideStyle.borderLeftWidth) || 0 : 0
+    const borderR = aside ? parseFloat(asideStyle.borderRightWidth) || 0 : 0
+    const borderT = aside ? parseFloat(asideStyle.borderTopWidth) || 0 : 0
+    const borderB = aside ? parseFloat(asideStyle.borderBottomWidth) || 0 : 0
     return {
       card: { top: cr.top, bottom: cr.bottom, height: cr.height, width: cr.width },
       asideDisplay: asideStyle?.display ?? 'missing',
       asideOverflowY: asideStyle?.overflowY ?? null,
       image: ir
         ? { width: ir.width, height: ir.height, top: ir.top, bottom: ir.bottom }
+        : null,
+      center: ar && nr
+        ? {
+            leftGutter: nr.left - (ar.left + borderL + padL),
+            rightGutter: ar.right - borderR - padR - nr.right,
+            topGutter: nr.top - (ar.top + borderT + padT),
+            bottomGutter: ar.bottom - borderB - padB - nr.bottom,
+            innerWidth: nr.width,
+          }
         : null,
       imgSrc: img ? img.currentSrc || img.getAttribute('src') || '' : '',
       vh: window.innerHeight,
@@ -94,6 +116,23 @@ async function assertLayout(page, label, vp) {
       metrics.asideOverflowY === 'hidden' || metrics.asideOverflowY === 'clip',
       `${label}: aside should not scroll (overflowY=${metrics.asideOverflowY})`,
     )
+    assert.ok(metrics.center, `${label}: promo inner missing`)
+    assert.ok(
+      metrics.center.innerWidth <= 360.5,
+      `${label}: promo inner wider than 360px (${metrics.center.innerWidth})`,
+    )
+    // Horizontal gutters should match so the block sits centered in the panel.
+    assert.ok(
+      Math.abs(metrics.center.leftGutter - metrics.center.rightGutter) <= 2,
+      `${label}: promo not horizontally centered (L=${metrics.center.leftGutter.toFixed(1)} R=${metrics.center.rightGutter.toFixed(1)})`,
+    )
+    // Vertical gutters should be roughly balanced when the block fits.
+    if (metrics.center.topGutter >= 0 && metrics.center.bottomGutter >= 0) {
+      assert.ok(
+        Math.abs(metrics.center.topGutter - metrics.center.bottomGutter) <= 8,
+        `${label}: promo not vertically centered (T=${metrics.center.topGutter.toFixed(1)} B=${metrics.center.bottomGutter.toFixed(1)})`,
+      )
+    }
   } else {
     assert.equal(metrics.asideDisplay, 'none', `${label}: promo should be hidden`)
   }
@@ -104,6 +143,9 @@ async function assertLayout(page, label, vp) {
     aside: metrics.asideDisplay,
     img: metrics.image
       ? `${Math.round(metrics.image.width)}x${Math.round(metrics.image.height)}`
+      : null,
+    gutters: metrics.center
+      ? `H ${metrics.center.leftGutter.toFixed(0)}/${metrics.center.rightGutter.toFixed(0)} V ${metrics.center.topGutter.toFixed(0)}/${metrics.center.bottomGutter.toFixed(0)}`
       : null,
   })
 }
