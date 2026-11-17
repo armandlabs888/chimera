@@ -22,7 +22,7 @@ export const POPULAR_SERVICES = [
     src: LIFESTYLE.cleaningCrew,
     alt: 'Cleaning crew with equipment in a living room',
     testId: 'categories-tile-cleaning',
-    description: 'Kitchens, baths, and whole-home cleans on your schedule.',
+    description: 'Kitchen refreshes, move-out cleans, and weekly upkeep.',
     layout: 'photo' as const,
   },
   {
@@ -32,7 +32,7 @@ export const POPULAR_SERVICES = [
     src: '/images/landing/avail-auto-detailing.jpg',
     alt: 'Person washing a car with soap suds',
     testId: 'categories-tile-auto',
-    description: 'Interior and exterior washes that look freshly detailed.',
+    description: 'Driveway hand washes, interior details, and waxing.',
     layout: 'photo' as const,
   },
   {

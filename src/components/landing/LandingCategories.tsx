@@ -9,12 +9,12 @@ import { POPULAR_SERVICES } from '@/lib/popularServices'
 function PhotoCard({
   service,
   showArrow,
-  compact,
 }: {
   service: (typeof POPULAR_SERVICES)[number]
   showArrow?: boolean
-  compact?: boolean
 }) {
+  const narrow = service.id === 'cleaning' || service.id === 'auto'
+
   return (
     <Link
       href={service.href}
@@ -36,10 +36,18 @@ function PhotoCard({
         }
       />
       <span
-        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[rgba(7,19,48,0.82)] via-[rgba(7,19,48,0.28)] to-transparent"
+        className={`pointer-events-none absolute inset-0 bg-gradient-to-t to-transparent ${
+          narrow
+            ? 'from-[rgba(7,19,48,0.9)] via-[rgba(7,19,48,0.45)] via-40%'
+            : 'from-[rgba(7,19,48,0.82)] via-[rgba(7,19,48,0.28)]'
+        }`}
         aria-hidden="true"
       />
-      <span className="absolute inset-x-0 bottom-0 z-[1] flex flex-col gap-1 p-4 sm:p-5">
+      <span
+        className={`absolute inset-x-0 bottom-0 z-[1] flex flex-col gap-1 ${
+          narrow ? 'p-3.5 sm:p-4 lg:p-5' : 'p-4 sm:p-5'
+        }`}
+      >
         <span className="flex items-start justify-between gap-3">
           <span className="text-[17px] font-bold leading-tight tracking-[-0.025em] text-white sm:text-[18px]">
             {service.label}
@@ -53,8 +61,8 @@ function PhotoCard({
           ) : null}
         </span>
         <span
-          className={`max-w-[34ch] text-[13px] leading-[1.45] text-white/85 sm:text-[14px] ${
-            compact ? 'md:hidden' : ''
+          className={`text-[13px] leading-[1.45] text-white/85 ${
+            narrow ? 'max-w-none lg:text-[13px] xl:text-[14px]' : 'max-w-[34ch] sm:text-[14px]'
           }`}
         >
           {service.description}
@@ -101,8 +109,8 @@ export function LandingCategories() {
           className="categories-bento mt-7"
         >
           <PhotoCard service={moving} showArrow />
-          <PhotoCard service={cleaning} compact />
-          <PhotoCard service={auto} compact />
+          <PhotoCard service={cleaning} />
+          <PhotoCard service={auto} />
           <PhotoCard service={pets} />
           <PhotoCard service={junk} showArrow />
 

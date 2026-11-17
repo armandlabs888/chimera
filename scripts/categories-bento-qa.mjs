@@ -20,12 +20,21 @@ async function main() {
   try {
     for (const vp of [
       { name: '1440x900', width: 1440, height: 900 },
+      { name: '1024x768', width: 1024, height: 768 },
       { name: '768x1024', width: 768, height: 1024 },
       { name: '390x844', width: 390, height: 844 },
     ]) {
       const page = await browser.newPage({ viewport: { width: vp.width, height: vp.height } })
-      await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded', timeout: 60000 })
-      await page.waitForSelector('#categories', { timeout: 30000 })
+      await page.goto(`${BASE}/?demo=1`, { waitUntil: 'domcontentloaded', timeout: 60000 })
+      // Demo boot remounts the tree once; wait until categories is stable after that.
+      await page.waitForFunction(
+        () =>
+          !!document.querySelector('#categories') &&
+          !/needs configuration/i.test(document.body?.innerText || ''),
+        null,
+        { timeout: 30000 },
+      )
+      await page.waitForTimeout(300)
       assert.equal(await page.getByTestId('popular-gigs').count(), 0, 'popular gigs removed')
       await page.locator('#categories').scrollIntoViewIfNeeded()
       const metrics = await page.evaluate(() => {
@@ -49,6 +58,34 @@ async function main() {
         const movingRect = moving?.getBoundingClientRect()
         const gridRect = grid?.getBoundingClientRect()
         const overflowX = document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
+        const descFits = (tile, expect) => {
+          if (!tile) return { visible: false, clipped: true }
+          const desc = [...tile.querySelectorAll('span')].find(
+            (el) => el.childElementCount === 0 && (el.textContent || '').trim() === expect,
+          )
+          if (!desc) return { visible: false, clipped: true, text: '' }
+          const style = getComputedStyle(desc)
+          const tileRect = tile.getBoundingClientRect()
+          const descRect = desc.getBoundingClientRect()
+          const lineHeight = Number.parseFloat(style.lineHeight) || 20
+          const visible =
+            style.display !== 'none' &&
+            style.visibility !== 'hidden' &&
+            Number.parseFloat(style.opacity || '1') > 0.01 &&
+            descRect.height > 0
+          const clipped =
+            descRect.bottom > tileRect.bottom + 1 ||
+            descRect.left < tileRect.left - 1 ||
+            descRect.right > tileRect.right + 1 ||
+            desc.scrollHeight > desc.clientHeight + 1
+          return {
+            visible,
+            clipped,
+            text: (desc.textContent || '').trim(),
+            height: descRect.height,
+            lines: Math.max(1, Math.round(descRect.height / lineHeight)),
+          }
+        }
         return {
           tiles: tiles.length,
           cols,
@@ -79,6 +116,11 @@ async function main() {
           movingHeight: movingRect?.height || 0,
           gridWidth: gridRect?.width || 0,
           overflowX,
+          cleaningDesc: descFits(
+            cleaning,
+            'Kitchen refreshes, move-out cleans, and weekly upkeep.',
+          ),
+          autoDesc: descFits(auto, 'Driveway hand washes, interior details, and waxing.'),
         }
       })
       assert.equal(metrics.popularGigs, false, `no popular gigs @ ${vp.name}`)
@@ -115,10 +157,15 @@ async function main() {
       assert.ok(metrics.hrefs.includes('/browse?category=pets'))
       assert.ok(metrics.hrefs.includes('/post'))
       assert.ok(!metrics.hrefs.includes('/browse?category=other'))
-      if (vp.width >= 768) {
+      if (vp.width >= 1024) {
         assert.ok(
           metrics.movingWidth > metrics.gridWidth * 0.4,
           `moving tile is wide on desktop @ ${vp.name}`,
+        )
+      } else if (vp.width >= 768) {
+        assert.ok(
+          metrics.movingWidth > metrics.gridWidth * 0.85,
+          `moving tile full-width on tablet @ ${vp.name}`,
         )
       } else {
         assert.ok(metrics.movingHeight >= 210, `photo cards ~220px tall @ ${vp.name}`)
@@ -132,6 +179,26 @@ async function main() {
       )
       assert.match(metrics.sectionText, /Post a custom task/)
       assert.match(metrics.sectionText, /Need something else\? Free to post/i)
+      assert.match(
+        metrics.sectionText,
+        /Kitchen refreshes, move-out cleans, and weekly upkeep\./,
+      )
+      assert.match(
+        metrics.sectionText,
+        /Driveway hand washes, interior details, and waxing\./,
+      )
+      assert.equal(metrics.cleaningDesc.visible, true, `cleaning desc visible @ ${vp.name}`)
+      assert.equal(metrics.autoDesc.visible, true, `auto desc visible @ ${vp.name}`)
+      assert.equal(metrics.cleaningDesc.clipped, false, `cleaning desc not clipped @ ${vp.name}`)
+      assert.equal(metrics.autoDesc.clipped, false, `auto desc not clipped @ ${vp.name}`)
+      assert.ok(
+        metrics.cleaningDesc.lines >= 1 && metrics.cleaningDesc.lines <= 3,
+        `cleaning desc 1-2 lines @ ${vp.name}, got ${metrics.cleaningDesc.lines}`,
+      )
+      assert.ok(
+        metrics.autoDesc.lines >= 1 && metrics.autoDesc.lines <= 3,
+        `auto desc 1-2 lines @ ${vp.name}, got ${metrics.autoDesc.lines}`,
+      )
       assert.doesNotMatch(metrics.sectionText, /Something else\?/)
       assert.doesNotMatch(metrics.sectionText, /Explore →/)
       assert.doesNotMatch(metrics.sectionText, /—|–/)

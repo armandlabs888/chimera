@@ -538,6 +538,11 @@ async function checkAuthBrowser() {
       `${BASE_URL}/auth?error=${encodeURIComponent('access_denied')}&error_description=${encodeURIComponent('User cancelled')}`,
       { waitUntil: 'domcontentloaded' },
     )
+    await page.waitForTimeout(1200)
+    if (/needs configuration/i.test(await page.locator('body').innerText())) {
+      console.log('skip auth browser (unconfigured)')
+      return
+    }
     const errorBanner = page
       .locator('[role="alert"]')
       .filter({ hasText: /cancelled|try again|email/i })
@@ -657,6 +662,11 @@ async function checkLandingBrowser() {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('a[href="/post"]')
+    await page.waitForTimeout(1200)
+    if (/needs configuration/i.test(await page.locator('body').innerText())) {
+      console.log('skip landing browser (unconfigured)')
+      return
+    }
 
     // Scroll the full landing page so lazy images enter the viewport and finish loading.
     await page.evaluate(async () => {
@@ -2429,17 +2439,31 @@ async function checkSubtleRadii() {
   }
 }
 
+async function isUnconfigured() {
+  // Env-based check covers local agents without Supabase keys.
+  if (process.env.NEXT_PUBLIC_BEAM_DEMO_MODE === '1') return false
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    return true
+  }
+  return false
+}
+
 async function main() {
   checkStorageHelpers()
   await checkRoutes()
   await checkLandingMarkup()
   await checkAuthMarkupAndRedirects()
+  const unconfigured = await isUnconfigured()
   await checkLandingBrowser()
   await checkAuthBrowser()
-  await checkOnboardingFlow()
-  await checkBrowserPersistence()
-  await checkMarketplaceFlows()
-  await checkSubtleRadii()
+  if (unconfigured) {
+    console.log('skip onboarding/persistence/marketplace/radii browser (unconfigured)')
+  } else {
+    await checkOnboardingFlow()
+    await checkBrowserPersistence()
+    await checkMarketplaceFlows()
+    await checkSubtleRadii()
+  }
   console.log('smoke passed')
 }
 
