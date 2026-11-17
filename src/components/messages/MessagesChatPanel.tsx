@@ -3,7 +3,6 @@
 import {
   ArrowLeft,
   ChevronDown,
-  ExternalLink,
   Settings,
   X,
 } from 'lucide-react'
@@ -346,25 +345,15 @@ export function MessagesChatPanel({
             <Settings className="h-[18px] w-[18px]" strokeWidth={1.8} />
           </button>
           {showDesktopChrome ? (
-            <>
-              <Link
-                href={`/messages/${threadId}`}
-                className="messages-hide-mobile grid h-8 w-8 place-items-center rounded-lg text-[#071330] hover:bg-[#EEF2F7]"
-                aria-label="Open in full page"
-                data-testid="messages-popout"
-              >
-                <ExternalLink className="h-[17px] w-[17px]" strokeWidth={1.9} />
-              </Link>
-              <button
-                type="button"
-                className="messages-hide-mobile grid h-8 w-8 place-items-center rounded-lg text-[#071330] hover:bg-[#EEF2F7]"
-                aria-label="Minimize"
-                data-testid="messages-minimize"
-                onClick={onMinimize}
-              >
-                <ChevronDown className="h-[18px] w-[18px]" strokeWidth={1.9} />
-              </button>
-            </>
+            <button
+              type="button"
+              className="messages-hide-mobile grid h-8 w-8 place-items-center rounded-lg text-[#071330] hover:bg-[#EEF2F7]"
+              aria-label="Minimize"
+              data-testid="messages-minimize"
+              onClick={onMinimize}
+            >
+              <ChevronDown className="h-[18px] w-[18px]" strokeWidth={1.9} />
+            </button>
           ) : null}
           <button
             type="button"

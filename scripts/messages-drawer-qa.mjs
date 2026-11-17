@@ -60,6 +60,10 @@ async function main() {
 
     await page.getByTestId('messages-thread-row-th-1').click()
     await page.waitForSelector('[data-testid="messages-conversation"]')
+    assert.equal(await page.getByTestId('messages-popout').count(), 0, 'no pop-out button')
+    assert.ok(await page.getByTestId('messages-settings').isVisible())
+    assert.ok(await page.getByTestId('messages-minimize').isVisible())
+    assert.ok(await page.getByTestId('messages-chat-close').isVisible())
     await shot(page, '1440-panel-open')
 
     await page.getByTestId('messages-minimize').click()
@@ -82,6 +86,9 @@ async function main() {
     await page.getByTestId('messages-thread-row-th-1').click()
     await page.waitForSelector('[data-testid="messages-conversation"]')
     assert.equal(await page.getByTestId('messages-back').isVisible(), true)
+    assert.equal(await page.getByTestId('messages-popout').count(), 0, 'no pop-out button on mobile')
+    assert.ok(await page.getByTestId('messages-settings').isVisible())
+    assert.ok(await page.getByTestId('messages-chat-close').isVisible())
     await shot(page, '390-chat')
 
     console.log('messages floating panel QA passed')
