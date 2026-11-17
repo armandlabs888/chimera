@@ -4,7 +4,7 @@ import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Helper reviews',
-  description: 'Staff helper verification reviews for BlockSide.',
+  description: 'Staff helper verification reviews for Bunk.',
   path: '/admin/helper-reviews',
   noindex: true,
 })

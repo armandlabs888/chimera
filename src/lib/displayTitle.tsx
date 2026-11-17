@@ -10,7 +10,7 @@ export function formatJobTitleDisplay(title: string): string {
 }
 
 export function referHelperShareText(title: string): string {
-  return `Know someone who could help? This job is open on BlockSide: ${title}`
+  return `Know someone who could help? This job is open on Bunk: ${title}`
 }
 
 /**

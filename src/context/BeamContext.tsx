@@ -372,7 +372,7 @@ export function BeamProvider({
         if (!cancelled) setState(next)
       } catch (err) {
         if (!cancelled) {
-          setBackendError(err instanceof Error ? err.message : 'Failed to start BlockSide backend')
+          setBackendError(err instanceof Error ? err.message : 'Failed to start Bunk backend')
           setState(null)
         }
       } finally {
@@ -879,10 +879,10 @@ export function BeamProvider({
         const status = verification?.status
         const message =
           status === 'pending'
-            ? "BlockSide still needs to confirm you're at your home address. You can offer once you're verified."
+            ? "Bunk still needs to confirm you're at your home address. You can offer once you're verified."
             : status === 'needs_resubmission'
-              ? 'BlockSide needs you to confirm your home address again before you can make an offer.'
-              : "To make an offer, BlockSide has to confirm you're at your home address. You need to be home for this check."
+              ? 'Bunk needs you to confirm your home address again before you can make an offer.'
+              : "To make an offer, Bunk has to confirm you're at your home address. You need to be home for this check."
         const err = new Error(message)
         setBackendError(message)
         throw err
@@ -2106,7 +2106,7 @@ export function BeamProvider({
           kind: input.approve ? 'verification_approved' : 'verification_needs_resubmission',
           title: input.approve ? 'You are verified' : 'Try home confirmation again',
           body: input.approve
-            ? 'BlockSide verified your home address. You can make offers on local jobs now.'
+            ? 'Bunk verified your home address. You can make offers on local jobs now.'
             : reason,
           href: input.approve ? '/browse' : '/verify',
           readAt: null,
@@ -2285,7 +2285,7 @@ export function BeamProvider({
   if (mode === 'unconfigured') {
     return (
       <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-4 text-[#071330]">
-        <h1 className="type-h2 text-[#071330]">BlockSide needs configuration</h1>
+        <h1 className="type-h2 text-[#071330]">Bunk needs configuration</h1>
         <p className="text-sm text-[#4A5568]">
           {backendError ||
             'Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, or enable local demo with NEXT_PUBLIC_BEAM_DEMO_MODE=1.'}
@@ -2316,9 +2316,9 @@ export function BeamProvider({
   if (!state || !currentUser) {
     return (
       <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-4 text-[#071330]">
-        <h1 className="type-h2 text-[#071330]">BlockSide backend error</h1>
+        <h1 className="type-h2 text-[#071330]">Bunk backend error</h1>
         <p className="text-sm text-[#4A5568]">
-          {backendError || 'Could not load your BlockSide session from Supabase.'}
+          {backendError || 'Could not load your Bunk session from Supabase.'}
         </p>
         <p className="text-xs text-[#4A5568]">
           Live mode does not fall back to localStorage. Fix the backend error or use explicit demo

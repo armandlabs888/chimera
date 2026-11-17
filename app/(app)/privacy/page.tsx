@@ -7,7 +7,7 @@ import { PolicyPlaceholder } from '@/screens/PolicyPlaceholder'
 export const metadata: Metadata = pageMetadata({
   title: 'Privacy Policy',
   description:
-    'How BlockSide collects, uses, and protects personal information when you post tasks, send offers, or create an account.',
+    'How Bunk collects, uses, and protects personal information when you post tasks, send offers, or create an account.',
   path: '/privacy',
 })
 

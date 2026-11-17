@@ -1,4 +1,4 @@
-/** Daylight photography. Unique local public assets for the BlockSide landing page.
+/** Daylight photography. Unique local public assets for the Bunk landing page.
  *  Hero fan: smiling human portraits (object-cover object-top).
  *  Lifestyle: real photography — no cartoons, masks/goggles, drills, or alphabet blocks.
  *  Specialty labels must match the photo subject (or be omitted), never invent a service.
@@ -70,7 +70,7 @@ export const LIFESTYLE = {
   authCarpet: '/images/auth/carpet-cleaner.jpg',
   /**
    * Auth modal marketing panel — outdoor neighbors carrying moving boxes (Pexels 7464497).
-   * No HouseCall/Beam branding; user-facing brand is BlockSide.
+   * No HouseCall/Beam branding; user-facing brand is Bunk.
    */
   authPanel: '/images/landing/auth-panel-neighbors.jpg',
   /** Legacy indoor plant/move photo — retired from auth UI */

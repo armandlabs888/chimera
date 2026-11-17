@@ -1,10 +1,10 @@
 /** Pure email body builders for account-deletion confirmation (safe for unit scripts). */
 
-export const ACCOUNT_DELETED_EMAIL_SUBJECT = 'Your BlockSide account has been deleted'
+export const ACCOUNT_DELETED_EMAIL_SUBJECT = 'Your Bunk account has been deleted'
 
 export const ACCOUNT_DELETED_AUTH_URL = 'https://www.yariapp.com/auth'
 
-const PRODUCT_NAME = 'BlockSide'
+const PRODUCT_NAME = 'Bunk'
 const TEXT = '#071330'
 const META = '#4A5568'
 const HAIRLINE = '#E3E8EF'
@@ -61,7 +61,7 @@ export function buildAccountDeletedEmailText(input: AccountDeletedEmailInput): s
     '',
     `This confirms that your ${PRODUCT_NAME} account for ${input.email} was deleted on ${when}.`,
     '',
-    'We erased the following from BlockSide:',
+    'We erased the following from Bunk:',
     eraseLines,
     '',
     'This is permanent and cannot be undone.',
@@ -100,7 +100,7 @@ export function buildAccountDeletedEmailHtml(input: AccountDeletedEmailInput): s
           <tr>
             <td style="padding:28px 28px 8px;">
               <div style="font-size:22px;line-height:1.2;font-weight:700;letter-spacing:-0.02em;color:${PRIMARY};">
-                BlockSide
+                Bunk
               </div>
             </td>
           </tr>

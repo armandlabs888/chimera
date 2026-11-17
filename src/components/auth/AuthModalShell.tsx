@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { type ReactNode, type Ref } from 'react'
-import { BlockSideWordmark } from '@/components/BlockSideWordmark'
+import { BunkWordmark } from '@/components/BunkWordmark'
 import { LIFESTYLE } from '@/data/media'
 import './auth-shell.css'
 
@@ -46,7 +46,7 @@ export function AuthModalShell({
         className="auth-shell-card"
       >
         <div className="auth-shell-form">
-          <BlockSideWordmark size="header" className="mb-1 w-fit self-start" />
+          <BunkWordmark size="header" className="mb-1 w-fit self-start" />
           {children}
         </div>
 

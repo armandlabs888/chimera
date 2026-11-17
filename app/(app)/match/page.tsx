@@ -6,7 +6,7 @@ import { pageMetadata } from '@/lib/seo/site'
 export const metadata: Metadata = pageMetadata({
   title: 'Match',
   description:
-    'Describe what you need on BlockSide and match with nearby helpers or open jobs.',
+    'Describe what you need on Bunk and match with nearby helpers or open jobs.',
   path: '/match',
 })
 

@@ -37,7 +37,7 @@ export const FAQ_ITEMS: FaqItem[] = [
     tab: 'neighbors',
     question: 'How does messaging work?',
     answer:
-      'After someone offers (or you invite a helper), you can message in the job thread to align on timing and details. Keep coordination in BlockSide so you have a clear record.',
+      'After someone offers (or you invite a helper), you can message in the job thread to align on timing and details. Keep coordination in Bunk so you have a clear record.',
   },
   {
     id: 'n-cancel',
@@ -80,7 +80,7 @@ export const FAQ_ITEMS: FaqItem[] = [
     tab: 'helpers',
     question: 'How do urgent job text alerts work?',
     answer:
-      'Text alerts for urgent jobs need verification. Once you are verified and opted in, BlockSide can text you about nearby urgent jobs that match.',
+      'Text alerts for urgent jobs need verification. Once you are verified and opted in, Bunk can text you about nearby urgent jobs that match.',
   },
   {
     id: 'h-offer-flow',
@@ -109,14 +109,14 @@ export const FAQ_ITEMS: FaqItem[] = [
     tab: 'verification',
     question: 'What if I feel unsafe?',
     answer:
-      'If you are in danger, call 911. For non-emergency safety concerns on BlockSide, use the contact form on this page and choose Safety concern.',
+      'If you are in danger, call 911. For non-emergency safety concerns on Bunk, use the contact form on this page and choose Safety concern.',
   },
   {
     id: 'v-payment',
     tab: 'verification',
-    question: 'Does BlockSide hold my money?',
+    question: 'Does Bunk hold my money?',
     answer:
-      'No. BlockSide is a coordination layer. Neighbors and helpers arrange payment peer to peer after an offer is accepted.',
+      'No. Bunk is a coordination layer. Neighbors and helpers arrange payment peer to peer after an offer is accepted.',
   },
   {
     id: 'v-reviews',
@@ -152,6 +152,6 @@ export const FAQ_ITEMS: FaqItem[] = [
     tab: 'account',
     question: 'Where can I read the privacy policy?',
     answer:
-      'Open Privacy from the site footer for how BlockSide handles personal information. Terms are linked next to it.',
+      'Open Privacy from the site footer for how Bunk handles personal information. Terms are linked next to it.',
   },
 ]

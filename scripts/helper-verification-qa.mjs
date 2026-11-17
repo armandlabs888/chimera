@@ -105,7 +105,7 @@ async function run() {
     await page.locator('[data-testid="verify-privacy"]').innerText(),
     /confirm you're at this address/i,
   )
-  assert.match(await page.locator('[data-testid="verify-privacy"]').innerText(), /How BlockSide uses this/i)
+  assert.match(await page.locator('[data-testid="verify-privacy"]').innerText(), /How Bunk uses this/i)
   assert.match(await page.locator('[data-testid="verify-loc-box"]').innerText(), /Be at this address/i)
   assert.equal(await page.locator('[data-testid="verify-file-dropzone"]').count(), 0)
   assert.equal(await page.locator('[data-testid="verify-file-input"]').count(), 0)

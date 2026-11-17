@@ -38,7 +38,7 @@ function firstWords(message: string, max = 48): string {
 export function buildSupportEmailSubject(topic: SupportTopic, message: string): string {
   const label = TOPIC_LABELS[topic]
   const prefix = topic === 'safety_concern' ? '[SAFETY] ' : ''
-  return `${prefix}[BlockSide support] ${label}: ${firstWords(message)}`
+  return `${prefix}[Bunk support] ${label}: ${firstWords(message)}`
 }
 
 export function buildSupportEmailText(input: SupportEmailInput): string {

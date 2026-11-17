@@ -18,7 +18,7 @@ export function formatUrgentMatchSms(input: {
       ? 'Open to offers'
       : `$${Math.round(input.budget)}`
   const link = `${URGENT_JOB_PUBLIC_ORIGIN}/requests/${input.requestId}`
-  return `BlockSide: ${category} ${miles} mi away, ${price}, needs help now. Send an offer: ${link}`
+  return `Bunk: ${category} ${miles} mi away, ${price}, needs help now. Send an offer: ${link}`
 }
 
 export function formatUrgentTakenSms(input: {
@@ -26,9 +26,9 @@ export function formatUrgentTakenSms(input: {
   categoryCustom?: string | null
 }): string {
   const category = formatCategoryLabel(input.category, input.categoryCustom)
-  return `BlockSide: The ${category} job near you was taken. Thanks for being ready.`
+  return `Bunk: The ${category} job near you was taken. Thanks for being ready.`
 }
 
 export function formatPhoneVerifySms(code: string): string {
-  return `BlockSide: Your verification code is ${code}. It expires in 10 minutes.`
+  return `Bunk: Your verification code is ${code}. It expires in 10 minutes.`
 }

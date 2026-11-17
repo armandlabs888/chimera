@@ -3,19 +3,19 @@ import type { Metadata } from 'next'
 /** Production origin for canonicals, sitemap, and robots. */
 export const SITE_URL = 'https://www.joinbunk.xyz'
 
-export const SITE_NAME = 'BlockSide'
+export const SITE_NAME = 'Bunk'
 
-export const DEFAULT_TITLE = 'BlockSide | Trusted help, right next door'
+export const DEFAULT_TITLE = 'Bunk | Trusted help, right next door'
 
 export const DEFAULT_DESCRIPTION =
-  'Post a local task on BlockSide and get offers from verified neighbors nearby. Home, auto, junk removal, pets, and everyday help right next door.'
+  'Post a local task on Bunk and get offers from verified neighbors nearby. Home, auto, junk removal, pets, and everyday help right next door.'
 
 /** Static PNG fallback for crawlers; also generated live at /opengraph-image. */
 export const DEFAULT_OG_IMAGE = {
   url: '/images/og-default.png',
   width: 1200,
   height: 630,
-  alt: 'BlockSide. Trusted help, right next door. Post a task and get offers from verified neighbors nearby.',
+  alt: 'Bunk. Trusted help, right next door. Post a task and get offers from verified neighbors nearby.',
 }
 
 const NOINDEX: Metadata['robots'] = {

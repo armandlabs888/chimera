@@ -14,7 +14,7 @@ export const OG_COLORS = {
 } as const
 
 export const DEFAULT_OG_ALT =
-  'BlockSide. Trusted help, right next door. Post a task and get offers from verified neighbors nearby.'
+  'Bunk. Trusted help, right next door. Post a task and get offers from verified neighbors nearby.'
 
 type OutfitFonts = {
   medium: ArrayBuffer
@@ -61,11 +61,11 @@ function BrandMark({ size = 56 }: { size?: number }) {
         fontSize: size,
         fontWeight: 700,
         color: OG_COLORS.blue,
-        letterSpacing: '-0.04em',
+        letterSpacing: '-0.02em',
         lineHeight: 1,
       }}
     >
-      BlockSide
+      Bunk
     </div>
   )
 }

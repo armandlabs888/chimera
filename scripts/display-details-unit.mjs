@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 
 // Mirrors src/lib/displayDetails.ts
-const SAMPLE_MARKER_RE = /\n*\[(?:HouseCall|Bunk|Beam|BlockSide) sample[^\]]*\]\s*$/i
+const SAMPLE_MARKER_RE = /\n*\[(?:HouseCall|Bunk|Beam) sample[^\]]*\]\s*$/i
 
 function formatJobDetailsDisplay(details) {
   if (!details) return ''

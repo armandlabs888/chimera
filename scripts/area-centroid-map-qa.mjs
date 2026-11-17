@@ -106,7 +106,7 @@ async function main() {
     }, null, { timeout: 15000 })
     const text = await page.locator('[data-testid="browse-job-detail"]').innerText()
     assert.match(text, /Approximate area/i)
-    assert.doesNotMatch(text, /BlockSide sample/i)
+    assert.doesNotMatch(text, /Bunk sample/i)
     await shot(page, 'centroid-fallback-browse-detail-1280x800.png')
     await page.locator('[data-testid="browse-job-detail"]').screenshot({
       path: join(OUT, 'centroid-fallback-browse-detail-panel-1280x800.png'),

@@ -387,7 +387,7 @@ export function EditProfileForm() {
                         .map((s) => formatCategoryLabel(s))
                         .join(', ')}
                     </b>
-                    , an older service BlockSide no longer offers. Pick a current service so
+                    , an older service Bunk no longer offers. Pick a current service so
                     neighbors can find you.
                   </span>
                 </p>

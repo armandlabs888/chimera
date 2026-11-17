@@ -219,7 +219,7 @@ async function runViewport(browser, vp) {
     await page.waitForSelector('[data-testid="onboarding-step-1"]')
 
     let p = await assertCleanChrome(page, `${prefix} step1-empty`)
-    assert.match(p.textSample, /Welcome to BlockSide/i)
+    assert.match(p.textSample, /Welcome to Bunk/i)
     assert.match(await page.getByTestId('onboarding-step-1').innerText(), /\bNeighbor\b/)
     assert.doesNotMatch(await page.getByTestId('onboarding-step-1').innerText(), /\bCustomer\b/)
     assert.doesNotMatch(await page.getByTestId('onboarding-step-1').innerText(), /Popular/i)
