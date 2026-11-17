@@ -2,7 +2,13 @@ import type { Metadata, Viewport } from 'next'
 import { DM_Sans, Inter } from 'next/font/google'
 import type { ReactNode } from 'react'
 import { BeamProvider } from '@/context/BeamContext'
-import { DEFAULT_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/seo/site'
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_OG_IMAGE,
+  DEFAULT_TITLE,
+  SITE_NAME,
+  SITE_URL,
+} from '@/lib/seo/site'
 import './globals.css'
 
 /* Uber Move Text role → UI/body. Inter is the licensed geometric stand-in. */
@@ -21,16 +27,13 @@ const dmSans = DM_Sans({
   display: 'swap',
 })
 
-const title = 'Bunk. Trusted help, right next door'
-const description = DEFAULT_DESCRIPTION
-
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: title,
+    default: DEFAULT_TITLE,
     template: `%s | ${SITE_NAME}`,
   },
-  description,
+  description: DEFAULT_DESCRIPTION,
   applicationName: SITE_NAME,
   appleWebApp: {
     title: SITE_NAME,
@@ -39,26 +42,19 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title,
-    description,
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
     url: SITE_URL,
     siteName: SITE_NAME,
-    locale: 'en-US',
+    locale: 'en_US',
     type: 'website',
-    images: [
-      {
-        url: '/images/og-default.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Neighbor carrying a moving box. Bunk same-day help nearby',
-      },
-    ],
+    images: [DEFAULT_OG_IMAGE],
   },
   twitter: {
     card: 'summary_large_image',
-    title,
-    description,
-    images: ['/images/og-default.jpg'],
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE.url],
   },
 }
 
