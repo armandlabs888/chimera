@@ -13,7 +13,11 @@ const OUT = '/opt/cursor/artifacts/onboarding-layout-fix'
 mkdirSync(OUT, { recursive: true })
 
 const VIEWPORTS = [
+  { name: 'desktop-1024x768', width: 1024, height: 768 },
+  { name: 'desktop-1280x720', width: 1280, height: 720 },
   { name: 'desktop-1280x800', width: 1280, height: 800 },
+  { name: 'desktop-1440x900', width: 1440, height: 900 },
+  { name: 'desktop-1920x1080', width: 1920, height: 1080 },
   { name: 'mobile-390x844', width: 390, height: 844 },
 ]
 
@@ -47,9 +51,22 @@ async function clearDemoOnboardingSeed(page) {
 }
 
 async function selectCity(page, query = 'San Jose') {
-  await page.getByTestId('onboarding-city-input').click()
+  // Already committed from a prior step in this page session.
+  if ((await page.locator('[data-testid="onboarding-city-verified"]').count()) > 0) return
+
+  await page.waitForFunction(
+    () => {
+      const el = document.querySelector('[data-testid="onboarding-city-input"]')
+      return el instanceof HTMLInputElement && !el.disabled
+    },
+    null,
+    { timeout: 60000 },
+  )
+  const cityInput = page.getByTestId('onboarding-city-input')
+  await cityInput.scrollIntoViewIfNeeded()
+  await cityInput.click({ timeout: 15000 })
   await page.waitForSelector('[data-testid="onboarding-city-listbox"]')
-  await page.getByTestId('onboarding-city-input').fill(query)
+  await cityInput.fill(query)
   await page.getByRole('option', { name: /San Jose,\s*CA/i }).first().click()
   await page.waitForSelector('[data-testid="onboarding-city-verified"]')
 }
@@ -58,12 +75,16 @@ async function assertDesktopSideBySide(page, label) {
   const layout = await page.evaluate(() => {
     const form = document.querySelector('[data-testid="onboarding-form-column"]')
     const desktop = document.querySelector('[data-testid="onboarding-benefits-desktop"]')
+    const panel = desktop?.querySelector('[data-testid="onboarding-benefits"]')
+    const progress = form?.querySelector('[data-testid="onboarding-step-progress"]')
     const next = document.querySelector('[data-testid="onboarding-next"]')
     const roleGroup = document.querySelector('[data-testid="onboarding-role-group"]')
     const lede = form?.querySelector('p')
-    if (!form || !desktop || !next || !roleGroup || !lede) return { ok: false }
+    if (!form || !desktop || !panel || !progress || !next || !roleGroup || !lede) return { ok: false }
     const fr = form.getBoundingClientRect()
     const br = desktop.getBoundingClientRect()
+    const pr = panel.getBoundingClientRect()
+    const sr = progress.getBoundingClientRect()
     const nr = next.getBoundingClientRect()
     const rr = roleGroup.getBoundingClientRect()
     const lr = lede.getBoundingClientRect()
@@ -74,6 +95,14 @@ async function assertDesktopSideBySide(page, label) {
       nextInViewport: nr.top >= 0 && nr.bottom <= vh + 1,
       rolesInViewport: rr.top >= 0 && rr.bottom <= vh + 1,
       ledeNotBelowBenefits: lr.bottom < br.bottom + 40,
+      topsAligned: Math.abs(pr.top - sr.top) <= 2,
+      // Content-sized panel: grid align-items start (not stretch to form height).
+      panelAlignStart: (() => {
+        const align = getComputedStyle(document.querySelector('.account-hc-wizard')).alignItems
+        return align === 'start' || align === 'flex-start'
+      })(),
+      progressTop: sr.top,
+      panelTop: pr.top,
       nextTop: nr.top,
       rolesTop: rr.top,
       benefitsBottom: br.bottom,
@@ -85,6 +114,12 @@ async function assertDesktopSideBySide(page, label) {
   assert.equal(layout.rolesInViewport, true, `${label}: roles below fold (top=${layout.rolesTop})`)
   assert.equal(layout.nextInViewport, true, `${label}: Continue below fold (top=${layout.nextTop})`)
   assert.equal(layout.ledeNotBelowBenefits, true, `${label}: subtitle pushed under benefits`)
+  assert.equal(
+    layout.topsAligned,
+    true,
+    `${label}: panel top (${layout.panelTop}) must align with Step progress (${layout.progressTop})`,
+  )
+  assert.equal(layout.panelAlignStart, true, `${label}: wizard must use align-items start`)
 }
 
 async function assertMobileOrder(page, label) {

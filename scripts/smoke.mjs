@@ -1463,20 +1463,32 @@ async function checkOnboardingFlow() {
       const cityBeforeNext = cityLabel.compareDocumentPosition(next)
       const form = step.querySelector('[data-testid="onboarding-form-column"]')
       const desktop = step.querySelector('[data-testid="onboarding-benefits-desktop"]')
+      const panel = desktop?.querySelector('[data-testid="onboarding-benefits"]')
+      const progress = form?.querySelector('[data-testid="onboarding-step-progress"]')
       const fr = form?.getBoundingClientRect()
       const br = desktop?.getBoundingClientRect()
+      const pr = panel?.getBoundingClientRect()
+      const sr = progress?.getBoundingClientRect()
       const nr = next.getBoundingClientRect()
       return {
         benefitsBeforeCity: (position & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
         cityBeforeContinue: (cityBeforeNext & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
         desktopSideBySide: Boolean(fr && br && br.left > fr.right - 8),
         continueInViewport: nr.top >= 0 && nr.bottom <= window.innerHeight + 1,
+        topsAligned: Boolean(pr && sr && Math.abs(pr.top - sr.top) <= 2),
+        progressTop: sr?.top,
+        panelTop: pr?.top,
       }
     })
     assert.equal(step1Order?.benefitsBeforeCity, true, 'benefits before City in DOM')
     assert.equal(step1Order?.cityBeforeContinue, true, 'City before Continue in DOM')
     assert.equal(step1Order?.desktopSideBySide, true, 'desktop benefits beside form column')
     assert.equal(step1Order?.continueInViewport, true, 'Continue visible beside benefits on desktop')
+    assert.equal(
+      step1Order?.topsAligned,
+      true,
+      `benefits panel top (${step1Order?.panelTop}) must align with Step progress (${step1Order?.progressTop})`,
+    )
 
     // Helper selected + empty name → inline real-name error.
     await page.getByTestId('onboarding-next').click({ force: true })

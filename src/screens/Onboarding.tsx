@@ -120,7 +120,7 @@ function BenefitsPanel({
   if (role === 'customer') {
     return (
       <aside
-        className={`account-hc-card account-hc-benefits flex h-full flex-col ${className}`}
+        className={`account-hc-card account-hc-benefits flex flex-col ${className}`}
         data-testid="onboarding-benefits"
         data-role="neighbor"
       >
@@ -146,7 +146,7 @@ function BenefitsPanel({
 
   return (
     <aside
-      className={`account-hc-card account-hc-benefits flex h-full flex-col ${className}`}
+      className={`account-hc-card account-hc-benefits flex flex-col ${className}`}
       data-testid="onboarding-benefits"
       data-role="helper"
     >
@@ -699,8 +699,8 @@ export function Onboarding() {
             </div>
 
             {role ? (
-              <div className="account-hc-benefits-desktop min-h-0" data-testid="onboarding-benefits-desktop">
-                <BenefitsPanel role={role} className="flex-1" />
+              <div className="account-hc-benefits-desktop" data-testid="onboarding-benefits-desktop">
+                <BenefitsPanel role={role} />
               </div>
             ) : null}
           </div>
