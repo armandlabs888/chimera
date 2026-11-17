@@ -18,8 +18,23 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation'
 import { RequestCard } from '@/components/RequestCard'
 import { CategorySelect } from '@/components/CategorySelect'
-import { Avatar, Button, Field, Skeleton, TextArea, TextInput } from '@/components/ui'
+import {
+  Avatar,
+  Button,
+  Field,
+  FieldInlineError,
+  FormErrorAlert,
+  Skeleton,
+  TextArea,
+  TextInput,
+} from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
+import {
+  focusAndScroll,
+  FORM_SAVE_FAILED,
+  humanizeSaveError,
+  scrollAlertIntoView,
+} from '@/lib/formErrors'
 import { getCategory, categoryLabel } from '@/data/categories'
 import { deleteBeamMedia, uploadBeamMedia } from '@/lib/beam/storageUpload'
 import { readBrowseLocationPin } from '@/lib/browseLocationPreference'
@@ -285,12 +300,17 @@ export function PostRequest() {
 
   const [error, setError] = useState('')
   const [titleError, setTitleError] = useState('')
+  const [budgetError, setBudgetError] = useState('')
+  const [zipFieldError, setZipFieldError] = useState('')
   const [pending, setPending] = useState(false)
 
   const fileRef = useRef<HTMLInputElement>(null)
   const titleInputRef = useRef<HTMLInputElement>(null)
   const detailsInputRef = useRef<HTMLTextAreaElement>(null)
   const promptRef = useRef<HTMLTextAreaElement>(null)
+  const zipInputRef = useRef<HTMLInputElement>(null)
+  const budgetInputRef = useRef<HTMLInputElement>(null)
+  const formErrorAlertRef = useRef<HTMLDivElement>(null)
 
   const cat = useMemo(() => getCategory(category), [category])
   const todayISO = localDateISO(new Date(nowTick))
@@ -649,30 +669,39 @@ export function PostRequest() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
+    const issues: string[] = []
+    let firstFocus: 'title' | 'category' | 'price' | 'when' | 'location' | null = null
+
     const nextTitleError = title.trim() ? '' : 'Add a title so helpers know what you need.'
     setTitleError(nextTitleError)
     if (nextTitleError) {
-      setError('Add a title so helpers know what you need.')
-      setEditingRow('title')
-      titleInputRef.current?.focus()
-      return
+      issues.push(nextTitleError)
+      if (!firstFocus) firstFocus = 'title'
     }
+
     let customValue: string | null = null
     if (category === 'other') {
       const normalized = normalizeOtherCustom(categoryCustom)
       if (!normalized.ok) {
         setCustomError(normalized.error)
-        setError(normalized.error)
-        setEditingRow('category')
-        return
+        issues.push(normalized.error)
+        if (!firstFocus) firstFocus = 'category'
+      } else {
+        setCustomError('')
+        customValue = normalized.value
       }
-      customValue = normalized.value
+    } else {
+      setCustomError('')
     }
-    if (budget < 10) {
-      setError('Price should be at least $10.')
-      setEditingRow('price')
-      return
+
+    const nextBudgetError =
+      budget < 10 ? 'Price should be at least $10.' : ''
+    setBudgetError(nextBudgetError)
+    if (nextBudgetError) {
+      issues.push(nextBudgetError)
+      if (!firstFocus) firstFocus = 'price'
     }
+
     if (isScheduledMode(when)) {
       const check = validateTimeWindow({
         when: 'scheduled',
@@ -682,35 +711,62 @@ export function PostRequest() {
         now: new Date(),
       })
       if (!check.ok) {
-        setError(check.error)
-        setEditingRow('when')
-        return
+        issues.push(check.error)
+        if (!firstFocus) firstFocus = 'when'
       }
     }
+
     if (photoUrls.length > LISTING_PHOTO_MAX) {
-      setError(`You can add up to ${LISTING_PHOTO_MAX} photos.`)
-      return
+      const photoMsg = `You can add up to ${LISTING_PHOTO_MAX} photos.`
+      setPhotoError(photoMsg)
+      issues.push(photoMsg)
     }
+
     setZipSubmitAttempted(true)
+    let nextZipError = ''
     if (zipResolving) {
-      setError('Looking up ZIP…')
-      setEditingRow('location')
-      return
-    }
-    if (zipDigits.length !== 5 || !resolvedZipPlace) {
-      const message =
+      nextZipError = 'Looking up ZIP…'
+    } else if (zipDigits.length !== 5 || !resolvedZipPlace) {
+      nextZipError =
         resolvedZipError ||
         (zipDigits.length === 5
           ? 'We could not find that ZIP code'
           : 'Enter a 5-digit US ZIP code')
-      setError(message)
-      setEditingRow('location')
-      setShowZipEditor(true)
+    }
+    setZipFieldError(nextZipError)
+    if (nextZipError) {
+      issues.push(nextZipError)
+      if (!firstFocus) firstFocus = 'location'
+    }
+
+    if (issues.length > 0) {
+      setError(issues.join(' '))
+      if (firstFocus === 'title') {
+        setEditingRow('title')
+        focusAndScroll(titleInputRef.current)
+      } else if (firstFocus === 'category') {
+        setEditingRow('category')
+      } else if (firstFocus === 'price') {
+        setEditingRow('price')
+        focusAndScroll(budgetInputRef.current)
+      } else if (firstFocus === 'when') {
+        setEditingRow('when')
+      } else if (firstFocus === 'location') {
+        setEditingRow('location')
+        setShowZipEditor(true)
+        focusAndScroll(zipInputRef.current)
+      }
+      scrollAlertIntoView(formErrorAlertRef.current)
       return
     }
+
+    if (!resolvedZipPlace) return
+
     setPending(true)
     setError('')
     setTitleError('')
+    setBudgetError('')
+    setZipFieldError('')
     setCustomError('')
     setPhotoError('')
     try {
@@ -742,7 +798,8 @@ export function PostRequest() {
       if (mode === 'demo' || params.get('demo') === '1') postedQs.set('demo', '1')
       router.push(`/requests/${request.id}?${postedQs.toString()}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not post request')
+      setError(humanizeSaveError(err, FORM_SAVE_FAILED))
+      scrollAlertIntoView(formErrorAlertRef.current)
       setPending(false)
     }
   }
@@ -939,33 +996,33 @@ export function PostRequest() {
                             aria-hidden
                           />
                           <TextInput
+                            ref={zipInputRef}
                             value={zipInput}
                             onChange={(e) => {
                               const next = e.target.value.replace(/\D/g, '').slice(0, 5)
                               setZipInput(next)
                               setZipLookupError('')
+                              setZipFieldError('')
                               if (next.length !== 5) {
                                 setZipPlace(null)
                                 setZipResolving(false)
                               }
                             }}
-                            placeholder="95124"
+                            placeholder="Enter ZIP"
                             className="pl-10"
                             inputMode="numeric"
                             autoComplete="postal-code"
                             maxLength={5}
+                            aria-invalid={
+                              resolvedZipError || zipFieldError ? true : undefined
+                            }
                             data-testid="post-zip"
                           />
                         </div>
-                        {resolvedZipError ? (
-                          <span
-                            className="block text-[13px]"
-                            style={{ color: INK }}
-                            role="alert"
-                            data-testid="post-zip-error"
-                          >
-                            {resolvedZipError}
-                          </span>
+                        {resolvedZipError || zipFieldError ? (
+                          <FieldInlineError testId="post-zip-error">
+                            {zipFieldError || resolvedZipError}
+                          </FieldInlineError>
                         ) : resolvedZipPlace ? (
                           <span
                             className="block text-[13px]"
@@ -1144,6 +1201,7 @@ export function PostRequest() {
                       }}
                       placeholder="What do you need done?"
                       aria-invalid={titleError ? true : undefined}
+                      aria-describedby={titleError ? 'post-title-error' : undefined}
                       data-testid="post-title"
                     />
                   </Field>
@@ -1275,33 +1333,38 @@ export function PostRequest() {
                         aria-hidden
                       />
                       <TextInput
+                        ref={zipInputRef}
                         value={zipInput}
                         onChange={(e) => {
                           const next = e.target.value.replace(/\D/g, '').slice(0, 5)
                           setZipInput(next)
                           setZipLookupError('')
+                          setZipFieldError('')
                           if (next.length !== 5) {
                             setZipPlace(null)
                             setZipResolving(false)
                           }
                         }}
-                        placeholder="95124"
+                        placeholder="Enter ZIP"
                         className="pl-10"
                         inputMode="numeric"
                         autoComplete="postal-code"
                         maxLength={5}
-                        aria-invalid={resolvedZipError ? true : undefined}
+                        aria-invalid={
+                          resolvedZipError || zipFieldError ? true : undefined
+                        }
+                        aria-describedby={
+                          resolvedZipError || zipFieldError
+                            ? 'post-zip-error'
+                            : undefined
+                        }
                         data-testid="post-zip"
                       />
                     </div>
-                    {resolvedZipError ? (
-                      <span
-                        className="block text-[13px]"
-                        role="alert"
-                        data-testid="post-zip-error"
-                      >
-                        {resolvedZipError}
-                      </span>
+                    {resolvedZipError || zipFieldError ? (
+                      <FieldInlineError id="post-zip-error" testId="post-zip-error">
+                        {zipFieldError || resolvedZipError}
+                      </FieldInlineError>
                     ) : resolvedZipPlace ? (
                       <span
                         className="block text-[13px]"
@@ -1327,7 +1390,11 @@ export function PostRequest() {
                   onToggle={() => toggleRow('price')}
                   testId="post-price-section"
                 >
-                  <Field label="Your price (USD)">
+                  <Field
+                    label="Your price (USD)"
+                    error={budgetError || undefined}
+                    errorId="post-budget-error"
+                  >
                     <div className="relative">
                       <span
                         className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] font-semibold"
@@ -1336,6 +1403,7 @@ export function PostRequest() {
                         $
                       </span>
                       <TextInput
+                        ref={budgetInputRef}
                         type="number"
                         min={10}
                         step={5}
@@ -1343,9 +1411,13 @@ export function PostRequest() {
                         onChange={(e) => {
                           setBudget(Number(e.target.value) || 0)
                           setBudgetFromAi(false)
+                          if (budgetError) setBudgetError('')
                         }}
                         className="pl-8 tabular-nums"
-                        required
+                        aria-invalid={budgetError ? true : undefined}
+                        aria-describedby={
+                          budgetError ? 'post-budget-error' : undefined
+                        }
                         data-testid="post-price-input"
                       />
                     </div>
@@ -1468,14 +1540,12 @@ export function PostRequest() {
               </div>
 
               {error ? (
-                <p
-                  className="mt-4 flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-white px-4 py-3 text-[14px] text-[#071330]"
-                  role="alert"
-                  data-testid="post-error"
-                >
-                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#1D5CE5]" aria-hidden />
-                  <span>{error}</span>
-                </p>
+                <FormErrorAlert
+                  ref={formErrorAlertRef}
+                  className="mt-4"
+                  message={error}
+                  testId="post-error"
+                />
               ) : null}
 
               <div className="mt-6 hidden lg:block space-y-3">

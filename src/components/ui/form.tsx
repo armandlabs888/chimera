@@ -53,10 +53,12 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
   },
 )
 
-export function Select({ className = '', children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
-  return (
-    <select className={`touch-target ${controlClass} ${className}`} {...props}>
-      {children}
-    </select>
-  )
-}
+export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(
+  function Select({ className = '', children, ...props }, ref) {
+    return (
+      <select ref={ref} className={`touch-target ${controlClass} ${className}`} {...props}>
+        {children}
+      </select>
+    )
+  },
+)

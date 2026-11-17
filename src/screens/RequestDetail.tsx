@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import {
   ReferHelperButton,
@@ -29,7 +29,22 @@ import '@/components/browse/browse-hc.css'
 import { NeedsHelpNowLabel } from '@/components/urgent/NeedsHelpNowLabel'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { formatJobAreaCaption } from '@/lib/location'
-import { Avatar, Button, ButtonLink, ConfirmDialog, TextArea } from '@/components/ui'
+import {
+  Avatar,
+  Button,
+  ButtonLink,
+  ConfirmDialog,
+  FieldInlineError,
+  FormErrorAlert,
+  TextArea,
+} from '@/components/ui'
+import {
+  focusAndScroll,
+  FORM_SAVE_FAILED,
+  FORM_SEND_FAILED,
+  humanizeSaveError,
+  scrollAlertIntoView,
+} from '@/lib/formErrors'
 import { pluralNoun, pluralize } from '@/lib/pluralize'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import {
@@ -204,11 +219,16 @@ export function RequestDetail() {
   const [offerNote, setOfferNote] = useState(() => myOffer?.note ?? '')
   const [offerEta, setOfferEta] = useState(() => myOffer?.eta ?? 'Within 1 hour')
   const [offerError, setOfferError] = useState('')
+  const [offerPriceError, setOfferPriceError] = useState('')
   const [offerPending, setOfferPending] = useState(false)
+  const offerPriceRef = useRef<HTMLInputElement>(null)
+  const offerAlertRef = useRef<HTMLDivElement>(null)
   const [invitePendingId, setInvitePendingId] = useState<string | null>(null)
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewComment, setReviewComment] = useState('')
   const [reviewPending, setReviewPending] = useState(false)
+  const [reviewError, setReviewError] = useState('')
+  const reviewAlertRef = useRef<HTMLDivElement>(null)
   const [confirmAcceptOfferId, setConfirmAcceptOfferId] = useState<string | null>(null)
   const [confirmComplete, setConfirmComplete] = useState(false)
   const [actionPending, setActionPending] = useState(false)
@@ -254,16 +274,33 @@ export function RequestDetail() {
   async function submitOffer(e: FormEvent) {
     e.preventDefault()
     const priceNum = firmPrice ? firmPriceAmount : Number(offerPrice)
+    if (!firmPrice && (!offerPrice.trim() || !Number.isFinite(priceNum) || priceNum < 5)) {
+      const message = !offerPrice.trim()
+        ? 'Enter a price for your offer.'
+        : 'Name a real price before you show up.'
+      setOfferPriceError(message)
+      setOfferError(message)
+      focusAndScroll(offerPriceRef.current)
+      scrollAlertIntoView(offerAlertRef.current)
+      return
+    }
     if (!Number.isFinite(priceNum) || priceNum < 5) {
-      setOfferError('Name a real price before you show up.')
+      const message = 'Name a real price before you show up.'
+      setOfferPriceError(message)
+      setOfferError(message)
+      focusAndScroll(offerPriceRef.current)
+      scrollAlertIntoView(offerAlertRef.current)
       return
     }
     if (firmPrice && Math.round(priceNum) !== firmPriceAmount) {
-      setOfferError(`This job has a firm price of $${firmPriceAmount}.`)
+      const message = `This job has a firm price of $${firmPriceAmount}.`
+      setOfferError(message)
+      scrollAlertIntoView(offerAlertRef.current)
       return
     }
     setOfferPending(true)
     setOfferError('')
+    setOfferPriceError('')
     try {
       await createOffer({
         requestId: activeRequest.id,
@@ -273,7 +310,8 @@ export function RequestDetail() {
       })
       await ensureThread(activeRequest.id, activeRequest.requesterId)
     } catch (err) {
-      setOfferError(err instanceof Error ? err.message : 'Could not send offer')
+      setOfferError(humanizeSaveError(err, FORM_SEND_FAILED))
+      scrollAlertIntoView(offerAlertRef.current)
     } finally {
       setOfferPending(false)
     }
@@ -284,6 +322,7 @@ export function RequestDetail() {
     if (!activeRequest.helperId && !isOwner) return
     const toId = isOwner ? activeRequest.helperId! : activeRequest.requesterId
     setReviewPending(true)
+    setReviewError('')
     try {
       await addReview({
         requestId: activeRequest.id,
@@ -291,6 +330,9 @@ export function RequestDetail() {
         rating: reviewRating,
         comment: reviewComment.trim(),
       })
+    } catch (err) {
+      setReviewError(humanizeSaveError(err, FORM_SAVE_FAILED))
+      scrollAlertIntoView(reviewAlertRef.current)
     } finally {
       setReviewPending(false)
     }
@@ -766,7 +808,11 @@ export function RequestDetail() {
                         : 'Name a price and ETA before you show up.'}
                     </p>
 
-                    <form className="mt-5 space-y-4" onSubmit={(e) => void submitOffer(e)}>
+                    <form
+                      className="mt-5 space-y-4"
+                      onSubmit={(e) => void submitOffer(e)}
+                      noValidate
+                    >
                       <div>
                         {firmPrice ? (
                           <>
@@ -794,25 +840,42 @@ export function RequestDetail() {
                             >
                               Your offer
                             </label>
-                            <div className="relative flex h-12 items-center rounded-lg border border-[#E3E8EF] bg-white focus-within:border-[#1D5CE5] focus-within:ring-4 focus-within:ring-[#1D5CE5]/15">
+                            <div
+                              className={`relative flex h-12 items-center rounded-lg border bg-white focus-within:border-[#1D5CE5] focus-within:ring-4 focus-within:ring-[#1D5CE5]/15 ${
+                                offerPriceError
+                                  ? 'border-[#C62828]'
+                                  : 'border-[#E3E8EF]'
+                              }`}
+                            >
                               <span className="pl-3.5 text-[15px] font-semibold text-[#4A5568]" aria-hidden>
                                 $
                               </span>
                               <input
+                                ref={offerPriceRef}
                                 id="offer-price"
                                 type="text"
                                 inputMode="numeric"
                                 pattern="[0-9]*"
                                 value={offerPrice}
-                                onChange={(e) =>
+                                onChange={(e) => {
                                   setOfferPrice(e.target.value.replace(/[^\d]/g, '').slice(0, 5))
+                                  if (offerPriceError) setOfferPriceError('')
+                                  if (offerError) setOfferError('')
+                                }}
+                                placeholder="Enter price"
+                                aria-invalid={offerPriceError ? true : undefined}
+                                aria-describedby={
+                                  offerPriceError ? 'offer-price-error' : undefined
                                 }
-                                placeholder="60"
-                                required
                                 data-testid="offer-price-input"
-                                className="h-full w-full min-w-0 bg-transparent px-2 pr-3.5 text-[15px] font-semibold tabular-nums text-[#071330] outline-none placeholder:font-normal placeholder:text-[#5B6576]"
+                                className="h-full w-full min-w-0 bg-transparent px-2 pr-3.5 text-[15px] font-semibold tabular-nums text-[#071330] outline-none placeholder:font-normal placeholder:text-[#8A94A6]"
                               />
                             </div>
+                            {offerPriceError ? (
+                              <FieldInlineError id="offer-price-error" testId="offer-price-error">
+                                {offerPriceError}
+                              </FieldInlineError>
+                            ) : null}
                           </>
                         )}
                       </div>
@@ -861,9 +924,11 @@ export function RequestDetail() {
                       </div>
 
                       {offerError ? (
-                        <p className="flex items-start gap-2 rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[14px] text-[#071330]" role="alert">
-                          {offerError}
-                        </p>
+                        <FormErrorAlert
+                          ref={offerAlertRef}
+                          message={offerError}
+                          testId="offer-form-error"
+                        />
                       ) : null}
 
                       <div className="flex flex-col gap-2">
@@ -893,6 +958,7 @@ export function RequestDetail() {
                               buttonClassName="inline-flex h-12 w-full items-center justify-center whitespace-nowrap rounded-lg border border-[#D7E0EC] bg-white px-[18px] text-[14px] font-semibold tracking-[-0.01em] text-[#071330] hover:bg-[#EEF2F7] disabled:cursor-not-allowed disabled:opacity-60"
                               onCancelled={() => {
                                 setOfferError('')
+                                setOfferPriceError('')
                                 setOfferPrice(initialOfferPrice(undefined, request.budget))
                                 setOfferNote('')
                                 setOfferEta('Within 1 hour')
@@ -930,6 +996,7 @@ export function RequestDetail() {
                           testId="request-cancel-offer"
                           onCancelled={() => {
                             setOfferError('')
+                            setOfferPriceError('')
                             setOfferPrice(initialOfferPrice(undefined, request.budget))
                             setOfferNote('')
                             setOfferEta('Within 1 hour')
@@ -1120,6 +1187,13 @@ export function RequestDetail() {
                       className="rounded-lg"
                     />
                   </div>
+                  {reviewError ? (
+                    <FormErrorAlert
+                      ref={reviewAlertRef}
+                      message={reviewError}
+                      testId="review-form-error"
+                    />
+                  ) : null}
                   <Button type="submit" loading={reviewPending} className="w-full">
                     Submit review
                   </Button>
