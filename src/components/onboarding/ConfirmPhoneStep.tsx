@@ -2,7 +2,8 @@
 
 import { ArrowLeft, Check, Loader2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button } from '@/components/ui'
+import { Button, FormErrorAlert } from '@/components/ui'
+import { humanizeSaveError } from '@/lib/formErrors'
 import { maskPhoneE164 } from '@/lib/phone/format'
 
 type Phase = 'default' | 'waiting' | 'verified' | 'fallback'
@@ -99,7 +100,7 @@ export function ConfirmPhoneStep({
       const res = await fetch('/api/phone/session', { method: 'POST' })
       const data = (await res.json()) as SessionPayload
       if (!res.ok) {
-        setError(data.error || 'Could not start phone confirmation.')
+        setError(humanizeSaveError(data.error, 'Could not start phone confirmation.'))
         setPhase('fallback')
         return
       }
@@ -198,7 +199,7 @@ export function ConfirmPhoneStep({
         setHint('We sent a 6-digit code to this number.')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not send code')
+      setError(humanizeSaveError(err, 'Could not send code.'))
     } finally {
       setSending(false)
     }
@@ -232,7 +233,7 @@ export function ConfirmPhoneStep({
         data.phoneE164 || fallbackPhone,
       )
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not confirm')
+      setError(humanizeSaveError(err, 'Could not confirm.'))
     } finally {
       setConfirming(false)
     }
@@ -450,7 +451,7 @@ export function ConfirmPhoneStep({
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   maxLength={6}
-                  placeholder="123456"
+                  placeholder="Enter code"
                   value={fallbackCode}
                   onChange={(e) => setFallbackCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   data-testid="onboarding-phone-code"
@@ -491,13 +492,11 @@ export function ConfirmPhoneStep({
         ) : null}
 
         {error ? (
-          <div
-            role="alert"
-            className="mt-4 rounded-[10px] border border-[#D7E0EC] bg-white px-4 py-3 text-[14px] text-[#C62828]"
-            data-testid="onboarding-phone-error"
-          >
-            {error}
-          </div>
+          <FormErrorAlert
+            className="mt-4"
+            message={error}
+            testId="onboarding-phone-error"
+          />
         ) : null}
 
         {phase !== 'verified' ? (

@@ -2,8 +2,14 @@
 
 import { Check, ChevronLeft, MapPin } from 'lucide-react'
 import Link from 'next/link'
-import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useRef, useState, type FormEvent } from 'react'
+import { FieldInlineError, FormErrorAlert } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
+import {
+  focusAndScroll,
+  humanizeSaveError,
+  scrollAlertIntoView,
+} from '@/lib/formErrors'
 import {
   VERIFY_ADDRESS_HINT,
   VERIFY_CONFIRM_HINT,
@@ -67,11 +73,24 @@ export function HelperVerification() {
   const [zip, setZip] = useState(helperVerification?.zip ?? '')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string
+    street?: string
+    city?: string
+    stateCode?: string
+    zip?: string
+  }>({})
   const [permissionDenied, setPermissionDenied] = useState(
     helperVerification?.lastCheckResult === 'permission_denied',
   )
   const [notHomeBanner, setNotHomeBanner] = useState(showNotHome)
   const [notHomeMessage, setNotHomeMessage] = useState('')
+  const emailRef = useRef<HTMLInputElement>(null)
+  const streetRef = useRef<HTMLInputElement>(null)
+  const cityRef = useRef<HTMLInputElement>(null)
+  const stateRef = useRef<HTMLInputElement>(null)
+  const zipRef = useRef<HTMLInputElement>(null)
+  const alertRef = useRef<HTMLDivElement>(null)
 
   const backHref = useMemo(() => {
     if (typeof window === 'undefined') return '/browse'
@@ -79,12 +98,45 @@ export function HelperVerification() {
     return from?.startsWith('/') ? from : '/browse'
   }, [])
 
+  function clearFieldError(key: keyof typeof fieldErrors) {
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev
+      const next = { ...prev }
+      delete next[key]
+      return next
+    })
+  }
+
+  function validateAddressFields(): boolean {
+    const next: typeof fieldErrors = {}
+    if (!email.trim()) next.email = 'Enter your email.'
+    if (!street.trim()) next.street = 'Enter your street address.'
+    if (!city.trim()) next.city = 'Enter your city.'
+    if (!stateCode.trim()) next.stateCode = 'Enter your state.'
+    if (!zip.trim()) next.zip = 'Enter your ZIP.'
+    setFieldErrors(next)
+    const order: Array<{ key: keyof typeof next; ref: typeof emailRef }> = [
+      { key: 'email', ref: emailRef },
+      { key: 'street', ref: streetRef },
+      { key: 'city', ref: cityRef },
+      { key: 'stateCode', ref: stateRef },
+      { key: 'zip', ref: zipRef },
+    ]
+    const first = order.find((item) => next[item.key])
+    if (first) {
+      focusAndScroll(first.ref.current)
+      return false
+    }
+    return true
+  }
+
   async function onConfirm(e: FormEvent) {
     e.preventDefault()
     if (pending) return
     setError('')
     setNotHomeMessage('')
     setPermissionDenied(false)
+    if (!validateAddressFields()) return
     setPending(true)
     try {
       const reading = await readDeviceLocationOnce()
@@ -112,11 +164,13 @@ export function HelperVerification() {
         result.result === 'not_at_home' ||
         result.result === 'weak_signal' ||
         result.result === 'geocode_imprecise'
-      const serverMessage =
+      const serverMessage = humanizeSaveError(
         result.message?.trim() ||
-        (isPermission
-          ? 'Location access was denied. Turn it on in your browser settings, then try again.'
-          : 'We could not confirm you are home. Try again when you are at this address.')
+          (isPermission
+            ? 'Location access was denied. Turn it on in your browser settings, then try again.'
+            : 'We could not confirm you are home. Try again when you are at this address.'),
+        'We could not confirm you are home. Try again when you are at this address.',
+      )
 
       setPermissionDenied(isPermission)
       // Permission issues are not "not at home"; location misses get the calm banner.
@@ -127,17 +181,20 @@ export function HelperVerification() {
       } else {
         setNotHomeMessage('')
         setError(serverMessage)
+        scrollAlertIntoView(alertRef.current)
       }
     } catch (err) {
       if (err instanceof DeviceLocationError && err.code === 'permission_denied') {
         setPermissionDenied(true)
         setNotHomeBanner(false)
         setNotHomeMessage('')
-        setError(err.message)
+        setError(humanizeSaveError(err, 'Location access was denied. Turn it on in your browser settings, then try again.'))
+        scrollAlertIntoView(alertRef.current)
       } else {
         setNotHomeBanner(false)
         setNotHomeMessage('')
-        setError(err instanceof Error ? err.message : 'Could not confirm your location')
+        setError(humanizeSaveError(err, 'Could not confirm your location.'))
+        scrollAlertIntoView(alertRef.current)
       }
     } finally {
       setPending(false)
@@ -241,15 +298,26 @@ export function HelperVerification() {
                   Email address
                 </label>
                 <input
+                  ref={emailRef}
                   id="verify-email"
                   type="email"
                   required
                   autoComplete="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    clearFieldError('email')
+                  }}
+                  aria-invalid={fieldErrors.email ? true : undefined}
+                  aria-describedby={fieldErrors.email ? 'verify-email-error' : undefined}
                   data-testid="verify-email"
-                  className="account-hc-verify-input"
+                  className={`account-hc-verify-input${fieldErrors.email ? ' is-error' : ''}`}
                 />
+                {fieldErrors.email ? (
+                  <FieldInlineError id="verify-email-error" testId="verify-email-error">
+                    {fieldErrors.email}
+                  </FieldInlineError>
+                ) : null}
               </div>
             </section>
 
@@ -259,17 +327,30 @@ export function HelperVerification() {
               </h2>
               <p className="account-hc-verify-section-hint">{VERIFY_ADDRESS_HINT}</p>
               <div className="account-hc-verify-field account-hc-verify-addr-stack">
-                <input
-                  id="verify-street"
-                  required
-                  autoComplete="street-address"
-                  value={street}
-                  onChange={(e) => setStreet(e.target.value)}
-                  placeholder="Street address"
-                  data-testid="verify-street"
-                  className="account-hc-verify-input"
-                  aria-label="Street address"
-                />
+                <div>
+                  <input
+                    ref={streetRef}
+                    id="verify-street"
+                    required
+                    autoComplete="street-address"
+                    value={street}
+                    onChange={(e) => {
+                      setStreet(e.target.value)
+                      clearFieldError('street')
+                    }}
+                    placeholder="Street address"
+                    data-testid="verify-street"
+                    className={`account-hc-verify-input${fieldErrors.street ? ' is-error' : ''}`}
+                    aria-invalid={fieldErrors.street ? true : undefined}
+                    aria-describedby={fieldErrors.street ? 'verify-street-error' : undefined}
+                    aria-label="Street address"
+                  />
+                  {fieldErrors.street ? (
+                    <FieldInlineError id="verify-street-error" testId="verify-street-error">
+                      {fieldErrors.street}
+                    </FieldInlineError>
+                  ) : null}
+                </div>
                 <input
                   id="verify-apt"
                   autoComplete="address-line2"
@@ -281,39 +362,78 @@ export function HelperVerification() {
                   aria-label="Apt or suite, optional"
                 />
                 <div className="account-hc-verify-addr-row">
-                  <input
-                    id="verify-city"
-                    required
-                    autoComplete="address-level2"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="City"
-                    data-testid="verify-city"
-                    className="account-hc-verify-input"
-                    aria-label="City"
-                  />
-                  <input
-                    id="verify-state"
-                    required
-                    autoComplete="address-level1"
-                    value={stateCode}
-                    onChange={(e) => setStateCode(e.target.value.toUpperCase().slice(0, 2))}
-                    placeholder="ST"
-                    data-testid="verify-state"
-                    className="account-hc-verify-input"
-                    aria-label="State"
-                  />
-                  <input
-                    id="verify-zip"
-                    required
-                    autoComplete="postal-code"
-                    value={zip}
-                    onChange={(e) => setZip(e.target.value.replace(/[^\d-]/g, '').slice(0, 10))}
-                    placeholder="ZIP"
-                    data-testid="verify-zip"
-                    className="account-hc-verify-input"
-                    aria-label="ZIP"
-                  />
+                  <div>
+                    <input
+                      ref={cityRef}
+                      id="verify-city"
+                      required
+                      autoComplete="address-level2"
+                      value={city}
+                      onChange={(e) => {
+                        setCity(e.target.value)
+                        clearFieldError('city')
+                      }}
+                      placeholder="City"
+                      data-testid="verify-city"
+                      className={`account-hc-verify-input${fieldErrors.city ? ' is-error' : ''}`}
+                      aria-invalid={fieldErrors.city ? true : undefined}
+                      aria-describedby={fieldErrors.city ? 'verify-city-error' : undefined}
+                      aria-label="City"
+                    />
+                    {fieldErrors.city ? (
+                      <FieldInlineError id="verify-city-error" testId="verify-city-error">
+                        {fieldErrors.city}
+                      </FieldInlineError>
+                    ) : null}
+                  </div>
+                  <div>
+                    <input
+                      ref={stateRef}
+                      id="verify-state"
+                      required
+                      autoComplete="address-level1"
+                      value={stateCode}
+                      onChange={(e) => {
+                        setStateCode(e.target.value.toUpperCase().slice(0, 2))
+                        clearFieldError('stateCode')
+                      }}
+                      placeholder="ST"
+                      data-testid="verify-state"
+                      className={`account-hc-verify-input${fieldErrors.stateCode ? ' is-error' : ''}`}
+                      aria-invalid={fieldErrors.stateCode ? true : undefined}
+                      aria-describedby={fieldErrors.stateCode ? 'verify-state-error' : undefined}
+                      aria-label="State"
+                    />
+                    {fieldErrors.stateCode ? (
+                      <FieldInlineError id="verify-state-error" testId="verify-state-error">
+                        {fieldErrors.stateCode}
+                      </FieldInlineError>
+                    ) : null}
+                  </div>
+                  <div>
+                    <input
+                      ref={zipRef}
+                      id="verify-zip"
+                      required
+                      autoComplete="postal-code"
+                      value={zip}
+                      onChange={(e) => {
+                        setZip(e.target.value.replace(/[^\d-]/g, '').slice(0, 10))
+                        clearFieldError('zip')
+                      }}
+                      placeholder="ZIP"
+                      data-testid="verify-zip"
+                      className={`account-hc-verify-input${fieldErrors.zip ? ' is-error' : ''}`}
+                      aria-invalid={fieldErrors.zip ? true : undefined}
+                      aria-describedby={fieldErrors.zip ? 'verify-zip-error' : undefined}
+                      aria-label="ZIP"
+                    />
+                    {fieldErrors.zip ? (
+                      <FieldInlineError id="verify-zip-error" testId="verify-zip-error">
+                        {fieldErrors.zip}
+                      </FieldInlineError>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </section>
@@ -334,9 +454,12 @@ export function HelperVerification() {
               </div>
 
               {error ? (
-                <p className="account-hc-verify-error" role="alert" data-testid="verify-error">
-                  {error}
-                </p>
+                <FormErrorAlert
+                  ref={alertRef}
+                  className="mt-3"
+                  message={error}
+                  testId="verify-error"
+                />
               ) : null}
 
               <button
