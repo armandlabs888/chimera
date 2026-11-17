@@ -513,7 +513,7 @@ export function HelperUrgentSmsSettings({
                       type="tel"
                       inputMode="tel"
                       autoComplete="tel"
-                      placeholder="+1 408 555 0100"
+                      placeholder="(408) 555-0100"
                       value={phoneInput}
                       onChange={(e) => setPhoneInput(e.target.value)}
                       aria-labelledby="helper-sms-phone-label"

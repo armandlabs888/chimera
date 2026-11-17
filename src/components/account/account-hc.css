@@ -1,5 +1,9 @@
-/* Bunk account pages — locked to approved account mock. */
-.account-hc {
+/* Bunk account palette. Defined on page shells and self-contained hosts so
+   account-hc-* descendants keep tokens even when not wrapped in .account-hc
+   (e.g. Settings Notifications SMS card, delete modal). */
+.account-hc,
+.account-hc-sms-settings,
+.account-hc-modal {
   --hc-navy: #071330;
   --hc-ink: #10172a;
   --hc-blue: #1d5ce5;
@@ -16,6 +20,9 @@
   --hc-red: #c62828;
   --hc-red-hover: #fef2f2;
   --hc-tabbar: #eef2f6;
+}
+
+.account-hc {
   color: var(--hc-navy);
   background: var(--hc-page);
   min-height: 100%;
@@ -532,7 +539,7 @@
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
-  background: var(--hc-blue);
+  background: var(--hc-blue, #1d5ce5);
   color: #fff;
   border: 0;
   cursor: pointer;
@@ -541,13 +548,13 @@
 }
 
 .account-hc-btn:hover {
-  background: var(--hc-blue-hover);
+  background: var(--hc-blue-hover, #1649bd);
 }
 
 .account-hc-btn:disabled,
 .account-hc-btn[aria-disabled='true'] {
-  background: var(--hc-line-2) !important;
-  color: var(--hc-muted-2) !important;
+  background: var(--hc-line-2, #d7e0ec) !important;
+  color: var(--hc-muted-2, #4a5568) !important;
   cursor: not-allowed;
   pointer-events: none;
   transition: none !important;
@@ -555,18 +562,18 @@
 
 .account-hc-btn:disabled:hover,
 .account-hc-btn[aria-disabled='true']:hover {
-  background: var(--hc-line-2) !important;
-  color: var(--hc-muted-2) !important;
+  background: var(--hc-line-2, #d7e0ec) !important;
+  color: var(--hc-muted-2, #4a5568) !important;
 }
 
 .account-hc-btn-secondary {
-  background: var(--hc-white);
-  color: var(--hc-navy);
-  border: 1px solid var(--hc-line);
+  background: var(--hc-white, #ffffff);
+  color: var(--hc-navy, #071330);
+  border: 1px solid var(--hc-line, #e3e8ef);
 }
 
 .account-hc-btn-secondary:hover {
-  background: var(--hc-tint-2);
+  background: var(--hc-tint-2, #eef2f7);
 }
 
 .account-hc-btn-lg {
@@ -851,10 +858,13 @@
   gap: 8px;
 }
 
-/* Optional urgent SMS prefs: match Bunk mock (blue palette only). */
+/* Optional urgent SMS prefs: match Bunk mock (blue palette only).
+   Tokens are defined on this selector above so the card is self-sufficient
+   when mounted under Settings (.sa-block) without a .account-hc ancestor. */
 .account-hc-sms-settings {
   padding: 22px 24px 20px;
   margin-top: 16px;
+  color: var(--hc-navy);
 }
 
 .account-hc-sms-head {
@@ -957,9 +967,9 @@
 
 .account-hc-sms-switch.is-disabled,
 .account-hc-sms-switch:disabled {
-  background: var(--hc-line);
+  background: var(--hc-line-2);
   cursor: not-allowed;
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .account-hc-sms-switch-hint {
@@ -1048,7 +1058,7 @@
   width: 100%;
   height: 44px;
   padding: 0 14px;
-  border: 1px solid var(--hc-line);
+  border: 1px solid var(--hc-line-2);
   border-radius: 8px;
   background: #fff;
   font-size: 15px;
@@ -1058,7 +1068,8 @@
 }
 
 .account-hc-sms-input::placeholder {
-  color: var(--hc-sub);
+  color: #8a94a6;
+  opacity: 1;
 }
 
 .account-hc-sms-input:focus,
@@ -1103,7 +1114,7 @@
   width: 44px;
   height: 48px;
   padding: 0;
-  border: 1px solid var(--hc-line);
+  border: 1px solid var(--hc-line-2);
   border-radius: 8px;
   background: #fff;
   font-size: 20px;
@@ -2516,8 +2527,8 @@ select.account-hc-input:focus {
 }
 
 .account-hc-btn-danger:disabled {
-  background: var(--hc-line);
-  color: var(--hc-muted-2);
+  background: var(--hc-line, #e3e8ef);
+  color: var(--hc-muted-2, #4a5568);
   cursor: not-allowed;
 }
 
