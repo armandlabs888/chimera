@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import {
-  TWILIO_INBOUND_PUBLIC_URL,
   toE164,
+  twilioInboundPublicUrl,
   validateTwilioRequestSignature,
 } from '@/lib/urgent/twilio'
 
@@ -33,7 +33,8 @@ function forbidden(): NextResponse {
 /**
  * Twilio inbound SMS webhook for STOP / START / HELP.
  * Requires a valid X-Twilio-Signature. Configure in Twilio console:
- *   https://www.yariapp.com/api/twilio/inbound
+ *   https://www.joinbunk.xyz/api/twilio/inbound
+ * Override the signature URL with TWILIO_INBOUND_PUBLIC_URL when needed.
  */
 export async function POST(request: Request) {
   try {
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
     const signature = request.headers.get('x-twilio-signature')
     const valid = validateTwilioRequestSignature({
       signatureHeader: signature,
-      publicUrl: TWILIO_INBOUND_PUBLIC_URL,
+      publicUrl: twilioInboundPublicUrl(),
       params,
     })
     if (!valid) {

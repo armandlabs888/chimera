@@ -8,7 +8,7 @@ export const URGENT_ESCALATION_RADIUS_MILES = 8
 export const URGENT_ESCALATION_MINUTES = 10
 
 /** Public site used in SMS deep links. */
-export const URGENT_JOB_PUBLIC_ORIGIN = 'https://www.yariapp.com'
+export const URGENT_JOB_PUBLIC_ORIGIN = 'https://www.joinbunk.xyz'
 
 export const URGENT_LABEL = 'Needs help now'
 
