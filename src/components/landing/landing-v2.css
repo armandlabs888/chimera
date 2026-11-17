@@ -188,13 +188,52 @@
 @media (min-width: 768px) {
   .categories-bento {
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    grid-template-rows: minmax(260px, 300px) minmax(240px, 280px);
+    /* Tablet: three rows so cleaning/auto stay wide enough for 2-line copy. */
+    grid-template-rows: minmax(240px, 280px) minmax(240px, 280px) minmax(240px, 280px);
     gap: 14px;
   }
 
   .categories-photo-card {
     min-height: 0;
     height: auto;
+  }
+
+  .categories-tile-moving {
+    grid-column: 1 / span 12;
+    grid-row: 1;
+  }
+
+  .categories-tile-cleaning {
+    grid-column: 1 / span 6;
+    grid-row: 2;
+  }
+
+  .categories-tile-auto {
+    grid-column: 7 / span 6;
+    grid-row: 2;
+  }
+
+  .categories-tile-pets {
+    grid-column: 1 / span 4;
+    grid-row: 3;
+  }
+
+  .categories-tile-junk {
+    grid-column: 5 / span 4;
+    grid-row: 3;
+  }
+
+  .categories-tile-custom {
+    grid-column: 9 / span 4;
+    grid-row: 3;
+  }
+}
+
+/* Desktop: original 12-col bento with narrow cleaning/auto on row 1. */
+@media (min-width: 1024px) {
+  .categories-bento {
+    /* Row 1 taller so narrow cleaning/auto cards fit title + 2-line description. */
+    grid-template-rows: minmax(280px, 320px) minmax(240px, 280px);
   }
 
   .categories-tile-moving {
