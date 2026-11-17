@@ -127,19 +127,20 @@ async function checkLandingMarkup() {
     /Weekly house cleaner|Help moving a couch|Find jobs near me|Dog walker this week/,
     'hero has no example chip labels',
   )
-  assert.doesNotMatch(text, /categories-tile-custom|Something else\?/, 'navy custom tile removed')
+  assert.doesNotMatch(text, /Something else\?/, 'old Something else copy removed')
+  assert.match(text, /data-testid="categories-tile-custom"/, 'custom task tile')
   assert.match(text, /data-testid="categories-tile-auto"/, 'auto detailing tile')
   assert.match(text, /data-testid="categories-tile-moving"/, 'moving tile')
   assert.match(text, /data-testid="categories-tile-junk"/, 'junk removal tile')
   assert.match(text, /\/browse\?category=moving/, 'moving browse href')
   assert.match(text, /avail-moving\.jpg/, 'moving sofa photo path')
-  assert.match(text, /avail-junk-garage\.jpg/, 'junk garage photo path')
+  assert.match(text, /Popular Neighborhood Services/, 'popular services heading')
   assert.match(
     text,
-    /House cleaning, auto detailing, moving, junk removal, and pet care\. Or post something custom\./,
+    /Pick a category to start a request and see what neighbors nearby typically charge\./,
     'popular services subtitle',
   )
-  assert.match(text, /Post a custom task/, 'popular services custom link')
+  assert.match(text, /Post a custom task/, 'popular services custom tile')
   assert.match(
     text,
     /Clear steps and in-app messaging, so you can compare offers/,
@@ -675,8 +676,8 @@ async function checkLandingBrowser() {
     await page.waitForFunction(
       () => {
         const imgs = [...document.querySelectorAll('img')]
-        // Popular services: five photo tiles (hero is image-free).
-        return imgs.length >= 5 && imgs.every((img) => img.complete)
+        // Popular services: four photo tiles (junk + custom are light cards).
+        return imgs.length >= 4 && imgs.every((img) => img.complete)
       },
       null,
       { timeout: 20000 },
@@ -721,7 +722,7 @@ async function checkLandingBrowser() {
     assert.equal(landingImages.popularGigsPresent, false, 'popular gigs section removed')
     assert.equal(landingImages.categoriesPresent, true, 'popular services section present')
     assert.ok(
-      landingImages.count >= 5,
+      landingImages.count >= 4,
       `landing should render Popular services marketing <img> elements, got ${landingImages.count}`,
     )
     assert.equal(landingImages.allComplete, true, 'every landing <img> must be complete')
