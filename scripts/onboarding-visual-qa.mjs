@@ -172,13 +172,17 @@ async function assertDesktopSideBySide(page, label) {
   const layout = await page.evaluate(() => {
     const form = document.querySelector('[data-testid="onboarding-form-column"]')
     const benefitsDesktop = document.querySelector('[data-testid="onboarding-benefits-desktop"]')
+    const panel = benefitsDesktop?.querySelector('[data-testid="onboarding-benefits"]')
+    const progress = form?.querySelector('[data-testid="onboarding-step-progress"]')
     const next = document.querySelector('[data-testid="onboarding-next"]')
     const lede = form?.querySelector('p')
-    if (!form || !benefitsDesktop || !next || !lede) {
-      return { ok: false, reason: 'missing form/benefits/next/lede' }
+    if (!form || !benefitsDesktop || !panel || !progress || !next || !lede) {
+      return { ok: false, reason: 'missing form/benefits/progress/next/lede' }
     }
     const fr = form.getBoundingClientRect()
     const br = benefitsDesktop.getBoundingClientRect()
+    const pr = panel.getBoundingClientRect()
+    const sr = progress.getBoundingClientRect()
     const nr = next.getBoundingClientRect()
     const lr = lede.getBoundingClientRect()
     const vh = window.innerHeight
@@ -189,6 +193,14 @@ async function assertDesktopSideBySide(page, label) {
       sideBySide: br.left > fr.right - 8,
       nextInViewport: nr.top >= 0 && nr.bottom <= vh + 1,
       ledeBesideBenefits: Math.abs(lr.top - br.top) < br.height,
+      topsAligned: Math.abs(pr.top - sr.top) <= 2,
+      // Content-sized panel: grid align-items start (not stretch to form height).
+      panelAlignStart: (() => {
+        const align = getComputedStyle(document.querySelector('.account-hc-wizard')).alignItems
+        return align === 'start' || align === 'flex-start'
+      })(),
+      progressTop: sr.top,
+      panelTop: pr.top,
       nextTop: nr.top,
       benefitsTop: br.top,
       benefitsBottom: br.bottom,
@@ -207,6 +219,12 @@ async function assertDesktopSideBySide(page, label) {
     true,
     `${label} subtitle must not be pushed below the benefits panel`,
   )
+  assert.equal(
+    layout.topsAligned,
+    true,
+    `${label} panel top (${layout.panelTop}) must align with Step progress (${layout.progressTop})`,
+  )
+  assert.equal(layout.panelAlignStart, true, `${label} wizard must use align-items start`)
 }
 
 async function runViewport(browser, vp) {
