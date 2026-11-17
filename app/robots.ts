@@ -7,6 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
       disallow: [
+        '/api',
         '/home',
         '/you',
         '/messages',
@@ -15,6 +16,8 @@ export default function robots(): MetadataRoute.Robots {
         '/verify',
         '/admin',
         '/onboarding',
+        '/match',
+        '/dev',
       ],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,

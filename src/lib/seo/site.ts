@@ -1,12 +1,22 @@
 import type { Metadata } from 'next'
 
 /** Production origin for canonicals, sitemap, and robots. */
-export const SITE_URL = 'https://www.yariapp.com'
+export const SITE_URL = 'https://www.joinbunk.xyz'
 
 export const SITE_NAME = 'Bunk'
 
+export const DEFAULT_TITLE = 'Bunk | Trusted help, right next door'
+
 export const DEFAULT_DESCRIPTION =
-  'Describe the job, compare priced offers, and choose local help that fits: home, auto, junk removal, pets, and other everyday tasks.'
+  'Post a local task on Bunk and get offers from verified neighbors nearby. Home, auto, junk removal, pets, and everyday help right next door.'
+
+/** Static PNG fallback for crawlers; also generated live at /opengraph-image. */
+export const DEFAULT_OG_IMAGE = {
+  url: '/images/og-default.png',
+  width: 1200,
+  height: 630,
+  alt: 'Bunk. Trusted help, right next door. Post a task and get offers from verified neighbors nearby.',
+}
 
 const NOINDEX: Metadata['robots'] = {
   index: false,
@@ -29,23 +39,28 @@ export function pageMetadata({
   path,
   noindex = false,
 }: PageMetaInput): Metadata {
-  const canonical = path.startsWith('http') ? path : `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`
+  const canonical = path.startsWith('http')
+    ? path
+    : `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`
+  const ogTitle = `${title} | ${SITE_NAME}`
   return {
     title,
     description,
     alternates: { canonical },
     openGraph: {
-      title: `${title} | ${SITE_NAME}`,
+      title: ogTitle,
       description,
       url: canonical,
       siteName: SITE_NAME,
       locale: 'en_US',
       type: 'website',
+      images: [DEFAULT_OG_IMAGE],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${title} | ${SITE_NAME}`,
+      title: ogTitle,
       description,
+      images: [DEFAULT_OG_IMAGE.url],
     },
     ...(noindex ? { robots: NOINDEX } : {}),
   }

@@ -1,4 +1,5 @@
 import { createClient as createSupabaseJs } from '@supabase/supabase-js'
+import { createSeedState } from '@/data/seed'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import {
@@ -6,10 +7,11 @@ import {
   getSupabaseUrl,
   resolveBeamMode,
 } from '@/lib/config'
+import { formatBudget } from '@/lib/matching'
 import { isHelperPerson } from '@/lib/roles'
 import { isUuid } from '@/lib/seo/ids'
 import { formatCategoryLabel } from '@/lib/taxonomy'
-import type { AccountRole, CategoryId } from '@/types'
+import type { AccountRole, CategoryId, HelpRequest } from '@/types'
 import type { Database } from '@/lib/supabase/database.types'
 
 export { isUuid } from '@/lib/seo/ids'
@@ -29,6 +31,8 @@ export type RequestSeoData = {
   id: string
   title: string
   areaLabel: string
+  categoryLabel: string
+  priceLabel: string
 }
 
 export type LookupResult<T> =
@@ -55,7 +59,13 @@ type RequestSeoRow = {
   title: string
   location_label: string | null
   neighborhood: string | null
+  city: string | null
   status: string
+  category: string | null
+  category_custom: string | null
+  budget: number | null
+  budget_type: string | null
+  accepts_offers: boolean | null
 }
 
 function anonClient() {
@@ -111,12 +121,51 @@ function toPersonSeo(row: ProfileSeoRow): HelperSeoData {
   }
 }
 
+function priceLabelFrom(row: {
+  budget: number | null
+  budget_type: string | null
+  accepts_offers: boolean | null
+}): string {
+  return formatBudget({
+    budget: Number(row.budget) || 0,
+    budgetType: row.budget_type === 'open' ? 'open' : 'fixed',
+    acceptsOffers: row.accepts_offers !== false,
+  })
+}
+
 function toRequestSeo(row: RequestSeoRow): RequestSeoData {
   return {
     id: row.id,
     title: (row.title || 'Open job').trim() || 'Open job',
     areaLabel: cityLabelFrom(row),
+    categoryLabel: formatCategoryLabel(row.category, row.category_custom),
+    priceLabel: priceLabelFrom(row),
   }
+}
+
+function toRequestSeoFromSeed(req: HelpRequest): RequestSeoData {
+  return {
+    id: req.id,
+    title: (req.title || 'Open job').trim() || 'Open job',
+    areaLabel: cityLabelFrom({
+      city: req.city,
+      location_label: req.locationLabel,
+      neighborhood: req.neighborhood,
+    }),
+    categoryLabel: formatCategoryLabel(req.category, req.categoryCustom),
+    priceLabel: formatBudget(req),
+  }
+}
+
+/**
+ * Demo/local seed lookup for OG images and metadata previews.
+ * Never reads production; never writes. Open jobs only; no street addresses.
+ */
+export function lookupDemoRequestForOg(id: string): RequestSeoData | null {
+  if (resolveBeamMode() === 'live') return null
+  const req = createSeedState().requests.find((r) => r.id === id && r.status === 'open')
+  if (!req) return null
+  return toRequestSeoFromSeed(req)
 }
 
 /**
@@ -202,7 +251,8 @@ export async function lookupPublicRequest(id: string): Promise<LookupResult<Requ
   if (resolveBeamMode() !== 'live') return { status: 'unknown' }
   if (!isUuid(id)) return { status: 'missing' }
 
-  const selectCols = 'id, title, location_label, neighborhood, status'
+  const selectCols =
+    'id, title, location_label, neighborhood, city, status, category, category_custom, budget, budget_type, accepts_offers'
 
   const admin = createAdminClient()
   if (admin) {

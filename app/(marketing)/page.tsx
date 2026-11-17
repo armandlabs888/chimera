@@ -1,28 +1,38 @@
 import type { Metadata } from 'next'
 import { LandingPage } from '@/components/landing/LandingPage'
-import { pageMetadata } from '@/lib/seo/site'
-
-const landingTitle = 'Bunk. Trusted help, right next door'
-const landingDescription =
-  'Describe the job, compare priced offers, and choose local help that fits: home, auto, junk removal, pets, and other everyday tasks.'
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_OG_IMAGE,
+  DEFAULT_TITLE,
+  SITE_NAME,
+  SITE_URL,
+  pageMetadata,
+} from '@/lib/seo/site'
 
 export const metadata: Metadata = {
   ...pageMetadata({
     title: 'Bunk',
-    description: landingDescription,
+    description: DEFAULT_DESCRIPTION,
     path: '/',
   }),
   // Landing keeps the absolute default title (template would become "Bunk | Bunk").
   title: {
-    absolute: landingTitle,
+    absolute: DEFAULT_TITLE,
   },
   openGraph: {
-    title: landingTitle,
-    description: landingDescription,
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    locale: 'en_US',
+    type: 'website',
+    images: [DEFAULT_OG_IMAGE],
   },
   twitter: {
-    title: landingTitle,
-    description: landingDescription,
+    card: 'summary_large_image',
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE.url],
   },
 }
 

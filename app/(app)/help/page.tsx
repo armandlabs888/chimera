@@ -3,9 +3,9 @@ import { Help } from '@/screens/Help'
 import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
-  title: 'Help and contact',
+  title: 'Help',
   description:
-    'Search common questions, contact Bunk support, or share feedback about jobs, your account, or verification.',
+    'Find answers about posting tasks, offers, verification, and your Bunk account, or contact support for more help.',
   path: '/help',
 })
 

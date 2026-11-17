@@ -6,7 +6,8 @@ import { PolicyPlaceholder } from '@/screens/PolicyPlaceholder'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Privacy Policy',
-  description: 'How Bunk collects, uses, and protects your information.',
+  description:
+    'How Bunk collects, uses, and protects personal information when you post tasks, send offers, or create an account.',
   path: '/privacy',
 })
 
