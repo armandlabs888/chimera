@@ -289,7 +289,7 @@ function BrowseLocationDialog({
                   void resolveZip(zipInput)
                 }
               }}
-              placeholder="e.g. 95125"
+              placeholder="Enter ZIP"
               data-testid="browse-location-zip"
               className="mt-2 h-11 w-full rounded-[10px] border border-[#D7E0EC] bg-white px-3 text-[15px] text-[#071330] outline-none placeholder:text-[#5B6576] focus:border-[#1D5CE5] focus:shadow-[0_0_0_3px_rgba(29,92,229,0.14)]"
             />

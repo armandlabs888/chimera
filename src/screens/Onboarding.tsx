@@ -17,8 +17,9 @@ import {
   UsCityCombobox,
   type UsCityComboboxHandle,
 } from '@/components/onboarding/UsCityCombobox'
-import { Button } from '@/components/ui'
+import { Button, FieldInlineError, FormErrorAlert } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
+import { humanizeSaveError, scrollAlertIntoView } from '@/lib/formErrors'
 import {
   ONBOARDING_HELPER_PRIVACY,
   ONBOARDING_HELPER_VERIFY_BODY,
@@ -204,6 +205,9 @@ export function Onboarding() {
   const firstNameId = useId()
   const lastNameId = useId()
   const cityRef = useRef<UsCityComboboxHandle>(null)
+  const firstNameRef = useRef<HTMLInputElement>(null)
+  const step1AlertRef = useRef<HTMLDivElement>(null)
+  const step2AlertRef = useRef<HTMLDivElement>(null)
   const hydratedRef = useRef(false)
   const nameHydratedRef = useRef(false)
   const [step, setStep] = useState<OnboardingStep>('welcome')
@@ -364,6 +368,7 @@ export function Onboarding() {
   function onStep1Continue() {
     if (!role) {
       setStep1Error('Choose Neighbor or Helper to continue.')
+      scrollAlertIntoView(step1AlertRef.current)
       return
     }
 
@@ -371,6 +376,7 @@ export function Onboarding() {
     if (!parsed.ok) {
       setNameError(REAL_NAME_ERROR)
       setStep1Error('')
+      requestAnimationFrame(() => firstNameRef.current?.focus())
       return
     }
 
@@ -444,16 +450,11 @@ export function Onboarding() {
       }
       router.replace('/browse')
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : typeof err === 'object' &&
-              err !== null &&
-              'message' in err &&
-              typeof (err as { message: unknown }).message === 'string'
-            ? (err as { message: string }).message
-            : 'Could not finish onboarding'
-      if (message === REAL_NAME_ERROR) {
+      const message = humanizeSaveError(err, 'Could not finish onboarding.')
+      if (
+        (err instanceof Error && err.message === REAL_NAME_ERROR) ||
+        message === REAL_NAME_ERROR
+      ) {
         setNameError(REAL_NAME_ERROR)
         setStep('welcome')
         setPending(false)
@@ -461,6 +462,7 @@ export function Onboarding() {
       }
       setError(message)
       setPending(false)
+      scrollAlertIntoView(step2AlertRef.current)
     }
   }
 
@@ -584,6 +586,7 @@ export function Onboarding() {
                       First name
                     </label>
                     <input
+                      ref={firstNameRef}
                       id={firstNameId}
                       type="text"
                       name="given-name"
@@ -627,14 +630,13 @@ export function Onboarding() {
                   </div>
                 </div>
                 {nameError ? (
-                  <p
+                  <FieldInlineError
                     id={`${firstNameId}-error`}
                     className="account-hc-name-error"
-                    role="alert"
-                    data-testid="onboarding-name-error"
+                    testId="onboarding-name-error"
                   >
                     {nameError}
-                  </p>
+                  </FieldInlineError>
                 ) : (
                   <p
                     id={`${firstNameId}-hint`}
@@ -656,13 +658,12 @@ export function Onboarding() {
               </div>
 
               {step1Error && !role ? (
-                <p
-                  className="mt-3 rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[13px] font-medium text-[#071330]"
-                  role="alert"
-                  data-testid="onboarding-step1-error"
-                >
-                  {step1Error}
-                </p>
+                <FormErrorAlert
+                  ref={step1AlertRef}
+                  className="mt-3"
+                  message={step1Error}
+                  testId="onboarding-step1-error"
+                />
               ) : null}
 
               <div className="account-hc-continue-wrap">
@@ -775,13 +776,12 @@ export function Onboarding() {
               </p>
 
               {error ? (
-                <div
-                  role="alert"
-                  className="mt-6 rounded-[10px] border border-[#D7E0EC] bg-white px-4 py-3 text-[14px] text-[#071330]"
-                  data-testid="onboarding-error"
-                >
-                  {error}
-                </div>
+                <FormErrorAlert
+                  ref={step2AlertRef}
+                  className="mt-6"
+                  message={error}
+                  testId="onboarding-error"
+                />
               ) : null}
 
               <div className="account-hc-rules-actions">

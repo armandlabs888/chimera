@@ -13,6 +13,8 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { HelperUrgentSmsSettings } from '@/components/account/HelperUrgentSmsSettings'
 import { SettingsPageChrome } from '@/components/account/SettingsNav'
+import { FormErrorAlert } from '@/components/ui'
+import { humanizeSaveError } from '@/lib/formErrors'
 import {
   ACCOUNT_DELETE_EMAIL_NOTE,
   ACCOUNT_DELETE_ERASE_ITEMS,
@@ -221,7 +223,12 @@ function DeleteAccountModal({
       })
       const data = (await res.json().catch(() => ({}))) as { error?: string; ok?: boolean }
       if (!res.ok) {
-        setError(data.error || 'Could not delete your account. Please try again later.')
+        setError(
+          humanizeSaveError(
+            data.error || 'Could not delete your account. Please try again later.',
+            'Could not delete your account. Please try again later.',
+          ),
+        )
         setPending(false)
         return
       }
@@ -233,8 +240,10 @@ function DeleteAccountModal({
         // Session may already be invalid after hard delete.
       }
       finishDeleted()
-    } catch {
-      setError('Could not delete your account. Please try again later.')
+    } catch (err) {
+      setError(
+        humanizeSaveError(err, 'Could not delete your account. Please try again later.'),
+      )
       setPending(false)
     }
   }
@@ -286,9 +295,11 @@ function DeleteAccountModal({
         </div>
 
         {error ? (
-          <p className="account-hc-modal-error" role="alert" data-testid="settings-delete-error">
-            {error}
-          </p>
+          <FormErrorAlert
+            className="mt-3"
+            message={error}
+            testId="settings-delete-error"
+          />
         ) : null}
 
         <div className="account-hc-modal-actions">
