@@ -83,7 +83,7 @@ export function ConfirmPhoneStep({
     setError('')
     try {
       if (demoMode) {
-        const demoUri = 'sms:+15555550100?&body=Bunk%20code%20482913'
+        const demoUri = 'sms:+15555550100?&body=BlockSide%20code%20482913'
         setSmsUri(demoUri)
         // Minimal inline SVG QR stand-in for demo screenshots (pattern blocks).
         setQrDataUrl(
@@ -269,7 +269,7 @@ export function ConfirmPhoneStep({
           Confirm your phone
         </h1>
         <p className="account-hc-lede" style={{ color: '#4A5568' }}>
-          Every account on Bunk belongs to a real person with a real phone. That stops fake and
+          Every account on BlockSide belongs to a real person with a real phone. That stops fake and
           duplicate accounts and keeps the community safe.
         </p>
         <p className="mt-2 text-[14px] leading-[1.45] text-[#4A5568]">

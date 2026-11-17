@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BunkWordmark } from '@/components/BunkWordmark'
+import { BlockSideWordmark } from '@/components/BlockSideWordmark'
 
 const FOOTER_LINKS = [
   { href: '/browse', label: 'Browse jobs' },
@@ -16,7 +16,7 @@ const linkClass =
 
 /**
  * Slim site footer used on every page: logo + copyright, one link row.
- * Navy surface (#071330) matching the prior Bunk footer theme.
+ * Navy surface (#071330) matching the prior BlockSide footer theme.
  */
 export function LandingFooter({
   dockPadding = false,
@@ -35,7 +35,7 @@ export function LandingFooter({
     >
       <div className="beam-container flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:py-5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <BunkWordmark
+          <BlockSideWordmark
             size={16}
             tone="onDark"
             className="w-fit rounded-sm focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071330]"
@@ -44,7 +44,7 @@ export function LandingFooter({
             className="text-[13px] leading-none text-[#94A3B8]"
             data-testid="footer-legal"
           >
-            © Bunk
+            © BlockSide
           </p>
         </div>
 

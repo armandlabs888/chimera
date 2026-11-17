@@ -6,7 +6,7 @@ import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Sign in',
-  description: 'Sign in or create a Bunk account to post tasks and help neighbors.',
+  description: 'Sign in or create a BlockSide account to post tasks and help neighbors.',
   path: '/auth',
   noindex: true,
 })

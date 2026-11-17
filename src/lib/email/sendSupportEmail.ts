@@ -9,7 +9,7 @@ import {
 export type { SupportEmailInput, SupportTopic } from '@/lib/email/supportEmailContent'
 export { buildSupportEmailSubject } from '@/lib/email/supportEmailContent'
 
-const DEFAULT_FROM = 'Bunk <no-reply@joinbunk.xyz>'
+const DEFAULT_FROM = 'BlockSide <no-reply@joinbunk.xyz>'
 
 export type SendSupportEmailResult =
   | { ok: true; skipped: true; reason: string }

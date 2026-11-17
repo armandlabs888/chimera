@@ -11,11 +11,11 @@ import {
 
 export const metadata: Metadata = {
   ...pageMetadata({
-    title: 'Bunk',
+    title: 'BlockSide',
     description: DEFAULT_DESCRIPTION,
     path: '/',
   }),
-  // Landing keeps the absolute default title (template would become "Bunk | Bunk").
+  // Landing keeps the absolute default title (template would become "BlockSide | BlockSide").
   title: {
     absolute: DEFAULT_TITLE,
   },

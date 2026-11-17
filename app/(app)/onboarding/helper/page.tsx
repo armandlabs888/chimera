@@ -5,7 +5,7 @@ import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Become a helper',
-  description: 'Publish your Bunk helper profile and start getting jobs nearby.',
+  description: 'Publish your BlockSide helper profile and start getting jobs nearby.',
   path: '/onboarding/helper',
   noindex: true,
 })

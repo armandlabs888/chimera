@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { BunkWordmark } from '@/components/BunkWordmark'
+import { BlockSideWordmark } from '@/components/BlockSideWordmark'
 import { useBeam } from '@/context/BeamContext'
 import { formatVerificationAddress, isStaffReviewable } from '@/lib/verification/status'
 import type { HelperVerification } from '@/types'
@@ -71,7 +71,7 @@ export function HelperReviewsAdmin() {
   if (!isBeamStaff) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center bg-white px-6 text-center">
-        <BunkWordmark size={22} />
+        <BlockSideWordmark size={22} />
         <h1 className="mt-8 font-display text-[24px] font-bold text-[#071330]">Staff only</h1>
         <p className="mt-2 max-w-md text-[15px] text-[#3D4A5F]">
           Helper reviews are limited to {PRODUCT_NAME} staff accounts.
@@ -137,7 +137,7 @@ export function HelperReviewsAdmin() {
     <div className="flex min-h-dvh flex-col bg-white text-[#071330]" data-testid="helper-reviews-admin">
       <header className="shrink-0 border-b border-[#E3E8EF]">
         <div className="beam-container flex h-14 items-center gap-3">
-          <BunkWordmark size={20} />
+          <BlockSideWordmark size={20} />
           <h1 className="text-[14px] font-semibold text-[#3D4A5F]">Helper reviews</h1>
         </div>
       </header>

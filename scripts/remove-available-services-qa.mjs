@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Assert Available services section is gone; screenshot How it works → Why Bunk.
+ * Assert Available services section is gone; screenshot How it works → Why BlockSide.
  */
 import assert from 'node:assert/strict'
 import { mkdirSync } from 'node:fs'
@@ -25,7 +25,7 @@ async function assertRemoved(page) {
   assert.equal(await page.getByTestId('available-services').count(), 0)
   assert.equal(await page.locator('#neighborhoods').count(), 0)
   assert.equal(await page.getByText(/Explore all six/i).count(), 0)
-  assert.equal(await page.getByText(/Available services on Bunk/i).count(), 0)
+  assert.equal(await page.getByText(/Available services on BlockSide/i).count(), 0)
   const footer = page.getByTestId('landing-footer')
   assert.equal(await footer.getByRole('link', { name: /^Available services$/i }).count(), 0)
   assert.ok(await page.getByTestId('how-it-works').count() >= 1)
@@ -50,7 +50,7 @@ async function assertRemoved(page) {
       })(),
     }
   })
-  assert.ok(order?.whyAfterHow, 'Why Bunk follows How it works')
+  assert.ok(order?.whyAfterHow, 'Why BlockSide follows How it works')
   assert.deepEqual(order.between, [], `no leftover section between how→why: ${JSON.stringify(order.between)}`)
 }
 

@@ -5,7 +5,7 @@ import { pageMetadata } from '@/lib/seo/site'
 export const metadata: Metadata = pageMetadata({
   title: 'Help',
   description:
-    'Find answers about posting tasks, offers, verification, and your Bunk account, or contact support for more help.',
+    'Find answers about posting tasks, offers, verification, and your BlockSide account, or contact support for more help.',
   path: '/help',
 })
 

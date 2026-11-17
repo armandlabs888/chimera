@@ -4,7 +4,7 @@ import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import { SiteAccountMenu } from '@/components/account/SiteAccountMenu'
-import { BunkWordmark } from '@/components/BunkWordmark'
+import { BlockSideWordmark } from '@/components/BlockSideWordmark'
 import { BrowseLocationTrigger } from '@/components/browse/BrowseLocationDialog'
 import { useBeam } from '@/context/BeamContext'
 import { becomeHelperHref } from '@/lib/helperAccess'
@@ -92,7 +92,7 @@ export function LandingNav({
 
   const bar = (
     <>
-      <BunkWordmark
+      <BlockSideWordmark
         size="header"
         tone={onDark ? 'onDark' : 'brand'}
         className="relative z-10 min-h-[44px] shrink-0"

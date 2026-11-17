@@ -1,5 +1,5 @@
 /**
- * Lightweight markdown parse for Bunk legal drafts.
+ * Lightweight markdown parse for BlockSide legal drafts.
  * Supports: H1/H2/H3, bold, lists, tables, soft breaks (\), paragraphs, links.
  */
 

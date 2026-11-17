@@ -16,11 +16,11 @@ const { buildSupportEmailSubject } = await import(
 
 assert.equal(
   buildSupportEmailSubject('account_sign_in', 'I cannot sign in to my account today'),
-  '[Bunk support] Account or sign in: I cannot sign in to my account today',
+  '[BlockSide support] Account or sign in: I cannot sign in to my account today',
 )
 assert.equal(
   buildSupportEmailSubject('safety_concern', 'Someone made me uncomfortable on a job'),
-  '[SAFETY] [Bunk support] Safety concern: Someone made me uncomfortable on a job',
+  '[SAFETY] [BlockSide support] Safety concern: Someone made me uncomfortable on a job',
 )
 assert.doesNotMatch(
   buildSupportEmailSubject('billing', 'Question about a charge'),
@@ -28,10 +28,10 @@ assert.doesNotMatch(
 )
 
 const sendSrc = readFileSync(join(root, 'src/lib/email/sendAccountDeletedEmail.ts'), 'utf8')
-assert.match(sendSrc, /Bunk <no-reply@joinbunk\.xyz>/)
+assert.match(sendSrc, /BlockSide <no-reply@joinbunk\.xyz>/)
 
 const supportSend = readFileSync(join(root, 'src/lib/email/sendSupportEmail.ts'), 'utf8')
-assert.match(supportSend, /Bunk <no-reply@joinbunk\.xyz>/)
+assert.match(supportSend, /BlockSide <no-reply@joinbunk\.xyz>/)
 assert.match(supportSend, /SUPPORT_INBOX_EMAIL/)
 assert.match(supportSend, /replyTo/)
 

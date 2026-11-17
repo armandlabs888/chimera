@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { SiteAccountMenu } from '@/components/account/SiteAccountMenu'
-import { BunkWordmark } from '@/components/BunkWordmark'
+import { BlockSideWordmark } from '@/components/BlockSideWordmark'
 import { useInboxThreads } from '@/components/messages/useInboxThreads'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import './browse-hc.css'
@@ -95,7 +95,7 @@ export function BrowseFloatHeader({
 
       <header className="browse-hc-header" data-testid={guest ? 'landing-nav' : 'app-topnav'} data-nav-style="flat">
         <div className="browse-hc-wrap browse-hc-header-inner">
-          <BunkWordmark
+          <BlockSideWordmark
             size="header"
             className="browse-hc-brand focus-visible:ring-[#1D5CE5]"
           />

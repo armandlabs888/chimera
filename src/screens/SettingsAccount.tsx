@@ -256,7 +256,7 @@ function DeleteAccountModal({
         data-testid="settings-delete-modal"
       >
         <h2 id={titleId}>Delete your account permanently?</h2>
-        <p className="lead">This will erase all of the following from Bunk:</p>
+        <p className="lead">This will erase all of the following from BlockSide:</p>
         <ul className="account-hc-danger-list account-hc-modal-erase">
           {ACCOUNT_DELETE_ERASE_ITEMS.map((item) => (
             <li key={item}>{item}</li>

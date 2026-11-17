@@ -51,7 +51,7 @@ export function isPhoneUniqueViolation(error: {
 }
 
 export function formatOtpVerifySms(code: string): string {
-  return `Bunk: Your verification code is ${code}. It expires in 10 minutes.`
+  return `BlockSide: Your verification code is ${code}. It expires in 10 minutes.`
 }
 
 export type PhoneVerifyStatus =

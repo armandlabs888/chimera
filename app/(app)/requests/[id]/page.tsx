@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const bits = [categoryLabel, areaLabel, priceLabel].filter(Boolean).join(' · ')
     return pageMetadata({
       title,
-      description: `${title} on Bunk. ${bits}. Compare offers from verified neighbors nearby.`,
+      description: `${title} on BlockSide. ${bits}. Compare offers from verified neighbors nearby.`,
       path: `/requests/${id}`,
     })
   }
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       ...pageMetadata({
         title: demo.title,
-        description: `${demo.title} on Bunk. ${bits}.`,
+        description: `${demo.title} on BlockSide. ${bits}.`,
         path: `/requests/${id}`,
         noindex: true,
       }),
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     ...pageMetadata({
       title: 'Request',
-      description: 'View a Bunk job request and offers from local helpers.',
+      description: 'View a BlockSide job request and offers from local helpers.',
       path: `/requests/${id}`,
       noindex: true,
     }),

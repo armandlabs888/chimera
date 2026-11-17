@@ -17,13 +17,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (kind === 'neighbor') {
       return pageMetadata({
         title: name,
-        description: `${name} on Bunk.`,
+        description: `${name} on BlockSide.`,
         path: `/people/${id}`,
         noindex: true,
       })
     }
     const title = `${name}`
-    const description = `${name} offers ${categoryLabel} on Bunk in ${cityLabel}. Compare offers and book trusted local help.`
+    const description = `${name} offers ${categoryLabel} on BlockSide in ${cityLabel}. Compare offers and book trusted local help.`
     return pageMetadata({
       title,
       description,
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     ...pageMetadata({
       title: 'Helper profile',
-      description: 'View a Bunk helper profile for local home, auto, junk removal, and pet care help.',
+      description: 'View a BlockSide helper profile for local home, auto, junk removal, and pet care help.',
       path: `/people/${id}`,
       noindex: true,
     }),

@@ -1,5 +1,5 @@
 /**
- * Category surface for Bunk UI.
+ * Category surface for BlockSide UI.
  * Source of truth for active taxonomy lives in `@/lib/taxonomy`.
  * This module re-exports helpers used across post / browse / landing.
  */

@@ -4,7 +4,7 @@ import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Settings',
-  description: 'Manage your Bunk account, notifications, and preferences.',
+  description: 'Manage your BlockSide account, notifications, and preferences.',
   path: '/settings',
   noindex: true,
 })
