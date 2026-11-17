@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Artifact screenshots for onboarding Step 1 benefits-panel top alignment.
+ * Artifact screenshots for onboarding Step 1 benefits-panel vertical centering.
  * Captures Neighbor + Helper at 1440x900, 1280x720, and 390px mobile.
  */
 import assert from 'node:assert/strict'
@@ -47,30 +47,34 @@ async function clearDemoOnboardingSeed(page) {
   })
 }
 
-async function assertTopsAligned(page, label) {
+async function assertVerticallyCentered(page, label) {
   if (page.viewportSize()?.width < 1024) return
   const layout = await page.evaluate(() => {
     const form = document.querySelector('[data-testid="onboarding-form-column"]')
-    const panel = document.querySelector(
-      '[data-testid="onboarding-benefits-desktop"] [data-testid="onboarding-benefits"]',
-    )
-    const progress = form?.querySelector('[data-testid="onboarding-step-progress"]')
-    if (!panel || !progress) return { ok: false }
+    const desktop = document.querySelector('[data-testid="onboarding-benefits-desktop"]')
+    const panel = desktop?.querySelector('[data-testid="onboarding-benefits"]')
+    if (!form || !desktop || !panel) return { ok: false }
+    const fr = form.getBoundingClientRect()
     const pr = panel.getBoundingClientRect()
-    const sr = progress.getBoundingClientRect()
-    const wizard = document.querySelector('.account-hc-wizard')
-    const align = wizard ? getComputedStyle(wizard).alignItems : ''
+    const formCenter = (fr.top + fr.bottom) / 2
+    const panelCenter = (pr.top + pr.bottom) / 2
+    const selfAlign = getComputedStyle(desktop).alignSelf
     return {
       ok: true,
-      delta: Math.abs(pr.top - sr.top),
-      panelTop: pr.top,
-      progressTop: sr.top,
-      alignStart: align === 'start' || align === 'flex-start',
+      centerDelta: Math.abs(panelCenter - formCenter),
+      formCenter,
+      panelCenter,
+      panelShorter: pr.height < fr.height - 8,
+      alignSelfCenter: selfAlign === 'center',
     }
   })
-  assert.equal(layout.ok, true, `${label}: missing panel/progress`)
-  assert.ok(layout.delta <= 2, `${label}: tops delta=${layout.delta}`)
-  assert.equal(layout.alignStart, true, `${label}: align-items start`)
+  assert.equal(layout.ok, true, `${label}: missing form/panel`)
+  assert.ok(
+    layout.centerDelta <= 8,
+    `${label}: centers delta=${layout.centerDelta} (form=${layout.formCenter}, panel=${layout.panelCenter})`,
+  )
+  assert.equal(layout.alignSelfCenter, true, `${label}: align-self center`)
+  assert.equal(layout.panelShorter, true, `${label}: panel must stay content-sized`)
 }
 
 async function run() {
@@ -88,7 +92,7 @@ async function run() {
           .locator('[data-testid="onboarding-benefits"][data-role="neighbor"]:visible')
           .first()
           .waitFor({ state: 'visible' })
-        await assertTopsAligned(page, `${vp.name} neighbor`)
+        await assertVerticallyCentered(page, `${vp.name} neighbor`)
         const neighborPath = join(OUT, `onboarding_step1_${vp.name}_neighbor.png`)
         await page.screenshot({ path: neighborPath, fullPage: false })
         console.log(`saved ${neighborPath}`)
@@ -98,7 +102,7 @@ async function run() {
           .locator('[data-testid="onboarding-helper-verify"]:visible')
           .first()
           .waitFor({ state: 'visible' })
-        await assertTopsAligned(page, `${vp.name} helper`)
+        await assertVerticallyCentered(page, `${vp.name} helper`)
         const helperPath = join(OUT, `onboarding_step1_${vp.name}_helper.png`)
         await page.screenshot({ path: helperPath, fullPage: false })
         console.log(`saved ${helperPath}`)
@@ -117,7 +121,7 @@ async function run() {
       join(OUT, 'onboarding_step1_390x844_helper.png'),
       join(OUT, 'onboarding_step1_390_helper.png'),
     )
-    console.log('onboarding step1 align shots passed')
+    console.log('onboarding step1 center shots passed')
   } finally {
     await browser.close()
   }

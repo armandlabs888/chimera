@@ -1585,8 +1585,6 @@ select.account-hc-input:focus {
 }
 
 .account-hc-wizard {
-  /* Shared top offset so the benefits panel edge lines up with Step progress. */
-  --onboarding-col-top: 0px;
   margin-top: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1605,15 +1603,10 @@ select.account-hc-input:focus {
   padding: 28px;
 }
 
-/* Form content starts at the shared top; panel top matches Step 1 of 2. */
-.account-hc-wizard-form {
-  padding-top: var(--onboarding-col-top);
-}
-
+/* Desktop: vertically center the content-sized benefits panel beside the form. */
 .account-hc-benefits-desktop {
-  align-self: start;
+  align-self: center;
   height: auto;
-  margin-top: var(--onboarding-col-top);
 }
 
 .account-hc-benefits-desktop .account-hc-benefits {

@@ -76,33 +76,31 @@ async function assertDesktopSideBySide(page, label) {
     const form = document.querySelector('[data-testid="onboarding-form-column"]')
     const desktop = document.querySelector('[data-testid="onboarding-benefits-desktop"]')
     const panel = desktop?.querySelector('[data-testid="onboarding-benefits"]')
-    const progress = form?.querySelector('[data-testid="onboarding-step-progress"]')
     const next = document.querySelector('[data-testid="onboarding-next"]')
     const roleGroup = document.querySelector('[data-testid="onboarding-role-group"]')
     const lede = form?.querySelector('p')
-    if (!form || !desktop || !panel || !progress || !next || !roleGroup || !lede) return { ok: false }
+    if (!form || !desktop || !panel || !next || !roleGroup || !lede) return { ok: false }
     const fr = form.getBoundingClientRect()
     const br = desktop.getBoundingClientRect()
     const pr = panel.getBoundingClientRect()
-    const sr = progress.getBoundingClientRect()
     const nr = next.getBoundingClientRect()
     const rr = roleGroup.getBoundingClientRect()
     const lr = lede.getBoundingClientRect()
     const vh = window.innerHeight
+    const formCenter = (fr.top + fr.bottom) / 2
+    const panelCenter = (pr.top + pr.bottom) / 2
     return {
       ok: true,
       sideBySide: br.left > fr.right - 8,
       nextInViewport: nr.top >= 0 && nr.bottom <= vh + 1,
       rolesInViewport: rr.top >= 0 && rr.bottom <= vh + 1,
       ledeNotBelowBenefits: lr.bottom < br.bottom + 40,
-      topsAligned: Math.abs(pr.top - sr.top) <= 2,
-      // Content-sized panel: grid align-items start (not stretch to form height).
-      panelAlignStart: (() => {
-        const align = getComputedStyle(document.querySelector('.account-hc-wizard')).alignItems
-        return align === 'start' || align === 'flex-start'
-      })(),
-      progressTop: sr.top,
-      panelTop: pr.top,
+      centersAligned: Math.abs(panelCenter - formCenter) <= 8,
+      // Content-sized panel: align-self center (not stretch to form height).
+      panelAlignSelfCenter: getComputedStyle(desktop).alignSelf === 'center',
+      panelShorter: pr.height < fr.height - 8,
+      formCenter,
+      panelCenter,
       nextTop: nr.top,
       rolesTop: rr.top,
       benefitsBottom: br.bottom,
@@ -115,11 +113,12 @@ async function assertDesktopSideBySide(page, label) {
   assert.equal(layout.nextInViewport, true, `${label}: Continue below fold (top=${layout.nextTop})`)
   assert.equal(layout.ledeNotBelowBenefits, true, `${label}: subtitle pushed under benefits`)
   assert.equal(
-    layout.topsAligned,
+    layout.centersAligned,
     true,
-    `${label}: panel top (${layout.panelTop}) must align with Step progress (${layout.progressTop})`,
+    `${label}: panel center (${layout.panelCenter}) must match form center (${layout.formCenter}) within 8px`,
   )
-  assert.equal(layout.panelAlignStart, true, `${label}: wizard must use align-items start`)
+  assert.equal(layout.panelAlignSelfCenter, true, `${label}: benefits desktop must use align-self center`)
+  assert.equal(layout.panelShorter, true, `${label}: panel must stay content-sized`)
 }
 
 async function assertMobileOrder(page, label) {
