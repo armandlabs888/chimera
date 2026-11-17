@@ -138,7 +138,7 @@ export function LandingHero() {
             Describe the job, compare helpers nearby, or find new work in your area.
           </p>
 
-          <div className="mx-auto mt-8 flex w-full justify-center md:mt-9">
+          <div className="mx-auto mt-8 flex w-full flex-col items-center justify-center md:mt-9">
             <DescribeSearchForm
               key={zip || 'no-zip'}
               initialZip={zip}
@@ -147,6 +147,12 @@ export function LandingHero() {
               variant="hero"
               onSubmit={onSearch}
             />
+            <p
+              className="landing-hero-reassure"
+              data-testid="landing-hero-reassure"
+            >
+              Free to post. No obligation.
+            </p>
           </div>
         </div>
       </div>
