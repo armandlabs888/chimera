@@ -1,19 +1,19 @@
 'use client'
 
-import { useMemo } from 'react'
 import Link from 'next/link'
+import { useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { Avatar, EmptyState, ButtonLink } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
-import { relativeTime } from '@/lib/matching'
-import { formatCategoryLabel } from '@/lib/taxonomy'
-import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
+import { jobThreadSubtitle } from '@/lib/messagesJobLabel'
+import { compactRelativeTime } from '@/lib/messagesTime'
 import { MessagesThread } from '@/screens/MessagesThread'
 
-const panelSurface = 'border-0 bg-white shadow-none'
+const panelSurface = 'border border-[#E3E8EF] bg-white'
 
 export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
+  const router = useRouter()
   const { state, currentUser, getPerson, getRequest } = useBeam()
-  const { openThread, closeThread } = useMessagesDrawer()
   const hasExplicitThread = embedThreadId !== undefined
 
   const threads = useMemo(() => {
@@ -31,15 +31,6 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
       })
   }, [state.threads, state.messages, currentUser.id, getPerson, getRequest])
 
-  const multiThreadPeople = useMemo(() => {
-    const counts = new Map<string, number>()
-    for (const row of threads) {
-      if (!row.otherId) continue
-      counts.set(row.otherId, (counts.get(row.otherId) ?? 0) + 1)
-    }
-    return counts
-  }, [threads])
-
   const unreadCount = useMemo(
     () =>
       (state.notifications ?? []).filter(
@@ -51,33 +42,29 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
     [state.notifications, currentUser.id],
   )
 
-  // Desktop smart default: land in the latest conversation when visiting /messages
-  const selectedId = hasExplicitThread ? embedThreadId : threads[0]?.thread.id
+  const selectedId = hasExplicitThread ? embedThreadId : undefined
 
   return (
     <div
       data-testid="messages-workspace"
       className={[
-        'beam-container grid min-h-0 grid-cols-1 gap-0',
-        hasExplicitThread ? 'h-[calc(100dvh-9.75rem)] min-h-[420px]' : '',
+        'beam-container grid min-h-0 grid-cols-1 gap-0 overflow-hidden rounded-2xl',
+        'h-[calc(100dvh-9.75rem)] min-h-[420px]',
         'lg:h-[calc(100dvh-10rem)] lg:min-h-[560px] lg:max-h-[840px]',
-        'lg:grid-cols-[minmax(280px,348px)_minmax(0,1fr)]',
-        'xl:grid-cols-[minmax(300px,364px)_minmax(0,1fr)]',
+        'lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)]',
+        panelSurface,
       ].join(' ')}
     >
       <aside
         data-testid="messages-inbox-rail"
         className={[
-          panelSurface,
           'min-h-0 flex-col overflow-hidden lg:border-r lg:border-[#E3E8EF]',
           hasExplicitThread ? 'hidden lg:flex' : 'flex',
         ].join(' ')}
       >
-        <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-[#F1F5F9] px-4">
+        <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-[#E3E8EF] px-4">
           <div className="flex min-w-0 items-center gap-2.5">
-            <h1 className="text-[18px] font-bold tracking-[-0.02em] text-[#071330]">
-              Messages
-            </h1>
+            <h1 className="text-[18px] font-bold tracking-[-0.02em] text-[#071330]">Messages</h1>
             {threads.length > 0 && unreadCount > 0 ? (
               <span
                 className="inline-flex min-w-6 items-center justify-center rounded-md bg-[#EEF4FF] px-2 py-0.5 text-[12px] font-semibold tabular-nums text-[#1D5CE5]"
@@ -85,14 +72,6 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
                 aria-label={`${unreadCount} unread`}
               >
                 {unreadCount}
-              </span>
-            ) : threads.length > 0 ? (
-              <span
-                className="inline-flex min-w-6 items-center justify-center rounded-md bg-[#EEF2F7] px-2 py-0.5 text-[12px] font-semibold tabular-nums text-[#4A5568]"
-                data-testid="messages-count"
-                aria-label={`${threads.length} conversations`}
-              >
-                {threads.length}
               </span>
             ) : null}
           </div>
@@ -108,52 +87,49 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
               />
             </div>
           ) : (
-            <ul className="divide-y divide-[#F1F5F9]" data-testid="messages-thread-list">
+            <ul className="py-1.5" data-testid="messages-thread-list">
               {threads.map(({ thread, other, otherId, request, last }) => {
                 const selected = selectedId === thread.id
-                const needsDisambiguation = Boolean(
-                  otherId && (multiThreadPeople.get(otherId) ?? 0) > 1,
-                )
+                const name = other?.name ?? 'Neighbor'
+                const mine = Boolean(last?.senderId && otherId && last.senderId !== otherId)
+                const preview = last?.body ?? 'No messages yet'
                 return (
                   <li key={thread.id}>
                     <Link
                       href={`/messages/${thread.id}`}
-                      onClick={(event) => {
-                        if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) return
-                        event.preventDefault()
-                        openThread(thread.id)
-                      }}
                       data-testid={`messages-thread-row-${thread.id}`}
-                      className={`relative flex gap-3 px-4 py-3.5 transition ${
-                        selected
-                          ? 'bg-[#EEF2F7] before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-[#1D5CE5]'
-                          : 'bg-white hover:bg-white'
+                      className={`grid grid-cols-[40px_minmax(0,1fr)] gap-2.5 px-3.5 py-2.5 ${
+                        selected ? 'bg-[#EEF2F7]' : 'bg-white hover:bg-[#EEF2F7]'
                       }`}
                     >
-                      <Avatar src={other?.avatar} name={other?.name ?? 'Neighbor'} size={40} />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="truncate text-[14px] font-semibold text-[#071330]">
-                            {other?.name ?? 'Neighbor'}
-                          </p>
-                          <span className="shrink-0 text-[12px] tabular-nums text-[#4A5568]">
-                            {relativeTime(thread.lastMessageAt)}
+                      <Avatar src={other?.avatar} name={name} size={40} />
+                      <span className="min-w-0">
+                        <span className="flex items-baseline gap-2">
+                          <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-[#071330]">
+                            {name}
                           </span>
-                        </div>
-                        {needsDisambiguation ? (
-                          <p className="truncate text-[12px] font-medium text-[#4A5568]">
-                            {request
-                              ? formatCategoryLabel(
-                                  request.category,
-                                  request.categoryCustom,
-                                ) || request.title
-                              : 'Direct message'}
-                          </p>
-                        ) : null}
-                        <p className="mt-0.5 truncate text-[13px] text-[#4A5568]">
-                          {last?.body ?? 'No messages yet'}
-                        </p>
-                      </div>
+                          <span className="shrink-0 text-[11.5px] tabular-nums text-[#4A5568]">
+                            {compactRelativeTime(last?.createdAt ?? thread.lastMessageAt)}
+                          </span>
+                        </span>
+                        <span className="mt-px block truncate text-[12px] font-medium text-[#1649BD]">
+                          {jobThreadSubtitle(request)}
+                        </span>
+                        <span className="mt-px block truncate text-[13px] text-[#4A5568]">
+                          {last ? (
+                            mine ? (
+                              <>
+                                <em className="font-medium not-italic text-[#4A5568]">You: </em>
+                                {preview}
+                              </>
+                            ) : (
+                              preview
+                            )
+                          ) : (
+                            'No messages yet'
+                          )}
+                        </span>
+                      </span>
                     </Link>
                   </li>
                 )
@@ -166,22 +142,22 @@ export function MessagesInbox({ embedThreadId }: { embedThreadId?: string }) {
       {selectedId ? (
         <div
           className={[
-            panelSurface,
             'flex h-full min-h-0 min-w-0 flex-col overflow-hidden',
             hasExplicitThread ? '' : 'hidden lg:flex',
           ].join(' ')}
           data-testid="messages-conversation-panel"
         >
-          <MessagesThread threadId={selectedId} onBack={closeThread} onClose={closeThread} />
+          <MessagesThread
+            threadId={selectedId}
+            onBack={() => router.push('/messages')}
+            onClose={() => router.push('/browse')}
+            showDesktopChrome={false}
+          />
         </div>
       ) : (
         <section
           data-testid="messages-conversation-panel"
-          className={[
-            panelSurface,
-            'min-h-[50vh] items-center justify-center p-8',
-            hasExplicitThread ? 'flex' : 'hidden lg:flex',
-          ].join(' ')}
+          className="hidden min-h-[50vh] items-center justify-center p-8 lg:flex"
         >
           <EmptyState
             title="Select a conversation"

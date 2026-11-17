@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
+import { MessagesInbox } from '@/screens/MessagesInbox'
 import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
@@ -9,11 +9,11 @@ export const metadata: Metadata = pageMetadata({
   noindex: true,
 })
 
-/**
- * Inbox route stays addressable. Signed-in visitors land on Browse with the
- * list drawer open so the page underneath stays a real screen.
- * Live guests are sent to /auth by the proxy before this redirect runs.
- */
+/** Full-page messages workspace (pop out from the floating panel). */
 export default function MessagesPage() {
-  redirect('/browse?messages=1')
+  return (
+    <div className="beam-page py-4 sm:py-6">
+      <MessagesInbox />
+    </div>
+  )
 }

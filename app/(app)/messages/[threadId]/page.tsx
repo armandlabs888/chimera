@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
+import { MessagesInbox } from '@/screens/MessagesInbox'
 import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
@@ -9,15 +9,16 @@ export const metadata: Metadata = pageMetadata({
   noindex: true,
 })
 
-/**
- * Thread deep links (`/messages/:threadId`, including notification hrefs)
- * open that conversation in the drawer over Browse.
- */
+/** Full-page thread view for deep links and panel pop out. */
 export default async function MessagesThreadPage({
   params,
 }: {
   params: Promise<{ threadId: string }>
 }) {
   const { threadId } = await params
-  redirect(`/browse?messages=1&thread=${encodeURIComponent(threadId)}`)
+  return (
+    <div className="beam-page py-4 sm:py-6">
+      <MessagesInbox embedThreadId={threadId} />
+    </div>
+  )
 }

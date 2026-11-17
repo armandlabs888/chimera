@@ -694,37 +694,46 @@ input[type='search']::-ms-clear {
   }
 }
 
-/* Messages drawer — connected list + conversation, mock radii 14 / inset 12. */
-@keyframes beam-messages-drawer-in {
+/* Floating messages panel — Reddit-style dock, ~800x640 desktop. */
+@keyframes bunk-messages-panel-in {
   from {
-    transform: translateX(12px);
+    opacity: 0;
+    transform: translateY(10px);
   }
   to {
-    transform: translateX(0);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .messages-drawer-scrim {
   position: fixed;
-  inset: 0;
   z-index: 80;
-  background: rgba(7, 19, 48, 0.42);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 56px;
+  background: rgba(7, 19, 48, 0.18);
 }
 
 .messages-drawer {
   position: fixed;
   z-index: 90;
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: 292px minmax(0, 1fr);
   overflow: hidden;
   background: #fff;
   color: #071330;
   font-family: var(--font-body);
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  border-radius: 0;
+  right: 20px;
+  bottom: 20px;
+  width: 800px;
+  height: 640px;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100dvh - 40px);
+  border: 1px solid #e3e8ef;
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(7, 19, 48, 0.12);
   outline: none;
 }
 
@@ -733,7 +742,7 @@ input[type='search']::-ms-clear {
 }
 
 .messages-drawer-motion {
-  animation: beam-messages-drawer-in 220ms ease-out;
+  animation: bunk-messages-panel-in 180ms ease-out;
 }
 
 .messages-list-panel,
@@ -746,75 +755,90 @@ input[type='search']::-ms-clear {
   background: #fff;
 }
 
+.messages-list-panel {
+  border-right: 1px solid #e3e8ef;
+}
+
 .messages-back {
   display: none;
   place-items: center;
 }
 
-.messages-view-request-short {
-  display: none;
+.messages-view-job-extra {
+  display: inline;
 }
 
-@media (min-width: 640px) {
-  .messages-drawer {
-    top: 12px;
-    right: 12px;
-    bottom: 12px;
-    left: auto;
-    width: 500px;
-    border-radius: 14px;
-    box-shadow:
-      -24px 0 64px -18px rgba(7, 19, 48, 0.42),
-      0 0 0 1px rgba(7, 19, 48, 0.06);
-  }
+.messages-hide-mobile {
+  display: grid;
 }
 
-@media (min-width: 960px) {
-  .messages-drawer {
-    width: 380px;
+.messages-minibar {
+  position: fixed;
+  z-index: 90;
+  right: 20px;
+  bottom: 20px;
+  width: 320px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px 0 12px;
+  background: #fff;
+  border: 1px solid #e3e8ef;
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(7, 19, 48, 0.12);
+}
+
+@media (max-width: 767px) {
+  .messages-drawer-scrim {
+    display: none;
   }
 
-  .messages-drawer[data-chat-open='true'] {
-    width: 880px;
+  .messages-drawer {
+    inset: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+    border: 0;
+    box-shadow: none;
+    grid-template-columns: 1fr;
+  }
+
+  .messages-drawer[data-chat-open='true'] .messages-list-panel,
+  .messages-list-panel[data-mobile-view='hidden'] {
+    display: none;
+  }
+
+  .messages-drawer:not([data-chat-open='true']) .messages-chat-panel {
+    display: none;
+  }
+
+  .messages-chat-empty {
+    display: none !important;
   }
 
   .messages-list-panel {
-    width: 380px;
-    flex: none;
-  }
-
-  .messages-chat-panel {
-    width: 500px;
-    flex: none;
-    border-right: 1px solid #e3e8ef;
-  }
-}
-
-@media (max-width: 959px) {
-  .messages-drawer[data-chat-open='true'] .messages-list-panel {
-    display: none;
+    border-right: 0;
   }
 
   .messages-back {
     display: grid;
   }
-}
 
-@media (max-width: 639px) {
-  .messages-view-profile {
+  .messages-hide-mobile {
+    display: none !important;
+  }
+
+  .messages-view-job-extra {
     display: none;
   }
 
-  .messages-view-request-full {
-    display: none;
-  }
-
-  .messages-view-request-short {
-    display: inline;
-  }
-
-  .messages-job-category {
-    display: none;
+  .messages-minibar {
+    display: none !important;
   }
 }
 
