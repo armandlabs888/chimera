@@ -5,19 +5,38 @@ type TwilioSendResult =
   | { ok: true; sid: null; skipped: true; reason: string }
   | { ok: false; error: string }
 
-/** Canonical public webhook URL used for X-Twilio-Signature validation. */
-export const TWILIO_INBOUND_PUBLIC_URL = 'https://www.yariapp.com/api/twilio/inbound'
+const DEFAULT_TWILIO_INBOUND_PUBLIC_URL =
+  'https://www.joinbunk.xyz/api/twilio/inbound'
+
+/**
+ * Canonical public webhook URL used for X-Twilio-Signature validation.
+ * Override with TWILIO_INBOUND_PUBLIC_URL when the public host differs (preview, local tunnel).
+ */
+export function twilioInboundPublicUrl(): string {
+  return (
+    process.env.TWILIO_INBOUND_PUBLIC_URL?.trim() || DEFAULT_TWILIO_INBOUND_PUBLIC_URL
+  )
+}
 
 function twilioAuthHeader(): string | null {
-  const sid = process.env.TWILIO_ACCOUNT_SID?.trim()
+  const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim()
+  if (!accountSid) return null
+
+  const apiKeySid = process.env.TWILIO_API_KEY_SID?.trim()
+  const apiKeySecret = process.env.TWILIO_API_KEY_SECRET?.trim()
+  if (apiKeySid && apiKeySecret) {
+    return `Basic ${Buffer.from(`${apiKeySid}:${apiKeySecret}`).toString('base64')}`
+  }
+
   const token = process.env.TWILIO_AUTH_TOKEN?.trim()
-  if (!sid || !token) return null
-  return `Basic ${Buffer.from(`${sid}:${token}`).toString('base64')}`
+  if (!token) return null
+  return `Basic ${Buffer.from(`${accountSid}:${token}`).toString('base64')}`
 }
 
 /**
  * Validate Twilio's X-Twilio-Signature (HMAC-SHA1 of full URL + sorted POST params).
  * Returns false when the auth token is missing or the signature does not match.
+ * Signature validation always needs TWILIO_AUTH_TOKEN (API keys cannot validate webhooks).
  */
 export function validateTwilioRequestSignature(input: {
   signatureHeader: string | null
@@ -26,7 +45,13 @@ export function validateTwilioRequestSignature(input: {
 }): boolean {
   const authToken = process.env.TWILIO_AUTH_TOKEN?.trim()
   const signature = input.signatureHeader?.trim()
-  if (!authToken || !signature) return false
+  if (!authToken) {
+    console.warn(
+      '[twilio] TWILIO_AUTH_TOKEN is missing; cannot validate X-Twilio-Signature. Rejecting unsigned request.',
+    )
+    return false
+  }
+  if (!signature) return false
 
   const sortedKeys = Object.keys(input.params).sort()
   let data = input.publicUrl
@@ -45,13 +70,20 @@ export function validateTwilioRequestSignature(input: {
   }
 }
 
+/**
+ * True when outbound SMS can be sent: Account SID + (API key pair OR auth token) + From/Messaging Service.
+ * Inbound signature validation still requires TWILIO_AUTH_TOKEN separately.
+ */
 export function twilioConfigured(): boolean {
   const sid = process.env.TWILIO_ACCOUNT_SID?.trim()
+  const apiKeySid = process.env.TWILIO_API_KEY_SID?.trim()
+  const apiKeySecret = process.env.TWILIO_API_KEY_SECRET?.trim()
   const token = process.env.TWILIO_AUTH_TOKEN?.trim()
+  const hasAuth = Boolean((apiKeySid && apiKeySecret) || token)
   const from =
     process.env.TWILIO_FROM_NUMBER?.trim() ||
     process.env.TWILIO_MESSAGING_SERVICE_SID?.trim()
-  return Boolean(sid && token && from)
+  return Boolean(sid && hasAuth && from)
 }
 
 /** Send an SMS via Twilio REST. Missing env → skip gracefully (no throw). */

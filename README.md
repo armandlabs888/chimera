@@ -60,9 +60,13 @@ Required server env for SMS (missing values skip sends gracefully and show a fri
 
 ```bash
 TWILIO_ACCOUNT_SID=
-TWILIO_AUTH_TOKEN=
+# REST auth: Auth Token, or API Key SID (SK…) + secret (Account SID still required in the URL)
+TWILIO_AUTH_TOKEN=                 # also required for inbound X-Twilio-Signature validation
+# TWILIO_API_KEY_SID=
+# TWILIO_API_KEY_SECRET=
 TWILIO_FROM_NUMBER=+1xxxxxxxxxx
 # or TWILIO_MESSAGING_SERVICE_SID=MGxxxxxxxx
+# TWILIO_INBOUND_PUBLIC_URL=https://www.joinbunk.xyz/api/twilio/inbound
 SUPABASE_SERVICE_ROLE_KEY=
 ```
 
@@ -70,7 +74,9 @@ Twilio console: set the number's inbound messaging webhook to:
 
 `https://www.joinbunk.xyz/api/sms/inbound`
 
-(X-Twilio-Signature is validated with `TWILIO_AUTH_TOKEN`.)
+(Legacy STOP/START/HELP also accepts `https://www.joinbunk.xyz/api/twilio/inbound`.)
+
+(X-Twilio-Signature is validated with `TWILIO_AUTH_TOKEN`; API keys cannot validate webhooks.)
 
 If Twilio env is missing, `/api/phone/session` returns `phoneConfirmEnabled: false` and onboarding skips Confirm your phone (and helper alerts), keeping the original 2-step flow so signups are not blocked.
 
