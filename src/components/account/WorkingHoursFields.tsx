@@ -1,5 +1,6 @@
 'use client'
 
+import type { Ref } from 'react'
 import {
   formatWorkTimeLabel,
   isValidWorkingHoursRange,
@@ -18,6 +19,8 @@ export function WorkingHoursFields({
   onChangeEnd,
   testIdPrefix = 'working-hours',
   className = '',
+  error,
+  startSelectRef,
 }: {
   workStart: WorkTimeValue | ''
   workEnd: WorkTimeValue | ''
@@ -25,6 +28,9 @@ export function WorkingHoursFields({
   onChangeEnd: (value: WorkTimeValue | '') => void
   testIdPrefix?: string
   className?: string
+  /** Submit-time validation message (also shown for live range issues). */
+  error?: string
+  startSelectRef?: Ref<HTMLSelectElement>
 }) {
   const start = workStart || null
   const end = workEnd || null
@@ -32,6 +38,13 @@ export function WorkingHoursFields({
   const rangeInvalid =
     !bothEmpty && !isValidWorkingHoursRange(start || null, end || null)
   const missingOne = Boolean((start && !end) || (!start && end))
+  const liveError = missingOne
+    ? 'Choose both a start and end time, or clear both.'
+    : rangeInvalid
+      ? `End must be after start${start ? ` (${formatWorkTimeLabel(start)})` : ''}.`
+      : ''
+  const shownError = error || liveError
+  const invalid = Boolean(shownError)
 
   return (
     <div className={className} data-testid={`${testIdPrefix}-fields`}>
@@ -50,10 +63,12 @@ export function WorkingHoursFields({
             Start
           </span>
           <select
-            className="account-hc-select h-11 w-full"
+            ref={startSelectRef}
+            className={`account-hc-select h-11 w-full${invalid ? ' is-error' : ''}`}
             value={workStart}
             onChange={(e) => onChangeStart(e.target.value as WorkTimeValue | '')}
             aria-label="Working hours start"
+            aria-invalid={invalid || undefined}
             data-testid={`${testIdPrefix}-start`}
           >
             <option value="">Select</option>
@@ -69,10 +84,11 @@ export function WorkingHoursFields({
             End
           </span>
           <select
-            className="account-hc-select h-11 w-full"
+            className={`account-hc-select h-11 w-full${invalid ? ' is-error' : ''}`}
             value={workEnd}
             onChange={(e) => onChangeEnd(e.target.value as WorkTimeValue | '')}
             aria-label="Working hours end"
+            aria-invalid={invalid || undefined}
             data-testid={`${testIdPrefix}-end`}
           >
             <option value="">Select</option>
@@ -84,16 +100,13 @@ export function WorkingHoursFields({
           </select>
         </label>
       </div>
-      {rangeInvalid || missingOne ? (
+      {shownError ? (
         <p
-          className="mt-2 text-[13px] font-semibold leading-[1.4]"
-          style={{ color: '#C62828' }}
+          className="account-hc-field-error"
           role="alert"
           data-testid={`${testIdPrefix}-error`}
         >
-          {missingOne
-            ? 'Choose both a start and end time, or clear both.'
-            : `End must be after start${start ? ` (${formatWorkTimeLabel(start)})` : ''}.`}
+          {shownError}
         </p>
       ) : null}
     </div>

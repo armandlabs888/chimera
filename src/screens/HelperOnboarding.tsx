@@ -22,6 +22,7 @@ import {
 } from '@/lib/usPlaces'
 import {
   RateFields,
+  rateValidationMessage,
   toEditorRateType,
   type EditorRateType,
 } from '@/components/account/RateFields'
@@ -57,6 +58,8 @@ export function HelperOnboarding() {
   const hydratedCityRef = useRef(false)
   const skillsSectionRef = useRef<HTMLElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
+  const rateInputRef = useRef<HTMLInputElement>(null)
+  const hoursStartRef = useRef<HTMLSelectElement>(null)
 
   const [avatar, setAvatar] = useState(currentUser.avatar || '')
   const [name, setName] = useState(currentUser.name || '')
@@ -91,6 +94,8 @@ export function HelperOnboarding() {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [skillsError, setSkillsError] = useState('')
+  const [rateError, setRateError] = useState('')
+  const [hoursError, setHoursError] = useState('')
   const [smsTextsOn, setSmsTextsOn] = useState(false)
 
   const allowed = canAccessHelperProfileEditor(currentUser, helperVerification)
@@ -287,20 +292,35 @@ export function HelperOnboarding() {
     }
   }
 
-  function focusFirstError(target: 'name' | 'skills' | 'city') {
+  function focusFirstError(target: 'name' | 'skills' | 'city' | 'rate' | 'hours') {
+    // Double rAF waits for the validation re-render before scrolling / focusing.
     requestAnimationFrame(() => {
-      if (target === 'name') {
-        nameInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        nameInputRef.current?.focus()
-        return
-      }
-      if (target === 'skills') {
-        skillsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        const firstChip = skillsSectionRef.current?.querySelector<HTMLElement>('button, [tabindex="0"]')
-        firstChip?.focus()
-        return
-      }
-      cityRef.current?.focusAndOpen()
+      requestAnimationFrame(() => {
+        if (target === 'name') {
+          nameInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          nameInputRef.current?.focus()
+          return
+        }
+        if (target === 'skills') {
+          skillsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          const firstChip = skillsSectionRef.current?.querySelector<HTMLElement>(
+            'button, [tabindex="0"]',
+          )
+          firstChip?.focus()
+          return
+        }
+        if (target === 'rate') {
+          rateInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          rateInputRef.current?.focus({ preventScroll: true })
+          return
+        }
+        if (target === 'hours') {
+          hoursStartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          hoursStartRef.current?.focus({ preventScroll: true })
+          return
+        }
+        cityRef.current?.focusAndOpen()
+      })
     })
   }
 
@@ -309,6 +329,8 @@ export function HelperOnboarding() {
     const trimmedName = name.trim()
     if (!trimmedName) {
       setSkillsError('')
+      setRateError('')
+      setHoursError('')
       setError('Add a display name so neighbors know who you are.')
       focusFirstError('name')
       return
@@ -316,6 +338,8 @@ export function HelperOnboarding() {
     if (skills.length < 1) {
       const message = 'Pick at least one skill so we can match you to open requests.'
       setSkillsError(message)
+      setRateError('')
+      setHoursError('')
       setError(message)
       focusFirstError('skills')
       return
@@ -325,6 +349,8 @@ export function HelperOnboarding() {
       const normalized = normalizeOtherCustom(otherSkillLabel)
       if (!normalized.ok) {
         setOtherError(normalized.error)
+        setRateError('')
+        setHoursError('')
         setError(normalized.error)
         focusFirstError('skills')
         return
@@ -341,32 +367,39 @@ export function HelperOnboarding() {
 
     if (!locationLabel) {
       setSkillsError('')
+      setRateError('')
+      setHoursError('')
       setError('Select a city so requesters know your area.')
       focusFirstError('city')
       return
     }
 
-    const rateNum = Number(hourlyRate)
-    if (!Number.isFinite(rateNum) || rateNum < 10) {
+    const rateMessage = rateValidationMessage(hourlyRate, rateType)
+    if (rateMessage) {
       setSkillsError('')
-      setError(
-        rateType === 'flat'
-          ? 'Flat Fee should be at least $10.'
-          : 'Hourly rate should be at least $10.',
-      )
+      setHoursError('')
+      setRateError(rateMessage)
+      setError(rateMessage)
+      focusFirstError('rate')
       return
     }
+    const rateNum = Number(hourlyRate)
 
     const hours = workingHoursSavePayload(workStart, workEnd)
     if (!hours.ok) {
       setSkillsError('')
+      setRateError('')
+      setHoursError(hours.error)
       setError(hours.error)
+      focusFirstError('hours')
       return
     }
 
     setPending(true)
     setError('')
     setSkillsError('')
+    setRateError('')
+    setHoursError('')
     try {
       await updateProfile({
         name: trimmedName,
@@ -761,8 +794,16 @@ export function HelperOnboarding() {
                 <RateFields
                   rateType={rateType}
                   hourlyRate={hourlyRate}
-                  onChangeRateType={setRateType}
-                  onChangeHourlyRate={setHourlyRate}
+                  onChangeRateType={(next) => {
+                    setRateType(next)
+                    setRateError('')
+                  }}
+                  onChangeHourlyRate={(next) => {
+                    setHourlyRate(next)
+                    setRateError('')
+                  }}
+                  error={rateError}
+                  inputRef={rateInputRef}
                   testIdPrefix="helper-rate"
                 />
               </div>
@@ -789,14 +830,32 @@ export function HelperOnboarding() {
                 <WorkingHoursFields
                   workStart={workStart}
                   workEnd={workEnd}
-                  onChangeStart={setWorkStart}
-                  onChangeEnd={setWorkEnd}
+                  onChangeStart={(next) => {
+                    setWorkStart(next)
+                    setHoursError('')
+                  }}
+                  onChangeEnd={(next) => {
+                    setWorkEnd(next)
+                    setHoursError('')
+                  }}
+                  error={hoursError}
+                  startSelectRef={hoursStartRef}
                   testIdPrefix="helper-hours"
                 />
               </div>
             </section>
 
             <hr className="account-hc-divider" />
+
+            {error ? (
+              <p
+                className="account-hc-field-error mb-3"
+                role="alert"
+                data-testid="helper-onboarding-submit-error"
+              >
+                {error}
+              </p>
+            ) : null}
 
             <div className="account-hc-form-actions">
               <Button

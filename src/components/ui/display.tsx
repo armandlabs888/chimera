@@ -126,14 +126,18 @@ export function InlineBanner({
 }) {
   const styles =
     tone === 'error'
-      ? 'border border-[#D7E0EC] bg-white text-[#071330]'
+      ? 'border border-[#C62828] bg-[#FEF2F2] text-[#C62828]'
       : tone === 'success'
         ? 'border border-[#D7E0EC] bg-white text-[#071330]'
         : tone === 'warning'
           ? 'border border-[#D7E0EC] bg-white text-[#071330]'
           : 'bg-white text-[#4A5568] shadow-[0_0_0_1px_rgba(7,19,48,0.06)]'
   return (
-    <div className={`rounded-lg px-3.5 py-2.5 type-sec ${styles}`} role="status" aria-live="polite">
+    <div
+      className={`rounded-lg px-3.5 py-2.5 type-sec ${styles}`}
+      role={tone === 'error' ? 'alert' : 'status'}
+      aria-live={tone === 'error' ? 'assertive' : 'polite'}
+    >
       {children}
     </div>
   )

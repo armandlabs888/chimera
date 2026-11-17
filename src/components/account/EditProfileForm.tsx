@@ -18,6 +18,7 @@ import {
 } from '@/lib/taxonomy'
 import {
   RateFields,
+  rateValidationMessage,
   toEditorRateType,
   type EditorRateType,
 } from '@/components/account/RateFields'
@@ -45,6 +46,8 @@ export function EditProfileForm() {
   const { currentUser, updateProfile, mode, authUser } = useBeam()
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
+  const rateInputRef = useRef<HTMLInputElement>(null)
+  const hoursStartRef = useRef<HTMLSelectElement>(null)
   const isHelper = isHelperPerson(currentUser)
 
   const [avatar, setAvatar] = useState(currentUser.avatar || '')
@@ -81,6 +84,8 @@ export function EditProfileForm() {
   const [pending, setPending] = useState(false)
   const [savedFlash, setSavedFlash] = useState(false)
   const [error, setError] = useState('')
+  const [rateError, setRateError] = useState('')
+  const [hoursError, setHoursError] = useState('')
 
   const legacySkills = (currentUser.skills ?? []).filter((s) => !isServiceCategoryId(s))
 
@@ -203,18 +208,27 @@ export function EditProfileForm() {
         }
         otherLabel = normalized.value
       }
-      const rateNum = Number(hourlyRate)
-      if (!Number.isFinite(rateNum) || rateNum < 10) {
-        setError(
-          rateType === 'flat'
-            ? 'Flat Fee should be at least $10.'
-            : 'Hourly rate should be at least $10.',
-        )
+      const rateMessage = rateValidationMessage(hourlyRate, rateType)
+      if (rateMessage) {
+        setHoursError('')
+        setRateError(rateMessage)
+        setError(rateMessage)
+        requestAnimationFrame(() => {
+          rateInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          rateInputRef.current?.focus()
+        })
         return
       }
+      const rateNum = Number(hourlyRate)
       const hours = workingHoursSavePayload(workStart, workEnd)
       if (!hours.ok) {
+        setRateError('')
+        setHoursError(hours.error)
         setError(hours.error)
+        requestAnimationFrame(() => {
+          hoursStartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          hoursStartRef.current?.focus()
+        })
         return
       }
       Object.assign(patch, {
@@ -233,6 +247,8 @@ export function EditProfileForm() {
 
     setPending(true)
     setError('')
+    setRateError('')
+    setHoursError('')
     try {
       await updateProfile(patch)
       setSavedFlash(true)
@@ -433,8 +449,16 @@ export function EditProfileForm() {
                 variant="edit"
                 rateType={rateType}
                 hourlyRate={hourlyRate}
-                onChangeRateType={setRateType}
-                onChangeHourlyRate={setHourlyRate}
+                onChangeRateType={(next) => {
+                  setRateType(next)
+                  setRateError('')
+                }}
+                onChangeHourlyRate={(next) => {
+                  setHourlyRate(next)
+                  setRateError('')
+                }}
+                error={rateError}
+                inputRef={rateInputRef}
                 testIdPrefix="you-helper-rate"
               />
             </div>
@@ -467,14 +491,32 @@ export function EditProfileForm() {
                 <WorkingHoursFields
                   workStart={workStart}
                   workEnd={workEnd}
-                  onChangeStart={setWorkStart}
-                  onChangeEnd={setWorkEnd}
+                  onChangeStart={(next) => {
+                    setWorkStart(next)
+                    setHoursError('')
+                  }}
+                  onChangeEnd={(next) => {
+                    setWorkEnd(next)
+                    setHoursError('')
+                  }}
+                  error={hoursError}
+                  startSelectRef={hoursStartRef}
                   testIdPrefix="you-helper-hours"
                 />
               </div>
             </div>
           </div>
         </>
+      ) : null}
+
+      {error ? (
+        <p
+          className="ep-field-error mb-3"
+          role="alert"
+          data-testid="edit-profile-submit-error"
+        >
+          {error}
+        </p>
       ) : null}
 
       <div className="ep-save-bar" data-testid="edit-profile-save-bar">

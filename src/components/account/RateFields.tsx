@@ -1,5 +1,6 @@
 'use client'
 
+import type { Ref } from 'react'
 import type { RateType } from '@/types'
 
 /** Editor rate options. Legacy DB `quote` maps to Hourly in the UI. */
@@ -7,6 +8,23 @@ export type EditorRateType = 'hourly' | 'flat'
 
 export function toEditorRateType(rateType: RateType | undefined | null): EditorRateType {
   return rateType === 'flat' ? 'flat' : 'hourly'
+}
+
+/** Validation copy for empty vs below-minimum rate. */
+export function rateValidationMessage(
+  hourlyRate: string,
+  rateType: EditorRateType,
+): string | null {
+  if (!hourlyRate.trim()) {
+    return rateType === 'flat' ? 'Enter your flat fee.' : 'Enter your hourly rate.'
+  }
+  const rateNum = Number(hourlyRate)
+  if (!Number.isFinite(rateNum) || rateNum < 10) {
+    return rateType === 'flat'
+      ? 'Flat Fee should be at least $10.'
+      : 'Hourly rate should be at least $10.'
+  }
+  return null
 }
 
 type RateFieldsProps = {
@@ -17,6 +35,10 @@ type RateFieldsProps = {
   /** Visual variant matching the host form styles. */
   variant?: 'account' | 'edit'
   testIdPrefix?: string
+  /** Inline validation message shown under the amount field. */
+  error?: string
+  /** Ref to the amount input for focus / scroll-into-view. */
+  inputRef?: Ref<HTMLInputElement>
 }
 
 export function RateFields({
@@ -26,6 +48,8 @@ export function RateFields({
   onChangeHourlyRate,
   variant = 'account',
   testIdPrefix = 'helper-rate',
+  error,
+  inputRef,
 }: RateFieldsProps) {
   const suffix = rateType === 'flat' ? 'Flat Fee' : '/hr'
   const amountLabel = rateType === 'flat' ? 'Flat Fee in USD' : 'Hourly rate in USD'
@@ -33,6 +57,8 @@ export function RateFields({
   const rateInputClass =
     variant === 'edit' ? 'ep-rate-input' : 'account-hc-rate-input'
   const hintClass = variant === 'edit' ? 'ep-hint' : 'account-hc-hint'
+  const errorId = `${testIdPrefix}-error`
+  const invalid = Boolean(error)
 
   return (
     <div className="rate-fields" data-testid={`${testIdPrefix}-wrap`}>
@@ -65,14 +91,18 @@ export function RateFields({
         })}
       </div>
 
-      <div className={rateInputClass} data-testid={`${testIdPrefix}-amount`}>
+      <div
+        className={`${rateInputClass}${invalid && variant !== 'edit' ? ' is-error' : ''}`}
+        data-testid={`${testIdPrefix}-amount`}
+      >
         {variant === 'edit' ? (
           <label className="ep-rate-field">
             <span className="ep-rate-prefix" aria-hidden>
               $
             </span>
             <input
-              className="ep-input"
+              ref={inputRef}
+              className={`ep-input${invalid ? ' is-error' : ''}`}
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
@@ -81,7 +111,9 @@ export function RateFields({
                 onChangeHourlyRate(e.target.value.replace(/[^\d]/g, '').slice(0, 4))
               }
               aria-label={amountLabel}
-              placeholder="50"
+              aria-invalid={invalid || undefined}
+              aria-describedby={invalid ? errorId : undefined}
+              placeholder="Enter rate"
             />
           </label>
         ) : (
@@ -90,6 +122,7 @@ export function RateFields({
               $
             </span>
             <input
+              ref={inputRef}
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
@@ -98,7 +131,9 @@ export function RateFields({
                 onChangeHourlyRate(e.target.value.replace(/[^\d]/g, '').slice(0, 4))
               }
               aria-label={amountLabel}
-              placeholder="50"
+              aria-invalid={invalid || undefined}
+              aria-describedby={invalid ? errorId : undefined}
+              placeholder="Enter rate"
             />
           </>
         )}
@@ -107,7 +142,16 @@ export function RateFields({
         </span>
       </div>
 
-      {rateType === 'flat' ? (
+      {error ? (
+        <p
+          id={errorId}
+          className={variant === 'edit' ? 'ep-field-error' : 'account-hc-field-error'}
+          role="alert"
+          data-testid={errorId}
+        >
+          {error}
+        </p>
+      ) : rateType === 'flat' ? (
         <p className={hintClass} data-testid={`${testIdPrefix}-flat-hint`}>
           One price per job.
         </p>
