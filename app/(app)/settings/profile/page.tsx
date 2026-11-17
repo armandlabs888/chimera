@@ -4,7 +4,7 @@ import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Edit profile',
-  description: 'Edit your BlockSide profile and helper details.',
+  description: 'Edit your Bunk profile and helper details.',
   path: '/settings/profile',
   noindex: true,
 })

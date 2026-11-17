@@ -4,7 +4,7 @@ import { isCategoryId } from '@/lib/taxonomy'
 import type { CategoryId, WhenOption } from '@/types'
 
 const BLOCK_REASON =
-  "BlockSide is for everyday non-licensed local tasks. Licensed trades, childcare, medical care, and passenger rides aren't permitted."
+  "Bunk is for everyday non-licensed local tasks. Licensed trades, childcare, medical care, and passenger rides aren't permitted."
 
 type DraftResult = {
   blocked?: boolean
@@ -204,7 +204,7 @@ async function llmDraft(
   const key = openaiKey || xaiKey!
   const model = openaiKey ? 'gpt-4o-mini' : 'grok-3-mini'
 
-  const system = `You are BlockSide's task drafter for a peer-to-peer local help marketplace.
+  const system = `You are Bunk's task drafter for a peer-to-peer local help marketplace.
 Allowed categories ONLY: house-cleaning, carpet-cleaning, auto-detailing, junk-removal, pet-sitting, grooming, other.
 Never suggest licensed trades, childcare, medical/elder care, or passenger rides. Same exclusions apply when category is other.
 Never use em or en dashes.

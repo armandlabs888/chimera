@@ -1,4 +1,4 @@
-/** Production public host for BlockSide (canonical). */
+/** Production public host for Bunk (canonical). */
 export const PRODUCTION_SITE_HOST = 'www.yariapp.com'
 export const PRODUCTION_APEX_HOST = 'yariapp.com'
 

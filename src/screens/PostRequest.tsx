@@ -602,7 +602,7 @@ export function PostRequest() {
         return
       }
       if (data.blocked) {
-        setAiBlocked(data.reason || 'That request is not allowed on BlockSide.')
+        setAiBlocked(data.reason || 'That request is not allowed on Bunk.')
         setTitle(sentenceTitle(prompt))
         setStep('review')
         setEditingRow(null)

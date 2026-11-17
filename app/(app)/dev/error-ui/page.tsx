@@ -7,7 +7,7 @@
 import Link from 'next/link'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { BlockSideWordmark } from '@/components/BlockSideWordmark'
+import { BunkWordmark } from '@/components/BunkWordmark'
 import { isExplicitDemoMode } from '@/lib/config'
 
 export default function ErrorUiPreviewPage() {
@@ -30,10 +30,10 @@ export default function ErrorUiPreviewPage() {
       className="beam-container flex flex-1 flex-col items-center justify-center py-16 text-center sm:py-24"
       data-testid="error-ui-preview"
     >
-      <BlockSideWordmark size={22} />
+      <BunkWordmark size={22} />
       <h1 className="mt-4 type-h2 text-[#071330]">Something went wrong</h1>
       <p className="mt-2 max-w-md type-sec text-beam-muted">
-        The page hit an unexpected error. You can try again or return to BlockSide home.
+        The page hit an unexpected error. You can try again or return to Bunk home.
       </p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
         <button

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Playwright: BlockSide has ONE auth experience. The centered /auth modal over landing.
+ * Playwright: Bunk has ONE auth experience. The centered /auth modal over landing.
  * Verifies sign-out + protected-route redirects never show the removed AuthGate
  * compact chrome (Browse/Safety top bar). Screenshots → /opt/cursor/artifacts/main-auth-qa/
  */

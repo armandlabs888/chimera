@@ -47,7 +47,7 @@ async function assertModalFits(page, label) {
     if (!card || !overlay) return null
     const cr = card.getBoundingClientRect()
     const or = overlay.getBoundingClientRect()
-    const mark = document.querySelector('[aria-label="BlockSide home"]')
+    const mark = document.querySelector('[aria-label="Bunk home"]')
     const mr = mark ? mark.getBoundingClientRect() : null
     return {
       card: { top: cr.top, bottom: cr.bottom, height: cr.height, width: cr.width },
@@ -116,7 +116,7 @@ async function main() {
 
     // Create account tab
     await page.getByRole('tab', { name: 'Create account' }).click()
-    await page.waitForSelector('text=Join BlockSide', { timeout: 10000 })
+    await page.waitForSelector('text=Join Bunk', { timeout: 10000 })
     await page.waitForTimeout(200)
     if (ARTIFACT_VIEWS.has(vp.name) && ['1280x720', '768x1024', '375x667', '1440x900', '390x844'].includes(vp.name)) {
       await shot(page, `auth_signup_${vp.name}.png`)

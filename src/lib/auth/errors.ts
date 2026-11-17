@@ -29,7 +29,7 @@ export function friendlyAuthError(message: string | null | undefined): string {
     lower.includes('provider is not enabled') ||
     lower.includes('provider not enabled')
   ) {
-    return 'Google sign-in isn’t enabled yet for BlockSide. Continue with email below, or try again after Google is connected.'
+    return 'Google sign-in isn’t enabled yet for Bunk. Continue with email below, or try again after Google is connected.'
   }
   if (lower.includes('invalid login credentials') || lower.includes('invalid email or password')) {
     return 'That email or password doesn’t match. Check your details and try again.'

@@ -4,7 +4,7 @@ import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Messages',
-  description: 'Your BlockSide conversation.',
+  description: 'Your Bunk conversation.',
   path: '/messages',
   noindex: true,
 })

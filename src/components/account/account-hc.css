@@ -1,4 +1,4 @@
-/* BlockSide account pages — locked to approved account mock. */
+/* Bunk account pages — locked to approved account mock. */
 .account-hc {
   --hc-navy: #071330;
   --hc-ink: #10172a;
@@ -851,7 +851,7 @@
   gap: 8px;
 }
 
-/* Optional urgent SMS prefs: match BlockSide mock (blue palette only). */
+/* Optional urgent SMS prefs: match Bunk mock (blue palette only). */
 .account-hc-sms-settings {
   padding: 22px 24px 20px;
   margin-top: 16px;

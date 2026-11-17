@@ -268,7 +268,7 @@ async function assertNoFlashOnDeepLink(page, label) {
       const tabs = document.querySelector('[data-testid="browse-mode-tabs"]')
       const localHelpers = document.querySelector('[data-testid="browse-tab-local-helpers"]')
       const trending = document.querySelector('[data-testid="browse-trending-helpers"]')
-      const splash = /^BlockSide\s*$/m.test(body.trim())
+      const splash = /^Bunk\s*$/m.test(body.trim())
       return {
         peopleCards,
         hasTabs: !!tabs,
@@ -492,7 +492,7 @@ async function main() {
       assert.equal(await page.locator('[data-testid="browse-radar"]').count(), 0)
       assert.match(
         await page.locator('[data-testid="browse-fresh-empty"]').innerText(),
-        /Be the first on BlockSide/,
+        /Be the first on Bunk/,
       )
       assert.doesNotMatch(
         await page.locator('[data-testid="browse-fresh-empty"]').innerText(),

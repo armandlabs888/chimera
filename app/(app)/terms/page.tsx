@@ -7,7 +7,7 @@ import { PolicyPlaceholder } from '@/screens/PolicyPlaceholder'
 export const metadata: Metadata = pageMetadata({
   title: 'Terms of Service',
   description:
-    'Read the BlockSide Terms of Service for neighbors and helpers who post tasks, send offers, and use the platform.',
+    'Read the Bunk Terms of Service for neighbors and helpers who post tasks, send offers, and use the platform.',
   path: '/terms',
 })
 

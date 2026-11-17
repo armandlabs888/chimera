@@ -324,7 +324,7 @@ async function main() {
       const policySrc = readFileSync('/workspace/src/screens/PolicyPlaceholder.tsx', 'utf8')
       check(
         'A0.6 guest terms links home (not Settings)',
-        /Back to BlockSide/.test(policySrc) && /signedIn \? '\/settings' : '\/'/.test(policySrc),
+        /Back to Bunk/.test(policySrc) && /signedIn \? '\/settings' : '\/'/.test(policySrc),
       )
       check(
         'A0.6 no duplicate Return to Settings',
@@ -425,7 +425,7 @@ async function main() {
       check('A3 footer Safety', /\bSafety\b/.test(footerText))
       check('A3 footer Terms', /\bTerms\b/.test(footerText))
       check('A3 footer Privacy', /\bPrivacy\b/.test(footerText))
-      check('A3 footer copyright', /© BlockSide/.test(footerText))
+      check('A3 footer copyright', /© Bunk/.test(footerText))
       check('A4 no services column', !/House cleaning|Junk removal|Pet care/.test(footerText))
       check('A4 no Become a helper in footer', !/Become a helper|Helper profile/.test(footerText))
       check('A4 no payments disclaimer', !/Payments are arranged/.test(footerText))
