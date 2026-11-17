@@ -1369,6 +1369,7 @@ export function BeamProvider({
             await refreshLive(authUser.id)
           } catch (err) {
             reportError(err, 'Send message failed')
+            throw err
           }
         })()
       }

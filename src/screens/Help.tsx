@@ -8,11 +8,19 @@ import {
   Search,
   Send,
 } from 'lucide-react'
-import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { PageContainer } from '@/components/PageContainer'
 import { Button } from '@/components/ui/button'
+import { FormErrorAlert } from '@/components/ui/FormErrorAlert'
 import { Field, Select, TextArea, TextInput } from '@/components/ui/form'
 import { useBeam } from '@/context/BeamContext'
+import {
+  FORM_SEND_FAILED,
+  focusAndScroll,
+  formatFormIssues,
+  humanizeSaveError,
+  scrollAlertIntoView,
+} from '@/lib/formErrors'
 import { FAQ_ITEMS, FAQ_TABS, type FaqTabId } from '@/lib/support/faq'
 import { FEEDBACK_KINDS, SUPPORT_TOPICS } from '@/lib/support/topics'
 
@@ -222,11 +230,55 @@ function ContactCard({
   const [screenshot, setScreenshot] = useState<File | null>(null)
   const [honeypot, setHoneypot] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string
+    email?: string
+    topic?: string
+    message?: string
+  }>({})
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
+  const nameRef = useRef<HTMLInputElement>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
+  const topicRef = useRef<HTMLSelectElement>(null)
+  const messageRef = useRef<HTMLTextAreaElement>(null)
+  const alertRef = useRef<HTMLDivElement>(null)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
+    const nextErrors: typeof fieldErrors = {}
+    const issues: string[] = []
+    if (!name.trim()) {
+      nextErrors.name = 'Add your name.'
+      issues.push('Add your name.')
+    }
+    if (!email.trim()) {
+      nextErrors.email = 'Add your email.'
+      issues.push('Add your email.')
+    }
+    if (!topic) {
+      nextErrors.topic = 'Select a topic.'
+      issues.push('Select a topic.')
+    }
+    if (!message.trim()) {
+      nextErrors.message = 'Add a message.'
+      issues.push('Add a message.')
+    }
+    if (issues.length) {
+      setFieldErrors(nextErrors)
+      setError(formatFormIssues(issues))
+      const first =
+        (!name.trim() && nameRef.current) ||
+        (!email.trim() && emailRef.current) ||
+        (!topic && topicRef.current) ||
+        (!message.trim() && messageRef.current) ||
+        null
+      focusAndScroll(first)
+      scrollAlertIntoView(alertRef.current)
+      return
+    }
+
+    setFieldErrors({})
     setError(null)
     setLoading(true)
     try {
@@ -242,12 +294,14 @@ function ContactCard({
       const res = await fetch('/api/support/contact', { method: 'POST', body: form })
       const data = (await res.json().catch(() => ({}))) as { error?: string }
       if (!res.ok) {
-        setError(data.error || 'Could not send. Please try again.')
+        setError(humanizeSaveError(data.error, FORM_SEND_FAILED))
+        scrollAlertIntoView(alertRef.current)
         return
       }
       setDone(true)
-    } catch {
-      setError('Could not send. Please try again.')
+    } catch (err) {
+      setError(humanizeSaveError(err, FORM_SEND_FAILED))
+      scrollAlertIntoView(alertRef.current)
     } finally {
       setLoading(false)
     }
@@ -280,7 +334,12 @@ function ContactCard({
           </p>
         </div>
       ) : (
-        <form className="relative mt-5 space-y-4" onSubmit={onSubmit} data-testid="help-contact-form">
+        <form
+          className="relative mt-5 space-y-4"
+          onSubmit={onSubmit}
+          data-testid="help-contact-form"
+          noValidate
+        >
           <div
             className="flex items-start gap-2.5 rounded-lg border border-[#D7E0EC] bg-white px-3.5 py-3"
             data-testid="help-contact-emergency"
@@ -293,13 +352,17 @@ function ContactCard({
             </p>
           </div>
 
-          <Field label="Name" required>
+          <Field label="Name" required error={fieldErrors.name} errorId="help-contact-name-error">
             <TextInput
+              ref={nameRef}
               name="name"
               value={name}
-              onChange={(e) => setNameDraft(e.target.value)}
+              onChange={(e) => {
+                setNameDraft(e.target.value)
+                if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: undefined }))
+              }}
               autoComplete="name"
-              required
+              aria-invalid={fieldErrors.name ? true : undefined}
               data-testid="help-contact-name"
             />
           </Field>
@@ -307,28 +370,36 @@ function ContactCard({
           <Field
             label="Email"
             required
+            error={fieldErrors.email}
+            errorId="help-contact-email-error"
             hint={emailLocked ? 'This is the email on your account.' : undefined}
           >
             <TextInput
+              ref={emailRef}
               name="email"
               type="email"
               value={email}
               onChange={(e) => {
                 if (!emailLocked) setEmailDraft(e.target.value)
+                if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: undefined }))
               }}
               readOnly={emailLocked}
               autoComplete="email"
-              required
+              aria-invalid={fieldErrors.email ? true : undefined}
               data-testid="help-contact-email"
             />
           </Field>
 
-          <Field label="Topic" required>
+          <Field label="Topic" required error={fieldErrors.topic} errorId="help-contact-topic-error">
             <Select
+              ref={topicRef}
               name="topic"
               value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              required
+              onChange={(e) => {
+                setTopic(e.target.value)
+                if (fieldErrors.topic) setFieldErrors((prev) => ({ ...prev, topic: undefined }))
+              }}
+              aria-invalid={fieldErrors.topic ? true : undefined}
               data-testid="help-contact-topic"
             >
               <option value="">Select a topic</option>
@@ -350,13 +421,24 @@ function ContactCard({
             />
           </Field>
 
-          <Field label="Message" required>
+          <Field
+            label="Message"
+            required
+            error={fieldErrors.message}
+            errorId="help-contact-message-error"
+          >
             <TextArea
+              ref={messageRef}
               name="message"
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              required
+              onChange={(e) => {
+                setMessage(e.target.value)
+                if (fieldErrors.message) {
+                  setFieldErrors((prev) => ({ ...prev, message: undefined }))
+                }
+              }}
               rows={5}
+              aria-invalid={fieldErrors.message ? true : undefined}
               data-testid="help-contact-message"
             />
           </Field>
@@ -387,9 +469,7 @@ function ContactCard({
           </div>
 
           {error ? (
-            <p className="text-[14px] text-[#C62828]" role="alert" data-testid="help-contact-error">
-              {error}
-            </p>
+            <FormErrorAlert ref={alertRef} message={error} testId="help-contact-error" />
           ) : null}
 
           <Button type="submit" loading={loading} data-testid="help-contact-submit">
@@ -408,11 +488,23 @@ function FeedbackCard() {
   const [message, setMessage] = useState('')
   const [honeypot, setHoneypot] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [messageError, setMessageError] = useState('')
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
+  const messageRef = useRef<HTMLTextAreaElement>(null)
+  const alertRef = useRef<HTMLDivElement>(null)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
+    if (!message.trim()) {
+      const msg = 'Add a message.'
+      setMessageError(msg)
+      setError(msg)
+      focusAndScroll(messageRef.current)
+      scrollAlertIntoView(alertRef.current)
+      return
+    }
+    setMessageError('')
     setError(null)
     setLoading(true)
     try {
@@ -429,12 +521,14 @@ function FeedbackCard() {
       })
       const data = (await res.json().catch(() => ({}))) as { error?: string }
       if (!res.ok) {
-        setError(data.error || 'Could not send. Please try again.')
+        setError(humanizeSaveError(data.error, FORM_SEND_FAILED))
+        scrollAlertIntoView(alertRef.current)
         return
       }
       setDone(true)
-    } catch {
-      setError('Could not send. Please try again.')
+    } catch (err) {
+      setError(humanizeSaveError(err, FORM_SEND_FAILED))
+      scrollAlertIntoView(alertRef.current)
     } finally {
       setLoading(false)
     }
@@ -465,7 +559,12 @@ function FeedbackCard() {
           <p className="text-[15px] leading-[1.5] text-[#071330]">Thanks for the feedback.</p>
         </div>
       ) : (
-        <form className="relative mt-5 space-y-4" onSubmit={onSubmit} data-testid="help-feedback-form">
+        <form
+          className="relative mt-5 space-y-4"
+          onSubmit={onSubmit}
+          data-testid="help-feedback-form"
+          noValidate
+        >
           <div>
             <p className="type-meta text-beam-muted mb-2">How are we doing?</p>
             <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Rating" data-testid="help-feedback-faces">
@@ -517,14 +616,23 @@ function FeedbackCard() {
             </div>
           </div>
 
-          <Field label="Message" required>
+          <Field
+            label="Message"
+            required
+            error={messageError || undefined}
+            errorId="help-feedback-message-error"
+          >
             <TextArea
+              ref={messageRef}
               name="message"
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              required
+              onChange={(e) => {
+                setMessage(e.target.value)
+                if (messageError) setMessageError('')
+              }}
               rows={4}
               className="bg-white"
+              aria-invalid={messageError ? true : undefined}
               data-testid="help-feedback-message"
             />
           </Field>
@@ -544,9 +652,7 @@ function FeedbackCard() {
           </div>
 
           {error ? (
-            <p className="text-[14px] text-[#C62828]" role="alert" data-testid="help-feedback-error">
-              {error}
-            </p>
+            <FormErrorAlert ref={alertRef} message={error} testId="help-feedback-error" />
           ) : null}
 
           <Button type="submit" loading={loading} data-testid="help-feedback-submit">

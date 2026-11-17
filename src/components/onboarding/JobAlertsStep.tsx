@@ -3,7 +3,8 @@
 import { ArrowLeft, Check } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
-import { Button } from '@/components/ui'
+import { Button, FormErrorAlert } from '@/components/ui'
+import { humanizeSaveError } from '@/lib/formErrors'
 import { BROWSE_PARENTS, type BrowseParentId } from '@/lib/taxonomy'
 import { maskPhoneE164 } from '@/lib/phone/format'
 
@@ -85,7 +86,7 @@ export function JobAlertsStep({
       if (!res.ok) throw new Error(data.error || 'Could not save alerts')
       onEnabled()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save alerts')
+      setError(humanizeSaveError(err, 'Could not save alerts.'))
       setPending(false)
     }
   }
@@ -168,13 +169,11 @@ export function JobAlertsStep({
         ) : null}
 
         {error ? (
-          <div
-            role="alert"
-            className="mt-4 rounded-[10px] border border-[#D7E0EC] bg-white px-4 py-3 text-[14px] text-[#C62828]"
-            data-testid="onboarding-alerts-error"
-          >
-            {error}
-          </div>
+          <FormErrorAlert
+            className="mt-4"
+            message={error}
+            testId="onboarding-alerts-error"
+          />
         ) : null}
 
         <div className="mt-7 flex flex-col gap-3">

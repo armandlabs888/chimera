@@ -31,7 +31,14 @@ import { canMakeOffer, offerGateKind } from '@/lib/verification/status'
 import type { HelpRequest } from '@/types'
 import { CancelJobAction } from '@/components/jobs/CancelJobAction'
 import { CancelOfferAction } from '@/components/jobs/CancelOfferAction'
+import { FieldInlineError, FormErrorAlert } from '@/components/ui'
 import { dangerOutlineButtonClass } from '@/components/ui/button'
+import {
+  focusAndScroll,
+  FORM_SEND_FAILED,
+  humanizeSaveError,
+  scrollAlertIntoView,
+} from '@/lib/formErrors'
 import { JobAreaMap } from '@/components/jobs/JobAreaMap'
 import { JobDetailPhoto } from '@/components/jobs/JobDetailPhoto'
 import { JobDetailPriceLine } from '@/components/jobs/JobDetailPriceLine'
@@ -109,8 +116,11 @@ export function BrowseJobDrawer({
   const [offerNote, setOfferNote] = useState(myOffer?.note ?? '')
   const [offerEta, setOfferEta] = useState(myOffer?.eta ?? 'Within 1 hour')
   const [offerError, setOfferError] = useState('')
+  const [offerPriceError, setOfferPriceError] = useState('')
   const [offerPending, setOfferPending] = useState(false)
   const [askPending, setAskPending] = useState(false)
+  const offerPriceRef = useRef<HTMLInputElement>(null)
+  const offerAlertRef = useRef<HTMLDivElement>(null)
 
   const images = normalizeListingImages(request.images, request.image)
   const cover = listingCoverImage(images)
@@ -159,18 +169,35 @@ export function BrowseJobDrawer({
   async function submitOffer() {
     await requireAuth(async () => {
       const priceNum = firmPrice ? firmPriceAmount : Number(offerPrice)
-      if (!Number.isFinite(priceNum) || priceNum < 5) {
-        setOfferError('Name a real price before you show up.')
+      if (!firmPrice && (!offerPrice.trim() || !Number.isFinite(priceNum) || priceNum < 5)) {
+        const message = !offerPrice.trim()
+          ? 'Enter a price for your offer.'
+          : 'Name a real price before you show up.'
+        setOfferPriceError(message)
+        setOfferError(message)
         setOfferOpen(true)
+        focusAndScroll(offerPriceRef.current)
+        scrollAlertIntoView(offerAlertRef.current)
+        return
+      }
+      if (!Number.isFinite(priceNum) || priceNum < 5) {
+        const message = 'Name a real price before you show up.'
+        setOfferPriceError(message)
+        setOfferError(message)
+        setOfferOpen(true)
+        focusAndScroll(offerPriceRef.current)
+        scrollAlertIntoView(offerAlertRef.current)
         return
       }
       if (firmPrice && Math.round(priceNum) !== firmPriceAmount) {
         setOfferError(`This job has a firm price of $${firmPriceAmount}.`)
         setOfferOpen(true)
+        scrollAlertIntoView(offerAlertRef.current)
         return
       }
       setOfferPending(true)
       setOfferError('')
+      setOfferPriceError('')
       try {
         await createOffer({
           requestId: request.id,
@@ -181,7 +208,8 @@ export function BrowseJobDrawer({
         await ensureThread(request.id, request.requesterId)
         setOfferOpen(false)
       } catch (err) {
-        setOfferError(err instanceof Error ? err.message : 'Could not send offer')
+        setOfferError(humanizeSaveError(err, FORM_SEND_FAILED))
+        scrollAlertIntoView(offerAlertRef.current)
       } finally {
         setOfferPending(false)
       }
@@ -360,19 +388,38 @@ export function BrowseJobDrawer({
                 <label className="block text-[13px] font-semibold text-[#071330]" htmlFor="browse-offer-price">
                   Price
                 </label>
-                <div className="flex h-11 items-center rounded-[10px] border border-[#D7E0EC] px-3 focus-within:border-[#1D5CE5] focus-within:ring-[3px] focus-within:ring-[#1D5CE5]/15">
+                <div
+                  className={`flex h-11 items-center rounded-[10px] border px-3 focus-within:border-[#1D5CE5] focus-within:ring-[3px] focus-within:ring-[#1D5CE5]/15 ${
+                    offerPriceError ? 'border-[#C62828]' : 'border-[#D7E0EC]'
+                  }`}
+                >
                   <span className="text-[15px] font-semibold text-[#3D4A5F]" aria-hidden>
                     $
                   </span>
                   <input
+                    ref={offerPriceRef}
                     id="browse-offer-price"
                     inputMode="numeric"
                     value={offerPrice}
-                    onChange={(e) => setOfferPrice(e.target.value.replace(/[^\d]/g, '').slice(0, 5))}
-                    className="h-full w-full bg-transparent px-2 text-[15px] font-semibold text-[#071330] outline-none"
+                    onChange={(e) => {
+                      setOfferPrice(e.target.value.replace(/[^\d]/g, '').slice(0, 5))
+                      if (offerPriceError) setOfferPriceError('')
+                      if (offerError) setOfferError('')
+                    }}
+                    placeholder="Enter price"
+                    aria-invalid={offerPriceError ? true : undefined}
+                    aria-describedby={
+                      offerPriceError ? 'browse-offer-price-error' : undefined
+                    }
+                    className="h-full w-full bg-transparent px-2 text-[15px] font-semibold text-[#071330] outline-none placeholder:font-normal placeholder:text-[#8A94A6]"
                     data-testid="browse-offer-price"
                   />
                 </div>
+                {offerPriceError ? (
+                  <FieldInlineError id="browse-offer-price-error" testId="browse-offer-price-error">
+                    {offerPriceError}
+                  </FieldInlineError>
+                ) : null}
               </>
             )}
             <div className="flex flex-wrap gap-2">
@@ -401,7 +448,13 @@ export function BrowseJobDrawer({
               rows={3}
               className="w-full rounded-[10px] border border-[#D7E0EC] px-3 py-2 text-[14px] text-[#071330] outline-none focus:border-[#1D5CE5]"
             />
-            {offerError ? <p className="text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[#071330]">{offerError}</p> : null}
+            {offerError ? (
+              <FormErrorAlert
+                ref={offerAlertRef}
+                message={offerError}
+                testId="browse-offer-form-error"
+              />
+            ) : null}
           </form>
         ) : null}
         {pendingOffer && !offerOpen ? (
@@ -410,9 +463,7 @@ export function BrowseJobDrawer({
           </p>
         ) : null}
         {offerError && !offerOpen ? (
-          <p className="text-[13px] font-medium rounded-lg border border-[#D7E0EC] bg-white px-3 py-2 text-[#071330]" role="alert" data-testid="browse-offer-error">
-            {offerError}
-          </p>
+          <FormErrorAlert message={offerError} testId="browse-offer-error" />
         ) : null}
       </div>
     </div>
@@ -448,11 +499,12 @@ export function BrowseJobDrawer({
       onCancelled={() => {
         setOfferOpen(false)
         setOfferError('')
+        setOfferPriceError('')
         setOfferPrice(request.budget > 0 ? String(Math.round(request.budget)) : '')
         setOfferNote('')
         setOfferEta('Within 1 hour')
       }}
-      onError={(message) => setOfferError(message)}
+      onError={(message) => setOfferError(humanizeSaveError(message, FORM_SEND_FAILED))}
     />
   ) : showHelperOfferChrome && !isGuest && !verified && gateKind !== 'approved' ? (
     <OfferGatePrimaryButton kind={gateKind} narrow={narrow} />

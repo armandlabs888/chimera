@@ -1416,6 +1416,11 @@ select.account-hc-input:focus {
   border-color: var(--hc-blue);
 }
 
+.account-hc-select.is-error,
+.account-hc-select.is-error:focus {
+  border-color: #c62828;
+}
+
 .account-hc-textarea {
   height: auto;
   min-height: 96px;
@@ -1506,7 +1511,7 @@ select.account-hc-input:focus {
 .rate-fields .account-hc-rate-input {
   margin-top: 12px;
   width: auto;
-  min-width: 156px;
+  min-width: 188px;
 }
 
 .rate-fields .account-hc-rate-input .post {
@@ -1522,7 +1527,7 @@ select.account-hc-input:focus {
   display: inline-flex;
   align-items: center;
   height: 48px;
-  width: 156px;
+  width: 188px;
   flex: none;
   border: 1px solid var(--hc-line);
   border-radius: 8px;
@@ -1535,6 +1540,14 @@ select.account-hc-input:focus {
   border-color: var(--hc-blue);
 }
 
+.account-hc-rate-input.is-error {
+  border-color: #c62828;
+}
+
+.account-hc-rate-input.is-error:focus-within {
+  border-color: #c62828;
+}
+
 .account-hc-rate-input .pre,
 .account-hc-rate-input .post {
   flex: none;
@@ -1544,7 +1557,7 @@ select.account-hc-input:focus {
 }
 
 .account-hc-rate-input input {
-  width: 48px;
+  width: 80px;
   flex: 1 1 auto;
   min-width: 0;
   border: 0;
@@ -1556,6 +1569,20 @@ select.account-hc-input:focus {
   padding: 0 6px;
   color: var(--hc-navy);
   font-family: inherit;
+}
+
+.account-hc-rate-input input::placeholder {
+  color: #8a94a6;
+  font-weight: 500;
+  opacity: 1;
+}
+
+.account-hc-field-error {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: #c62828;
 }
 
 .account-hc-toggle-row {

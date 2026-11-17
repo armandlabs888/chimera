@@ -143,8 +143,31 @@
 }
 
 .ep-rate-field .ep-input {
-  width: 120px;
+  width: 140px;
   padding-left: 28px;
+}
+
+.ep-rate-field .ep-input::placeholder {
+  color: #8a94a6;
+  font-weight: 500;
+  opacity: 1;
+}
+
+.ep-input.is-error {
+  border-color: #c62828;
+}
+
+.ep-input.is-error:focus {
+  border-color: #c62828;
+  outline: none;
+}
+
+.ep-field-error {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: #c62828;
 }
 
 .ep-rate-prefix {

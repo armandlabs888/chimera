@@ -16,8 +16,9 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from 'react'
-import { Avatar, EmptyState } from '@/components/ui'
+import { Avatar, EmptyState, FormErrorAlert } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
+import { FORM_SEND_FAILED, humanizeSaveError } from '@/lib/formErrors'
 import { jobThreadSubtitle } from '@/lib/messagesJobLabel'
 import { clockTime, dayLabel } from '@/lib/messagesTime'
 import { formatBudget } from '@/lib/matching'
@@ -141,6 +142,8 @@ export function MessagesChatPanel({
   const { state, currentUser, sendMessage, getPerson, getRequest } = useBeam()
   const [body, setBody] = useState('')
   const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState('')
+  const emptyHintId = 'messages-composer-empty-hint'
   const feedRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -264,8 +267,12 @@ export function MessagesChatPanel({
     const outgoing = body
     setBody('')
     setSending(true)
+    setSendError('')
     try {
       await sendMessage(threadId, outgoing)
+    } catch (err) {
+      setBody(outgoing)
+      setSendError(humanizeSaveError(err, FORM_SEND_FAILED))
     } finally {
       setSending(false)
       inputRef.current?.focus()
@@ -439,19 +446,33 @@ export function MessagesChatPanel({
         className="shrink-0 px-3 pb-2.5 pt-2"
         data-testid="messages-composer"
       >
+        {sendError ? (
+          <FormErrorAlert
+            className="mb-2"
+            message={sendError}
+            testId="messages-send-error"
+          />
+        ) : null}
         <div className="flex flex-col gap-1 rounded-[18px] bg-[#EEF2F7] px-3.5 py-2 focus-within:shadow-[0_0_0_2px_rgba(29,92,229,0.2)]">
           <textarea
             ref={inputRef}
             value={body}
-            onChange={(event) => setBody(event.target.value)}
+            onChange={(event) => {
+              setBody(event.target.value)
+              if (sendError) setSendError('')
+            }}
             onKeyDown={onComposerKeyDown}
             placeholder={`Message ${firstName}`}
             rows={1}
             className="max-h-20 min-h-6 w-full resize-none bg-transparent py-1 text-[14.5px] leading-[1.4] text-[#071330] outline-none placeholder:text-[#5B6576]"
             disabled={sending}
             aria-label="Message"
+            aria-describedby={!canSend && !sending ? emptyHintId : undefined}
             data-testid="messages-composer-input"
           />
+          <p id={emptyHintId} className="sr-only">
+            Type a message to send.
+          </p>
           <div className="flex items-center gap-0.5">
             <button
               type="button"
@@ -486,6 +507,7 @@ export function MessagesChatPanel({
               }`}
               disabled={!canSend}
               aria-label="Send"
+              aria-describedby={!canSend && !sending ? emptyHintId : undefined}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M5 12h14M13 6l6 6-6 6" />

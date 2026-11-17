@@ -124,6 +124,11 @@
   border-color: var(--hc-blue);
 }
 
+.account-hc-verify-input.is-error,
+.account-hc-verify-input.is-error:focus {
+  border-color: #c62828;
+}
+
 .account-hc-verify-addr-stack {
   display: flex;
   flex-direction: column;

@@ -4,8 +4,9 @@ import { Camera, Info } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { CategorySelect } from '@/components/CategorySelect'
-import { Avatar, InlineBanner } from '@/components/ui'
+import { Avatar, FormErrorAlert, InlineBanner } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
+import { humanizeSaveError, scrollAlertIntoView } from '@/lib/formErrors'
 import { uploadBeamMedia } from '@/lib/beam/storageUpload'
 import { formatLocation } from '@/lib/location'
 import { isHelperPerson } from '@/lib/roles'
@@ -18,6 +19,7 @@ import {
 } from '@/lib/taxonomy'
 import {
   RateFields,
+  rateValidationMessage,
   toEditorRateType,
   type EditorRateType,
 } from '@/components/account/RateFields'
@@ -45,6 +47,9 @@ export function EditProfileForm() {
   const { currentUser, updateProfile, mode, authUser } = useBeam()
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
+  const rateInputRef = useRef<HTMLInputElement>(null)
+  const hoursStartRef = useRef<HTMLSelectElement>(null)
+  const alertRef = useRef<HTMLDivElement>(null)
   const isHelper = isHelperPerson(currentUser)
 
   const [avatar, setAvatar] = useState(currentUser.avatar || '')
@@ -81,6 +86,8 @@ export function EditProfileForm() {
   const [pending, setPending] = useState(false)
   const [savedFlash, setSavedFlash] = useState(false)
   const [error, setError] = useState('')
+  const [rateError, setRateError] = useState('')
+  const [hoursError, setHoursError] = useState('')
 
   const legacySkills = (currentUser.skills ?? []).filter((s) => !isServiceCategoryId(s))
 
@@ -152,7 +159,7 @@ export function EditProfileForm() {
       })
       setAvatar(url)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not upload photo')
+      setError(humanizeSaveError(err, 'Could not upload photo'))
     } finally {
       setUploading(false)
     }
@@ -203,18 +210,27 @@ export function EditProfileForm() {
         }
         otherLabel = normalized.value
       }
-      const rateNum = Number(hourlyRate)
-      if (!Number.isFinite(rateNum) || rateNum < 10) {
-        setError(
-          rateType === 'flat'
-            ? 'Flat Fee should be at least $10.'
-            : 'Hourly rate should be at least $10.',
-        )
+      const rateMessage = rateValidationMessage(hourlyRate, rateType)
+      if (rateMessage) {
+        setHoursError('')
+        setRateError(rateMessage)
+        setError(rateMessage)
+        requestAnimationFrame(() => {
+          rateInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          rateInputRef.current?.focus()
+        })
         return
       }
+      const rateNum = Number(hourlyRate)
       const hours = workingHoursSavePayload(workStart, workEnd)
       if (!hours.ok) {
+        setRateError('')
+        setHoursError(hours.error)
         setError(hours.error)
+        requestAnimationFrame(() => {
+          hoursStartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          hoursStartRef.current?.focus()
+        })
         return
       }
       Object.assign(patch, {
@@ -233,13 +249,17 @@ export function EditProfileForm() {
 
     setPending(true)
     setError('')
+    setRateError('')
+    setHoursError('')
     try {
       await updateProfile(patch)
       setSavedFlash(true)
       window.setTimeout(() => setSavedFlash(false), 1800)
     } catch (err) {
-      const raw = err instanceof Error ? err.message : 'Could not save your profile.'
-      setError(raw.replace(/^Update profile:\s*/i, '') || 'Could not save your profile.')
+      setError(humanizeSaveError(err, 'Could not save your profile.'))
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => scrollAlertIntoView(alertRef.current))
+      })
     } finally {
       setPending(false)
     }
@@ -255,9 +275,11 @@ export function EditProfileForm() {
       noValidate
     >
       {error ? (
-        <div className="mb-3">
-          <InlineBanner tone="error">{error}</InlineBanner>
-        </div>
+        <FormErrorAlert
+          className="mb-3"
+          message={error}
+          testId="edit-profile-top-error"
+        />
       ) : null}
       {savedFlash ? (
         <div className="mb-3">
@@ -433,8 +455,16 @@ export function EditProfileForm() {
                 variant="edit"
                 rateType={rateType}
                 hourlyRate={hourlyRate}
-                onChangeRateType={setRateType}
-                onChangeHourlyRate={setHourlyRate}
+                onChangeRateType={(next) => {
+                  setRateType(next)
+                  setRateError('')
+                }}
+                onChangeHourlyRate={(next) => {
+                  setHourlyRate(next)
+                  setRateError('')
+                }}
+                error={rateError}
+                inputRef={rateInputRef}
                 testIdPrefix="you-helper-rate"
               />
             </div>
@@ -467,8 +497,16 @@ export function EditProfileForm() {
                 <WorkingHoursFields
                   workStart={workStart}
                   workEnd={workEnd}
-                  onChangeStart={setWorkStart}
-                  onChangeEnd={setWorkEnd}
+                  onChangeStart={(next) => {
+                    setWorkStart(next)
+                    setHoursError('')
+                  }}
+                  onChangeEnd={(next) => {
+                    setWorkEnd(next)
+                    setHoursError('')
+                  }}
+                  error={hoursError}
+                  startSelectRef={hoursStartRef}
                   testIdPrefix="you-helper-hours"
                 />
               </div>
@@ -476,6 +514,13 @@ export function EditProfileForm() {
           </div>
         </>
       ) : null}
+
+      <FormErrorAlert
+        ref={alertRef}
+        className="mb-3"
+        message={error}
+        testId="edit-profile-submit-error"
+      />
 
       <div className="ep-save-bar" data-testid="edit-profile-save-bar">
         <button

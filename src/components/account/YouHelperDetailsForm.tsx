@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { CategorySelect } from '@/components/CategorySelect'
 import {
   RateFields,
+  rateValidationMessage,
   toEditorRateType,
   type EditorRateType,
 } from '@/components/account/RateFields'
@@ -11,8 +12,9 @@ import {
   WorkingHoursFields,
   workingHoursSavePayload,
 } from '@/components/account/WorkingHoursFields'
-import { Button, InlineBanner } from '@/components/ui'
+import { Button, FormErrorAlert, InlineBanner } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
+import { humanizeSaveError, scrollAlertIntoView } from '@/lib/formErrors'
 import { normalizeWorkTime } from '@/lib/workingHours'
 import { normalizeOtherCustom, type ServiceCategoryId } from '@/lib/taxonomy'
 import '@/components/account/account-hc.css'
@@ -31,6 +33,9 @@ const SERVICE_IDS: ServiceCategoryId[] = [
 
 export function YouHelperDetailsForm() {
   const { currentUser, updateProfile } = useBeam()
+  const rateInputRef = useRef<HTMLInputElement>(null)
+  const hoursStartRef = useRef<HTMLSelectElement>(null)
+  const alertRef = useRef<HTMLDivElement>(null)
   const [skills, setSkills] = useState<ServiceCategoryId[]>(
     (currentUser.skills ?? []).filter((s): s is ServiceCategoryId =>
       SERVICE_IDS.includes(s as ServiceCategoryId),
@@ -55,6 +60,8 @@ export function YouHelperDetailsForm() {
   const [pending, setPending] = useState(false)
   const [savedFlash, setSavedFlash] = useState(false)
   const [error, setError] = useState('')
+  const [rateError, setRateError] = useState('')
+  const [hoursError, setHoursError] = useState('')
 
   useEffect(() => {
     setSkills(
@@ -105,24 +112,35 @@ export function YouHelperDetailsForm() {
       }
       otherLabel = normalized.value
     }
-    const rateNum = Number(hourlyRate)
-    if (!Number.isFinite(rateNum) || rateNum < 10) {
-      setError(
-        rateType === 'flat'
-          ? 'Flat Fee should be at least $10.'
-          : 'Hourly rate should be at least $10.',
-      )
+    const rateMessage = rateValidationMessage(hourlyRate, rateType)
+    if (rateMessage) {
+      setHoursError('')
+      setRateError(rateMessage)
+      setError(rateMessage)
+      requestAnimationFrame(() => {
+        rateInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        rateInputRef.current?.focus()
+      })
       return
     }
+    const rateNum = Number(hourlyRate)
 
     const hours = workingHoursSavePayload(workStart, workEnd)
     if (!hours.ok) {
+      setRateError('')
+      setHoursError(hours.error)
       setError(hours.error)
+      requestAnimationFrame(() => {
+        hoursStartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        hoursStartRef.current?.focus()
+      })
       return
     }
 
     setPending(true)
     setError('')
+    setRateError('')
+    setHoursError('')
     try {
       await updateProfile({
         skills,
@@ -139,8 +157,10 @@ export function YouHelperDetailsForm() {
       setSavedFlash(true)
       window.setTimeout(() => setSavedFlash(false), 1800)
     } catch (err) {
-      const raw = err instanceof Error ? err.message : 'Could not save helper details.'
-      setError(raw.replace(/^Update profile:\s*/i, '') || 'Could not save helper details.')
+      setError(humanizeSaveError(err, 'Could not save helper details.'))
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => scrollAlertIntoView(alertRef.current))
+      })
     } finally {
       setPending(false)
     }
@@ -154,9 +174,11 @@ export function YouHelperDetailsForm() {
       noValidate
     >
       {error ? (
-        <div className="mb-2">
-          <InlineBanner tone="error">{error}</InlineBanner>
-        </div>
+        <FormErrorAlert
+          className="mb-2"
+          message={error}
+          testId="you-helper-top-error"
+        />
       ) : null}
       {savedFlash ? (
         <div className="mb-2">
@@ -215,8 +237,16 @@ export function YouHelperDetailsForm() {
         <RateFields
           rateType={rateType}
           hourlyRate={hourlyRate}
-          onChangeRateType={setRateType}
-          onChangeHourlyRate={setHourlyRate}
+          onChangeRateType={(next) => {
+            setRateType(next)
+            setRateError('')
+          }}
+          onChangeHourlyRate={(next) => {
+            setHourlyRate(next)
+            setRateError('')
+          }}
+          error={rateError}
+          inputRef={rateInputRef}
           testIdPrefix="you-helper-rate"
         />
       </div>
@@ -245,11 +275,26 @@ export function YouHelperDetailsForm() {
         <WorkingHoursFields
           workStart={workStart}
           workEnd={workEnd}
-          onChangeStart={setWorkStart}
-          onChangeEnd={setWorkEnd}
+          onChangeStart={(next) => {
+            setWorkStart(next)
+            setHoursError('')
+          }}
+          onChangeEnd={(next) => {
+            setWorkEnd(next)
+            setHoursError('')
+          }}
+          error={hoursError}
+          startSelectRef={hoursStartRef}
           testIdPrefix="you-helper-hours"
         />
       </div>
+
+      <FormErrorAlert
+        ref={alertRef}
+        className="mt-4"
+        message={error}
+        testId="you-helper-submit-error"
+      />
 
       <Button
         type="submit"

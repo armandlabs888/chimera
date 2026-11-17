@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { useFocusTrap } from '@/components/browse/useFocusTrap'
 import { useBeam } from '@/context/BeamContext'
-import { Button, Field, TextInput } from '@/components/ui'
+import { Button, Field, FormErrorAlert, TextInput } from '@/components/ui'
 import { friendlyAuthError } from '@/lib/auth/errors'
 import { createClient } from '@/lib/supabase/client'
 import type { EmailOtpType } from '@supabase/supabase-js'
@@ -272,14 +272,7 @@ export function ResetPasswordExperience({ onClose }: Props) {
               </div>
             </Field>
 
-            {localError ? (
-              <div
-                role="alert"
-                className="rounded-lg border border-[#D7E0EC] bg-white px-4 py-3 text-[14px] text-[#071330]"
-              >
-                {localError}
-              </div>
-            ) : null}
+            {localError ? <FormErrorAlert message={localError} /> : null}
 
             <Button
               type="submit"

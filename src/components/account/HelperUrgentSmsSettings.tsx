@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { FormErrorAlert } from '@/components/ui'
+import { humanizeSaveError } from '@/lib/formErrors'
 import { createClient } from '@/lib/supabase/client'
 
 type Settings = {
@@ -214,7 +216,7 @@ export function HelperUrgentSmsSettings({
       setCodeDigits(['', '', '', '', '', ''])
       setSentPhoneDisplay('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load SMS settings')
+      setError(humanizeSaveError(err, 'Could not load SMS settings.'))
     } finally {
       setLoading(false)
     }
@@ -245,7 +247,7 @@ export function HelperUrgentSmsSettings({
       }
       setSettings(next)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save')
+      setError(humanizeSaveError(err, 'Could not save.'))
     } finally {
       setSaving(false)
     }
@@ -300,7 +302,7 @@ export function HelperUrgentSmsSettings({
       }
       requestAnimationFrame(() => codeRefs.current[0]?.focus())
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not send code')
+      setError(humanizeSaveError(err, 'Could not send code.'))
     } finally {
       setSendingCode(false)
     }
@@ -339,7 +341,7 @@ export function HelperUrgentSmsSettings({
       await load()
       setPhase('confirmed')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not confirm')
+      setError(humanizeSaveError(err, 'Could not confirm.'))
     } finally {
       setConfirming(false)
     }
@@ -719,9 +721,11 @@ export function HelperUrgentSmsSettings({
       </div>
 
       {error ? (
-        <p className="account-hc-sms-error" role="alert" data-testid="helper-sms-error">
-          {error}
-        </p>
+        <FormErrorAlert
+          className="mt-3"
+          message={error}
+          testId="helper-sms-error"
+        />
       ) : null}
       {message ? (
         <p className="account-hc-sms-msg" data-testid="helper-sms-message">
