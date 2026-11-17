@@ -464,7 +464,7 @@ export async function createLiveRequest(
     // Stock/category covers are app-served paths (e.g. /images/...), not beam-media — allow those.
     // Reject only if someone tries to persist a third-party https cover without upload.
     if (/^https?:\/\//i.test(cover) && !cover.includes('/storage/v1/object/public/beam-media/')) {
-      throw new Error('Photos must be uploaded through Bunk. External image links are not allowed.')
+      throw new Error('Photos must be uploaded through BlockSide. External image links are not allowed.')
     }
   }
 
@@ -556,13 +556,13 @@ async function assertHelperCanOffer(client: Client, userId: string): Promise<voi
   if (error) {
     // Table missing on older deploys: fail closed so offers cannot bypass the gate.
     throw new BeamBackendError(
-      "To make an offer, Bunk has to confirm you're at your home address. You need to be home for this check.",
+      "To make an offer, BlockSide has to confirm you're at your home address. You need to be home for this check.",
       error,
     )
   }
   if (!data || data.status !== 'approved') {
     throw new BeamBackendError(
-      "To make an offer, Bunk has to confirm you're at your home address. You need to be home for this check.",
+      "To make an offer, BlockSide has to confirm you're at your home address. You need to be home for this check.",
     )
   }
 }

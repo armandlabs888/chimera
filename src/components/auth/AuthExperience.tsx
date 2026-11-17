@@ -297,7 +297,7 @@ function FormColumn(props: {
           You are in demo mode
         </h1>
         <p className="mt-2 max-w-[36ch] text-[14px] leading-[22px] text-[#4A5568]">
-          Local demo skips live sign-in. Continue into Bunk with sample marketplace data in this
+          Local demo skips live sign-in. Continue into BlockSide with sample marketplace data in this
           browser.
         </p>
         {alertError ? (
@@ -306,7 +306,7 @@ function FormColumn(props: {
           </div>
         ) : null}
         <Link href={safeNext} className="cta-primary mt-8 w-full justify-center">
-          Continue to Bunk
+          Continue to BlockSide
         </Link>
       </div>
     )
@@ -316,7 +316,7 @@ function FormColumn(props: {
     return (
       <div>
         <h1 id={titleId} className="mt-4 font-display text-[28px] font-extrabold leading-[1.15] tracking-[-0.035em] text-[#071330]">
-          Bunk needs configuration
+          BlockSide needs configuration
         </h1>
         <p className="mt-2 max-w-[36ch] text-[14px] leading-[22px] text-[#4A5568]">
           Set Supabase env vars for live auth, or enable demo with{' '}
@@ -429,12 +429,12 @@ function FormColumn(props: {
         id={titleId}
         className="mt-4 font-display text-[26px] font-extrabold leading-[1.15] tracking-[-0.035em] text-[#071330] md:text-[28px]"
       >
-        {tab === 'signin' ? 'Welcome back' : 'Join Bunk'}
+        {tab === 'signin' ? 'Welcome back' : 'Join BlockSide'}
       </h1>
       <p className="mt-2 max-w-[36ch] text-[14px] leading-[22px] text-[#4A5568]">
         {tab === 'signin'
           ? 'Sign in to post a task or help neighbors nearby.'
-          : 'Join Bunk to post practical jobs or help neighbors nearby.'}
+          : 'Join BlockSide to post practical jobs or help neighbors nearby.'}
       </p>
 
       <AuthMobileVerifyBadge className="mt-3.5" />
@@ -586,7 +586,7 @@ function FormColumn(props: {
       </p>
 
       <p className="mt-5 text-center text-[12px] leading-[18px] text-[#4A5568]">
-        By continuing, you agree to Bunk&apos;s{' '}
+        By continuing, you agree to BlockSide&apos;s{' '}
         <Link href="/terms" className="text-[#1649BD] underline-offset-2 hover:underline">
           Terms of Service
         </Link>{' '}

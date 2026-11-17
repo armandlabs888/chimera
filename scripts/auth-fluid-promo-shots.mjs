@@ -34,7 +34,7 @@ async function waitAuth(page) {
   await page.waitForFunction(() => {
     const modal = document.querySelector('[data-testid="auth-modal"]')
     const t = modal?.textContent || ''
-    return /Welcome back|Continue to Bunk|Join Bunk/i.test(t)
+    return /Welcome back|Continue to BlockSide|Join BlockSide/i.test(t)
   }, { timeout: 30000 })
 }
 

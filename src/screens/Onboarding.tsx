@@ -476,7 +476,7 @@ export function Onboarding() {
     )
   }
 
-  const pageTitle = edit ? 'Change city' : 'Welcome to Bunk'
+  const pageTitle = edit ? 'Change city' : 'Welcome to BlockSide'
   const shellClass = edit
     ? 'account-hc'
     : 'account-hc min-h-dvh'
@@ -510,25 +510,25 @@ export function Onboarding() {
               {!edit ? (
                 <>
                   <h1 className="account-hc-hero-title" style={{ fontSize: 28 }}>
-                    Welcome to Bunk
+                    Welcome to BlockSide
                   </h1>
                   <p className="account-hc-lede">
-                    Choose how you want to use Bunk and set your city.
+                    Choose how you want to use BlockSide and set your city.
                   </p>
                 </>
               ) : (
                 <>
                   <h2 className="account-hc-hero-title" style={{ fontSize: 22 }}>
-                    Welcome to Bunk
+                    Welcome to BlockSide
                   </h2>
                   <p className="account-hc-lede">
-                    Choose how you want to use Bunk and set your city.
+                    Choose how you want to use BlockSide and set your city.
                   </p>
                 </>
               )}
 
               <p id={`${roleGroupId}-label`} className="account-hc-role-label">
-                How you&apos;ll use Bunk
+                How you&apos;ll use BlockSide
               </p>
               <div
                 role="radiogroup"
@@ -750,7 +750,7 @@ export function Onboarding() {
                 Our community rules
               </h1>
               <p className="account-hc-lede">
-                Before continuing, please agree to keep Bunk safe for everyone.
+                Before continuing, please agree to keep BlockSide safe for everyone.
               </p>
 
               <div className="account-hc-rules-callout" data-testid="onboarding-safety-callout">
@@ -763,7 +763,7 @@ export function Onboarding() {
               </div>
 
               <p className="account-hc-rules-legal">
-                Bunk is for everyday local help: Home, Auto, Junk Removal, Pets, and Other casual
+                BlockSide is for everyday local help: Home, Auto, Junk Removal, Pets, and Other casual
                 tasks. The same safety exclusions apply to custom Other requests.{' '}
                 <Link
                   href="/safety"

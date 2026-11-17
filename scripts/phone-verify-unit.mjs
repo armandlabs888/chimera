@@ -15,6 +15,7 @@ function parseInboundPhoneCode(body) {
   const text = (body || '').trim()
   if (!text) return null
   const labeled =
+    text.match(/\bblockside\s*code[:\s#-]*([0-9]{6})\b/i) ||
     text.match(/\bbunk\s*code[:\s#-]*([0-9]{6})\b/i) ||
     text.match(/\bcode[:\s#-]*([0-9]{6})\b/i)
   if (labeled?.[1]) return labeled[1]
@@ -47,23 +48,23 @@ function isPhoneUniqueViolation(error) {
 }
 
 const PHONE_ALREADY_USED_MESSAGE =
-  'This number is already used on another Bunk account.'
+  'This number is already used on another BlockSide account.'
 
 // --- parseInboundPhoneCode ---
-assert.equal(parseInboundPhoneCode('Bunk code 482913'), '482913')
+assert.equal(parseInboundPhoneCode('BlockSide code 482913'), '482913')
 assert.equal(parseInboundPhoneCode('bunk code:123456'), '123456')
 assert.equal(parseInboundPhoneCode('Code 999888'), '999888')
 assert.equal(parseInboundPhoneCode('  654321  '), '654321')
 assert.equal(parseInboundPhoneCode('hello there'), null)
-assert.equal(parseInboundPhoneCode('Bunk code 12'), null)
+assert.equal(parseInboundPhoneCode('BlockSide code 12'), null)
 assert.equal(parseInboundPhoneCode(''), null)
 
 // Source file must export the same helper name / copy.
 const formatSrc = readFileSync(join(root, 'src/lib/phone/format.ts'), 'utf8')
 assert.match(formatSrc, /export function parseInboundPhoneCode/)
-assert.match(formatSrc, /Bunk code/)
+assert.match(formatSrc, /BlockSide code/)
 assert.match(formatSrc, /PHONE_ALREADY_USED_MESSAGE/)
-assert.match(formatSrc, /already used on another Bunk account/)
+assert.match(formatSrc, /already used on another BlockSide account/)
 
 const verifySrc = readFileSync(join(root, 'src/lib/phone/verify.ts'), 'utf8')
 assert.match(verifySrc, /PHONE_SMS_INBOUND_PUBLIC_URL/)
@@ -73,13 +74,13 @@ assert.match(verifySrc, /isPhoneUniqueViolation/)
 const inboundSrc = readFileSync(join(root, 'app/api/sms/inbound/route.ts'), 'utf8')
 assert.match(inboundSrc, /validateTwilioRequestSignature/)
 assert.match(inboundSrc, /PHONE_SMS_INBOUND_PUBLIC_URL/)
-assert.match(inboundSrc, /Thanks, your Bunk phone is confirmed/)
+assert.match(inboundSrc, /Thanks, your BlockSide phone is confirmed/)
 assert.match(inboundSrc, /X-Twilio-Signature|x-twilio-signature/)
 
 // --- signature validation ---
 const authToken = 'test_auth_token_123'
 const publicUrl = 'https://www.joinbunk.xyz/api/sms/inbound'
-const params = { Body: 'Bunk code 482913', From: '+15555551212', To: '+15555550000' }
+const params = { Body: 'BlockSide code 482913', From: '+15555551212', To: '+15555550000' }
 const sortedKeys = Object.keys(params).sort()
 let data = publicUrl
 for (const key of sortedKeys) data += key + params[key]

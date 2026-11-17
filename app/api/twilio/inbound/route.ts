@@ -67,18 +67,18 @@ export async function POST(request: Request) {
     const keyword = body.trim().split(/\s+/)[0]?.toUpperCase() || ''
 
     if (!phone) {
-      return twiml('Bunk: We could not read that phone number.')
+      return twiml('BlockSide: We could not read that phone number.')
     }
 
     const admin = createAdminClient()
     if (!admin) {
       console.warn('[twilio/inbound] No service role')
-      return twiml('Bunk: Temporary issue. Try again later.')
+      return twiml('BlockSide: Temporary issue. Try again later.')
     }
 
     if (keyword === 'HELP' || keyword === 'INFO') {
       return twiml(
-        'Bunk urgent job alerts. Msg & data rates may apply. Reply STOP to opt out, START to opt back in.',
+        'BlockSide urgent job alerts. Msg & data rates may apply. Reply STOP to opt out, START to opt back in.',
       )
     }
 
@@ -101,7 +101,7 @@ export async function POST(request: Request) {
           .eq('profile_id', row.profile_id)
       }
       return twiml(
-        'Bunk: You are opted out of urgent job texts. Reply START to opt back in anytime.',
+        'BlockSide: You are opted out of urgent job texts. Reply START to opt back in anytime.',
       )
     }
 
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
         .eq('phone_e164', phone)
       if (!rows?.length) {
         return twiml(
-          'Bunk: Confirm your phone in Profile & account first, then you can opt in to optional urgent job texts.',
+          'BlockSide: Confirm your phone in Profile & account first, then you can opt in to optional urgent job texts.',
         )
       }
       for (const row of rows) {
@@ -123,15 +123,15 @@ export async function POST(request: Request) {
           .eq('profile_id', row.profile_id)
       }
       return twiml(
-        'Bunk: You are opted in to optional urgent job texts near you. Reply STOP to opt out.',
+        'BlockSide: You are opted in to optional urgent job texts near you. Reply STOP to opt out.',
       )
     }
 
     return twiml(
-      'Bunk: Reply STOP to opt out, START to opt in, or HELP for info. Manage settings in the app.',
+      'BlockSide: Reply STOP to opt out, START to opt in, or HELP for info. Manage settings in the app.',
     )
   } catch (err) {
     console.error('[twilio/inbound]', err)
-    return twiml('Bunk: Temporary issue. Try again later.')
+    return twiml('BlockSide: Temporary issue. Try again later.')
   }
 }

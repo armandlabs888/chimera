@@ -1,11 +1,11 @@
-# Bunk Terms of Service
+# BlockSide Terms of Service
 
 **Effective date:** [EFFECTIVE DATE]\
 **Last updated:** [LAST UPDATED DATE]
 
 **IMPORTANT NOTICE: THESE TERMS CONTAIN A BINDING INDIVIDUAL ARBITRATION AGREEMENT AND A CLASS ACTION WAIVER IN SECTION 32. EXCEPT FOR CERTAIN TYPES OF DISPUTES DESCRIBED IN SECTION 32, YOU AND BUNK AGREE THAT DISPUTES BETWEEN US WILL BE RESOLVED BY BINDING, INDIVIDUAL ARBITRATION, AND YOU WAIVE YOUR RIGHT TO A JURY TRIAL AND TO PARTICIPATE IN A CLASS ACTION OR CLASS ARBITRATION. YOU MAY OPT OUT OF ARBITRATION WITHIN 30 DAYS AS EXPLAINED IN SECTION 32.8. PLEASE READ SECTION 32 CAREFULLY.**
 
-Welcome to Bunk. These Terms of Service ("Terms") are a contract between you and [Bunk legal entity name] ("Bunk," "we," "us," or "our"). They govern your use of the Bunk website at https://www.yariapp.com, any Bunk mobile app, and all related features, messages, and services (together, the "Service").
+Welcome to BlockSide. These Terms of Service ("Terms") are a contract between you and [BlockSide legal entity name] ("BlockSide," "we," "us," or "our"). They govern your use of the BlockSide website at https://www.yariapp.com, any BlockSide mobile app, and all related features, messages, and services (together, the "Service").
 
 ## 1. Acceptance of These Terms
 
@@ -29,7 +29,7 @@ Welcome to Bunk. These Terms of Service ("Terms") are a contract between you and
 
 2.2 If you keep using the Service after a change takes effect, you accept the updated Terms. If you do not agree to a change, you must stop using the Service and may close your account. Changes do not apply retroactively, and **changes to the arbitration agreement are governed by Section 32.9.**
 
-2.3 We may add, change, suspend, or discontinue any part of the Service at any time. Bunk does not charge Users fees today. If we ever introduce fees, we will tell you in advance and you will not be charged unless you agree.
+2.3 We may add, change, suspend, or discontinue any part of the Service at any time. BlockSide does not charge Users fees today. If we ever introduce fees, we will tell you in advance and you will not be charged unless you agree.
 
 ## 3. Eligibility
 
@@ -51,13 +51,13 @@ Welcome to Bunk. These Terms of Service ("Terms") are a contract between you and
 
 4.4 If you sign in using a third-party login (for example, Google), that provider's terms and privacy policy also apply to that login.
 
-## 5. What Bunk Is, and What It Is Not
+## 5. What BlockSide Is, and What It Is Not
 
-5.1 **Bunk is a venue.** The Service is an online place where neighbors can post everyday Jobs, send Offers, message each other, and leave reviews. Bunk does not perform Jobs, does not provide any household, moving, cleaning, pet, tutoring, or other services, and is not a party to any agreement between a Poster and a Helper.
+5.1 **BlockSide is a venue.** The Service is an online place where neighbors can post everyday Jobs, send Offers, message each other, and leave reviews. BlockSide does not perform Jobs, does not provide any household, moving, cleaning, pet, tutoring, or other services, and is not a party to any agreement between a Poster and a Helper.
 
-5.2 **When a Poster accepts an Offer, the agreement for that Job is solely between the Poster and the Helper.** The two of them decide the scope, timing, price, payment method, and every other term of the work. Bunk is not responsible for whether either party performs.
+5.2 **When a Poster accepts an Offer, the agreement for that Job is solely between the Poster and the Helper.** The two of them decide the scope, timing, price, payment method, and every other term of the work. BlockSide is not responsible for whether either party performs.
 
-5.3 **Bunk does not supervise, direct, or control any Helper or any Job.** We do not set Helpers' schedules, hours, methods, tools, or rates, and we do not inspect or approve the work.
+5.3 **BlockSide does not supervise, direct, or control any Helper or any Job.** We do not set Helpers' schedules, hours, methods, tools, or rates, and we do not inspect or approve the work.
 
 5.4 **No guarantee of quality or results.** We do not guarantee the quality, safety, legality, timeliness, or suitability of any Job, Offer, or User, or that any Job will be completed, or that any Helper will receive Offers accepted. Any badge, label, rating, or ranking on the Service, such as a "location checked" or similar label, means only that a User completed a specific step or met a specific criterion at a point in time. It is not an endorsement, certification, or guarantee.
 
@@ -65,11 +65,11 @@ Welcome to Bunk. These Terms of Service ("Terms") are a contract between you and
 
 ## 6. Helpers Are Independent
 
-6.1 **Helpers are independent individuals. They are not employees, agents, partners, joint venturers, or contractors of Bunk,** and nothing in these Terms or the Service creates any such relationship. Helpers are free to choose which Jobs to offer on, to decline any Job, to set their own prices, to use their own tools, and to offer services anywhere else, including on competing services.
+6.1 **Helpers are independent individuals. They are not employees, agents, partners, joint venturers, or contractors of BlockSide,** and nothing in these Terms or the Service creates any such relationship. Helpers are free to choose which Jobs to offer on, to decline any Job, to set their own prices, to use their own tools, and to offer services anywhere else, including on competing services.
 
-6.2 Bunk does not pay Helpers and does not take a share of what Posters pay them. Bunk is not responsible for wages, overtime, benefits, workers' compensation, unemployment insurance, tax withholding, or any other obligation that may arise between a Poster and a Helper.
+6.2 BlockSide does not pay Helpers and does not take a share of what Posters pay them. BlockSide is not responsible for wages, overtime, benefits, workers' compensation, unemployment insurance, tax withholding, or any other obligation that may arise between a Poster and a Helper.
 
-6.3 Users may not act or hold themselves out as an agent or representative of Bunk, and may not make any promise on Bunk's behalf.
+6.3 Users may not act or hold themselves out as an agent or representative of BlockSide, and may not make any promise on BlockSide's behalf.
 
 6.4 **Posters who hire someone regularly may have legal obligations.** Depending on the facts, a Poster who has a Helper work for them on an ongoing basis could be treated as a household employer under federal or California law. Posters are solely responsible for understanding and complying with any such obligations.
 
@@ -79,13 +79,13 @@ Welcome to Bunk. These Terms of Service ("Terms") are a contract between you and
 
 7.2 Helpers are responsible for having any skills, equipment, license, permit, or registration a Job requires. Posters are responsible for deciding whether a Helper is qualified for their Job.
 
-7.3 **Each User is responsible for their own taxes.** Helpers are responsible for reporting income they earn and paying any tax owed. Bunk does not issue tax forms for payments made between Users.
+7.3 **Each User is responsible for their own taxes.** Helpers are responsible for reporting income they earn and paying any tax owed. BlockSide does not issue tax forms for payments made between Users.
 
-7.4 **Bunk does not provide insurance for any User or Job.** Helpers should consider carrying liability insurance appropriate to the work they do. Posters should consider whether their homeowner's, renter's, or auto insurance covers people working at their home or on their vehicle.
+7.4 **BlockSide does not provide insurance for any User or Job.** Helpers should consider carrying liability insurance appropriate to the work they do. Posters should consider whether their homeowner's, renter's, or auto insurance covers people working at their home or on their vehicle.
 
 ## 8. Prohibited Categories
 
-8.1 Bunk is for casual, everyday tasks. **You may not use the Service to post, offer, or perform any of the following:**
+8.1 BlockSide is for casual, everyday tasks. **You may not use the Service to post, offer, or perform any of the following:**
 
 - **Licensed trades** or any work that requires a contractor's or professional license in the place it is performed, such as electrical, plumbing, gas, HVAC, roofing, structural, pest control using regulated chemicals, or other work requiring a California State License Board license.
 - **Childcare** or the care or supervision of minors, including babysitting and nannying.
@@ -123,9 +123,9 @@ You agree not to, and not to try to:
 
 10.2 **Making an Offer.** Helpers may send Offers on open Jobs. An Offer should reflect what the Helper honestly expects to charge and when they can arrive. Helpers should only offer on Jobs they are able and qualified to do safely.
 
-10.3 **Accepting an Offer.** A Poster may accept one Offer per Job. When a Poster accepts an Offer, the Job becomes an Agreed Job between that Poster and that Helper. We recommend confirming the scope, timing, price, and payment method in Bunk messages before work begins.
+10.3 **Accepting an Offer.** A Poster may accept one Offer per Job. When a Poster accepts an Offer, the Job becomes an Agreed Job between that Poster and that Helper. We recommend confirming the scope, timing, price, and payment method in BlockSide messages before work begins.
 
-10.4 **Changes.** If the Poster and Helper change the scope or price after acceptance, they should agree to the change in writing, ideally in Bunk messages.
+10.4 **Changes.** If the Poster and Helper change the scope or price after acceptance, they should agree to the change in writing, ideally in BlockSide messages.
 
 10.5 We may limit the number of Jobs or Offers, remove Jobs or Offers, or close Jobs that appear inactive, inaccurate, or in violation of these Terms.
 
@@ -137,27 +137,27 @@ You agree not to, and not to try to:
 
 11.3 **Open to offers.** If a Poster marks a Job as open to offers, Helpers may propose a different price. The price in the accepted Offer is the agreed price, unless both parties later agree to change it.
 
-11.4 Prices are set by Users, not by Bunk. Bunk does not recommend, approve, or guarantee any price.
+11.4 Prices are set by Users, not by BlockSide. BlockSide does not recommend, approve, or guarantee any price.
 
 ## 12. Payments Between Users
 
-12.1 **Payments are arranged directly between Posters and Helpers.** Bunk does not process, hold, or transfer payments, and does not charge booking fees, lead fees, or commissions today.
+12.1 **Payments are arranged directly between Posters and Helpers.** BlockSide does not process, hold, or transfer payments, and does not charge booking fees, lead fees, or commissions today.
 
-12.2 **Bunk is not a party to any payment and is not responsible for non-payment, overpayment, chargebacks, refunds, or payment disputes.** Users are responsible for choosing a payment method and for any fees charged by that payment method.
+12.2 **BlockSide is not a party to any payment and is not responsible for non-payment, overpayment, chargebacks, refunds, or payment disputes.** Users are responsible for choosing a payment method and for any fees charged by that payment method.
 
-12.3 For your protection, we recommend that you agree on the price and payment method before the Job starts, avoid paying the full price in advance for Jobs not yet done, and never send money to someone you have not met for a Job that has not started. Bunk will never ask you to pay a Helper through Bunk staff or to buy gift cards.
+12.3 For your protection, we recommend that you agree on the price and payment method before the Job starts, avoid paying the full price in advance for Jobs not yet done, and never send money to someone you have not met for a Job that has not started. BlockSide will never ask you to pay a Helper through BlockSide staff or to buy gift cards.
 
-12.4 If Bunk later offers in-app payments, additional payment terms will apply and will be presented to you before you use that feature.
+12.4 If BlockSide later offers in-app payments, additional payment terms will apply and will be presented to you before you use that feature.
 
 ## 13. Cancellations, Withdrawals, and No-Shows
 
-13.1 **Posters may cancel a Job** in the Service. If a Job is already an Agreed Job, the Poster should cancel as early as possible and tell the Helper through Bunk messages.
+13.1 **Posters may cancel a Job** in the Service. If a Job is already an Agreed Job, the Poster should cancel as early as possible and tell the Helper through BlockSide messages.
 
 13.2 **Helpers may withdraw an Offer** before it is accepted. After acceptance, a Helper who cannot do the Job should tell the Poster as early as possible.
 
 13.3 **No-shows.** Showing up on time, or giving reasonable notice if you cannot, is expected of everyone. A User who does not show up for an Agreed Job without reasonable notice, or who repeatedly cancels late, may receive lower ratings and may have their account limited or suspended.
 
-13.4 Bunk does not charge cancellation fees. Any cancellation fee, deposit, or refund between a Poster and Helper is a matter between them and should be agreed in writing before the Job starts.
+13.4 BlockSide does not charge cancellation fees. Any cancellation fee, deposit, or refund between a Poster and Helper is a matter between them and should be agreed in writing before the Job starts.
 
 ## 14. Helper Verification and Its Limits
 
@@ -167,47 +167,47 @@ You agree not to, and not to try to:
 
 14.3 **What verification does not do.** A location check confirms only that a device was at an address at one moment. **It does not confirm a person's identity, character, criminal history, skills, licensing, insurance, immigration status, or trustworthiness.**
 
-14.4 **Bunk does not perform background checks** on Users, and we do not guarantee that any User is who they say they are. If we ever offer identity checks or background checks, we will do so only as permitted by law, with any required disclosures and consents, and those checks will also have limits.
+14.4 **BlockSide does not perform background checks** on Users, and we do not guarantee that any User is who they say they are. If we ever offer identity checks or background checks, we will do so only as permitted by law, with any required disclosures and consents, and those checks will also have limits.
 
 ## 15. Safety
 
 15.1 **You are responsible for your own safety and for taking reasonable precautions** when communicating with or meeting other Users. Our Safety and Community Guidelines, available at [safety page URL], offer suggestions, but they are not a complete list and do not guarantee safety.
 
-15.2 Some reasonable steps include: reviewing profiles and reviews, keeping communication in Bunk messages, telling a friend when someone will be at your home, securing valuables and medications, keeping pets secured if needed, and stopping any interaction that feels unsafe.
+15.2 Some reasonable steps include: reviewing profiles and reviews, keeping communication in BlockSide messages, telling a friend when someone will be at your home, securing valuables and medications, keeping pets secured if needed, and stopping any interaction that feels unsafe.
 
-15.3 **In an emergency, call 911 first.** Then report the incident to us at [contact email]. Bunk is not an emergency service and cannot dispatch help.
+15.3 **In an emergency, call 911 first.** Then report the incident to us at [contact email]. BlockSide is not an emergency service and cannot dispatch help.
 
 15.4 You may report Users or content that violate these Terms through the Service or at [contact email]. We may, but are not required to, investigate, and we may share information with law enforcement as described in our Privacy Policy.
 
 ## 16. Messaging
 
-16.1 The Service includes in-app messaging so Posters and Helpers can discuss Jobs. Use it only for communications related to Jobs on Bunk.
+16.1 The Service includes in-app messaging so Posters and Helpers can discuss Jobs. Use it only for communications related to Jobs on BlockSide.
 
-16.2 **We may store, review, and scan messages,** using automated tools or people, to operate the Service, detect fraud, spam, and safety risks, enforce these Terms, respond to reports, and comply with law. Do not use messages for anything you would not want Bunk to see. By using messaging, you consent to this.
+16.2 **We may store, review, and scan messages,** using automated tools or people, to operate the Service, detect fraud, spam, and safety risks, enforce these Terms, respond to reports, and comply with law. Do not use messages for anything you would not want BlockSide to see. By using messaging, you consent to this.
 
 16.3 Messages are not a secure channel for sensitive information. Do not send passwords, bank account numbers, Social Security numbers, or similar sensitive data in messages.
 
-16.4 If you share your phone number, address, or other contact details with another User, you are responsible for that choice, and Bunk cannot control how the other User uses it.
+16.4 If you share your phone number, address, or other contact details with another User, you are responsible for that choice, and BlockSide cannot control how the other User uses it.
 
 ## 17. Reviews and Ratings
 
 17.1 After a Job, Users may leave reviews and ratings about each other. **Reviews must be honest, based on a real Job, and about the experience,** not about a person's protected characteristics.
 
-17.2 **Reviews are the opinions of the Users who write them, not of Bunk.** We do not verify the accuracy of reviews.
+17.2 **Reviews are the opinions of the Users who write them, not of BlockSide.** We do not verify the accuracy of reviews.
 
 17.3 We may remove, hide, or refuse to post a review that we believe violates these Terms, for example because it is fake, abusive, discloses private information, is about the wrong person, or was obtained through incentives or threats. We do not remove reviews simply because they are negative. Nothing in these Terms restricts your right to give an honest review as protected by law, including the federal Consumer Review Fairness Act and California Civil Code Section 1670.8.
 
 ## 18. Referrals and Saved Helpers
 
-18.1 **Referrals.** You may be able to refer a Helper to another User or invite someone to join Bunk. You may refer only people you have a reasonable basis to recommend, and you may not send referral messages to people who have not agreed to hear from you. A referral is your personal opinion. Bunk does not vouch for any referred Helper. If we offer referral rewards, additional referral terms will apply.
+18.1 **Referrals.** You may be able to refer a Helper to another User or invite someone to join BlockSide. You may refer only people you have a reasonable basis to recommend, and you may not send referral messages to people who have not agreed to hear from you. A referral is your personal opinion. BlockSide does not vouch for any referred Helper. If we offer referral rewards, additional referral terms will apply.
 
-18.2 **Saved Helpers.** You may save Helpers to a list for convenience. Saving a Helper does not create any obligation for you or the Helper, and a saved Helper may later become unavailable or leave Bunk.
+18.2 **Saved Helpers.** You may save Helpers to a list for convenience. Saving a Helper does not create any obligation for you or the Helper, and a saved Helper may later become unavailable or leave BlockSide.
 
 ## 19. Your Content and the License You Give Us
 
 19.1 **You own your User Content.** You are responsible for it, and you confirm that you have the rights needed to post it and that it does not violate these Terms, any law, or anyone else's rights.
 
-19.2 **License to Bunk.** So that we can run and promote the Service, you give Bunk a worldwide, non-exclusive, royalty-free, transferable, and sublicensable license to host, store, copy, display, reproduce, adapt (for example, resize or translate), publish, and distribute your User Content in connection with operating, improving, and promoting the Service. This license continues for reviews and public content after you close your account, to the extent the content was shared with others or is needed for records, safety, or legal compliance. For other content, the license ends when you delete the content or your account, except for backup copies kept for a limited time.
+19.2 **License to BlockSide.** So that we can run and promote the Service, you give BlockSide a worldwide, non-exclusive, royalty-free, transferable, and sublicensable license to host, store, copy, display, reproduce, adapt (for example, resize or translate), publish, and distribute your User Content in connection with operating, improving, and promoting the Service. This license continues for reviews and public content after you close your account, to the extent the content was shared with others or is needed for records, safety, or legal compliance. For other content, the license ends when you delete the content or your account, except for backup copies kept for a limited time.
 
 19.3 We will not use your name or profile photo in paid advertising outside the Service without your permission.
 
@@ -217,15 +217,15 @@ You agree not to, and not to try to:
 
 ## 20. SMS Job Alert Terms (Text Messages)
 
-20.1 **Program.** Bunk offers an optional text message program, "Bunk Urgent Job Alerts," that sends Helpers alerts about urgent Jobs near them. Messages are sent through our messaging provider, currently Twilio.
+20.1 **Program.** BlockSide offers an optional text message program, "BlockSide Urgent Job Alerts," that sends Helpers alerts about urgent Jobs near them. Messages are sent through our messaging provider, currently Twilio.
 
-20.2 **Consent.** You will only receive Job alert texts if you opt in, for example by checking an unchecked box or toggling on alerts in your settings and confirming your mobile number. **By opting in, you agree to receive recurring automated text messages from Bunk at the mobile number you provide. Consent is not a condition of using Bunk or of any purchase.** You confirm that you are the account holder for that number or are authorized to enroll it.
+20.2 **Consent.** You will only receive Job alert texts if you opt in, for example by checking an unchecked box or toggling on alerts in your settings and confirming your mobile number. **By opting in, you agree to receive recurring automated text messages from BlockSide at the mobile number you provide. Consent is not a condition of using BlockSide or of any purchase.** You confirm that you are the account holder for that number or are authorized to enroll it.
 
-20.3 **Sample consent language** shown at opt-in: "Yes, text me urgent job alerts from Bunk at the number above. Up to [X] msgs/day. Msg & data rates may apply. Reply STOP to cancel, HELP for help. Consent is not required to use Bunk. See Terms and Privacy Policy."
+20.3 **Sample consent language** shown at opt-in: "Yes, text me urgent job alerts from BlockSide at the number above. Up to [X] msgs/day. Msg & data rates may apply. Reply STOP to cancel, HELP for help. Consent is not required to use BlockSide. See Terms and Privacy Policy."
 
 20.4 **Frequency and quiet hours.** Message frequency varies with Job activity in your area. We aim to limit alerts to **no more than [X] messages per day** and **will not send Job alerts between [9:00 PM] and [8:00 AM] in your local time zone**, except messages you request, such as a verification code.
 
-20.5 **Costs.** **Message and data rates may apply.** Bunk does not charge for texts.
+20.5 **Costs.** **Message and data rates may apply.** BlockSide does not charge for texts.
 
 20.6 **How to stop.** **Reply STOP to any alert to opt out.** You may also reply END, CANCEL, QUIT, UNSUBSCRIBE, or REVOKE, turn off alerts in your settings, or tell us in any other reasonable way, such as by emailing [contact email]. We will honor your request promptly and within the time the law requires. You may receive one final text confirming your opt-out. Reply HELP for help, or contact [contact email].
 
@@ -251,19 +251,19 @@ You agree not to, and not to try to:
 
 Our Privacy Policy, available at [privacy policy URL], explains what information we collect, including location data used for Helper verification, and how we use and share it. By using the Service, you acknowledge that we will handle your information as described there.
 
-## 23. Bunk's Intellectual Property; Feedback
+## 23. BlockSide's Intellectual Property; Feedback
 
-23.1 The Service, including its software, design, text, graphics, logos, and the Bunk name and marks, is owned by Bunk or its licensors and is protected by intellectual property laws. Except for your User Content, all rights are reserved.
+23.1 The Service, including its software, design, text, graphics, logos, and the BlockSide name and marks, is owned by BlockSide or its licensors and is protected by intellectual property laws. Except for your User Content, all rights are reserved.
 
-23.2 Subject to these Terms, we give you a limited, personal, revocable, non-exclusive, non-transferable license to use the Service for its intended purpose. You may not use Bunk's name, logos, or marks without our written permission.
+23.2 Subject to these Terms, we give you a limited, personal, revocable, non-exclusive, non-transferable license to use the Service for its intended purpose. You may not use BlockSide's name, logos, or marks without our written permission.
 
 23.3 **Feedback.** If you send us suggestions or ideas about the Service, we may use them freely without any obligation or payment to you.
 
 ## 24. Third-Party Services
 
-24.1 The Service relies on and may link to services operated by others, such as hosting, database, sign-in, mapping, and text messaging providers, app stores, and payment apps that Users choose to use with each other. **Bunk does not control and is not responsible for third-party services,** their content, availability, or practices. Your use of them is governed by their own terms and privacy policies.
+24.1 The Service relies on and may link to services operated by others, such as hosting, database, sign-in, mapping, and text messaging providers, app stores, and payment apps that Users choose to use with each other. **BlockSide does not control and is not responsible for third-party services,** their content, availability, or practices. Your use of them is governed by their own terms and privacy policies.
 
-24.2 If you download a Bunk app from an app store, you also agree to that app store's applicable terms, and the app store is not responsible for the app or for support.
+24.2 If you download a BlockSide app from an app store, you also agree to that app store's applicable terms, and the app store is not responsible for the app or for support.
 
 ## 25. Copyright Complaints (DMCA)
 
@@ -276,7 +276,7 @@ Our Privacy Policy, available at [privacy policy URL], explains what information
 - A statement that you have a good faith belief that the use is not authorized by the copyright owner, its agent, or the law.
 - A statement, under penalty of perjury, that the information in your notice is accurate and that you are the copyright owner or authorized to act on the owner's behalf.
 
-25.2 **Copyright Agent:** [Agent name], [Bunk legal entity name], [mailing address], [copyright agent email].
+25.2 **Copyright Agent:** [Agent name], [BlockSide legal entity name], [mailing address], [copyright agent email].
 
 25.3 If your content was removed and you believe it was removed by mistake, you may send a counter-notice as permitted by 17 U.S.C. Section 512(g). **We will terminate the accounts of repeat infringers in appropriate circumstances.** Knowingly false notices may result in liability for damages.
 
@@ -284,7 +284,7 @@ Our Privacy Policy, available at [privacy policy URL], explains what information
 
 26.1 **You may stop using the Service and delete your account at any time** in your account settings or by contacting [contact email].
 
-26.2 **We may suspend, limit, or terminate your account or access, or remove content,** at any time if we reasonably believe you have violated these Terms or the law, created risk or possible legal exposure for Bunk or others, or if we stop offering the Service. Where appropriate and safe, we will try to tell you why and give you an opportunity to respond, but we are not required to do so in every case. You may ask us to reconsider by writing to [contact email] within 30 days.
+26.2 **We may suspend, limit, or terminate your account or access, or remove content,** at any time if we reasonably believe you have violated these Terms or the law, created risk or possible legal exposure for BlockSide or others, or if we stop offering the Service. Where appropriate and safe, we will try to tell you why and give you an opportunity to respond, but we are not required to do so in every case. You may ask us to reconsider by writing to [contact email] within 30 days.
 
 26.3 If your account is suspended or terminated, you may not create a new account without our permission.
 
@@ -294,7 +294,7 @@ Our Privacy Policy, available at [privacy policy URL], explains what information
 
 27.1 **Disputes about a Job, payment, damage, or conduct are between the Users involved.** We encourage Users to resolve disagreements respectfully and directly.
 
-27.2 Bunk may, but is not required to, help Users communicate about a dispute, and may take action on accounts. Any help we provide does not make us responsible for the outcome. Bunk does not act as a mediator, arbitrator, or judge of disputes between Users.
+27.2 BlockSide may, but is not required to, help Users communicate about a dispute, and may take action on accounts. Any help we provide does not make us responsible for the outcome. BlockSide does not act as a mediator, arbitrator, or judge of disputes between Users.
 
 ## 28. Disclaimers
 
@@ -312,29 +312,29 @@ Our Privacy Policy, available at [privacy policy URL], explains what information
 
 **TO THE FULLEST EXTENT PERMITTED BY LAW, THE TOTAL LIABILITY OF THE BUNK PARTIES FOR ALL CLAIMS ARISING OUT OF OR RELATING TO THESE TERMS OR THE SERVICE WILL NOT EXCEED THE GREATER OF (A) THE AMOUNT YOU PAID TO BUNK IN THE 12 MONTHS BEFORE THE EVENT GIVING RISE TO THE CLAIM, OR (B) ONE HUNDRED U.S. DOLLARS (US $100).**
 
-**NOTHING IN THESE TERMS LIMITS OR EXCLUDES LIABILITY THAT CANNOT BE LIMITED OR EXCLUDED UNDER APPLICABLE LAW, INCLUDING, WHERE APPLICABLE, LIABILITY FOR FRAUD, WILLFUL INJURY, GROSS NEGLIGENCE, OR VIOLATION OF LAW AS DESCRIBED IN CALIFORNIA CIVIL CODE SECTION 1668.** These limits are an essential part of the bargain between you and Bunk, which provides the Service free of charge.
+**NOTHING IN THESE TERMS LIMITS OR EXCLUDES LIABILITY THAT CANNOT BE LIMITED OR EXCLUDED UNDER APPLICABLE LAW, INCLUDING, WHERE APPLICABLE, LIABILITY FOR FRAUD, WILLFUL INJURY, GROSS NEGLIGENCE, OR VIOLATION OF LAW AS DESCRIBED IN CALIFORNIA CIVIL CODE SECTION 1668.** These limits are an essential part of the bargain between you and BlockSide, which provides the Service free of charge.
 
 ## 30. Indemnification
 
-30.1 To the fullest extent permitted by law, **you agree to defend, indemnify, and hold harmless the Bunk Parties** from and against any claims, losses, damages, liabilities, fines, costs, and expenses, including reasonable attorneys' fees, arising out of or relating to: (a) your use of the Service; (b) your User Content; (c) any Job you post, offer on, perform, or receive, including any injury, loss, or damage connected with it; (d) your interactions with other Users; (e) your violation of these Terms or of any law; or (f) your violation of anyone else's rights.
+30.1 To the fullest extent permitted by law, **you agree to defend, indemnify, and hold harmless the BlockSide Parties** from and against any claims, losses, damages, liabilities, fines, costs, and expenses, including reasonable attorneys' fees, arising out of or relating to: (a) your use of the Service; (b) your User Content; (c) any Job you post, offer on, perform, or receive, including any injury, loss, or damage connected with it; (d) your interactions with other Users; (e) your violation of these Terms or of any law; or (f) your violation of anyone else's rights.
 
-30.2 We may take over the defense of any claim at your expense, and you agree to cooperate. You may not settle a claim that affects Bunk without our written consent.
+30.2 We may take over the defense of any claim at your expense, and you agree to cooperate. You may not settle a claim that affects BlockSide without our written consent.
 
 ## 31. Release
 
-31.1 **To the fullest extent permitted by law, you release the Bunk Parties from all claims, demands, and damages, known and unknown, arising out of or connected with any dispute between you and another User or any third party, including any Job, payment, or interaction with another User.**
+31.1 **To the fullest extent permitted by law, you release the BlockSide Parties from all claims, demands, and damages, known and unknown, arising out of or connected with any dispute between you and another User or any third party, including any Job, payment, or interaction with another User.**
 
 31.2 **California Civil Code Section 1542 waiver.** If you are a California resident, you waive California Civil Code Section 1542, which says: **"A general release does not extend to claims that the creditor or releasing party does not know or suspect to exist in his or her favor at the time of executing the release and that, if known by him or her, would have materially affected his or her settlement with the debtor or released party."** If you live elsewhere, you waive any similar law of your state.
 
-31.3 This release does not apply to claims that cannot be released under applicable law, or to claims against Bunk for Bunk's own fraud, gross negligence, or willful misconduct.
+31.3 This release does not apply to claims that cannot be released under applicable law, or to claims against BlockSide for BlockSide's own fraud, gross negligence, or willful misconduct.
 
 ## 32. Dispute Resolution: Binding Individual Arbitration and Class Action Waiver
 
 **PLEASE READ THIS SECTION CAREFULLY. IT AFFECTS YOUR LEGAL RIGHTS, INCLUDING YOUR RIGHT TO FILE A LAWSUIT IN COURT AND TO HAVE A JURY HEAR YOUR CLAIMS.**
 
-32.1 **Scope.** Except as provided in Section 32.3 and unless you opt out under Section 32.8, **you and Bunk agree to resolve any dispute, claim, or controversy between you and Bunk arising out of or relating to these Terms, the Service, or your relationship with Bunk (a "Dispute") by binding individual arbitration,** rather than in court. This includes Disputes that arose before you accepted these Terms and Disputes about the existence, scope, or validity of this Section, except as stated in Section 32.5. The Federal Arbitration Act ("FAA") governs this Section.
+32.1 **Scope.** Except as provided in Section 32.3 and unless you opt out under Section 32.8, **you and BlockSide agree to resolve any dispute, claim, or controversy between you and BlockSide arising out of or relating to these Terms, the Service, or your relationship with BlockSide (a "Dispute") by binding individual arbitration,** rather than in court. This includes Disputes that arose before you accepted these Terms and Disputes about the existence, scope, or validity of this Section, except as stated in Section 32.5. The Federal Arbitration Act ("FAA") governs this Section.
 
-32.2 **Informal resolution first.** Before starting arbitration or a small claims case, the party with a Dispute must send the other a written notice ("Notice of Dispute") that includes the person's name, account email, mailing address, and phone number, a description of the Dispute, and the specific relief requested. Send notices to Bunk at [mailing address], with a copy to [legal notice email]. We will send notices to the email and address on your account. **For 60 days after the notice is received, the parties will try in good faith to resolve the Dispute,** and either party may request an individual phone or video conference, which the person with the Dispute will personally attend (with counsel, if represented). Deadlines, including statutes of limitations, are paused during this 60 day period. This step is a condition to starting arbitration, and a court may enforce it.
+32.2 **Informal resolution first.** Before starting arbitration or a small claims case, the party with a Dispute must send the other a written notice ("Notice of Dispute") that includes the person's name, account email, mailing address, and phone number, a description of the Dispute, and the specific relief requested. Send notices to BlockSide at [mailing address], with a copy to [legal notice email]. We will send notices to the email and address on your account. **For 60 days after the notice is received, the parties will try in good faith to resolve the Dispute,** and either party may request an individual phone or video conference, which the person with the Dispute will personally attend (with counsel, if represented). Deadlines, including statutes of limitations, are paused during this 60 day period. This step is a condition to starting arbitration, and a court may enforce it.
 
 32.3 **Exceptions.** The following do not have to be arbitrated:
 
@@ -343,21 +343,21 @@ Our Privacy Policy, available at [privacy policy URL], explains what information
 - **Claims that cannot be arbitrated by law,** including claims that you may elect to bring in court under the federal Ending Forced Arbitration of Sexual Assault and Sexual Harassment Act.
 - Nothing in this Section prevents you from reporting to or filing a complaint with a government agency.
 
-32.4 **Arbitration rules, location, and fees.** The arbitration will be administered by the American Arbitration Association ("AAA") under its Consumer Arbitration Rules (and, where applicable, its Mass Arbitration Supplementary Rules) as modified by this Section, available at www.adr.org. A single neutral arbitrator will decide the Dispute. **Arbitration will take place by video or phone unless the arbitrator decides an in-person hearing is needed, in which case it will be held in the county where you live or another place we both agree on.** For claims of $10,000 or less, you may choose whether the arbitration is decided on documents only, by phone or video, or in person. **Bunk will pay all AAA filing, administrative, and arbitrator fees for any arbitration you start, other than an amount equal to the filing fee you would pay to file the claim in court, unless the arbitrator finds your claim frivolous or brought for an improper purpose.** We will pay required fees on time, as California law requires. Each party pays its own attorneys' fees unless the arbitrator awards them under applicable law.
+32.4 **Arbitration rules, location, and fees.** The arbitration will be administered by the American Arbitration Association ("AAA") under its Consumer Arbitration Rules (and, where applicable, its Mass Arbitration Supplementary Rules) as modified by this Section, available at www.adr.org. A single neutral arbitrator will decide the Dispute. **Arbitration will take place by video or phone unless the arbitrator decides an in-person hearing is needed, in which case it will be held in the county where you live or another place we both agree on.** For claims of $10,000 or less, you may choose whether the arbitration is decided on documents only, by phone or video, or in person. **BlockSide will pay all AAA filing, administrative, and arbitrator fees for any arbitration you start, other than an amount equal to the filing fee you would pay to file the claim in court, unless the arbitrator finds your claim frivolous or brought for an improper purpose.** We will pay required fees on time, as California law requires. Each party pays its own attorneys' fees unless the arbitrator awards them under applicable law.
 
 32.5 **Arbitrator authority.** The arbitrator may award any individual relief that a court could award, applying the same law, and will issue a written, reasoned decision. The arbitrator decides questions about the scope, interpretation, and enforceability of this Section, **except that a court decides (a) whether the class action waiver in Section 32.6 is enforceable, (b) disputes about the informal resolution requirement in Section 32.2 and the mass arbitration procedures in Section 32.7, and (c) whether a claim falls within an exception in Section 32.3.** Judgment on the award may be entered in any court with jurisdiction.
 
 32.6 **Class action waiver.** **YOU AND BUNK AGREE THAT EACH MAY BRING CLAIMS AGAINST THE OTHER ONLY IN AN INDIVIDUAL CAPACITY, AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY CLASS, COLLECTIVE, CONSOLIDATED, OR REPRESENTATIVE PROCEEDING.** The arbitrator may not combine more than one person's claims (except as provided in Section 32.7) and may award relief only to the individual party and only to the extent needed to address that party's individual claim. **If you seek public injunctive relief,** as defined by California law, that request will be decided by a court in Santa Clara County after the individual claims are arbitrated, and the court case will be paused until then. If a court decides that this class action waiver cannot be enforced for a particular claim or remedy, then that claim or remedy, and only that one, will be decided by a court in Santa Clara County after arbitration of any remaining claims, and will not proceed as a class arbitration.
 
-32.7 **Mass arbitration.** If 25 or more similar Notices of Dispute or arbitration demands are submitted against Bunk by or with the help of the same or coordinated counsel or organizations ("Mass Filing"), the following applies in addition to the AAA Mass Arbitration Supplementary Rules:
+32.7 **Mass arbitration.** If 25 or more similar Notices of Dispute or arbitration demands are submitted against BlockSide by or with the help of the same or coordinated counsel or organizations ("Mass Filing"), the following applies in addition to the AAA Mass Arbitration Supplementary Rules:
 
 - Each claimant must still complete the informal resolution process in Section 32.2 individually.
-- **Bellwether stage.** Counsel for the claimants and Bunk will each select up to 10 cases (20 total) to proceed first in individual arbitrations. All other cases are held, no fees are due on them from either party, and limitations periods are paused while held.
-- **Mediation.** After the bellwether cases are decided, the parties will mediate the remaining cases in good faith for at least 60 days, with Bunk paying the mediator's fees.
+- **Bellwether stage.** Counsel for the claimants and BlockSide will each select up to 10 cases (20 total) to proceed first in individual arbitrations. All other cases are held, no fees are due on them from either party, and limitations periods are paused while held.
+- **Mediation.** After the bellwether cases are decided, the parties will mediate the remaining cases in good faith for at least 60 days, with BlockSide paying the mediator's fees.
 - **Remaining cases.** If mediation does not resolve the remaining cases, they will proceed in individual arbitrations under the AAA rules in staged batches as the AAA administers them.
 - A court may resolve any disagreement about whether this subsection applies or how it is carried out. If this subsection is found unenforceable as to a Mass Filing, the Mass Filing will proceed under the AAA rules alone.
 
-32.8 **30-day right to opt out.** **You may opt out of this arbitration agreement by sending written notice within 30 days after you first accept these Terms.** Send an email from your account email address to [legal notice email] with the subject line "Arbitration Opt-Out," or a letter to [mailing address], that includes your name, account email, mailing address, and a clear statement that you opt out of arbitration. Opting out does not affect any other part of these Terms. If you opt out, Bunk is also not bound by this Section as to you.
+32.8 **30-day right to opt out.** **You may opt out of this arbitration agreement by sending written notice within 30 days after you first accept these Terms.** Send an email from your account email address to [legal notice email] with the subject line "Arbitration Opt-Out," or a letter to [mailing address], that includes your name, account email, mailing address, and a clear statement that you opt out of arbitration. Opting out does not affect any other part of these Terms. If you opt out, BlockSide is also not bound by this Section as to you.
 
 32.9 **Changes to this Section.** If we make a material change to this Section, you may reject the change by sending us written notice as described in Section 32.8 within 30 days after the change takes effect. If you reject it, the most recent version of this Section that you accepted will continue to apply. Changes will not apply to any Dispute for which a Notice of Dispute was sent before the change.
 
@@ -369,11 +369,11 @@ Our Privacy Policy, available at [privacy policy URL], explains what information
 
 33.1 These Terms are governed by the laws of the State of California, without regard to conflict of law rules, except that the FAA governs Section 32.
 
-33.2 **Any Dispute that is not arbitrated will be brought only in the state courts located in Santa Clara County, California, or the United States District Court for the Northern District of California, San Jose Division,** and you and Bunk consent to the personal jurisdiction of those courts. Either party may also seek to compel arbitration or enforce an award in those courts.
+33.2 **Any Dispute that is not arbitrated will be brought only in the state courts located in Santa Clara County, California, or the United States District Court for the Northern District of California, San Jose Division,** and you and BlockSide consent to the personal jurisdiction of those courts. Either party may also seek to compel arbitration or enforce an award in those courts.
 
 ## 34. General Terms
 
-34.1 **Entire agreement.** These Terms, the Privacy Policy, and any feature terms referenced in them are the entire agreement between you and Bunk about the Service.
+34.1 **Entire agreement.** These Terms, the Privacy Policy, and any feature terms referenced in them are the entire agreement between you and BlockSide about the Service.
 
 34.2 **Assignment.** You may not assign these Terms without our written consent. We may assign these Terms, for example in a merger, acquisition, or sale of assets, with notice to you.
 
@@ -381,11 +381,11 @@ Our Privacy Policy, available at [privacy policy URL], explains what information
 
 34.4 **Force majeure.** We are not liable for delays or failures caused by events beyond our reasonable control, such as natural disasters, outages of internet, hosting, or carrier services, or government action.
 
-34.5 **No third-party beneficiaries.** Except for the Bunk Parties as stated in Sections 28 through 31, these Terms do not give rights to anyone other than you and Bunk.
+34.5 **No third-party beneficiaries.** Except for the BlockSide Parties as stated in Sections 28 through 31, these Terms do not give rights to anyone other than you and BlockSide.
 
-34.6 **Insurers and subrogation.** To the extent permitted by law, any insurer or other party claiming through you is bound by these Terms to the same extent you are and has no greater rights against Bunk than you would.
+34.6 **Insurers and subrogation.** To the extent permitted by law, any insurer or other party claiming through you is bound by these Terms to the same extent you are and has no greater rights against BlockSide than you would.
 
-34.7 **Time to bring claims.** To the extent permitted by law, any claim against Bunk must be brought within one year after it arises, or it is permanently barred.
+34.7 **Time to bring claims.** To the extent permitted by law, any claim against BlockSide must be brought within one year after it arises, or it is permanently barred.
 
 34.8 **Interpretation.** Headings are for convenience only. "Including" means "including without limitation."
 
@@ -393,13 +393,13 @@ Our Privacy Policy, available at [privacy policy URL], explains what information
 
 ## 35. Notice to California Users
 
-Under California Civil Code Section 1789.3, California users are entitled to the following notice: The Service is provided by [Bunk legal entity name], [mailing address]. Bunk does not currently charge Users for the Service. You may contact the Complaint Assistance Unit of the Division of Consumer Services of the California Department of Consumer Affairs in writing at 1625 North Market Blvd., Suite N 112, Sacramento, California 95834, or by telephone at (800) 952-5210.
+Under California Civil Code Section 1789.3, California users are entitled to the following notice: The Service is provided by [BlockSide legal entity name], [mailing address]. BlockSide does not currently charge Users for the Service. You may contact the Complaint Assistance Unit of the Division of Consumer Services of the California Department of Consumer Affairs in writing at 1625 North Market Blvd., Suite N 112, Sacramento, California 95834, or by telephone at (800) 952-5210.
 
 ## 36. Contact Us
 
 Questions about these Terms? Contact us:
 
-[Bunk legal entity name]\
+[BlockSide legal entity name]\
 [mailing address]\
 San Jose, California\
 Email: [contact email]\

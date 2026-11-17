@@ -919,8 +919,8 @@ export function RequestDetail() {
                     </h2>
                     <p className="mt-1 text-[14px] text-[#4A5568]">
                       {myOffer?.status === 'pending'
-                        ? 'You can cancel this offer anytime. New offers unlock after Bunk confirms you are at your home address.'
-                        : "Offering unlocks after Bunk confirms you're at your home address."}
+                        ? 'You can cancel this offer anytime. New offers unlock after BlockSide confirms you are at your home address.'
+                        : "Offering unlocks after BlockSide confirms you're at your home address."}
                     </p>
                     {myOffer?.status === 'pending' ? (
                       <div className="mt-4">
@@ -1007,7 +1007,7 @@ export function RequestDetail() {
               </dl>
 
               <div className="mt-5 border-0 bg-transparent px-0 py-1 text-[13.5px] leading-relaxed text-[#4A5568]">
-                Pay your helper peer-to-peer (Venmo, cash, Zelle, etc.). Bunk doesn&apos;t process
+                Pay your helper peer-to-peer (Venmo, cash, Zelle, etc.). BlockSide doesn&apos;t process
                 payments yet. Agree on the method in chat before you start.
               </div>
 

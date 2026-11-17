@@ -1,5 +1,5 @@
 /**
- * Casual launch taxonomy (Bunk).
+ * Casual launch taxonomy (BlockSide).
  * Active selections are parent → service leaves (+ Other custom text).
  * Legacy six-category IDs remain readable for historical records only.
  */

@@ -14,17 +14,18 @@ export function maskPhoneE164(phone: string): string {
 }
 
 export const PHONE_ALREADY_USED_MESSAGE =
-  'This number is already used on another Bunk account.'
+  'This number is already used on another BlockSide account.'
 
 /**
- * Parse a Bunk inbound confirmation code from an SMS body.
- * Accepts forms like "Bunk code 482913", "bunk code:482913", or a bare 6-digit code.
+ * Parse a BlockSide inbound confirmation code from an SMS body.
+ * Accepts "BlockSide code 482913", legacy "Bunk code …", bare "code:482913", or a bare 6-digit code.
  */
 export function parseInboundPhoneCode(body: string): string | null {
   const text = (body || '').trim()
   if (!text) return null
 
   const labeled =
+    text.match(/\bblockside\s*code[:\s#-]*([0-9]{6})\b/i) ||
     text.match(/\bbunk\s*code[:\s#-]*([0-9]{6})\b/i) ||
     text.match(/\bcode[:\s#-]*([0-9]{6})\b/i)
   if (labeled?.[1]) return labeled[1]
@@ -41,6 +42,6 @@ export function buildPhoneConfirmSmsUri(input: {
   code: string
 }): string {
   const digits = input.toE164.replace(/\D/g, '')
-  const body = encodeURIComponent(`Bunk code ${input.code}`)
+  const body = encodeURIComponent(`BlockSide code ${input.code}`)
   return `sms:+${digits}?&body=${body}`
 }

@@ -4,7 +4,7 @@ import { pageMetadata } from '@/lib/seo/site'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Your profile',
-  description: 'How neighbors see your Bunk profile.',
+  description: 'How neighbors see your BlockSide profile.',
   path: '/you',
   noindex: true,
 })

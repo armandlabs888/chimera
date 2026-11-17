@@ -26,7 +26,7 @@ function isOnboardingAllowedPath(pathname: string) {
  * Authenticated users missing onboarding are forced to /onboarding.
  *
  * Loading / redirect states render nothing in the content area so AppShell
- * (header/footer) stays visible. No full-screen Bunk splash.
+ * (header/footer) stays visible. No full-screen BlockSide splash.
  */
 export function AuthGate({ children }: { children: ReactNode }) {
   const { mode, authUser, currentUser, ready } = useBeam()
