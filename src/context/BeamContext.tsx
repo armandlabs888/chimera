@@ -16,6 +16,7 @@ import type { Session, User } from '@supabase/supabase-js'
 import { getCategory, whenLabel } from '@/data/categories'
 import { loadState, resetState, saveState, uid } from '@/data/storage'
 import { resolveAreaCentroid } from '@/lib/areaCentroids'
+import { authActionError, isAwaitingSignedInLiveState } from '@/lib/auth/liveStateGate'
 import { resolveBeamMode, type BeamMode } from '@/lib/config'
 import { formatJobDetailsDisplay } from '@/lib/displayDetails'
 import { parseRealName } from '@/lib/realName'
@@ -388,25 +389,39 @@ export function BeamProvider({
       }
 
     const client = createClient()
-    const { data: sub } = client.auth.onAuthStateChange(async (_event, session: Session | null) => {
+    // Defer Supabase work out of the auth callback to avoid GoTrue lock contention
+    // (do not await client calls directly inside onAuthStateChange).
+    const { data: sub } = client.auth.onAuthStateChange((_event, session: Session | null) => {
       // Sign-out navigates away via /auth/signout; skip public-marketplace hydrate
       // so guests are never stranded on the prior route in landing chrome.
       if (signingOutRef.current) return
-      try {
-        setAuthUser(session?.user ?? null)
-        if (!session?.user) {
-          const publicState = await loadPublicLiveMarketplace(client)
-          setState(publicState)
-          return
-        }
-        await ensureProfile(client, session.user.id, profileSeedFromUser(session.user))
-        const next = await loadLiveState(client, session.user.id)
-        setState(next)
+      setAuthUser(session?.user ?? null)
+      if (session?.user) {
+        // Drop stale auth-form errors (e.g. prior signup 422) as soon as we have a session.
         setBackendError(null)
-      } catch (err) {
-        setBackendError(err instanceof Error ? err.message : 'Auth state sync failed')
-        setState(null)
       }
+      window.setTimeout(() => {
+        void (async () => {
+          if (signingOutRef.current || cancelled) return
+          try {
+            if (!session?.user) {
+              const publicState = await loadPublicLiveMarketplace(client)
+              if (!cancelled && !signingOutRef.current) setState(publicState)
+              return
+            }
+            await ensureProfile(client, session.user.id, profileSeedFromUser(session.user))
+            if (cancelled || signingOutRef.current) return
+            const next = await loadLiveState(client, session.user.id)
+            if (cancelled || signingOutRef.current) return
+            setState(next)
+            setBackendError(null)
+          } catch (err) {
+            if (cancelled || signingOutRef.current) return
+            setBackendError(err instanceof Error ? err.message : 'Auth state sync failed')
+            setState(null)
+          }
+        })()
+      }, 0)
     })
 
     return () => {
@@ -427,14 +442,14 @@ export function BeamProvider({
     return user
   }, [state])
 
-  const signIn = useCallback(
-    async (email: string, password: string) => {
-      const client = createClient()
-      const { error } = await client.auth.signInWithPassword({ email, password })
-      if (error) reportError(error, 'Sign in failed')
-    },
-    [reportError],
-  )
+  const signIn = useCallback(async (email: string, password: string) => {
+    const client = createClient()
+    const { error } = await client.auth.signInWithPassword({ email, password })
+    // Auth form errors stay inline (AuthExperience catch + friendlyAuthError),
+    // never the global backendError splash.
+    if (error) throw authActionError(error, 'Sign in failed')
+    setBackendError(null)
+  }, [])
 
   const signUp = useCallback(
     async (
@@ -463,39 +478,28 @@ export function BeamProvider({
           emailRedirectTo: options?.emailRedirectTo,
         },
       })
-      if (error) reportError(error, 'Sign up failed')
-      if (data.session?.user) {
-        await ensureProfile(
-          client,
-          data.session.user.id,
-          profileSeedFromUser(data.session.user, { neighborhood, locationLabel }),
-        )
-      }
+      if (error) throw authActionError(error, 'Sign up failed')
+      // Profile hydrate runs once via deferred onAuthStateChange when a session exists.
+      if (data.session) setBackendError(null)
       return { needsEmailConfirmation: !data.session }
     },
-    [reportError],
+    [],
   )
 
-  const signInWithGoogle = useCallback(
-    async (redirectTo: string) => {
-      const client = createClient()
-      const { error } = await client.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo },
-      })
-      if (error) reportError(error, 'Google sign-in failed')
-    },
-    [reportError],
-  )
+  const signInWithGoogle = useCallback(async (redirectTo: string) => {
+    const client = createClient()
+    const { error } = await client.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo },
+    })
+    if (error) throw authActionError(error, 'Google sign-in failed')
+  }, [])
 
-  const resendSignupConfirmation = useCallback(
-    async (email: string) => {
-      const client = createClient()
-      const { error } = await client.auth.resend({ type: 'signup', email })
-      if (error) reportError(error, 'Could not resend confirmation email')
-    },
-    [reportError],
-  )
+  const resendSignupConfirmation = useCallback(async (email: string) => {
+    const client = createClient()
+    const { error } = await client.auth.resend({ type: 'signup', email })
+    if (error) throw authActionError(error, 'Could not resend confirmation email')
+  }, [])
 
   const signOut = useCallback(async () => {
     // Freeze auth UI updates, then hard-navigate immediately through `/auth/signout`.
@@ -2313,19 +2317,58 @@ export function BeamProvider({
     )
   }
 
-  if (!state || !currentUser) {
+  // Signed in, but this user's live state is not loaded yet (still anonymous public
+  // snapshot or null). Keep children mounted with ready=false so the auth modal is
+  // not unmounted into the full-screen backend error splash during ensureProfile/load.
+  if (
+    isAwaitingSignedInLiveState({
+      mode,
+      authUserId: authUser?.id,
+      stateCurrentUserId: state?.currentUserId,
+      backendError,
+    })
+  ) {
+    const provisionalSignedIn: BeamContextValue = {
+      mode,
+      ready: false,
+      authUser,
+      backendError: null,
+      state: emptyLiveState(authUser!.id),
+      currentUser: guestStubPerson(),
+      refresh: noopAsync,
+      ...sharedActions,
+    }
+    return <BeamContext.Provider value={provisionalSignedIn}>{children}</BeamContext.Provider>
+  }
+
+  // Only the real backend failure path: missing state/user AND a reported backendError.
+  if ((!state || !currentUser) && backendError) {
     return (
       <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-4 text-[#071330]">
         <h1 className="type-h2 text-[#071330]">Bunk backend error</h1>
-        <p className="text-sm text-[#4A5568]">
-          {backendError || 'Could not load your Bunk session from Supabase.'}
-        </p>
+        <p className="text-sm text-[#4A5568]">{backendError}</p>
         <p className="text-xs text-[#4A5568]">
           Live mode does not fall back to localStorage. Fix the backend error or use explicit demo
           mode.
         </p>
       </div>
     )
+  }
+
+  // Safety net: state/user still missing without a backendError (e.g. profile row lag).
+  // Prefer loading over unmounting the tree into a false error splash.
+  if (!state || !currentUser) {
+    const provisionalMissing: BeamContextValue = {
+      mode,
+      ready: false,
+      authUser,
+      backendError: null,
+      state: state ?? emptyLiveState(authUser?.id ?? 'anonymous'),
+      currentUser: currentUser ?? guestStubPerson(),
+      refresh: noopAsync,
+      ...sharedActions,
+    }
+    return <BeamContext.Provider value={provisionalMissing}>{children}</BeamContext.Provider>
   }
 
   const value: BeamContextValue = {
