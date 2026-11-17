@@ -23,10 +23,12 @@ const tabs: {
 
 export function BottomNav() {
   const pathname = usePathname()
-  const { open: messagesOpen, toggle, isGuest } = useMessagesDrawer()
+  const { open: messagesOpen, minimized, toggle, isGuest } = useMessagesDrawer()
 
   // Sticky save bar on edit profile replaces the dock (matches approved mock).
   if (pathname === '/settings/profile') return null
+  // Full-screen mobile messages panel covers the dock.
+  if (messagesOpen && !minimized) return null
 
   return (
     <nav

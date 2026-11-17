@@ -1,7 +1,6 @@
 'use client'
 
 /**
- * Conversation UI lives in the messages drawer. This re-export keeps older
- * imports compiling; routed `/messages` pages redirect into the drawer.
+ * Conversation UI shared by the floating panel and the full /messages page.
  */
 export { MessagesChatPanel as MessagesThread } from '@/components/messages/MessagesChatPanel'

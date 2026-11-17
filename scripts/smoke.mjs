@@ -2044,13 +2044,11 @@ async function checkMarketplaceFlows() {
       assert.equal(px, 0, `browse job row is flat (radius 0), got ${px}`)
     }
 
-    // Messages drawer — list over the current page, thread is a connected left pane.
+    // Floating messages panel over browse, plus full-page /messages for pop out.
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto(`${BASE_URL}/messages/missing-thread`, { waitUntil: 'domcontentloaded' })
-    await page.waitForSelector('[data-testid="messages-drawer"]', { timeout: 15000 })
-    assert.match(page.url(), /\/browse\?/, 'missing thread redirects onto browse')
-    assert.match(page.url(), /messages=1/, 'missing thread opens the drawer')
-    assert.match(page.url(), /thread=missing-thread/, 'missing thread keeps the thread id')
+    await page.waitForSelector('[data-testid="messages-thread-missing"]', { timeout: 15000 })
+    assert.match(page.url(), /\/messages\/missing-thread/, 'missing thread stays on full messages page')
     const missingText = await page.locator('body').innerText()
     assert.match(missingText, /Thread not found/i, 'missing thread empty state')
     assert.match(missingText, /Back to inbox/i, 'missing thread back action')
@@ -2060,34 +2058,22 @@ async function checkMarketplaceFlows() {
       /Conversations stay scoped to accepted requests/i,
       'no inaccurate messages hero subtitle',
     )
-    assert.ok(
-      (await page.locator('[data-testid="browse-v3"]').count()) >= 1,
-      'browse stays mounted under the drawer',
-    )
 
-    await page.goto(`${BASE_URL}/messages`, { waitUntil: 'domcontentloaded' })
+    await page.goto(`${BASE_URL}/browse?messages=1`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('[data-testid="messages-drawer"]', { timeout: 15000 })
     await page.waitForSelector('[data-testid="messages-thread-list"]', { timeout: 15000 })
-    await page.waitForFunction(() => {
-      const drawer = document.querySelector('[data-testid="messages-drawer"]')
-      if (!drawer) return false
-      const transform = getComputedStyle(drawer).transform
-      return transform === 'none' || transform === 'matrix(1, 0, 0, 1, 0, 0)'
-    })
     const messagesProbe = await page.evaluate(() => {
       const drawer = document.querySelector('[data-testid="messages-drawer"]')
       if (!drawer) return null
-      const list = document.querySelector('[data-testid="messages-list-panel"]')
       const conversation = document.querySelector('[data-testid="messages-conversation"]')
       const rail = document.querySelector('[data-testid="messages-task-rail"]')
       const taskBar = document.querySelector('[data-testid="messages-task-bar"]')
       const threads = document.querySelector('[data-testid="messages-thread-list"]')
-      const heroH1 = [...document.querySelectorAll('h1')].some((h) => h.textContent?.trim() === 'Messages')
       const rawOpenBadge = [...document.querySelectorAll('[data-testid="messages-thread-list"] *')].some(
         (el) => el.textContent?.trim() === 'open',
       )
       const dr = drawer.getBoundingClientRect()
-      const lr = list?.getBoundingClientRect()
+      const lr = document.querySelector('[data-testid="messages-list-panel"]')?.getBoundingClientRect()
       const radius = parseFloat(getComputedStyle(drawer).borderTopLeftRadius)
       return {
         role: drawer.getAttribute('role'),
@@ -2096,46 +2082,51 @@ async function checkMarketplaceFlows() {
         hasConversation: Boolean(conversation),
         hasRail: Boolean(rail),
         hasTaskBar: Boolean(taskBar),
-        heroH1,
         rawOpenBadge,
         sample: /Sample conversations/i.test(document.body.innerText),
         browseMounted: Boolean(document.querySelector('[data-testid="browse-v3"]')),
         listWidth: lr?.width ?? 0,
         drawerRightGap: window.innerWidth - dr.right,
-        drawerTop: dr.top,
-        bodyLocked: getComputedStyle(document.body).overflow === 'hidden',
+        drawerBottomGap: window.innerHeight - dr.bottom,
+        drawerWidth: dr.width,
+        drawerHeight: dr.height,
       }
     })
-    assert.ok(messagesProbe, 'messages drawer mounted')
-    assert.equal(messagesProbe.role, 'dialog', 'messages drawer is a dialog')
-    assert.equal(messagesProbe.heroH1, false, 'Messages title is not a page hero')
+    assert.ok(messagesProbe, 'messages panel mounted')
+    assert.equal(messagesProbe.role, 'dialog', 'messages panel is a dialog')
     assert.equal(messagesProbe.rawOpenBadge, false, 'no raw lowercase open badge in inbox')
     assert.equal(messagesProbe.sample, false, 'no sample conversations footer')
     assert.ok(messagesProbe.hasList, 'inbox thread list present')
-    assert.equal(messagesProbe.hasConversation, false, 'list drawer does not auto-open a thread')
+    assert.equal(messagesProbe.hasConversation, false, 'list panel does not auto-open a thread')
     assert.equal(messagesProbe.hasRail, false, 'task rail removed')
     assert.equal(messagesProbe.hasTaskBar, false, 'no persistent job/offer task bar')
-    assert.ok(messagesProbe.browseMounted, 'browse stays mounted under the list drawer')
-    assert.ok(messagesProbe.bodyLocked, 'body scroll locked while the drawer is open')
+    assert.ok(messagesProbe.browseMounted, 'browse stays mounted under the floating panel')
     assert.ok(
-      messagesProbe.listWidth >= 360 && messagesProbe.listWidth <= 400,
-      `list drawer ~380px (got ${messagesProbe.listWidth})`,
+      messagesProbe.listWidth >= 280 && messagesProbe.listWidth <= 310,
+      `list column ~292px (got ${messagesProbe.listWidth})`,
     )
     assert.ok(
-      messagesProbe.radius >= 12 && messagesProbe.radius <= 16,
-      `drawer radius ~14px, got ${messagesProbe.radius}`,
+      messagesProbe.radius >= 14 && messagesProbe.radius <= 18,
+      `panel radius ~16px, got ${messagesProbe.radius}`,
     )
     assert.ok(
-      messagesProbe.drawerTop >= 8 && messagesProbe.drawerTop <= 16,
-      `drawer inset top ~12px, got ${messagesProbe.drawerTop}`,
+      messagesProbe.drawerWidth >= 760 && messagesProbe.drawerWidth <= 820,
+      `panel width ~800px (got ${messagesProbe.drawerWidth})`,
     )
     assert.ok(
-      messagesProbe.drawerRightGap >= 8 && messagesProbe.drawerRightGap <= 16,
-      `drawer inset right ~12px, got ${messagesProbe.drawerRightGap}`,
+      messagesProbe.drawerHeight >= 600 && messagesProbe.drawerHeight <= 680,
+      `panel height ~640px (got ${messagesProbe.drawerHeight})`,
+    )
+    assert.ok(
+      messagesProbe.drawerRightGap >= 16 && messagesProbe.drawerRightGap <= 28,
+      `panel inset right ~20px, got ${messagesProbe.drawerRightGap}`,
+    )
+    assert.ok(
+      messagesProbe.drawerBottomGap >= 16 && messagesProbe.drawerBottomGap <= 28,
+      `panel inset bottom ~20px, got ${messagesProbe.drawerBottomGap}`,
     )
 
-    // Seeded requester thread — connected chat pane, person header, no offer strips
-    await page.goto(`${BASE_URL}/messages/th-1`, { waitUntil: 'domcontentloaded' })
+    await page.getByTestId('messages-thread-row-th-1').click()
     await page.waitForSelector('[data-testid="messages-conversation"]', { timeout: 15000 })
     const threadProbe = await page.evaluate(() => {
       const drawer = document.querySelector('[data-testid="messages-drawer"]')
@@ -2147,7 +2138,7 @@ async function checkMarketplaceFlows() {
       return {
         joined:
           Boolean(lr && cr) &&
-          Math.abs(cr.right - lr.left) <= 2 &&
+          Math.abs(cr.left - lr.right) <= 2 &&
           Math.abs(cr.top - lr.top) < 4,
         listWidth: lr?.width ?? 0,
         chatWidth: cr?.width ?? 0,
@@ -2160,28 +2151,32 @@ async function checkMarketplaceFlows() {
     })
     assert.equal(await page.getByTestId('messages-incoming-offer').count(), 0)
     assert.equal(await page.getByTestId('messages-task-bar').count(), 0)
-    assert.ok(await page.getByTestId('messages-composer').count() >= 1)
-    assert.ok(await page.getByTestId('messages-view-request').count() >= 1)
-    assert.ok(await page.getByTestId('messages-job-strip').count() >= 1)
+    assert.ok((await page.getByTestId('messages-composer').count()) >= 1)
+    assert.ok((await page.getByTestId('messages-view-request').count()) >= 1)
+    assert.ok((await page.getByTestId('messages-job-strip').count()) >= 1)
     assert.equal(threadProbe.price, false, 'no uppercase PRICE label in messages')
     assert.equal(threadProbe.confirmed, false, 'no confirmed-price strip')
     assert.equal(threadProbe.eta, false, 'no ETA Today strip')
     assert.equal(threadProbe.sample, false, 'no sample conversations footer')
-    assert.ok(threadProbe.joined, 'chat sits directly against the list (one panel)')
+    assert.ok(threadProbe.joined, 'chat sits directly against the list')
     assert.ok(
-      threadProbe.chatWidth >= 480 && threadProbe.chatWidth <= 520,
-      `chat pane ~500px (got ${threadProbe.chatWidth})`,
+      threadProbe.chatWidth >= 480 && threadProbe.chatWidth <= 530,
+      `chat pane fills remainder (got ${threadProbe.chatWidth})`,
     )
     assert.ok(
-      threadProbe.listWidth >= 360 && threadProbe.listWidth <= 400,
-      `list pane ~380px beside chat (got ${threadProbe.listWidth})`,
+      threadProbe.listWidth >= 280 && threadProbe.listWidth <= 310,
+      `list pane ~292px beside chat (got ${threadProbe.listWidth})`,
     )
     assert.ok(
-      threadProbe.drawerWidth >= 850 && threadProbe.drawerWidth <= 910,
-      `connected drawer ~880px (got ${threadProbe.drawerWidth})`,
+      threadProbe.drawerWidth >= 760 && threadProbe.drawerWidth <= 820,
+      `floating panel ~800px (got ${threadProbe.drawerWidth})`,
     )
 
-    console.log('ok marketplace daylight + AI draft + geocode + onboarding + request-detail 2col + messages drawer')
+    await page.goto(`${BASE_URL}/messages`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('[data-testid="messages-workspace"]', { timeout: 15000 })
+    assert.equal(await page.getByTestId('messages-drawer').count(), 0, 'full page does not mount floating panel')
+
+    console.log('ok marketplace daylight + AI draft + geocode + onboarding + request-detail 2col + messages panel')
   } finally {
     await browser.close()
   }

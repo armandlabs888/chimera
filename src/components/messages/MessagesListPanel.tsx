@@ -1,6 +1,6 @@
 'use client'
 
-import { Briefcase, MessageCircle, Search, X } from 'lucide-react'
+import { MessageCircle, Plus, Search, X } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { useInboxThreads } from '@/components/messages/useInboxThreads'
@@ -9,70 +9,106 @@ import { ReferralInboxCard } from '@/components/refer/ReferralInboxCard'
 import { Avatar } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
 import { inboundReferralsForHelper } from '@/lib/jobReferrals'
-import { relativeTime } from '@/lib/matching'
+import { jobThreadSubtitle } from '@/lib/messagesJobLabel'
+import { compactRelativeTime } from '@/lib/messagesTime'
 
-type Filter = 'all' | 'unread'
-
-export function MessagesListPanel() {
-  const { rows, unreadThreadCount } = useInboxThreads()
+export function MessagesListPanel({
+  showMobileClose = false,
+}: {
+  showMobileClose?: boolean
+}) {
+  const { rows } = useInboxThreads()
   const { threadId, openThread, closeAll } = useMessagesDrawer()
   const { state, currentUser } = useBeam()
   const [query, setQuery] = useState('')
-  const [filter, setFilter] = useState<Filter>('all')
+  const [searchOpen, setSearchOpen] = useState(false)
 
   const referralCards = useMemo(() => {
     const q = query.trim().toLowerCase()
     return inboundReferralsForHelper(state.jobReferrals, currentUser.id).filter((ref) => {
-      if (filter === 'unread' && ref.status !== 'pending') return false
       if (!q) return true
       const job = state.requests.find((r) => r.id === ref.jobId)
       const referrer = state.people.find((p) => p.id === ref.referrerId)
       const hay = `${referrer?.name ?? ''} ${job?.title ?? ''} ${ref.note}`.toLowerCase()
       return hay.includes(q)
     })
-  }, [state.jobReferrals, state.requests, state.people, currentUser.id, query, filter])
+  }, [state.jobReferrals, state.requests, state.people, currentUser.id, query])
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
     return rows.filter((row) => {
-      if (filter === 'unread' && !row.unread) return false
       if (!q) return true
       const name = (row.other?.name ?? '').toLowerCase()
-      const job = row.jobTitle.toLowerCase()
-      return name.includes(q) || job.includes(q)
+      const job = jobThreadSubtitle(row.request).toLowerCase()
+      const title = row.jobTitle.toLowerCase()
+      return name.includes(q) || job.includes(q) || title.includes(q)
     })
-  }, [rows, query, filter])
+  }, [rows, query])
 
   const emptyInbox = rows.length === 0 && referralCards.length === 0
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-white">
-      <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-[#E3E8EF] px-3 pl-5">
+    <div className="flex h-full min-h-0 w-full flex-col bg-white" data-testid="messages-list-panel">
+      <div className="flex h-14 shrink-0 items-center gap-2 border-b border-[#E3E8EF] pl-4 pr-2.5">
         <h2
           id="messages-drawer-title"
-          className="font-body text-[18px] font-bold tracking-[-0.02em] text-[#071330]"
+          className="min-w-0 flex-1 text-[20px] font-bold tracking-[-0.02em] text-[#071330]"
         >
           Messages
         </h2>
-        {unreadThreadCount > 0 ? (
-          <span
-            className="inline-flex h-[22px] items-center rounded-md border border-[#E3E8EF] bg-white px-2 text-[12px] font-semibold text-[#123E9E]"
-            data-testid="messages-count"
-          >
-            {unreadThreadCount} unread
-          </span>
-        ) : null}
-        <span className="flex-1" />
         <button
           type="button"
-          className="grid h-11 w-11 min-h-[44px] min-w-[44px] place-items-center rounded-[9px] text-[#071330] hover:bg-white"
-          aria-label="Close messages"
-          data-testid="messages-close"
-          onClick={closeAll}
+          className="grid h-8 w-8 place-items-center rounded-lg text-[#071330] hover:bg-[#EEF2F7]"
+          aria-label="Search messages"
+          aria-pressed={searchOpen}
+          data-testid="messages-search-toggle"
+          onClick={() => setSearchOpen((value) => !value)}
         >
-          <X className="h-[18px] w-[18px]" strokeWidth={1.9} />
+          <Search className="h-[18px] w-[18px]" strokeWidth={1.9} />
         </button>
+        <button
+          type="button"
+          className="grid h-8 w-8 place-items-center rounded-lg text-[#071330] hover:bg-[#EEF2F7]"
+          aria-label="New message"
+          data-testid="messages-new"
+          onClick={() => {
+            /* Composer for new DMs is not shipped; keep control for mock parity. */
+          }}
+        >
+          <Plus className="h-[18px] w-[18px]" strokeWidth={1.9} />
+        </button>
+        {showMobileClose ? (
+          <button
+            type="button"
+            className="grid h-8 w-8 place-items-center rounded-lg text-[#071330] hover:bg-[#EEF2F7] md:hidden"
+            aria-label="Close messages"
+            data-testid="messages-close"
+            onClick={closeAll}
+          >
+            <X className="h-[18px] w-[18px]" strokeWidth={1.9} />
+          </button>
+        ) : null}
       </div>
+
+      {searchOpen ? (
+        <div className="shrink-0 border-b border-[#E3E8EF] px-3 py-2.5">
+          <label className="relative block">
+            <span className="sr-only">Search messages</span>
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#4A5568]"
+              strokeWidth={1.9}
+            />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search people or jobs"
+              data-testid="messages-search"
+              autoFocus
+              className="h-10 w-full rounded-[10px] border border-[#D7E0EC] bg-white pl-9 pr-3 text-[14px] text-[#071330] outline-none placeholder:text-[#5B6576] focus:border-[#1D5CE5] focus:shadow-[0_0_0_3px_rgba(29,92,229,0.14)]"
+            />
+          </label>
+        </div>
+      ) : null}
 
       {emptyInbox ? (
         <div
@@ -82,10 +118,10 @@ export function MessagesListPanel() {
           <div className="mb-4 grid h-14 w-14 place-items-center rounded-[14px] border border-[#E3E8EF] bg-white text-[#1D5CE5]">
             <MessageCircle className="h-6 w-6" strokeWidth={1.9} />
           </div>
-          <h3 className="font-body text-[18px] font-bold tracking-[-0.015em] text-[#071330]">
+          <h3 className="text-[18px] font-bold tracking-[-0.015em] text-[#071330]">
             No conversations yet
           </h3>
-          <p className="mt-2 max-w-[290px] text-[14.5px] text-[#273449]">
+          <p className="mt-2 max-w-[290px] text-[14.5px] text-[#4A5568]">
             Accept an offer on a request to open a dedicated thread.
           </p>
           <Link
@@ -95,180 +131,104 @@ export function MessagesListPanel() {
             Browse requests
           </Link>
         </div>
+      ) : visible.length === 0 && referralCards.length === 0 ? (
+        <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+          <h3 className="text-[16px] font-bold text-[#071330]">No matching conversations</h3>
+          <p className="mt-1.5 max-w-[260px] text-[13.5px] text-[#4A5568]">
+            Try a different name or job title.
+          </p>
+        </div>
       ) : (
-        <>
-          <div className="grid shrink-0 gap-2.5 border-b border-[#E3E8EF] px-4 pb-2.5 pt-3.5">
-            <label className="relative block">
-              <span className="sr-only">Search messages</span>
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#3D4A5F]"
-                strokeWidth={1.9}
-              />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search people or jobs"
-                data-testid="messages-search"
-                className="h-11 min-h-[44px] w-full rounded-[10px] border border-[#D7E0EC] bg-white pl-9 pr-3 text-[14px] text-[#071330] outline-none placeholder:text-[#5B6576] focus:border-[#1D5CE5] focus:shadow-[0_0_0_3px_rgba(29,92,229,0.14)]"
-              />
-            </label>
-            <div className="flex gap-1" role="tablist" aria-label="Message filters">
-              <FilterTab
-                selected={filter === 'all'}
-                testId="messages-filter-all"
-                onClick={() => setFilter('all')}
-                label="All"
-                count={rows.length}
-              />
-              <FilterTab
-                selected={filter === 'unread'}
-                testId="messages-filter-unread"
-                onClick={() => setFilter('unread')}
-                label="Unread"
-                count={unreadThreadCount}
-              />
-            </div>
-          </div>
-
-          {visible.length === 0 && referralCards.length === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
-              <h3 className="font-body text-[16px] font-bold text-[#071330]">
-                {filter === 'unread' ? 'No unread conversations' : 'No matching conversations'}
-              </h3>
-              <p className="mt-1.5 max-w-[260px] text-[13.5px] text-[#3D4A5F]">
-                {filter === 'unread'
-                  ? 'New messages will show up here.'
-                  : 'Try a different name or job title.'}
+        <ul
+          className="min-h-0 flex-1 list-none overflow-y-auto py-1.5"
+          data-testid="messages-thread-list"
+        >
+          {referralCards.length > 0 ? (
+            <li className="px-3 pb-2 pt-1" data-testid="messages-referral-section">
+              <p className="mb-2 px-2 text-[12.5px] font-bold uppercase tracking-[0.04em] text-[#4A5568]">
+                Job suggestions
               </p>
-            </div>
-          ) : (
-            <ul className="min-h-0 flex-1 overflow-y-auto px-2 py-1.5" data-testid="messages-thread-list">
-              {referralCards.length > 0 ? (
-                <li className="px-1 pb-2 pt-1" data-testid="messages-referral-section">
-                  <p className="mb-2 px-2 text-[12.5px] font-bold uppercase tracking-[0.04em] text-[#4A5568]">
-                    Job suggestions
-                  </p>
-                  <div className="space-y-2.5">
-                    {referralCards.map((ref) => (
-                      <ReferralInboxCard key={ref.id} referral={ref} />
-                    ))}
-                  </div>
-                </li>
-              ) : null}
-              {visible.map((row) => {
-                const selected = threadId === row.thread.id
-                const name = row.other?.name ?? 'Neighbor'
-                const preview = row.last?.body ?? 'No messages yet'
-                const mine = row.last?.senderId && row.otherId && row.last.senderId !== row.otherId
-                const when = relativeTime(row.last?.createdAt ?? row.thread.lastMessageAt)
-                return (
-                  <li key={row.thread.id}>
-                    <button
-                      type="button"
-                      data-testid={`messages-thread-row-${row.thread.id}`}
-                      aria-current={selected ? 'true' : undefined}
-                      onClick={() => openThread(row.thread.id)}
-                      className={`relative grid w-full grid-cols-[44px_minmax(0,1fr)] gap-3 rounded-[10px] px-3 py-3 text-left ${
-                        selected ? 'bg-white' : 'hover:bg-[#EEF2F7]'
-                      } ${row.unread ? 'messages-thread-unread' : ''}`}
-                    >
-                      {selected ? (
+              <div className="space-y-2.5">
+                {referralCards.map((ref) => (
+                  <ReferralInboxCard key={ref.id} referral={ref} />
+                ))}
+              </div>
+            </li>
+          ) : null}
+          {visible.map((row) => {
+            const selected = threadId === row.thread.id
+            const name = row.other?.name ?? 'Neighbor'
+            const preview = row.last?.body ?? 'No messages yet'
+            const mine = Boolean(
+              row.last?.senderId && row.otherId && row.last.senderId !== row.otherId,
+            )
+            const when = compactRelativeTime(row.last?.createdAt ?? row.thread.lastMessageAt)
+            const subtitle = jobThreadSubtitle(row.request)
+            return (
+              <li key={row.thread.id}>
+                <button
+                  type="button"
+                  data-testid={`messages-thread-row-${row.thread.id}`}
+                  aria-current={selected ? 'true' : undefined}
+                  onClick={() => openThread(row.thread.id)}
+                  className={`grid w-full grid-cols-[40px_minmax(0,1fr)] gap-2.5 px-3.5 py-2.5 text-left ${
+                    selected ? 'bg-[#EEF2F7]' : 'hover:bg-[#EEF2F7]'
+                  } ${row.unread ? 'messages-thread-unread' : ''}`}
+                >
+                  <Avatar src={row.other?.avatar} name={name} size={40} />
+                  <span className="min-w-0">
+                    <span className="flex items-baseline gap-2">
+                      <span
+                        className={`min-w-0 flex-1 truncate text-[14px] text-[#071330] ${
+                          row.unread ? 'font-bold' : 'font-semibold'
+                        }`}
+                      >
+                        {name}
+                      </span>
+                      <span
+                        className={`shrink-0 text-[11.5px] tabular-nums ${
+                          row.unread ? 'font-semibold text-[#1D5CE5]' : 'text-[#4A5568]'
+                        }`}
+                      >
+                        {when}
+                      </span>
+                    </span>
+                    <span className="mt-px block truncate text-[12px] font-medium text-[#1649BD]">
+                      {subtitle}
+                    </span>
+                    <span className="mt-px flex items-center gap-2">
+                      <span
+                        className={`min-w-0 flex-1 truncate text-[13px] ${
+                          row.unread ? 'font-semibold text-[#071330]' : 'text-[#4A5568]'
+                        }`}
+                      >
+                        {row.last ? (
+                          mine ? (
+                            <>
+                              <em className="font-medium not-italic text-[#4A5568]">You: </em>
+                              {preview}
+                            </>
+                          ) : (
+                            preview
+                          )
+                        ) : (
+                          <em className="font-medium not-italic text-[#4A5568]">No messages yet</em>
+                        )}
+                      </span>
+                      {row.unread ? (
                         <span
-                          className="absolute bottom-3.5 left-0 top-3.5 w-[3px] rounded-sm bg-[#1D5CE5]"
-                          aria-hidden
+                          className="h-2 w-2 shrink-0 rounded-full bg-[#1D5CE5]"
+                          aria-label="Unread"
                         />
                       ) : null}
-                      <Avatar src={row.other?.avatar} name={name} size={44} />
-                      <span className="min-w-0">
-                        <span className="flex items-baseline gap-2">
-                          <span
-                            className={`min-w-0 flex-1 truncate text-[14.5px] text-[#071330] ${
-                              row.unread ? 'font-bold' : 'font-semibold'
-                            }`}
-                          >
-                            {name}
-                          </span>
-                          <span
-                            className={`shrink-0 text-[12.5px] tabular-nums ${
-                              row.unread ? 'font-semibold text-[#1D5CE5]' : 'text-[#3D4A5F]'
-                            }`}
-                          >
-                            {when}
-                          </span>
-                        </span>
-                        {row.thread.requestId && row.jobTitle ? (
-                          <span className="mt-0.5 flex min-w-0 items-center gap-1 text-[12.5px] font-medium text-[#1E3A6E]">
-                            <Briefcase
-                              className="h-[13px] w-[13px] shrink-0 text-[#1D5CE5]"
-                              strokeWidth={1.9}
-                            />
-                            <span className="truncate">{row.jobTitle}</span>
-                          </span>
-                        ) : null}
-                        <span className="mt-0.5 flex items-center gap-2">
-                          <span
-                            className={`min-w-0 flex-1 truncate text-[13.5px] ${
-                              row.unread ? 'font-semibold text-[#071330]' : 'text-[#3D4A5F]'
-                            }`}
-                          >
-                            {row.last ? (
-                              mine ? (
-                                <>
-                                  <em className="font-medium text-[#3D4A5F] not-italic">You: </em>
-                                  {preview}
-                                </>
-                              ) : (
-                                preview
-                              )
-                            ) : (
-                              <em className="font-medium not-italic text-[#3D4A5F]">No messages yet</em>
-                            )}
-                          </span>
-                          {row.unread ? (
-                            <span className="h-[9px] w-[9px] shrink-0 rounded-full bg-[#1D5CE5]" aria-label="Unread" />
-                          ) : null}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </>
+                    </span>
+                  </span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
       )}
     </div>
-  )
-}
-
-function FilterTab({
-  selected,
-  onClick,
-  label,
-  count,
-  testId,
-}: {
-  selected: boolean
-  onClick: () => void
-  label: string
-  count: number
-  testId: string
-}) {
-  return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={selected}
-      data-testid={testId}
-      onClick={onClick}
-      className={`inline-flex h-11 min-h-[44px] items-center gap-1.5 rounded-lg px-2.5 text-[13.5px] font-semibold ${
-        selected ? 'bg-[#071330] text-white' : 'text-[#273449] hover:bg-white'
-      }`}
-    >
-      {label}
-      <span className={`text-[12px] font-semibold ${selected ? 'text-white/85' : 'text-[#3D4A5F]'}`}>
-        {count}
-      </span>
-    </button>
   )
 }

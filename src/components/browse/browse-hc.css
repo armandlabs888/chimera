@@ -148,6 +148,25 @@
   background: var(--hc-tint-2);
 }
 
+.browse-hc-messages-icon {
+  display: none;
+  position: relative;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  place-items: center;
+  color: var(--hc-navy);
+  background: #fff;
+  border: 1px solid var(--hc-hair, #e3e8ef);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.browse-hc-messages-icon:hover {
+  background: var(--hc-tint-2);
+}
+
 .browse-hc-helper-banner {
   min-height: 36px;
   background: var(--hc-navy);
@@ -1641,6 +1660,10 @@
   }
 
   .browse-hc-menu-btn {
+    display: grid;
+  }
+
+  .browse-hc-messages-icon {
     display: grid;
   }
 

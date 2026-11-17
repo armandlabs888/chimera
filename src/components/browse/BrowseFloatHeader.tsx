@@ -1,11 +1,12 @@
 'use client'
 
-import { ArrowRight, Menu, X } from 'lucide-react'
+import { ArrowRight, Menu, MessageCircle, X } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { SiteAccountMenu } from '@/components/account/SiteAccountMenu'
 import { BunkWordmark } from '@/components/BunkWordmark'
+import { useInboxThreads } from '@/components/messages/useInboxThreads'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import './browse-hc.css'
 import '@/components/account/account-hc.css'
@@ -22,6 +23,8 @@ export function BrowseFloatHeader({
   showHelperBanner: boolean
 }) {
   const { toggle, open: messagesOpen, isGuest } = useMessagesDrawer()
+  const { unreadNotificationCount } = useInboxThreads()
+  const unread = isGuest ? 0 : unreadNotificationCount
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -110,6 +113,14 @@ export function BrowseFloatHeader({
                     onClick={onMessagesClick}
                   >
                     {item.label}
+                    {unread > 0 ? (
+                      <span
+                        data-testid="messages-unread-badge"
+                        className="ml-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[5px] bg-[#1D5CE5] px-1 text-[10.5px] font-bold tabular-nums text-white"
+                      >
+                        {unread > 9 ? '9+' : unread}
+                      </span>
+                    ) : null}
                   </Link>
                 )
               }
@@ -150,6 +161,36 @@ export function BrowseFloatHeader({
               </div>
             ) : (
               <SiteAccountMenu />
+            )}
+
+            {isGuest ? (
+              <Link
+                href="/auth?next=%2Fmessages"
+                data-testid="messages-mobile-trigger"
+                aria-label="Messages"
+                className="browse-hc-messages-icon"
+              >
+                <MessageCircle className="h-[17px] w-[17px]" strokeWidth={1.9} aria-hidden />
+              </Link>
+            ) : (
+              <button
+                type="button"
+                data-testid="messages-mobile-trigger"
+                aria-label={unread > 0 ? `Messages, ${unread} unread` : 'Messages'}
+                aria-expanded={messagesOpen}
+                className="browse-hc-messages-icon"
+                onClick={(event) => onMessagesClick(event)}
+              >
+                <MessageCircle className="h-[17px] w-[17px]" strokeWidth={1.9} aria-hidden />
+                {unread > 0 ? (
+                  <span
+                    data-testid="messages-unread-badge"
+                    className="absolute -right-1.5 -top-1.5 inline-grid min-w-[17px] place-items-center rounded-[5px] bg-[#1D5CE5] px-1 text-[10.5px] font-semibold tabular-nums text-white shadow-[0_0_0_2px_#fff]"
+                  >
+                    {unread > 9 ? '9+' : unread}
+                  </span>
+                ) : null}
+              </button>
             )}
 
             <button
