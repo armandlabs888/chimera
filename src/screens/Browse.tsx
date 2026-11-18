@@ -1,7 +1,15 @@
 'use client'
 
 import { ChevronDown, MapPin } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, useTransition } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  useTransition,
+} from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { BrowseDistanceEmpty } from '@/components/browse/BrowseDistanceEmpty'
 import { BrowseDistanceToggle } from '@/components/browse/BrowseDistanceToggle'
@@ -202,6 +210,8 @@ export function Browse() {
   const [liveProfileMiles, setLiveProfileMiles] = useState<Map<string, number | null> | null>(
     null,
   )
+  /** Phone job sheet: true when this session pushed ?job= (so close can history.back). */
+  const phoneJobPushedRef = useRef(false)
 
   useEffect(() => {
     setQDraft(qParam)
@@ -602,17 +612,32 @@ export function Browse() {
     (id: string) => {
       const nextParams = new URLSearchParams(params.toString())
       nextParams.set('job', id)
-      replaceQuery(nextParams)
+      const qs = nextParams.toString()
+      const href = qs ? `${pathname}?${qs}` : pathname
+      // Phone sheet: push so browser back dismisses. Desktop panel: replace.
+      if (narrow) {
+        phoneJobPushedRef.current = true
+        router.push(href, { scroll: false })
+      } else {
+        phoneJobPushedRef.current = false
+        router.replace(href, { scroll: false })
+      }
     },
-    [params, replaceQuery],
+    [params, pathname, router, narrow],
   )
 
   const closeJob = useCallback(() => {
     const nextParams = new URLSearchParams(params.toString())
     if (!nextParams.has('job')) return
     nextParams.delete('job')
+    if (narrow && phoneJobPushedRef.current) {
+      phoneJobPushedRef.current = false
+      router.back()
+      return
+    }
+    phoneJobPushedRef.current = false
     replaceQuery(nextParams)
-  }, [params, replaceQuery])
+  }, [params, replaceQuery, narrow, router])
 
   const openHelper = useCallback(
     (id: string) => {

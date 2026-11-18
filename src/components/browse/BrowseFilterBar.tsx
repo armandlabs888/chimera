@@ -275,7 +275,7 @@ export function BrowseFilterBar({
             aria-label="Filters"
             tabIndex={-1}
             data-testid="browse-mobile-filters-panel"
-            className="absolute inset-x-0 bottom-0 top-7 flex flex-col rounded-t-2xl bg-white shadow-[0_-12px_40px_rgba(7,19,48,0.25)] outline-none"
+            className="bunk-bottom-sheet absolute inset-x-0 bottom-0 top-7 flex flex-col rounded-t-2xl bg-white shadow-[0_-12px_40px_rgba(7,19,48,0.25)] outline-none"
           >
             <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-[#C3CCD9]" aria-hidden />
             <div className="flex h-[52px] shrink-0 items-center justify-between border-b border-[#E3E8EF] px-2.5 pl-[18px]">
@@ -285,7 +285,7 @@ export function BrowseFilterBar({
                 aria-label="Close"
                 onClick={closeSheet}
                 data-testid="browse-mobile-filters-close"
-                className="grid h-9 w-9 place-items-center rounded-[9px] text-[#071330] hover:bg-white"
+                className="touch-press grid h-11 w-11 place-items-center rounded-[9px] text-[#071330]"
               >
                 <X className="h-[18px] w-[18px]" />
               </button>
@@ -315,7 +315,7 @@ export function BrowseFilterBar({
                       key={opt.id}
                       type="button"
                       onClick={() => onRadius(opt.id)}
-                      className={`h-10 text-[13px] font-medium ${
+                      className={`touch-press h-11 text-[13px] font-medium ${
                         radius === opt.id ? 'bg-[#071330] font-semibold text-white' : 'text-[#071330]'
                       } ${opt.id === radiusOptions[0]?.id ? '' : 'border-l border-[#D7E0EC]'}`}
                     >
@@ -343,7 +343,7 @@ export function BrowseFilterBar({
                       key={opt.id}
                       type="button"
                       onClick={() => onSort(opt.id)}
-                      className={`h-10 px-1 text-[13px] font-medium ${
+                      className={`touch-press h-11 px-1 text-[13px] font-medium ${
                         sort === opt.id ? 'bg-[#071330] font-semibold text-white' : 'text-[#071330]'
                       } ${index ? 'border-l border-[#D7E0EC]' : ''}`}
                     >
@@ -398,14 +398,14 @@ function SearchField({
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search jobs"
         aria-label="Search browse"
-        className="h-10 w-full rounded-[10px] border border-[#D7E0EC] bg-white pl-9 pr-9 text-[14.5px] text-[#071330] outline-none placeholder:text-[#5B6576] focus:border-[#1D5CE5] focus:shadow-[0_0_0_3px_rgba(29,92,229,0.14)]"
+        className="h-11 w-full rounded-[10px] border border-[#D7E0EC] bg-white pl-9 pr-11 text-[16px] text-[#071330] outline-none placeholder:text-[#5B6576] focus:border-[#1D5CE5] focus:shadow-[0_0_0_3px_rgba(29,92,229,0.14)]"
       />
       {value ? (
         <button
           type="button"
           aria-label="Clear search"
           onClick={onClear}
-          className="absolute right-1.5 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md text-[#3D4A5F] hover:bg-white"
+          className="touch-press absolute right-1 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-md text-[#3D4A5F]"
         >
           <X className="h-3.5 w-3.5" />
         </button>
@@ -599,7 +599,7 @@ function ToggleChip({ label, on, onClick }: { label: string; on: boolean; onClic
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex h-[38px] items-center gap-1.5 rounded-[9px] border px-3 text-[14px] ${
+      className={`touch-press inline-flex min-h-11 items-center gap-1.5 rounded-[9px] border px-3 text-[14px] ${
         on
           ? 'border-[#1D5CE5] bg-white font-semibold text-[#123E9E] shadow-[inset_0_0_0_1px_#1D5CE5]'
           : 'border-[#D7E0EC] font-medium text-[#071330]'

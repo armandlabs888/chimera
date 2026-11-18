@@ -17,7 +17,7 @@ export default async function MessagesThreadPage({
 }) {
   const { threadId } = await params
   return (
-    <div className="beam-page py-4 sm:py-6">
+    <div className="bunk-push-in beam-page py-0 md:py-4 lg:py-6">
       <MessagesInbox embedThreadId={threadId} />
     </div>
   )

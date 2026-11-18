@@ -541,7 +541,7 @@
   border: 0;
   outline: none;
   background: transparent;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 400;
   color: #071330;
   font-family: inherit;
@@ -1641,6 +1641,16 @@
   color: var(--hc-muted);
 }
 
+/* Signed-in phone shell: compact wordmark bar; tabs own Post / Messages / Profile. */
+@media (max-width: 767px) {
+  .browse-hc-header[data-compact-phone='true'] .browse-hc-post-desktop,
+  .browse-hc-header[data-compact-phone='true'] .browse-hc-messages-desktop,
+  .browse-hc-header[data-compact-phone='true'] .browse-hc-account-desktop,
+  .browse-hc-header[data-compact-phone='true'] .browse-hc-menu-tablet {
+    display: none !important;
+  }
+}
+
 @media (max-width: 860px) {
   .browse-hc-header {
     height: 52px;
@@ -1842,28 +1852,19 @@
   }
 
   .browse-hc-tools {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
     gap: 8px;
   }
 
   .browse-hc-tools-filters {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    margin: 0 -16px;
-    padding: 0 16px;
-  }
-
-  .browse-hc-tools-filters::-webkit-scrollbar {
     display: none;
   }
 
   .browse-hc-search {
-    width: 100%;
-    flex: none;
+    flex: 1;
+    min-width: 0;
     height: 44px;
   }
 

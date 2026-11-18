@@ -9,10 +9,10 @@ export const metadata: Metadata = pageMetadata({
   noindex: true,
 })
 
-/** Full-page messages workspace for direct links. */
+/** Full-page messages workspace for direct links. Phone tab destination. */
 export default function MessagesPage() {
   return (
-    <div className="beam-page py-4 sm:py-6">
+    <div className="bunk-push-in beam-page py-0 md:py-4 lg:py-6">
       <MessagesInbox />
     </div>
   )

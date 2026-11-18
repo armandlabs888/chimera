@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { MobileAppBackBar } from '@/components/MobileAppBackBar'
 import { HomeDashboard } from '@/screens/HomeDashboard'
 import { pageMetadata } from '@/lib/seo/site'
 
@@ -10,5 +11,10 @@ export const metadata: Metadata = pageMetadata({
 })
 
 export default function HomePage() {
-  return <HomeDashboard />
+  return (
+    <>
+      <MobileAppBackBar href="/settings" title="My activity" testId="activity-back" />
+      <HomeDashboard />
+    </>
+  )
 }

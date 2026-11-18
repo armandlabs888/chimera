@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { MobileAppBackBar } from '@/components/MobileAppBackBar'
 import { Help } from '@/screens/Help'
 import { pageMetadata } from '@/lib/seo/site'
 
@@ -10,5 +11,10 @@ export const metadata: Metadata = pageMetadata({
 })
 
 export default function HelpPage() {
-  return <Help />
+  return (
+    <>
+      <MobileAppBackBar href="/settings" title="Help" testId="help-back" />
+      <Help />
+    </>
+  )
 }

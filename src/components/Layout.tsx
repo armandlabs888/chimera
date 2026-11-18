@@ -52,10 +52,20 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="app-shell relative flex min-h-dvh flex-col bg-white text-[#071330]">
+    <div
+      className="app-shell relative flex min-h-dvh flex-col bg-white text-[#071330]"
+      data-phone-shell={isLiveGuest ? 'guest' : 'signed-in'}
+    >
       <BrowseFloatHeader guest={isLiveGuest} showHelperBanner={showHelperSetupBanner && !isLiveGuest} />
       <main className="relative flex-1">{children}</main>
-      <LandingFooter dockPadding={!isLiveGuest} />
+      {/* Marketing footer stays on desktop/tablet; hide on signed-in phones. */}
+      {isLiveGuest ? (
+        <LandingFooter />
+      ) : (
+        <div className="hidden md:contents">
+          <LandingFooter dockPadding={false} />
+        </div>
+      )}
       <BrowseLocationDialogHost />
       <MessagesDrawerHost />
       <BackendErrorToast />

@@ -84,16 +84,21 @@ export function BrowseFloatHeader({
             <Link
               href="/onboarding/helper"
               data-testid="helper-setup-banner-cta"
-              className="inline-flex h-6 w-fit shrink-0 items-center gap-1 rounded-md bg-white px-2.5 text-[12px] font-semibold text-[#071330] transition hover:bg-[#EEF2F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+              className="touch-press inline-flex min-h-11 w-fit shrink-0 items-center gap-1 rounded-md bg-white px-3 text-[13px] font-semibold text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
             >
               Add skills &amp; rate
-              <ArrowRight className="h-3 w-3" strokeWidth={2.25} aria-hidden />
+              <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
             </Link>
           </div>
         </div>
       ) : null}
 
-      <header className="browse-hc-header" data-testid={guest ? 'landing-nav' : 'app-topnav'} data-nav-style="flat">
+      <header
+        className="browse-hc-header"
+        data-testid={guest ? 'landing-nav' : 'app-topnav'}
+        data-nav-style="flat"
+        data-compact-phone={!guest ? 'true' : undefined}
+      >
         <div className="browse-hc-wrap browse-hc-header-inner">
           <BunkWordmark
             size="header"
@@ -138,7 +143,12 @@ export function BrowseFloatHeader({
           </nav>
 
           <div className="browse-hc-header-right">
-            <Link href={postHref} className="browse-hc-post" data-testid="topnav-post-cta">
+            {/* Desktop/tablet Post CTA. Signed-in phones use the Post tab instead. */}
+            <Link
+              href={postHref}
+              className={`browse-hc-post${guest ? '' : ' browse-hc-post-desktop'}`}
+              data-testid="topnav-post-cta"
+            >
               Post a task
             </Link>
 
@@ -160,10 +170,12 @@ export function BrowseFloatHeader({
                 </Link>
               </div>
             ) : (
-              <SiteAccountMenu />
+              <div className="browse-hc-account-desktop">
+                <SiteAccountMenu />
+              </div>
             )}
 
-            {isGuest ? (
+            {guest ? (
               <Link
                 href="/auth?next=%2Fmessages"
                 data-testid="messages-mobile-trigger"
@@ -178,7 +190,7 @@ export function BrowseFloatHeader({
                 data-testid="messages-mobile-trigger"
                 aria-label={unread > 0 ? `Messages, ${unread} unread` : 'Messages'}
                 aria-expanded={messagesOpen}
-                className="browse-hc-messages-icon"
+                className="browse-hc-messages-icon browse-hc-messages-desktop"
                 onClick={(event) => onMessagesClick(event)}
               >
                 <MessageCircle className="h-[17px] w-[17px]" strokeWidth={1.9} aria-hidden />
@@ -193,9 +205,10 @@ export function BrowseFloatHeader({
               </button>
             )}
 
+            {/* Phones (<768) hide this for signed-in users via CSS; tablet keeps hamburger. */}
             <button
               type="button"
-              className="browse-hc-menu-btn"
+              className={`browse-hc-menu-btn${guest ? '' : ' browse-hc-menu-tablet'}`}
               aria-label={mobileOpen ? 'Close menu' : 'Menu'}
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen((v) => !v)}
@@ -214,7 +227,7 @@ export function BrowseFloatHeader({
                     <Link
                       key="messages-m"
                       href="/auth?next=%2Fmessages"
-                      className="px-1 py-3 text-[15px] text-[#071330]"
+                      className="touch-press min-h-11 px-1 py-3 text-[15px] text-[#071330]"
                       onClick={() => setMobileOpen(false)}
                     >
                       {item.label}
@@ -223,7 +236,7 @@ export function BrowseFloatHeader({
                     <button
                       key="messages-m"
                       type="button"
-                      className="px-1 py-3 text-left text-[15px] text-[#071330]"
+                      className="touch-press min-h-11 px-1 py-3 text-left text-[15px] text-[#071330]"
                       onClick={onMessagesClick}
                     >
                       {item.label}
@@ -234,7 +247,7 @@ export function BrowseFloatHeader({
                   <Link
                     key={item.href + item.label + '-m'}
                     href={item.href}
-                    className="px-1 py-3 text-[15px] text-[#071330]"
+                    className="touch-press min-h-11 px-1 py-3 text-[15px] text-[#071330]"
                     onClick={() => setMobileOpen(false)}
                   >
                     {item.label}
@@ -245,7 +258,7 @@ export function BrowseFloatHeader({
                 <>
                   <Link
                     href="/auth?mode=signin"
-                    className="px-1 py-3 text-[15px] text-[#071330]"
+                    className="touch-press min-h-11 px-1 py-3 text-[15px] text-[#071330]"
                     onClick={() => setMobileOpen(false)}
                   >
                     Log in
@@ -253,7 +266,7 @@ export function BrowseFloatHeader({
                   <div className="px-1 pb-3 pt-1">
                     <Link
                       href="/auth?mode=signup&next=%2Fbrowse"
-                      className="inline-flex h-10 w-full items-center justify-center rounded-full bg-[#1D5CE5] text-[14px] font-semibold text-white"
+                      className="touch-press inline-flex h-11 w-full items-center justify-center rounded-full bg-[#1D5CE5] text-[14px] font-semibold text-white"
                       onClick={() => setMobileOpen(false)}
                     >
                       Sign up

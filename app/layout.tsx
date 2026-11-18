@@ -36,7 +36,12 @@ export const metadata: Metadata = {
   description: DEFAULT_DESCRIPTION,
   applicationName: SITE_NAME,
   appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
     title: SITE_NAME,
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
   },
   alternates: {
     canonical: '/',
