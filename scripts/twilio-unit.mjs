@@ -41,6 +41,7 @@ const {
   twilioInboundPublicUrl,
   validateTwilioRequestSignature,
   toE164,
+  TWILIO_SEND_FAILED_USER_MESSAGE,
 } = await import(join(root, 'src/lib/urgent/twilio.ts'))
 
 const originalFetch = globalThis.fetch
@@ -55,6 +56,18 @@ function mockFetchOk(sid = 'SMtest123') {
       ok: true,
       status: 201,
       json: async () => ({ sid }),
+    }
+  }
+}
+
+function mockFetchFail(body, status = 401) {
+  fetchCalls.length = 0
+  globalThis.fetch = async (url, init) => {
+    fetchCalls.push({ url: String(url), init: init || {} })
+    return {
+      ok: false,
+      status,
+      json: async () => body,
     }
   }
 }
@@ -150,6 +163,51 @@ try {
   assert.equal(skipped.skipped, true)
   assert.equal(fetchCalls.length, 0)
 
+  // --- sendTwilioSms failure: logs code/status, keeps raw error internal only ---
+  clearTwilioEnv()
+  process.env.TWILIO_ACCOUNT_SID = 'ACaccount'
+  process.env.TWILIO_AUTH_TOKEN = 'auth_token_value'
+  process.env.TWILIO_FROM_NUMBER = '+15555550100'
+  mockFetchFail(
+    {
+      message: "actor doesn't have any assertions",
+      code: 20003,
+      status: 401,
+    },
+    401,
+  )
+  const errorCalls = []
+  const originalError = console.error
+  console.error = (...args) => {
+    errorCalls.push(args)
+  }
+  const failResult = await sendTwilioSms({
+    to: '+15555550999',
+    body: 'should fail',
+  })
+  console.error = originalError
+  assert.equal(failResult.ok, false)
+  assert.equal(failResult.error, "actor doesn't have any assertions")
+  assert.equal(fetchCalls.length, 1)
+  assert.ok(
+    errorCalls.some(
+      (args) =>
+        String(args[0]).includes('[twilio] send failed') &&
+        args[1] &&
+        typeof args[1] === 'object' &&
+        args[1].error === "actor doesn't have any assertions" &&
+        args[1].code === 20003 &&
+        args[1].status === 401,
+    ),
+    'expected structured Twilio failure log with code/status',
+  )
+  assert.equal(
+    TWILIO_SEND_FAILED_USER_MESSAGE,
+    'We could not send a text right now. Please try again in a few minutes.',
+  )
+  assert.doesNotMatch(TWILIO_SEND_FAILED_USER_MESSAGE, DASH_RE)
+  assert.doesNotMatch(TWILIO_SEND_FAILED_USER_MESSAGE, /yari/i)
+
   // --- signature validation requires auth token; missing token warns + rejects ---
   clearTwilioEnv()
   process.env.TWILIO_API_KEY_SID = 'SKapikey'
@@ -204,9 +262,27 @@ try {
   assert.match(twilioSrc, /TWILIO_API_KEY_SID/)
   assert.match(twilioSrc, /TWILIO_API_KEY_SECRET/)
   assert.match(twilioSrc, /twilioInboundPublicUrl/)
+  assert.match(twilioSrc, /TWILIO_SEND_FAILED_USER_MESSAGE/)
   assert.match(twilioSrc, /joinbunk\.xyz\/api\/twilio\/inbound/)
   assert.doesNotMatch(twilioSrc, /yariapp\.com/)
   assert.doesNotMatch(twilioSrc, DASH_RE)
+
+  // Send-code routes must return the safe user message, never result.error.
+  const helperSendCode = readFileSync(
+    join(root, 'app/api/helper-sms/send-code/route.ts'),
+    'utf8',
+  )
+  assert.match(helperSendCode, /TWILIO_SEND_FAILED_USER_MESSAGE/)
+  assert.doesNotMatch(helperSendCode, /error:\s*result\.error/)
+  assert.doesNotMatch(helperSendCode, DASH_RE)
+
+  const phoneSendCode = readFileSync(
+    join(root, 'app/api/phone/send-code/route.ts'),
+    'utf8',
+  )
+  assert.match(phoneSendCode, /TWILIO_SEND_FAILED_USER_MESSAGE/)
+  assert.doesNotMatch(phoneSendCode, /error:\s*result\.error/)
+  assert.doesNotMatch(phoneSendCode, DASH_RE)
 
   const constantsSrc = readFileSync(join(root, 'src/lib/urgent/constants.ts'), 'utf8')
   assert.match(constantsSrc, /URGENT_JOB_PUBLIC_ORIGIN = 'https:\/\/www\.joinbunk\.xyz'/)

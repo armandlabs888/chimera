@@ -3,7 +3,11 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { formatPhoneVerifySms } from '@/lib/urgent/messages'
-import { sendTwilioSms, toE164 } from '@/lib/urgent/twilio'
+import {
+  sendTwilioSms,
+  toE164,
+  TWILIO_SEND_FAILED_USER_MESSAGE,
+} from '@/lib/urgent/twilio'
 
 export const runtime = 'nodejs'
 
@@ -76,7 +80,11 @@ export async function POST(request: Request) {
       })
     }
     if (!result.ok) {
-      return NextResponse.json({ error: result.error }, { status: 502 })
+      // Provider text is logged inside sendTwilioSms; never return it to clients.
+      return NextResponse.json(
+        { error: TWILIO_SEND_FAILED_USER_MESSAGE },
+        { status: 502 },
+      )
     }
 
     return NextResponse.json({ ok: true, sid: result.sid })

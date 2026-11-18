@@ -5,6 +5,10 @@ type TwilioSendResult =
   | { ok: true; sid: null; skipped: true; reason: string }
   | { ok: false; error: string }
 
+/** Safe copy for API clients when Twilio send fails. Never include provider text. */
+export const TWILIO_SEND_FAILED_USER_MESSAGE =
+  'We could not send a text right now. Please try again in a few minutes.'
+
 const DEFAULT_TWILIO_INBOUND_PUBLIC_URL =
   'https://www.joinbunk.xyz/api/twilio/inbound'
 
@@ -127,10 +131,16 @@ export async function sendTwilioSms(input: {
       sid?: string
       message?: string
       error_message?: string
+      code?: number | string
+      status?: number | string
     }
     if (!res.ok) {
       const error = json.message || json.error_message || `Twilio HTTP ${res.status}`
-      console.error('[twilio] send failed', error)
+      console.error('[twilio] send failed', {
+        error,
+        code: json.code ?? null,
+        status: json.status ?? res.status,
+      })
       return { ok: false, error }
     }
     return { ok: true, sid: json.sid || '' }

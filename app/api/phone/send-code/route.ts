@@ -10,7 +10,12 @@ import {
   PHONE_MAX_SENDS_PER_WINDOW,
   PHONE_SEND_WINDOW_MS,
 } from '@/lib/phone/verify'
-import { sendTwilioSms, toE164, twilioConfigured } from '@/lib/urgent/twilio'
+import {
+  sendTwilioSms,
+  toE164,
+  twilioConfigured,
+  TWILIO_SEND_FAILED_USER_MESSAGE,
+} from '@/lib/urgent/twilio'
 
 export const runtime = 'nodejs'
 
@@ -132,8 +137,9 @@ export async function POST(request: Request) {
       })
     }
     if (!result.ok) {
+      // Provider text is logged inside sendTwilioSms; never return it to clients.
       return NextResponse.json(
-        { error: 'Could not send the text. Try again.' },
+        { error: TWILIO_SEND_FAILED_USER_MESSAGE },
         { status: 502 },
       )
     }
