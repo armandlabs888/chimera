@@ -10,7 +10,15 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useCallback, useId, useMemo, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from 'react'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import {
   OfferGateNotice,
@@ -91,6 +99,44 @@ export function BrowseJobDrawer({
   const titleId = useId()
   const close = useCallback(() => onClose(), [onClose])
   useFocusTrap(true, panelRef, close)
+  const [sheetOffset, setSheetOffset] = useState(0)
+  const [sheetDragging, setSheetDragging] = useState(false)
+  const dragStartY = useRef<number | null>(null)
+  const dragStartOffset = useRef(0)
+
+  useEffect(() => {
+    if (!narrow) return
+    const prev = document.documentElement.dataset.browseJobOpen
+    document.documentElement.dataset.browseJobOpen = '1'
+    return () => {
+      if (prev === undefined) delete document.documentElement.dataset.browseJobOpen
+      else document.documentElement.dataset.browseJobOpen = prev
+    }
+  }, [narrow])
+
+  const onSheetPointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    dragStartY.current = event.clientY
+    dragStartOffset.current = sheetOffset
+    setSheetDragging(true)
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }, [sheetOffset])
+
+  const onSheetPointerMove = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    if (dragStartY.current == null) return
+    const delta = Math.max(0, event.clientY - dragStartY.current)
+    setSheetOffset(dragStartOffset.current + delta)
+  }, [])
+
+  const onSheetPointerUp = useCallback(() => {
+    if (dragStartY.current == null) return
+    dragStartY.current = null
+    setSheetDragging(false)
+    if (sheetOffset > 120) {
+      onClose()
+      return
+    }
+    setSheetOffset(0)
+  }, [onClose, sheetOffset])
 
   const requester = state.people.find((p) => p.id === request.requesterId)
   const isOwner = request.requesterId === currentUser.id
@@ -159,7 +205,9 @@ export function BrowseJobDrawer({
       setAskPending(true)
       try {
         const threadId = await ensureThread(request.id, request.requesterId)
-        openThread(threadId)
+        // Phones use the full-screen Messages tab; desktop keeps the floating panel.
+        if (narrow) router.push(`/messages/${threadId}`)
+        else openThread(threadId)
       } finally {
         setAskPending(false)
       }
@@ -584,7 +632,10 @@ export function BrowseJobDrawer({
   )
 
   const actions = narrow ? (
-    <div className="flex shrink-0 flex-col gap-2 border-t border-[#E3E8EF] bg-white px-4 pb-4 pt-2.5">
+    <div
+      className="flex shrink-0 flex-col gap-2 border-t border-[#E3E8EF] bg-white px-4 pt-2.5"
+      style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+    >
       {gateNotice}
       {footerPrice}
       {canOffer && isNeighborViewer ? (
@@ -649,6 +700,13 @@ export function BrowseJobDrawer({
   if (narrow) {
     return (
       <div className="fixed inset-0 z-[80]" data-browse-job-layer="sheet">
+        <button
+          type="button"
+          className="absolute inset-0 bg-[rgba(7,19,48,0.42)] bunk-sheet-scrim"
+          aria-label="Dismiss job details"
+          data-testid="browse-job-sheet-backdrop"
+          onClick={onClose}
+        />
         <section
           ref={panelRef}
           tabIndex={-1}
@@ -656,9 +714,24 @@ export function BrowseJobDrawer({
           aria-modal="true"
           aria-labelledby={titleId}
           data-testid="browse-job-sheet"
-          className="absolute inset-0 flex flex-col bg-white outline-none"
+          className="bunk-bottom-sheet absolute inset-x-0 bottom-0 flex max-h-[92dvh] flex-col rounded-t-2xl bg-white outline-none"
+          style={{
+            transform: `translateY(${sheetOffset}px)`,
+            transition: sheetDragging ? 'none' : 'transform 200ms ease-out',
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          }}
         >
-          <div className="flex h-[52px] shrink-0 items-center justify-between border-b border-[#E3E8EF] pl-[18px] pr-1.5">
+          <div
+            className="flex shrink-0 cursor-grab touch-none flex-col items-center pb-1 pt-2 active:cursor-grabbing"
+            data-testid="browse-job-sheet-handle"
+            onPointerDown={onSheetPointerDown}
+            onPointerMove={onSheetPointerMove}
+            onPointerUp={onSheetPointerUp}
+            onPointerCancel={onSheetPointerUp}
+          >
+            <span className="h-1 w-10 rounded-full bg-[#C3CCD9]" aria-hidden />
+          </div>
+          <div className="flex h-12 shrink-0 items-center justify-between border-b border-[#E3E8EF] pl-[18px] pr-1.5">
             <span className="text-[15px] font-semibold tracking-[-0.01em] text-[#071330]">
               Job details
             </span>
@@ -695,4 +768,4 @@ export function BrowseJobDrawer({
 }
 
 const iconBtn =
-  'grid h-9 w-9 place-items-center rounded-lg text-[#071330] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40'
+  'touch-press grid h-11 w-11 place-items-center rounded-lg text-[#071330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/40'

@@ -9,6 +9,7 @@ import { useInboxThreads } from '@/components/messages/useInboxThreads'
 import { useMessagesDrawer } from '@/components/messages/useMessagesDrawer'
 import { Avatar } from '@/components/ui'
 import { useBeam } from '@/context/BeamContext'
+import { useIsPhone } from '@/hooks/useIsPhone'
 import { jobThreadSubtitle } from '@/lib/messagesJobLabel'
 import { notificationMatchesThread } from '@/lib/messagesDrawer'
 
@@ -33,11 +34,19 @@ export function MessagesDrawerHost() {
   const { unreadNotificationCount, rows } = useInboxThreads()
   const router = useRouter()
   const pathname = usePathname()
+  const isPhone = useIsPhone()
   const panelRef = useRef<HTMLElement>(null)
   const markedRef = useRef(new Set<string>())
 
   const onFullMessagesPage = pathname === '/messages' || pathname.startsWith('/messages/')
   const chatOpen = open && threadId.length > 0
+
+  // Phones use the /messages tab (full screen). Keep the floating panel on desktop/tablet.
+  useEffect(() => {
+    if (!isPhone || !open || isGuest) return
+    const next = threadId ? `/messages/${threadId}` : '/messages'
+    router.replace(next)
+  }, [isPhone, open, isGuest, threadId, router])
 
   const activeRow = useMemo(
     () => rows.find((row) => row.thread.id === threadId) ?? rows[0],
@@ -99,7 +108,7 @@ export function MessagesDrawerHost() {
     return () => window.removeEventListener('keydown', onKey)
   }, [open, isGuest, onFullMessagesPage, threadId, closeThread, closeAll])
 
-  if (!open || isGuest || onFullMessagesPage) return null
+  if (isPhone || !open || isGuest || onFullMessagesPage) return null
 
   if (minimized) {
     return (
