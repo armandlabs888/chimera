@@ -148,7 +148,7 @@ async function main() {
     viewport: { width: 1440, height: 900 },
   })
 
-  // Landing uses overlay nav; open account menu and ensure it is not under hero search.
+  // Landing uses solid white sticky nav; open account menu and ensure it is not under hero search.
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto(`${BASE}/`, { waitUntil: 'networkidle' })
   await page.getByTestId('landing-nav').waitFor({ state: 'visible', timeout: 15000 })

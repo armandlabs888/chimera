@@ -41,8 +41,9 @@ function usePrefersReducedMotion(): boolean {
 }
 
 /**
- * Landing hero: full-bleed neighbor video with Thumbtack-style describe search.
+ * Landing hero: contained rounded neighbor video with Thumbtack-style describe search.
  * Guests and signed-in users share one describe + ZIP + Search control.
+ * Photo stays inside the hero frame below the solid white header (never behind it).
  */
 export function LandingHero() {
   const router = useRouter()
@@ -89,70 +90,72 @@ export function LandingHero() {
   }
 
   return (
-    <section className="landing-hero-photo relative isolate min-h-[100svh] rounded-none pb-0 pt-0 mb-0">
-      {/* Clip the media/overlays only; keep content overflow visible for popovers. */}
-      <div
-        className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-none"
-        aria-hidden="true"
-        data-testid="landing-hero-photo"
-      >
-        {prefersReducedMotion ? (
-          <Image
-            src="/hero/hero-poster.jpg"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            quality={85}
-            className="landing-hero-photo-img rounded-none object-cover"
-          />
-        ) : (
-          <video
-            className="landing-hero-photo-img landing-hero-video absolute inset-0 h-full w-full rounded-none object-cover"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            poster="/hero/hero-poster.jpg"
-            data-testid="landing-hero-video"
-          >
-            <source src="/hero/hero-loop.mp4" type="video/mp4" />
-          </video>
-        )}
-        <div className="landing-hero-overlay absolute inset-0" />
-        <div className="landing-hero-overlay-mute absolute inset-0" />
-      </div>
-
-      <div className="landing-hero-content relative z-20" data-testid="landing-hero">
-        <div className="landing-centered beam-container relative z-10 w-full text-center">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#8FB2FF]">
-            Local services · Real everyday help
-          </p>
-
-          <h1 className="landing-hero-title mx-auto mt-5 max-w-full font-extrabold tracking-[-0.045em] text-white">
-            Trusted help, right <span className="text-[#8FB2FF]">next door.</span>
-          </h1>
-
-          <p className="landing-hero-lede mx-auto mt-5 text-[15px] leading-6 text-white/80 md:text-[17px] md:leading-7">
-            Describe the job, compare helpers nearby, or find new work in your area.
-          </p>
-
-          <div className="mx-auto mt-8 flex w-full flex-col items-center justify-center md:mt-9">
-            <DescribeSearchForm
-              key={zip || 'no-zip'}
-              initialZip={zip}
-              roleHint={roleHint}
-              cityLabel={currentUser?.city || ''}
-              variant="hero"
-              onSubmit={onSearch}
+    <section className="landing-hero-photo relative isolate mb-0 pb-0 pt-0">
+      <div className="landing-hero-frame relative isolate">
+        {/* Clip the media/overlays only; keep content overflow visible for popovers. */}
+        <div
+          className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit]"
+          aria-hidden="true"
+          data-testid="landing-hero-photo"
+        >
+          {prefersReducedMotion ? (
+            <Image
+              src="/hero/hero-poster.jpg"
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              quality={85}
+              className="landing-hero-photo-img object-cover"
             />
-            <p
-              className="landing-hero-reassure"
-              data-testid="landing-hero-reassure"
+          ) : (
+            <video
+              className="landing-hero-photo-img landing-hero-video absolute inset-0 h-full w-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              poster="/hero/hero-poster.jpg"
+              data-testid="landing-hero-video"
             >
-              Free to post. No obligation.
+              <source src="/hero/hero-loop.mp4" type="video/mp4" />
+            </video>
+          )}
+          <div className="landing-hero-overlay absolute inset-0" />
+          <div className="landing-hero-overlay-mute absolute inset-0" />
+        </div>
+
+        <div className="landing-hero-content relative z-20" data-testid="landing-hero">
+          <div className="landing-centered landing-hero-copy relative z-10 w-full text-center">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#8FB2FF]">
+              Local services · Real everyday help
             </p>
+
+            <h1 className="landing-hero-title mx-auto mt-5 max-w-full font-extrabold tracking-[-0.045em] text-white">
+              Trusted help, right <span className="text-[#8FB2FF]">next door.</span>
+            </h1>
+
+            <p className="landing-hero-lede mx-auto mt-5 text-[15px] leading-6 text-white/80 md:text-[17px] md:leading-7">
+              Describe the job, compare helpers nearby, or find new work in your area.
+            </p>
+
+            <div className="mx-auto mt-8 flex w-full flex-col items-center justify-center md:mt-9">
+              <DescribeSearchForm
+                key={zip || 'no-zip'}
+                initialZip={zip}
+                roleHint={roleHint}
+                cityLabel={currentUser?.city || ''}
+                variant="hero"
+                onSubmit={onSearch}
+              />
+              <p
+                className="landing-hero-reassure"
+                data-testid="landing-hero-reassure"
+              >
+                Free to post. No obligation.
+              </p>
+            </div>
           </div>
         </div>
       </div>
