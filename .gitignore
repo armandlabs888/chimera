@@ -57,4 +57,8 @@ next-env.d.ts
 *.njsproj
 *.sln
 *.sw?
-artifacts/
+# Ignore generated artifact dumps, but track the owner-review landing mock package.
+artifacts/*
+!artifacts/landing-audit.md
+!artifacts/harvey-mock/
+!artifacts/harvey-mock/**
