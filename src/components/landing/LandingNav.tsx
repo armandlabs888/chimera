@@ -11,20 +11,22 @@ import { becomeHelperHref } from '@/lib/helperAccess'
 import '@/components/account/account-hc.css'
 
 export function LandingNav({
-  variant = 'hero',
+  variant = 'light',
   browseLocationLabel,
 }: {
-  /** `overlay` = flat transparent bar over the landing hero. `light`/`hero` = solid chrome. */
+  /**
+   * Solid white chrome for marketing surfaces. `hero` / `overlay` are kept as
+   * aliases of `light` so callers that still pass the old overlay API stay on
+   * the solid white sticky header (landing no longer overlays the hero).
+   */
   variant?: 'hero' | 'light' | 'overlay'
   /** Guest Browse: reuse topnav location control without a page eyebrow. */
   browseLocationLabel?: string
 }) {
   const { authUser, mode, currentUser, ready } = useBeam()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const isOverlay = variant === 'overlay'
-  const light = variant === 'light' || (variant === 'hero' && scrolled)
-  const onDark = isOverlay || (variant === 'hero' && !scrolled)
+  // Landing and guest chrome are always solid light; ignore legacy overlay/hero.
+  void variant
   // Demo has no auth session but still uses the same account chrome as live signed-in.
   const showAccountMenu = mode === 'demo' || Boolean(authUser)
   const onboardingDone = Boolean(currentUser?.onboardingCompletedAt)
@@ -51,16 +53,6 @@ export function LandingNav({
   )
 
   useEffect(() => {
-    if (variant !== 'hero') return
-    function onScroll() {
-      setScrolled(window.scrollY > 40)
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [variant])
-
-  useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setMobileOpen(false)
     }
@@ -68,25 +60,22 @@ export function LandingNav({
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
-  const linkClass = onDark
-    ? 'text-[14px] font-medium text-white/90 transition-colors hover:text-white'
-    : 'text-[14px] font-medium text-[#4A5568] transition-colors hover:text-[#071330]'
+  const linkClass =
+    'text-[14px] font-medium text-[#071330] transition-colors hover:text-[#1D5CE5]'
 
-  const loginClass = onDark
-    ? 'hidden min-h-11 items-center text-[13px] font-medium text-white transition hover:text-white/85 sm:inline-flex'
-    : 'hidden min-h-11 items-center text-[13px] font-medium text-[#071330] transition hover:text-[#1D5CE5] sm:inline-flex'
+  const loginClass =
+    'hidden min-h-11 items-center text-[13px] font-medium text-[#071330] transition hover:text-[#1D5CE5] sm:inline-flex'
 
   // 40px+ tap targets (responsive audit / PR #187 used 44px).
-  const ctaClass = onDark
-    ? 'inline-flex h-11 min-h-[44px] items-center justify-center rounded-full bg-white px-4 text-[13px] font-semibold text-[#071330] transition-colors hover:bg-[#EEF2F7]'
-    : 'inline-flex h-11 min-h-[44px] items-center justify-center rounded-full bg-[#1D5CE5] px-4 text-[13px] font-semibold text-white shadow-none transition-colors hover:bg-[#1649BD]'
+  const ctaClass =
+    'inline-flex h-11 min-h-[44px] items-center justify-center rounded-full bg-[#1D5CE5] px-4 text-[13px] font-semibold text-white shadow-none transition-colors hover:bg-[#1649BD]'
 
   const primaryHref = onboardingDone ? '/post' : '/onboarding'
   const primaryLabel = onboardingDone ? 'Post a task' : 'Continue setup'
 
   const accountMenu = showAccountMenu ? (
     <Suspense fallback={null}>
-      <SiteAccountMenu onDark={onDark} />
+      <SiteAccountMenu onDark={false} />
     </Suspense>
   ) : null
 
@@ -94,7 +83,7 @@ export function LandingNav({
     <>
       <BunkWordmark
         size="header"
-        tone={onDark ? 'onDark' : 'brand'}
+        tone="brand"
         className="relative z-10 min-h-[44px] shrink-0"
       />
 
@@ -117,18 +106,14 @@ export function LandingNav({
         {browseLocationLabel ? (
           <BrowseLocationTrigger
             label={browseLocationLabel}
-            className={`inline-flex h-11 min-h-[44px] max-w-[9.5rem] items-center gap-1.5 rounded-[10px] px-2 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:px-2.5 ${
-              onDark
-                ? 'text-white/90 hover:bg-white/10 hover:text-white'
-                : 'text-[#4A5568] hover:bg-[#EEF2F7] hover:text-[#071330]'
-            }`}
+            className="inline-flex h-11 min-h-[44px] max-w-[9.5rem] items-center gap-1.5 rounded-[10px] px-2 text-[13px] font-medium text-[#071330] transition hover:bg-[#EEF2F7] hover:text-[#1D5CE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5CE5]/35 sm:max-w-[14rem] sm:px-2.5"
           />
         ) : null}
         {showAccountMenu ? (
           <>
             <Link
               href={primaryHref}
-              className={`${ctaClass} ${isOverlay ? '' : 'hidden sm:inline-flex'}`}
+              className={ctaClass}
               data-testid="landing-nav-primary"
             >
               {primaryLabel}
@@ -143,7 +128,7 @@ export function LandingNav({
             </Link>
             <Link
               href="/auth?mode=signup&next=%2Fonboarding"
-              className={`${ctaClass} ${isOverlay ? '' : 'hidden sm:inline-flex'}`}
+              className={ctaClass}
               data-testid="landing-nav-signup"
             >
               Sign up
@@ -152,9 +137,7 @@ export function LandingNav({
         )}
         <button
           type="button"
-          className={`inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-[10px] border lg:hidden ${
-            onDark ? 'border-white/30 text-white' : 'border-[#E3E8EF] text-[#071330]'
-          }`}
+          className="inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-[10px] border border-[#E3E8EF] text-[#071330] lg:hidden"
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={mobileOpen}
           onClick={() => setMobileOpen((v) => !v)}
@@ -167,9 +150,7 @@ export function LandingNav({
 
   const mobileMenu = mobileOpen ? (
     <div
-      className={`relative z-50 overflow-hidden border-[#E3E8EF] bg-white lg:hidden ${
-        isOverlay ? 'border-b' : 'mx-4 mb-3 rounded-[12px] border'
-      }`}
+      className="relative z-50 mx-4 mb-3 overflow-hidden rounded-[12px] border border-[#E3E8EF] bg-white lg:hidden"
       data-testid="landing-mobile-menu"
     >
       <div className="flex flex-col py-2">
@@ -236,35 +217,11 @@ export function LandingNav({
     </div>
   ) : null
 
-  if (isOverlay) {
-    return (
-      <div className="landing-overlay-shell pointer-events-none absolute inset-x-0 top-0 z-50">
-        <div className="landing-overlay-scrim pointer-events-none" aria-hidden />
-        <header
-          className="landing-overlay-nav pointer-events-auto relative w-full"
-          data-testid="landing-nav"
-          data-nav-style="overlay"
-        >
-          <div className="beam-container grid h-full grid-cols-[auto_1fr] items-center lg:grid-cols-[1fr_auto_1fr] lg:gap-x-10">
-            {bar}
-          </div>
-        </header>
-        <div className="pointer-events-auto w-full">{mobileMenu}</div>
-      </div>
-    )
-  }
-
   return (
     <header
-      className={`relative z-50 w-full transition-colors ${
-        light
-          ? variant === 'hero'
-            ? 'sticky top-0 border-b border-[#E3E8EF] bg-white'
-            : 'border-b border-[#E3E8EF] bg-white'
-          : ''
-      }`}
+      className="sticky top-0 z-50 w-full border-b border-[#E3E8EF] bg-white"
       data-testid="landing-nav"
-      data-nav-style={variant === 'light' ? 'flat' : 'hero'}
+      data-nav-style="flat"
     >
       <div className="beam-container flex h-14 items-center justify-between lg:h-16">{bar}</div>
       {mobileMenu}

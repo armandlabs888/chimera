@@ -1,12 +1,10 @@
-/* Landing v2 — full-bleed photo hero + stacked product preview (landing route only). */
+/* Landing v2 — solid white header + contained rounded photo hero (landing route only). */
 
 .landing-root {
-  --landing-overlay-nav-height: 56px;
-  /* Top inset so the overlay header row is not flush with the viewport edge. */
-  --landing-overlay-nav-inset: 18px;
-  --landing-float-header-offset: calc(
-    var(--landing-overlay-nav-inset) + var(--landing-overlay-nav-height)
-  );
+  --landing-header-height: 56px;
+  --landing-hero-top-gap: 12px;
+  --landing-hero-radius: 16px;
+  --landing-hero-side-inset: 12px;
 
   /* Shared rhythm + surfaces (refinement; keep locked light palette). */
   --landing-space-1: 8px;
@@ -365,19 +363,37 @@
 
 @media (min-width: 768px) {
   .landing-root {
-    --landing-overlay-nav-inset: 26px;
+    --landing-hero-top-gap: 20px;
+    --landing-hero-radius: 22px;
+    --landing-hero-side-inset: var(--beam-shell-gutter, 24px);
   }
 }
 
-.landing-hero-photo {
-  /* Flat overlay header: full-width bar, no inset pill. Reserve header height
-     plus top inset so hero content clears the overlay. */
-  --landing-hero-content-pad-top: var(--landing-float-header-offset);
+@media (min-width: 1024px) {
+  .landing-root {
+    --landing-header-height: 64px;
+    --landing-hero-top-gap: 24px;
+    --landing-hero-radius: 24px;
+  }
+}
 
-  /* Fill the first viewport so no white strip shows under the photo on load. */
-  min-height: 100svh;
+/* Outer hero band: white page chrome; photo lives only inside the frame below. */
+.landing-hero-photo {
   margin-bottom: 0;
-  border-radius: 0;
+  padding-top: var(--landing-hero-top-gap);
+  padding-bottom: 0;
+  background: #ffffff;
+}
+
+.landing-hero-frame {
+  position: relative;
+  box-sizing: border-box;
+  width: var(--beam-content, 1296px);
+  max-width: calc(100% - (2 * var(--landing-hero-side-inset)));
+  margin-inline: auto;
+  border-radius: var(--landing-hero-radius);
+  /* Fill the first viewport under the sticky header + top gap. */
+  min-height: calc(100svh - var(--landing-header-height) - var(--landing-hero-top-gap));
   display: flex;
   flex-direction: column;
   background: #071330;
@@ -464,22 +480,27 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding-top: var(--landing-hero-content-pad-top);
-  /* Bottom pad lifts the centered stack (~3 lines) above the below-header
-     center while keeping clearance under the overlay header and room for
-     the describe dropdown. Mobile ~48px lift; tablet/desktop ~72px lift. */
-  padding-bottom: 136px;
+  padding-top: 48px;
+  /* Bottom pad leaves room for the describe dropdown below the search box. */
+  padding-bottom: 72px;
+}
+
+/* Frame already applies page side margins; keep light inner pad only. */
+.landing-hero-copy {
+  width: 100%;
+  max-width: 100%;
+  padding-inline: 16px;
+  box-sizing: border-box;
 }
 
 @media (min-width: 768px) {
   .landing-hero-content {
-    padding-bottom: 200px;
+    padding-top: 56px;
+    padding-bottom: 96px;
   }
-}
 
-@media (min-width: 1280px) {
-  .landing-hero-content {
-    padding-bottom: 208px;
+  .landing-hero-copy {
+    padding-inline: 24px;
   }
 }
 
@@ -673,44 +694,13 @@
   }
 }
 
-/* Flat overlay header: full-bleed, transparent, no pill/shadow. */
-.landing-overlay-shell {
-  width: 100%;
-  padding-top: var(--landing-overlay-nav-inset, 18px);
-}
-
-.landing-overlay-scrim {
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  height: calc(112px + var(--landing-overlay-nav-inset, 18px));
-  background: linear-gradient(
-    180deg,
-    rgba(7, 19, 48, 0.55) 0%,
-    rgba(7, 19, 48, 0.22) 55%,
-    rgba(7, 19, 48, 0) 100%
-  );
-  z-index: 0;
-}
-
-.landing-overlay-nav {
-  position: relative;
-  z-index: 1;
-  height: var(--landing-overlay-nav-height, 56px);
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-}
-
 /* Legacy browse-v3 float offset (unused by current browse-hc shell; kept for safety). */
 .browse-v3 {
-  --landing-overlay-nav-height: 56px;
-  --landing-float-header-offset: var(--landing-overlay-nav-height);
+  --landing-header-height: 56px;
   --browse-header-gap: 40px;
   --browse-banner-h: 0px;
   padding-top: calc(
-    var(--landing-float-header-offset) + var(--browse-header-gap) + var(--browse-banner-h)
+    var(--landing-header-height) + var(--browse-header-gap) + var(--browse-banner-h)
   );
 }
 
@@ -726,7 +716,7 @@
 
 .browse-filter-bar {
   position: sticky;
-  top: calc(var(--landing-float-header-offset) + var(--browse-banner-h));
+  top: calc(var(--landing-header-height) + var(--browse-banner-h));
   z-index: 30;
   background: #fff;
 }

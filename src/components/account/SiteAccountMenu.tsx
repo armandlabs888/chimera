@@ -21,7 +21,7 @@ export function SiteAccountMenu({
   mobile = false,
   onNavigate,
 }: {
-  /** Landing overlay: light chevron on dark hero chrome. */
+  /** Rare dark chrome: light chevron (legacy; landing now uses solid white). */
   onDark?: boolean
   /** Render mobile sheet links instead of the desktop trigger/menu. */
   mobile?: boolean

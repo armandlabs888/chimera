@@ -58,26 +58,22 @@ try {
     const metrics = await page.evaluate(() => {
       const hero = document.querySelector('section.landing-hero-photo')
       const content = document.querySelector('[data-testid="landing-hero"]')
-      const stack = content?.querySelector('.beam-container')
+      const stack =
+        content?.querySelector('.landing-hero-copy') || content?.querySelector('.beam-container')
       const h1 = content?.querySelector('h1')
-      const header =
-        document.querySelector('.landing-overlay-nav') ||
-        document.querySelector('[data-testid="landing-nav"]')
+      const header = document.querySelector('[data-testid="landing-nav"]')
+      const frame = document.querySelector('.landing-hero-frame')
       if (!hero || !content || !stack || !h1) return { ok: false, reason: 'missing nodes' }
 
-      const hr = hero.getBoundingClientRect()
+      const hr = (frame || hero).getBoundingClientRect()
       const sr = stack.getBoundingClientRect()
       const h1Style = getComputedStyle(h1)
-      const headerBottom = header
-        ? header.getBoundingClientRect().bottom
-        : parseFloat(
-            getComputedStyle(hero).getPropertyValue('--landing-hero-content-pad-top') ||
-              getComputedStyle(hero).getPropertyValue('--landing-float-header-offset'),
-          ) || 56
+      const headerBottom = header ? header.getBoundingClientRect().bottom : 56
 
-      const belowHeaderCenter = headerBottom + (window.innerHeight - headerBottom) / 2
+      const frameCenter = hr.top + hr.height / 2
       const stackCenter = sr.top + sr.height / 2
-      const deltaFromBelowHeaderCenter = Math.round(stackCenter - belowHeaderCenter)
+      const deltaFromBelowHeaderCenter = Math.round(stackCenter - frameCenter)
+      const belowHeaderCenter = frameCenter
 
       return {
         ok: true,

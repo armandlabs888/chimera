@@ -10,15 +10,14 @@ import { AccountDeletedNotice } from './AccountDeletedNotice'
 import { MessagesDrawerHost } from '@/components/messages/MessagesDrawerHost'
 import './landing-v2.css'
 
-/** Landing v2 — flat overlay nav on full-bleed photo hero, Popular services first. */
+/** Landing v2 — solid white sticky header above a contained rounded photo hero. */
 export function LandingPage() {
   return (
     <div className="landing-root relative min-h-dvh bg-white text-[#071330]">
       <Suspense fallback={null}>
         <AccountDeletedNotice />
       </Suspense>
-      {/* Outside the hero so absolute overlay is not trapped by isolate stacking. */}
-      <LandingNav variant="overlay" />
+      <LandingNav variant="light" />
       <main>
         <LandingHero />
         <LandingCategories />
